@@ -224,6 +224,7 @@ const Rays = (() => {
   };
   const grads = new Map();
   function draw(ctx, room, cam, frame) {
+    if (room.theme === 'glass') { Tiles.drawGlassRays(ctx, cam, frame); return; } // Glasturm: Lichtschächte aus den Fenstern der Röhre (tiles.js)
     const wins = WIN[room.theme];
     if (!wins) return;
     const off = ((Math.floor(cam.x * 0.5) % 512) + 512) % 512;
