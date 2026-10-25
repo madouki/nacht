@@ -334,6 +334,7 @@ const PS2 = (() => {
           }
         });
       }
+      if (room.towerTex === 'cave') caveTex(x, Wd, Hd, rnd, twice); // Eisrutsche: Turm aus Höhlenfels im Eis
       for (let y = 0; y < Hd; y += 192) { // vereiste Ringe mit Eiszapfen
         const gy = y + 180, gr = x.createLinearGradient(0, gy, 0, gy + 10); gr.addColorStop(0, '#e8f8ff'); gr.addColorStop(0.4, '#9cd0f4'); gr.addColorStop(1, '#3c74b4');
         x.fillStyle = gr; x.fillRect(0, gy, Wd, 10);
@@ -344,22 +345,48 @@ const PS2 = (() => {
       }
       return c;
     }
-    function buildMirrorTex(room) { // Spiegelschacht: Mantel aus Spiegelfeldern in Silberrahmen, schräge Glanzstreifen, Sterne im Glas
-      const Wd = room.w * T, Hd = room.h * T, c = Sprites.canvas(Wd, Hd), x = c.getContext('2d');
-      let s = 911; const rnd = () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
-      x.fillStyle = '#4c5470'; x.fillRect(0, 0, Wd, Hd);
-      for (let y = 0; y < Hd; y += 64) for (let X = (y / 64) % 2 * 24; X < Wd + 48; X += 48) {
-        const bx = X % Wd, g = x.createLinearGradient(bx, y, bx + 44, y + 60); g.addColorStop(0, '#2c3c6c'); g.addColorStop(0.5, '#141c3c'); g.addColorStop(1, '#0c1028');
-        x.fillStyle = g; x.fillRect(bx + 2, y + 2, 44, 60); if (bx + 46 > Wd) x.fillRect(bx + 2 - Wd, y + 2, 44, 60);
-        x.fillStyle = 'rgba(160,190,240,0.35)'; for (let k = 0; k < 60; k++) x.fillRect(bx + 8 + k * 0.45, y + 2 + k, 3, 1);
-        for (let k = 0; k < 3; k++) { x.fillStyle = rnd() < 0.5 ? '#fcfcfc' : '#a8b8f0'; x.fillRect(bx + 4 + rnd() * 40, y + 4 + rnd() * 56, 1, 1); }
-        x.fillStyle = '#d8e0f4'; x.fillRect(bx, y, 48, 1); x.fillRect(bx, y, 1, 64);
+    // Eishöhlen-Turm (Eisrutsche): dunkler Höhlenfels, vom Eis umschlossen; gefrorene Wasserfälle laufen den Mantel hinab,
+    // Büschel sechskantiger Kristalle (Türkis und Violett) wachsen heraus und glimmen
+    function caveTex(x, Wd, Hd, rnd, twice) {
+      x.fillStyle = 'rgba(6,10,28,0.38)'; x.fillRect(0, 0, Wd, Hd);
+      for (let i = 0; i < Math.round(Wd * Hd / 26000); i++) { // Felsbrocken im Eis
+        const cx = rnd() * Wd, cy = rnd() * Hd, r = 18 + rnd() * 34, n = 7, pts = [];
+        for (let k = 0; k < n; k++) { const a = k / n * Math.PI * 2, rr = r * (0.6 + rnd() * 0.5); pts.push([Math.cos(a) * rr * 1.3, Math.sin(a) * rr]); }
+        twice(cx - r * 1.4, r * 2.8, (ox) => {
+          const bx = ox + r * 1.4;
+          x.fillStyle = rnd() < 0.5 ? '#1c2438' : '#26304a'; x.beginPath(); pts.forEach(([px, py], k) => k ? x.lineTo(bx + px, cy + py) : x.moveTo(bx + px, cy + py)); x.closePath(); x.fill();
+          x.strokeStyle = 'rgba(190,232,255,0.55)'; x.lineWidth = 1; x.beginPath(); pts.slice(4).concat([pts[0]]).forEach(([px, py], k) => k ? x.lineTo(bx + px, cy + py) : x.moveTo(bx + px, cy + py)); x.stroke(); // Reifkante oben
+          x.fillStyle = 'rgba(120,180,230,0.22)'; x.beginPath(); x.ellipse(bx, cy, r * 1.2, r * 0.9, 0, 0, Math.PI * 2); x.fill(); // Eisschicht darüber
+        });
       }
-      return c;
+      for (let i = 0; i < Math.round(Wd / 120); i++) { // gefrorene Wasserfälle
+        const fx = rnd() * Wd, fy = rnd() * Hd * 0.8, fw = 18 + rnd() * 18, fh = 140 + rnd() * 220;
+        twice(fx, fw, (bx) => {
+          const g = x.createLinearGradient(bx, 0, bx + fw, 0); g.addColorStop(0, 'rgba(200,240,255,0)'); g.addColorStop(0.3, 'rgba(210,244,255,0.34)'); g.addColorStop(0.7, 'rgba(160,220,255,0.26)'); g.addColorStop(1, 'rgba(200,240,255,0)');
+          x.fillStyle = g; x.fillRect(bx, fy, fw, fh);
+          for (let k = 0; k < 5; k++) { x.fillStyle = 'rgba(240,252,255,0.5)'; x.fillRect(bx + 3 + rnd() * (fw - 6), fy + rnd() * fh * 0.3, 1, fh * (0.4 + rnd() * 0.5)); }
+          for (let k = 0; k < fw; k += 4) { const l = 6 + rnd() * 14; x.fillStyle = 'rgba(214,244,255,0.8)'; x.beginPath(); x.moveTo(bx + k, fy + fh); x.lineTo(bx + k + 3, fy + fh); x.lineTo(bx + k + 1.5, fy + fh + l); x.closePath(); x.fill(); }
+        });
+      }
+      for (let i = 0; i < Math.round(Wd * Hd / 9000); i++) { // Kristallbüschel
+        const cx = rnd() * Wd, cy = rnd() * Hd, vio = rnd() < 0.3, cnt = 3 + Math.floor(rnd() * 3);
+        twice(cx - 40, 80, (ox) => {
+          const bx = ox + 40;
+          const halo = x.createRadialGradient(bx, cy, 0, bx, cy, 34); halo.addColorStop(0, vio ? 'rgba(190,150,255,0.35)' : 'rgba(120,230,255,0.35)'); halo.addColorStop(1, 'rgba(0,0,0,0)');
+          x.fillStyle = halo; x.fillRect(bx - 34, cy - 34, 68, 68);
+          for (let k = 0; k < cnt; k++) {
+            const a = -Math.PI / 2 + (k - (cnt - 1) / 2) * 0.42 + (rnd() - 0.5) * 0.3, len = 14 + rnd() * 22, wd = 4 + rnd() * 4, ux = Math.cos(a), uy = Math.sin(a), nx = -uy, ny = ux;
+            const P = (t, s) => [bx + ux * t + nx * s, cy + uy * t + ny * s];
+            const poly = [P(0, -wd / 2), P(len * 0.75, -wd / 2), P(len, 0), P(len * 0.75, wd / 2), P(0, wd / 2)];
+            x.fillStyle = vio ? '#8c6cdc' : '#58b8e8'; x.beginPath(); poly.forEach(([px, py], j) => j ? x.lineTo(px, py) : x.moveTo(px, py)); x.closePath(); x.fill();
+            x.fillStyle = vio ? '#d8c8ff' : '#c8f4ff'; x.beginPath(); [P(0, -wd / 2), P(len * 0.75, -wd / 2), P(len, 0), P(len * 0.7, 0), P(0, 0)].forEach(([px, py], j) => j ? x.lineTo(px, py) : x.moveTo(px, py)); x.closePath(); x.fill(); // Lichtseite
+            const [tx, ty] = P(len, 0); x.fillStyle = '#ffffff'; x.fillRect(tx - 1, ty - 1, 2, 2);
+          }
+        });
+      }
     }
     function buildTex(room) {
       if (room.theme === 'ice') return buildIceTex(room);
-      if (room.theme === 'mirror') return buildMirrorTex(room);
       const Wd = room.w * T, Hd = room.h * T, c = Sprites.canvas(Wd, Hd), x = c.getContext('2d');
       let s = 77; const rnd = () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
       x.fillStyle = '#c8a874'; x.fillRect(0, 0, Wd, Hd);
@@ -413,7 +440,7 @@ const PS2 = (() => {
     // Welt-x → Winkel relativ zur Bildmitte
     function angleOf(room, cam, wx) { const C = room.w * T, rel = wrap(wx - (cam.x + View.w / 2) + C / 2, C) - C / 2; return rel / C * Math.PI * 2; }
     function draw(ctx, room, cam, frame, t) {
-      const key = room.w + 'x' + room.h + room.theme, ice = room.theme === 'ice';
+      const key = room.w + 'x' + room.h + room.theme + (room.towerTex || ''), ice = room.theme === 'ice';
       if (!tex || texKey !== key) { tex = buildTex(room); texKey = key; }
       const w = View.w, r = R(room), cx = w / 2, C = room.w * T, camC = cam.x + w / 2;
       if (!shade || shadeW !== w || shadeKey !== key) { shadeFor(w, r, ice); shadeKey = key; }

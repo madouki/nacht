@@ -377,6 +377,7 @@ class Player {
     if (this.onGround) {
       if (this.atkT > 0 || this.crouch) { if (W.room.ice) this.vx *= W.room.iceRamps ? (this.crouch ? 0.998 : 0.993) : 0.975; else this.vx = 0; } // auf Eis rutscht man beim Hieb und Ducken weiter (im Eisturm geduckt fast ungebremst)
       else { const tv = mx * WALK, ice = W.room.ice; if (W.room.iceRamps && mx && Math.sign(this.vx) === mx && Math.abs(this.vx) > WALK) this.vx *= this.boostT > 0 ? 0.999 : 0.993; else this.vx += (tv - this.vx) * (ice ? (mx ? 0.045 : 0.018) : (mx ? 0.38 : 0.5)); if (Math.abs(this.vx) < 0.06) this.vx = 0; if (mx) this.face = mx; } // Eis: träge anfahren, lange nachrutschen; im Eisturm hält der Rampenschwung
+      if (W.room.iceRamps && this.crouch && Math.abs(this.vx) > 0.7 && this.atkT === 0) { const la = Math.max(20, Math.abs(this.vx) * 12), ax = this.vx > 0 ? this.x + this.w : this.x - la; if (Phys.rectSolid(ax, this.feet - 28, la, 12) && !Phys.rectSolid(ax, this.feet - 13, la, 12)) return this.startSlide(true); } // nur, wo flach Platz ist // Eisrutsche: geduckt mit Tempo vor eine niedrige Eisdecke – Bauchrutscher, der Schwung bleibt
       this.coyote = 7;
       this.iceV = !!W.room.iceRamps && Math.abs(this.vx) > WALK + 0.1; // Rutschschwung, der mit in die Luft geht (Schanze)
       if (this.ridePlat && this.ridePlat.passable && I.down) { if (++this.passT > 12) return this.dropThrough(); } else this.passT = 0; // Unten halten reicht auch
@@ -463,7 +464,7 @@ class Player {
     }
     if (mx === -this.face) this.dashT = 0; // Gegenrichtung bricht ab
     this.vy = this.airDash ? 0 : Math.min(this.vy + GRAV, MAXFALL);
-    if (Phys.moveX(this, this.vx)) this.dashT = 0;
+    if (Phys.moveX(this, this.vx) && !(typeof IceWall !== 'undefined' && IceWall.dashBreak(this))) this.dashT = 0; // Eiswand: der Dash bricht hindurch
     const was = this.onGround, r = Phys.moveY(this, this.vy);
     this.onGround = r === 1; if (r) this.vy = 0;
     this.checkPlatforms();
@@ -714,7 +715,7 @@ class Player {
     else if (I.down || (s.dir > 0 ? I.left : I.right)) m = -1;
     if (m) {
       this.stairPos += m * 0.95;
-      if (W.room.theme === 'glass') W.tubeRot = (W.tubeRot || 0) + m * 1.1; // Röhre dreht sich mit: hinauf vorwärts, hinunter zurück
+      if (W.room.theme === 'glass' || W.room.mtower) W.tubeRot = (W.tubeRot || 0) + m * 1.1; // Röhre dreht sich mit: hinauf vorwärts, hinunter zurück
       this.face = m > 0 ? s.dir : -s.dir;
       this.stairUpPose = m > 0;
       if (this.stairPos >= s.len || this.stairPos <= 0) {
@@ -850,20 +851,24 @@ class Player {
   }
 
   // ---------- Rutschen (Unten + Sprung) ----------
-  startSlide() {
+  startSlide(keep) {
+    const sp = Math.abs(this.vx);
+    if (keep && this.vx) this.face = Math.sign(this.vx);
     this.slideT = 26; this.dangle = false; this.setCrouch(true);
     this.y += this.h - SLIDE_H; this.h = SLIDE_H; // ganz flach
-    this.vx = this.face * 3.6; this.inv = Math.max(this.inv, 16);
+    this.slideV = keep ? Math.max(3.6, sp) : 0; // Bauchrutscher auf Eis: mit dem mitgebrachten Tempo
+    this.vx = this.face * (this.slideV || 3.6); this.inv = Math.max(this.inv, 16);
     Audio8.sfx('whoosh'); W.dust(this.cx, this.feet, 5);
   }
   updateSlide(I) {
     this.slideT--;
     const roof = Phys.rectSolid(this.x - 1, this.feet - 20, this.w + 2, 6); // niedrige Decke: weiterrutschen, bis Platz zum Aufstehen ist
     if (roof && this.slideT < 1) this.slideT = 1;
-    if (roof && I) { const mx = (I.right ? 1 : 0) - (I.left ? 1 : 0); if (mx) this.face = mx; }
-    this.vx = this.face * Math.max(roof ? 1.7 : 0.8, 3.6 * this.slideT / 26 + 0.4);
+    if (this.slideV) { this.slideV = Math.max(1.7, this.slideV * 0.996); if (I && I.down && this.slideT < 2 && this.slideV > WALK + 0.3) this.slideT = 2; } // Bauchrutscher: gleitet weiter, solange Unten gehalten wird
+    if (roof && I && !this.slideV) { const mx = (I.right ? 1 : 0) - (I.left ? 1 : 0); if (mx) this.face = mx; }
+    this.vx = this.face * Math.max(roof ? 1.7 : 0.8, this.slideV || 3.6 * this.slideT / 26 + 0.4);
     if (this.slideT % 3 === 0) W.dust(this.cx - this.face * 5, this.feet, 1);
-    if (W.frame % 2 === 0) W.spawn(new Particle(this.cx + this.face * 7, this.feet - 1, this.face * rnd(0.4, 1.4), -rnd(0.4, 1.2), Math.random() < 0.5 ? '#b8a890' : '#7c6c58', 12, 1, 0.12)); // Staub vor dem Fuß
+    if (W.frame % 2 === 0) W.spawn(new Particle(this.cx + this.face * 7, this.feet - 1, this.face * rnd(0.4, 1.4), -rnd(0.4, 1.2), W.room.ice ? (Math.random() < 0.5 ? '#e8f8ff' : '#8cd4f4') : Math.random() < 0.5 ? '#b8a890' : '#7c6c58', 12, 1, 0.12)); // Staub vor dem Fuß (auf Eis: Schnee und Eissplitter)
     this.vy = Math.min(this.vy + GRAV, MAXFALL);
     if (Phys.moveX(this, this.vx)) { if (roof) this.face *= -1; else this.slideT = 0; } // in der Röhre an der Wand: umkehren
     const r = Phys.moveY(this, this.vy);
@@ -873,6 +878,7 @@ class Player {
     if (!this.onGround) this.slideT = 0;
     this.clampRoom(); this.hazards(); this.trackSafe();
     if (this.slideT === 0) { // aufstehen – oder wenigstens ducken, wenn die Decke tief hängt
+      if (this.slideV) { this.vx = this.face * this.slideV; this.slideV = 0; } // Eis: der Schwung bleibt nach dem Aufstehen
       this.setCrouch(false);
       if (this.h < 20 && !Phys.rectSolid(this.x, this.feet - 20, this.w, 20)) { this.y = this.feet - 20; this.h = 20; this.crouch = true; }
     }

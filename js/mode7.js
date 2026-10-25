@@ -48,11 +48,62 @@ const Mode7 = (() => {
     g.addColorStop(0, 'rgba(0,0,0,0.55)'); g.addColorStop(0.18, 'rgba(0,0,0,0)'); g.addColorStop(0.82, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.55)');
     x.fillStyle = g; x.fillRect(0, 0, w, 208);
   }
-  function drawTunnel(ctx, w, t, alpha = 1) {
-    if (!tex) makeTex();
-    if (!shadeC || shadeW !== w) makeShade(w);
+  // Spiegelröhre (Spiegeltunnel im Schloss-Modus) im Stil der Spiegelgalerie von Versailles: je Feld zwei riesige Arkadenspiegel
+  // aus vielen Scheiben mit vergoldeten Sprossen, dazwischen Pilaster aus rotem Marmor mit Goldleisten, rundherum ein Gesims mit
+  // Eierstab, an den Kreuzungen goldene Sonnen. Das Glas ist durchscheinend: darunter liegt das gespiegelte Bild (js/mirror.js);
+  // Rahmen und Glanzstreifen drehen sich mit der Röhre um ihre Längsachse, das Spiegelbild nicht.
+  let mtex = null, mshade = null, mshadeW = 0;
+  function makeMirrorTex() {
+    const c = document.createElement('canvas'); c.width = TW * 4; c.height = TH; // GPU-Leinwand: 208 Zeilenkopien je Bild
+    const x = c.getContext('2d'), img = x.createImageData(TW, TH), d = img.data, M = Mirror, G = M.GOLD;
+    const put = (X, Y, col) => { const i = (Y * TW + X) * 4; d[i] = col[0]; d[i + 1] = col[1]; d[i + 2] = col[2]; d[i + 3] = col.length > 3 ? col[3] : 255; };
+    const FU = 16, FV = 12; // Pilaster (halbe Breite, quer zur Achse), Gesims (halbe Höhe, rundherum); ein Feld je 256 × 256 Texel
+    for (let Y = 0; Y < TH; Y++) for (let X = 0; X < TW; X++) {
+      const du = Math.min(X, TW - X), dv = Math.min(Y, TH - Y);
+      const s = du < FU + 6 && dv < FV + 6 ? M.sun(X < TW / 2 ? X : X - TW, Y < TH / 2 ? Y : Y - TH, 17) : null;
+      if (s) { put(X, Y, s); continue; }
+      if (du < FU) { // Pilaster: Rance-Marmor zwischen Goldleisten, in der Mitte eine goldene Raute
+        const e = FU - du;
+        if (e < 1.5) put(X, Y, G[0]);
+        else if (e < 3.5) put(X, Y, X > TW / 2 ? G[5] : G[2]);                           // Licht von links
+        else if (Math.abs(du) * 1 + Math.abs(Y - 128) * 0.45 < 9) put(X, Y, Math.abs(du) + Math.abs(Y - 128) * 0.45 > 7 ? G[1] : M.gold(5 - (du + Math.abs(Y - 128) * 0.2) * 0.4));
+        else put(X, Y, M.marble(X, Y));
+        continue;
+      }
+      if (dv < FV) { // Gesims: Kanten, Eierstab in der Mitte
+        const e = FV - dv, ex = ((X % 10) + 10) % 10;
+        if (e < 1.5) put(X, Y, G[0]);
+        else if (e < 3) put(X, Y, Y < TH / 2 ? G[1] : G[5]);
+        else if (dv < 5) put(X, Y, ex === 0 || ex === 9 ? G[0] : Math.hypot((ex - 4.5) / 3.6, dv / 4.6) < 1 ? M.gold(5 - Math.hypot(ex - 3.5, dv + 1) * 0.55) : G[1]);
+        else put(X, Y, M.gold(2 + Math.cos(e / FV * Math.PI) * 1.5 + 1));
+        continue;
+      }
+      const u = X - FU, half = u < 112 ? 0 : 1, lu = u - (half ? 168 : 56), vy = Y - FV; // zwei Arkaden je Feld
+      if (Math.abs(u - 112) < 3) { put(X, Y, Math.abs(u - 112) < 1 ? G[5] : G[2]); continue; } // Goldleiste zwischen den Arkaden
+      const a = M.arcade(lu, vy, 44, 6, 220, 29, half + (Y < 128 ? 0 : 2));
+      put(X, Y, a || M.marble(X, Y, 18));
+    }
+    x.putImageData(img, 0, 0);
+    for (let k = 1; k < 4; k++) x.drawImage(c, 0, 0, TW, TH, k * TW, 0, TW, TH);
+    mtex = c;
+  }
+  function makeMirrorShade(w) { // kühler Dunst auf der fernen Rückwand, seitliche Vignette
+    mshadeW = w; mshade = document.createElement('canvas'); mshade.width = w; mshade.height = 208;
+    const x = mshade.getContext('2d');
+    for (let y = 0; y < 208; y++) {
+      const c = Math.cos(Math.atan((y + 0.5 - 104) / FOC));
+      x.fillStyle = `rgba(6,10,34,${(0.34 * Math.pow(c, 4)).toFixed(3)})`; x.fillRect(0, y, w, 1);
+    }
+    const g = x.createLinearGradient(0, 0, w, 0);
+    g.addColorStop(0, 'rgba(0,0,8,0.5)'); g.addColorStop(0.16, 'rgba(0,0,8,0)'); g.addColorStop(0.84, 'rgba(0,0,8,0)'); g.addColorStop(1, 'rgba(0,0,8,0.5)');
+    x.fillStyle = g; x.fillRect(0, 0, w, 208);
+  }
+  function drawTunnel(ctx, w, t, alpha = 1, kind) {
+    const mir = kind === 'mirror';
+    if (mir) { if (!mtex) makeMirrorTex(); if (!mshade || mshadeW !== w) makeMirrorShade(w); }
+    else { if (!tex) makeTex(); if (!shadeC || shadeW !== w) makeShade(w); }
     const camX = (typeof W !== 'undefined' && W.cam) ? W.cam.x : 0;
-    const rot = t * 0.9, step = MOBILE_RENDER || View.lite ? 2 : 1;
+    const src = mir ? mtex : tex, rot = t * (mir ? 0.55 : 0.9), step = MOBILE_RENDER || View.lite ? 2 : 1;
     const mid = (((camX * 0.35) % TW) + TW) % TW + 384; // Bildmitte in der (4x breiten) Textur
     ctx.save();
     ctx.globalAlpha = alpha; ctx.imageSmoothingEnabled = false;
@@ -60,9 +111,9 @@ const Mode7 = (() => {
       const yy = y + step / 2 - 104, phi = Math.atan(yy / FOC); // Blickwinkel auf die Röhreninnenseite
       const v = ((Math.floor(phi * TH * 0.62 + rot) % TH) + TH) % TH;
       const sw = w / Math.sqrt(1 + (yy / FOC) ** 2); // nahe Wand → größer: senkrechte Rippen biegen sich
-      ctx.drawImage(tex, mid - sw / 2, v, sw, 1, 0, y, w, step);
+      ctx.drawImage(src, mid - sw / 2, v, sw, 1, 0, y, w, step);
     }
-    ctx.drawImage(shadeC, 0, 0);
+    ctx.drawImage(mir ? mshade : shadeC, 0, 0);
     ctx.restore();
   }
   // Punkt auf der Röhrenwand (u entlang der Achse, v rund herum, beides in Texturpixeln) → Bildposition und Maßstab –

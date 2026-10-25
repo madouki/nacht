@@ -26,6 +26,7 @@ const W = {
     this.stage = stage; this.roomIdx = roomIdx;
     const def = Levels.STAGES[stage].rooms[roomIdx];
     this.room = { ...def, grid: def.grid.map(r => r.slice()) };
+    if (typeof Mirror !== 'undefined') Mirror.reset(); // kein Spiegelbild aus dem vorigen Raum
     this.ents = []; this.platforms = []; this.boss = null;
     this.camLock = false; this.camTarget = null; this.arenaOn = false; this.arenaX = 0; this.arenaW = 0; this.arenaBoss = null; this.camEase = 0;
     this.tutSign = null; this.exitBlocked = false; this.cleared = false; this.crash = null; this.exiting = false; this.cinema = 0; this.slowmo = 0; this.bossEnraged = false; this.vortexBg = 0; this.stopT = 0;
@@ -73,6 +74,7 @@ const W = {
         case 'flames': FlameChain.spawn(d); break;
         case 'rampchute': this.spawn(new RampChute(d)); break;
         case 'iceskel': this.spawn(new IceSkeleton(d.x, d.y)); break;
+        case 'icewall': this.spawn(new IceWall(d)); break;
         case 'witchgate': this.spawn(new WitchGate(d)); break;
         case 'armor': this.spawn(new ArmorSuit(d)); break;
         case 'pillar': this.spawn(new Pillar(d.x, d.y)); break;
@@ -168,11 +170,6 @@ const W = {
       // dazu Stampfen; die Vergrößerung richtet sich nach dem Ausschlag, nicht nach dem Augenblick – sonst pumpt das Bild
       hx = -Math.sin(this.roll) * clamp(this.room.h * T - this.cam.y - 104, 0, 380) * 0.3;
       cover = 1 + (this.rollAmp * 1.2 + Math.abs(this.sway.a)) * (vw / 208 + 0.3) + (this.rollAmp * 380 * 0.3 * 2) / vw + Math.abs(heave) * 2 / 208;
-    }
-    if (this.room.roll) { // Spiegeltunnel (Schloss-Modus): das Bild dreht sich ganz herum, in den Ecken erscheint die Kulisse aus castle.js
-      if (this.rollBack) this.rollBack(ctx, vw);
-      const c = Math.abs(Math.cos(rot)), s = Math.abs(Math.sin(rot));
-      cover = Math.min(1.25, Math.max((vw * c + 208 * s) / vw, (vw * s + 208 * c) / 208));
     }
     ctx.translate(px + hx, py + heave); ctx.rotate(rot); ctx.scale(z * cover, z * cover); ctx.translate(-px, -py);
   },
@@ -537,7 +534,7 @@ const W = {
     const flashOn = storm && FX.stormOn(storm), dark = STORMY[theme];
     if (flashOn && dark && theme !== 'glass') this.drawCastShadows(ctx); // Blitz in dunklen Sälen: alles wirft harte Schlagschatten an die Wand
     if (!this.room.wrap) this.drawDoor(ctx);
-    const bend = theme === 'glass'; // Glasturm von innen: Plattformen wölben sich zu den Rändern hin zum Betrachter
+    const bend = theme === 'glass' || this.room.mtower; // Glasturm und Spiegelschacht von innen: Plattformen wölben sich zu den Rändern hin zum Betrachter
     if (bend) this.drawTilesBent(ctx); else Tiles.drawTiles(ctx, this.room, this.cam, this.frame);
     const order = ['prop', 'candle', 'platform', 'item', 'enemy', 'boss', 'sub', 'eproj', 'fx'];
     if (this.room.wrap) this.drawOnTower(ctx, order);
@@ -545,7 +542,7 @@ const W = {
     else order.forEach(k => { for (const e of this.ents) if (e.kind === k) e.draw(ctx); if (k === 'boss') this.player.draw(ctx, this.cam); });
     for (const e of this.ents) if (e.drawFront && !e.dead) e.drawFront(ctx); // Bauwerke, die vor dem Helden liegen (Torhaus beim Durchgehen)
     this.drawReflections(ctx, sx, sy);
-    if ((theme === 'throne' || theme === 'gallery' || (theme === 'mirror' && !this.room.wrap)) && !View.lite) this.drawFloorMirror(ctx, sx, sy);
+    if ((theme === 'throne' || theme === 'gallery' || (theme === 'mirror' && !this.room.mtower)) && !View.lite) this.drawFloorMirror(ctx, sx, sy);
     FX.drawAmbient(ctx, this.cam);
     Tiles.drawFront(ctx, this.room, this.cam);
     FX.drawFog(ctx, theme, this.cam, this.frame, this.room.h * T - this.cam.y);
@@ -559,6 +556,7 @@ const W = {
     const p = this.player;
     if (p.alive && p.hp <= p.maxHp / 4) Drama.drawDanger(ctx, vw, 0.35 + Math.sin(this.frame * 0.14) * 0.2);
     if (this.flash > 0 && (this.flash % 6) < 3) { ctx.fillStyle = 'rgba(252,252,252,0.45)'; ctx.fillRect(-4, -4, vw + 8, 216); }
+    if (theme === 'mirror') Mirror.capture(ctx); // Spiegelgalerie: dieses Bild spiegelt sich im nächsten
     ctx.restore();
   },
 

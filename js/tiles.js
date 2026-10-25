@@ -31,7 +31,7 @@ const Tiles = (() => {
     forest: { a: ['#8c7454', '#5c4a34', '#3e3022', '#271d14', '#100a06'], b: ['#a08060', '#76583c', '#523a24', '#33230f', '#140c04'], moss: ['#1e4a22', '#3a7a2c', '#86c050'] },
     spire: { a: ['#fcf0d4', '#e8cc98', '#c09c60', '#846438', '#382412'], b: ['#fce8b0', '#e8c070', '#b8883c', '#7c5420', '#2c1808'] },
     ballroom: { a: ['#fcf4e4', '#e4d4b8', '#bca480', '#806848', '#2c1c10'], b: ['#fce0a8', '#f8b800', '#a80020', '#680010', '#1c0008'] },
-    mirror: { a: ['#e8f0fc', '#a8b4d0', '#6c7894', '#3c4460', '#141828'], b: ['#d8e0f4', '#9ca8c8', '#5c688c', '#2c3454', '#10141e'] },
+    mirror: { a: ['#fcecc8', '#e0b878', '#b07c40', '#704018', '#2c1406'], b: ['#e8a890', '#b05848', '#802c24', '#4c1410', '#1c0604'] }, // Versailles: Gold, Creme, Rance-Marmor
     station: { a: ['#c8705c', '#9c4c34', '#7c3824', '#4c1c10', '#1c0804'], b: ['#9cb4a8', '#5c7c70', '#3c5448', '#1c2c26', '#0a1410'] },
     hotel: { a: ['#e8b070', '#a86c34', '#7c4820', '#4c2810', '#180a04'], b: ['#c89058', '#8c5428', '#5c3014', '#3c1c08', '#140804'] },
   };
@@ -210,13 +210,22 @@ const Tiles = (() => {
     }
     return c;
   }
-  function mirrorTile(top, shelf) { // Spiegelblock: Silberrahmen, dunkelblaues Glas mit schrägem Glanzstreif; shelf = Glasbord
-    const c = C(16, 16), x = c.getContext('2d'), sd = ri(0, 7);
-    px(x, '#5c6480', 0, 0, 16, 16);
-    for (let y = 1; y < 15; y++) for (let X = 1; X < 15; X++) px(x, Math.abs(X - y * 0.7 - sd) < 1.2 ? '#7c94c8' : y < 7 ? '#24345c' : '#18223e', X, y);
-    px(x, '#d8e0f4', 0, 0, 16, 1); px(x, '#d8e0f4', 0, 0, 1, 16); px(x, '#2c3044', 15, 0, 1, 16); px(x, '#2c3044', 0, 15, 16, 1);
-    if (top || shelf) { px(x, '#f4f8ff', 0, 0, 16, 1); px(x, '#b8c8e8', 0, 1, 16, 1); }
-    if (shelf) { px(x, '#c8d4ec', 0, 13, 16, 1); for (let X = 2; X < 16; X += 5) px(x, '#f4f8ff', X, 3, 1, 1); }
+  function mirrorTile(top, shelf) { // Spiegelgalerie (Versailles): roter Rance-Marmor mit Goldfuge; top = Parkettkante mit Goldleiste, shelf = vergoldete Konsole
+    const c = C(16, 16), x = c.getContext('2d'), G = Mirror.GOLD, rgb = (a) => `rgb(${a.map(Math.round)})`;
+    if (shelf) { // Konsole: Goldgesims mit Perlstab, darunter eine geschwungene Stütze
+      for (let y = 0; y < 5; y++) px(x, rgb(G[[5, 4, 3, 2, 1][y]]), 0, y, 16, 1);
+      for (let X = 1; X < 16; X += 3) px(x, rgb(G[5]), X, 2, 1, 1);
+      for (let y = 5; y < 14; y++) { const k = (y - 5) / 9, w = Math.round(6 - k * 4), x0 = 8 - (w >> 1) + Math.round(Math.sin(k * 3) * 1.5); px(x, rgb(G[2]), x0, y, w, 1); px(x, rgb(G[4]), x0, y, 1, 1); }
+      px(x, rgb(G[4]), 6, 13, 4, 1);
+      return c;
+    }
+    const ox = ri(0, 400), oy = ri(0, 400);
+    for (let y = 0; y < 16; y++) for (let X = 0; X < 16; X++) px(x, rgb(Mirror.marble(ox + X, oy + y)), X, y);
+    px(x, rgb(G[0]), 0, 15, 16, 1); px(x, rgb(G[0]), 15, 0, 1, 16); px(x, rgb(G[3]), 0, 14, 15, 1); // Goldfuge
+    if (top) { // Versailler Parkett: Eichenrauten, vorn eine Goldleiste
+      for (let X = 0; X < 16; X++) for (let y = 0; y < 5; y++) px(x, (X + y * 2) % 8 < 1 || (X - y * 2 + 16) % 8 < 1 ? '#5c3418' : y === 0 ? '#ecbc7c' : y === 1 ? '#c48c4c' : '#9c6434', X, y);
+      px(x, rgb(G[5]), 0, 5, 16, 1); px(x, rgb(G[2]), 0, 6, 16, 1); px(x, rgb(G[0]), 0, 7, 16, 1);
+    }
     return c;
   }
   function platformTop() { // Bahnsteigkante: weiße Sicherheitslinie, graue Granitplatten mit Fugen, darunter Ziegel der Bahnsteigmauer
@@ -1624,26 +1633,8 @@ const Tiles = (() => {
       add('wall', c, 0.5, { vtile: true });
       L.push({ name: 'stacks', custom: drawStacks3D, par: 1, c: C(1, 1) }); // PS2-3D: frei stehende Regale ragen aus den Pilastern
       L.push({ name: 'books', custom: drawBookFlock, par: 0.7, c: C(1, 1) }); // in der Ferne kreisen Bücherschwärme
-    } else if (theme === 'mirror') { // Spiegeltunnel/-schacht: Leere mit Sternen, davor eine Wand aus Spiegelfeldern in Silberrahmen
-      const sky = C(640, 208), xs = sky.getContext('2d');
-      smooth(xs, 640, 208, ['#020108', '#06041a', '#0c0828', '#120c34', '#180e3c', '#1c1040', '#201244', '#241446', '#281648']);
-      for (let i = 0; i < 90; i++) px(xs, rand() < 0.3 ? '#fcfcfc' : '#8c8cc8', ri(0, 639), ri(0, 207));
-      add('sky', sky, 0, { wrap: false });
-      const H = 320, c = C(512, H), x = c.getContext('2d');
-      for (let by = 0; by < H; by += 80) for (let bx = (by / 80) % 2 * 32; bx < 512 + 64; bx += 64) { // Spiegelfelder, versetzt
-        const X0 = bx % 512;
-        for (let Y = 0; Y < 76; Y++) for (let X = 0; X < 60; X++) {
-          const edge = X < 2 || X > 57 || Y < 2 || Y > 73, streak = Math.abs((X - Y * 0.55) - 14 - (bx % 3) * 8) < 2.5, d = Y / 76;
-          const col = edge ? (X === 0 || Y === 0 ? '#d8e0f4' : '#6c7490') : streak ? '#6c84b8' : (X + Y) % 11 === 0 ? '#1c2a50' : d < 0.5 ? '#141c3c' : '#10162e';
-          px(x, col, (X0 + X) % 512, by + Y);
-        }
-        px(x, '#a8b0c8', X0 % 512, by + 76, 60, 2); // Sockelleiste
-      }
-      shade(x, 512, H, '#04030c', 0, 40);
-      x.globalCompositeOperation = 'destination-out'; // durch einzelne Felder sieht man in die Leere
-      for (const [bx, by] of [[96, 80], [352, 160], [224, 0]]) x.fillRect(bx + 6, by + 6, 48, 64);
-      x.globalCompositeOperation = 'source-over';
-      add('wall', c, 0.5, { vtile: true });
+    } else if (theme === 'mirror') { // Spiegelgalerie (Versailles): liegende Röhre im Tunnel, stehende im Schacht – beide spiegeln wirklich (js/mirror.js)
+      L.push({ name: 'mirrortube', custom: (ctx, cam, frame) => W.room.mtower ? drawMirrorTower(ctx, cam, frame) : drawMirrorTunnel(ctx, cam, frame), par: 0.5, c: C(1, 1) });
     } else if (theme === 'station') { // Bahnhof Krat: Bahnhofshalle aus Eisen und Glas – Bogenbinder, Glasdach mit Nachthimmel, hinten Backsteinwand mit Bogenfenstern
       const sky = C(640, 208), xs = sky.getContext('2d');
       smooth(xs, 640, 208, ['#020208', '#050412', '#0a081c', '#100c24', '#160f2a', '#1c122e', '#221632', '#2a1a34', '#321e34']);
@@ -2259,7 +2250,7 @@ const Tiles = (() => {
     const t = {
       ground, groundTop, alt,
       X: stone(p.b, { crack: true, chip: true }), Y: stone(p.b, { crack: true, chip: true }),
-      spikes: spikes(), up: theme === 'library' ? stairTile(p.b, 1, '#e8c070') : theme === 'foyer' || theme === 'hotel' ? carpetStair(1) : theme === 'ship' ? ratline(1) : theme === 'glass' ? stairTile(p.a, 1, '#fce0a8') : stairTile(p.b, 1), down: theme === 'library' ? stairTile(p.b, -1, '#e8c070') : theme === 'foyer' || theme === 'hotel' ? carpetStair(-1) : theme === 'ship' ? ratline(-1) : theme === 'glass' ? stairTile(p.a, -1, '#fce0a8') : stairTile(p.b, -1),
+      spikes: spikes(), up: theme === 'library' ? stairTile(p.b, 1, '#e8c070') : theme === 'foyer' || theme === 'hotel' ? carpetStair(1) : theme === 'ship' ? ratline(1) : theme === 'glass' || theme === 'mirror' ? stairTile(p.a, 1, '#fce0a8') : stairTile(p.b, 1), down: theme === 'library' ? stairTile(p.b, -1, '#e8c070') : theme === 'foyer' || theme === 'hotel' ? carpetStair(-1) : theme === 'ship' ? ratline(-1) : theme === 'glass' || theme === 'mirror' ? stairTile(p.a, -1, '#fce0a8') : stairTile(p.b, -1),
       toppers: [0, 1, 2, 3].map(v => topper(theme, v)), hangers: [0, 1, 2].map(v => hanger(theme, v)),
       bg: buildBg(theme), crate: theme === 'ship' ? crate(p.b) : null,
       B: theme === 'library' ? [0, 1, 2, 3].map(() => bookcase(false)) : null, Btop: theme === 'library' ? [0, 1, 2, 3].map(() => bookcase(true)) : null,
@@ -3078,7 +3069,7 @@ const Tiles = (() => {
       const out = new Int32Array(w * h);
       for (let i = 0, j = 0; i < out.length; i++, j += 4) {
         const r = Math.min(255, a[j] + g[j] * k), gg = Math.min(255, a[j + 1] + g[j + 1] * k), b = Math.min(255, a[j + 2] + g[j + 2] * k);
-        out[i] = (255 << 24) | (b << 16) | (gg << 8) | r;
+        out[i] = (a[j + 3] << 24) | (b << 16) | (gg << 8) | r; // Alpha bleibt: Spiegelglas ist durchscheinend
       }
       return out;
     });
@@ -3100,6 +3091,66 @@ const Tiles = (() => {
     tubeOut.x.putImageData(tubeOut.img, 0, 0);
     ctx.drawImage(tubeOut.c, 0, 0);
     ctx.drawImage(tb.shade, 0, 0, w, 1, 0, 0, w, H); // ferne Wand im Dunst
+  }
+
+  // ---------------- Spiegelgalerie (Versailles) ----------------
+  // Spiegeltunnel: Mode-7-Röhre, die sich um ihre Längsachse dreht (wie der Seelenstrudel), aus riesigen Arkadenspiegeln (mode7.js)
+  function drawMirrorTunnel(ctx, cam, frame) { Mirror.reflect(ctx, 'v'); Mode7.drawTunnel(ctx, View.w, frame, 1, 'mirror'); Mirror.drawLusters(ctx, cam, frame, 'v'); }
+  // Spiegelschacht: gebaut wie der Glasturm – stehende Röhre, die sich auf den Treppen mitdreht – nur mit Spiegeln statt Buntglas
+  let mirrorTower = null;
+  function drawMirrorTower(ctx, cam, frame) {
+    if (!mirrorTower) mirrorTower = buildMirrorTower();
+    Mirror.reflect(ctx, 'h');
+    drawGlassTube(ctx, cam, frame, mirrorTower.c, mirrorTower.gc);
+    Mirror.drawLusters(ctx, cam, frame, 'h');
+  }
+  // Turmmantel 512 × 624 (läuft zweimal um die Röhre): drei Geschosse à 208 px, je Geschoss zwei Arkadenspiegel (150 × 180)
+  // zwischen Pilastern aus Rance-Marmor mit vergoldeten Kapitellen und Basen, Gesimse mit Eierstab, Sonnen in den Zwickeln.
+  // Leuchtebene: Glanz auf dem Glas und Kerzenschimmer auf dem Gold – wechselt mit den Leuchtstufen von drawGlassTube.
+  function buildMirrorTower() {
+    const TWm = 512, THm = 624, M = Mirror, G = M.GOLD;
+    const c = C(TWm, THm), x = c.getContext('2d'), img = x.createImageData(TWm, THm), d = img.data;
+    const gc = C(TWm, THm), gx = gc.getContext('2d'), gimg = gx.createImageData(TWm, THm), gd = gimg.data;
+    const put = (X, Y, col, glow) => {
+      const i = (Y * TWm + X) * 4; d[i] = col[0]; d[i + 1] = col[1]; d[i + 2] = col[2]; d[i + 3] = col.length > 3 ? col[3] : 255;
+      if (glow) { gd[i] = glow[0]; gd[i + 1] = glow[1]; gd[i + 2] = glow[2]; } gd[i + 3] = 255;
+    };
+    const SHINE = [34, 26, 8];
+    for (let Y = 0; Y < THm; Y++) for (let X = 0; X < TWm; X++) {
+      const ty = Y % 208, tier = Math.floor(Y / 208), lx = X % 256, lu = lx - 128, cb = Math.min(ty, 208 - ty); // cb: Abstand zum Gesims
+      if (cb < 9) { // Gesims zwischen den Geschossen: Kanten, Eierstab
+        const ex = X % 10, e = 9 - cb;
+        if (e < 1.5) put(X, Y, G[0]);
+        else if (e < 3) put(X, Y, ty < 104 ? G[1] : G[5], SHINE);
+        else if (cb < 4.5) put(X, Y, ex === 0 || ex === 9 ? G[0] : Math.hypot((ex - 4.5) / 3.6, cb / 4.2) < 1 ? M.gold(5 - Math.hypot(ex - 3.5, cb + 1) * 0.55) : G[1], SHINE);
+        else put(X, Y, M.gold(3 + Math.cos(e / 9 * Math.PI) * 1.2), SHINE);
+        continue;
+      }
+      const pd = Math.min(lx, 256 - lx); // Abstand zur Pilastermitte
+      if (pd < 36) { // Pilaster: Basis, Schaft aus Marmor zwischen Goldleisten, Kapitell mit Akanthus und Voluten
+        const e = 36 - pd;
+        if (ty < 34) { // Kapitell
+          const k = (ty - 9) / 25, leaf = Math.sin(pd * 0.55 + ty * 0.3) > 0.2, vol = Math.hypot(pd - 26, ty - 16) < 6;
+          if (e < 2) put(X, Y, G[0]);
+          else if (vol) put(X, Y, Math.hypot(pd - 26, ty - 16) < 2.5 ? G[1] : G[4], SHINE);
+          else if (pd < 30 - k * 6) put(X, Y, leaf ? M.gold(4.4 - k) : G[2], SHINE);
+          else put(X, Y, M.marble(X, Y, 20));
+        } else if (ty > 178) { // Basis: Wulst und Plinthe
+          if (e < 2) put(X, Y, G[0]); else put(X, Y, ty < 186 ? M.gold(4 - Math.abs(ty - 182) * 0.6) : ty < 190 ? G[1] : M.marble(X, Y, 8), ty < 190 ? SHINE : null);
+        } else if (e < 2) put(X, Y, G[0]);
+        else if (e < 4.5) put(X, Y, lx < 128 ? G[2] : G[5], SHINE);                         // Goldleiste, Licht von links
+        else if (pd < 22 && pd > 18) put(X, Y, M.gold(3 + (pd - 20)), SHINE);                 // Kannelur aus Gold
+        else put(X, Y, M.marble(X, Y));
+        continue;
+      }
+      const vy = ty - 9, a = M.arcade(lu, vy, 75, 6, 186, 30, tier * 2 + (X < 256 ? 0 : 1));
+      if (a) { const glass = a[3] < 255; put(X, Y, a, glass ? (a[0] > 220 ? [150, 160, 190] : [26, 32, 52]) : SHINE); continue; }
+      const sn = M.sun(Math.abs(lu) - 76, vy - 22, 13); // Sonnen in den Zwickeln über dem Bogen
+      if (sn) { put(X, Y, sn, SHINE); continue; }
+      put(X, Y, M.marble(X, Y, 22));
+    }
+    x.putImageData(img, 0, 0); gx.putImageData(gimg, 0, 0);
+    return { c, gc };
   }
 
   function drawLayer(ctx, l, cam, frame, vt = false) {
@@ -3216,7 +3267,7 @@ const Tiles = (() => {
   let frontA = 1;
   function drawFront(ctx, room, cam) {
     if (room.theme === 'ship') { drawShipFront(ctx, room, cam, W.frame); return; }
-    if (room.theme === 'glass') { drawGlassFront(ctx, room, cam); return; }
+    if (room.theme === 'glass' || room.mtower) { drawGlassFront(ctx, room, cam); return; }
     frontA += ((W.arenaOn && !W.room.mini ? 0.2 : 1) - frontA) * 0.06; // im Bosskampf treten die Vordergrund-Silhouetten zurück
     const c = fronts[room.theme] || (fronts[room.theme] = buildFront(room.theme));
     const off = ((Math.floor(cam.x * 1.3) % 640) + 640) % 640;
@@ -3230,7 +3281,7 @@ const Tiles = (() => {
   // PS1-Look: frei liegende Blöcke bekommen Oberseite und Seitenflächen, die zum Fluchtpunkt laufen – affin texturiert mit
   // der Kachel selbst (wie die PS1: leicht wabernde Texturen), Oberseiten aufgehellt, Seiten abgedunkelt. Vorn liegen die
   // Kachelflächen wie bisher. In den Mode-7-Röhren (Strudel, Glasturm) bleibt es flach.
-  const SOLID3D = new Set(['#', '=', 'X', 'Y', 'B']), FLAT3D = new Set(['vortex', 'glass']);
+  const SOLID3D = new Set(['#', '=', 'X', 'Y', 'B']), FLAT3D = new Set(['vortex', 'glass', 'mirror']);
   function draw3DFaces(ctx, room, cam, t, x0, x1, y0, y1, ox, oy) {
     const g = room.grid, VX = View.w / 2, VY = 60, K = 0.9;
     const solid = (cx, cy) => { if (cx < 0 || cx >= room.w) return true; if (cy < 0 || cy >= room.h) return false; return SOLID3D.has(g[cy][cx]); };

@@ -1674,10 +1674,16 @@ class TutorialSign extends Ent {
 // Durchschlupf: eine Kachel hohe Öffnung (Luke unter der Kajüte, Mauerdurchbruch) – dunkel mit Rahmen, damit man sieht,
 // dass man hier hindurchrutschen kann
 class Crawl extends Ent {
-  constructor(d) { super(d.x0 * T, d.row * T, (d.x1 - d.x0 + 1) * T, T); this.kind = 'prop'; this.stone = d.style === 'stone'; }
+  constructor(d) { super(d.x0 * T, d.row * T, (d.x1 - d.x0 + 1) * T, T); this.kind = 'prop'; this.stone = d.style === 'stone'; this.ice = d.style === 'ice'; }
   draw(ctx) {
     const X = Math.round(this.x - W.cam.x), Y = Math.round(this.y - W.cam.y), w = this.w;
     if (X > View.w || X + w < 0) return;
+    if (this.ice) { // niedrige Eisdecke: kalter Schatten, Eiszapfen an der Unterkante, Frost am Boden
+      const g = ctx.createLinearGradient(0, Y, 0, Y + 16); g.addColorStop(0, 'rgba(4,16,44,0.5)'); g.addColorStop(0.5, 'rgba(4,16,44,0.12)'); g.addColorStop(1, 'rgba(120,200,255,0.18)');
+      ctx.fillStyle = g; ctx.fillRect(X, Y, w, 16);
+      for (let k = 2; k < w - 2; k += 5) { const l = 2 + ((k * 7) % 4); ctx.fillStyle = '#c8f0fc'; ctx.fillRect(X + k, Y, 2, l); ctx.fillStyle = '#ffffff'; ctx.fillRect(X + k, Y, 1, l - 1); }
+      return;
+    }
     if (this.stone) { // Steinüberhang: offen, nur ein weicher Schatten unter der Unterkante und auf dem Boden
       const g = ctx.createLinearGradient(0, Y, 0, Y + 16); g.addColorStop(0, 'rgba(6,2,12,0.45)'); g.addColorStop(0.45, 'rgba(6,2,12,0.12)'); g.addColorStop(1, 'rgba(6,2,12,0.3)');
       ctx.fillStyle = g; ctx.fillRect(X, Y, w, 16);

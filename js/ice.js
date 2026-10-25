@@ -446,3 +446,42 @@ class WitchGate extends Ent {
     }
   }
 }
+
+// Eiswand (Eisrutsche): ein Pfropfen aus klarem Gletschereis, so hoch wie der Held, darüber festes Gestein – springen hilft
+// nicht, rutschen auch nicht. Nur ein Dash zerschlägt sie (Player.updateDash fragt IceWall.dashBreak, sobald der Dash an
+// einer Wand hängen bleibt). Die Kacheln verschwinden aus dem Raster; beim nächsten Betreten steht die Wand wieder.
+class IceWall extends Ent {
+  constructor(d) {
+    super(d.x * T, d.y0 * T, (d.w || 2) * T, (d.y1 - d.y0 + 1) * T); this.kind = 'prop';
+    this.cells = [];
+    for (let y = d.y0; y <= d.y1; y++) for (let x = d.x; x < d.x + (d.w || 2); x++) { this.cells.push([x, y]); W.room.grid[y][x] = '#'; }
+    this.broken = false;
+  }
+  touch(p) { // berührt der dashende Held die Wand? (über die Naht des Turms hinweg gemessen)
+    const C = W.room.w * T;
+    let dx = p.cx - this.cx; if (W.room.wrap) dx = ((dx + C / 2) % C + C) % C - C / 2;
+    return Math.abs(dx) < (p.w + this.w) / 2 + 3 && p.feet > this.y + 4 && p.y < this.y + this.h && Math.sign(dx) === -p.face;
+  }
+  shatter() {
+    this.broken = true; this.t = 0;
+    for (const [x, y] of this.cells) W.room.grid[y][x] = '.';
+    Audio8.sfx('shatter', this.cx); Audio8.sfx('crack', this.cx); W.shake = Math.max(W.shake, 8); Input.rumble(0.6, 0.5, 260);
+    for (let i = 0; i < 26; i++) W.spawn(new Particle(this.x + rnd(0, this.w), this.y + rnd(0, this.h), rnd(-2.6, 2.6), rnd(-3, -0.4), i % 3 ? '#c8f4fc' : '#ffffff', 40, i % 4 ? 2 : 3, 0.18));
+    W.addScore(200); W.popup(this.cx, this.y - 6, tr('iceWallBroken'), '#c8f4fc');
+  }
+  static dashBreak(p) {
+    for (const e of W.ents) if (e instanceof IceWall && !e.broken && e.touch(p)) { e.shatter(); return true; }
+    return false;
+  }
+  update() { this.t = (this.t || 0) + 1; }
+  draw(ctx) { // Risse und ein kaltes Glimmen im Eis – verrät, dass hier etwas nachgibt
+    if (this.broken) return;
+    const x = Math.round(this.x - W.cam.x), y = Math.round(this.y - W.cam.y), w = this.w, h = this.h, pulse = 0.5 + 0.5 * Math.sin(this.t * 0.08);
+    ctx.fillStyle = `rgba(150,230,255,${(0.18 + pulse * 0.16).toFixed(2)})`; ctx.fillRect(x + 2, y + 2, w - 4, h - 4);
+    ctx.strokeStyle = 'rgba(240,252,255,0.9)'; ctx.lineWidth = 1; ctx.beginPath();
+    ctx.moveTo(x + w * 0.5, y + 2); ctx.lineTo(x + w * 0.42, y + h * 0.3); ctx.lineTo(x + w * 0.6, y + h * 0.5); ctx.lineTo(x + w * 0.38, y + h * 0.78); ctx.lineTo(x + w * 0.5, y + h - 2);
+    ctx.moveTo(x + w * 0.6, y + h * 0.5); ctx.lineTo(x + w - 3, y + h * 0.42); ctx.moveTo(x + w * 0.42, y + h * 0.3); ctx.lineTo(x + 3, y + h * 0.2);
+    ctx.stroke();
+    ctx.fillStyle = '#ffffff'; if ((this.t >> 3) % 6 === 0) { ctx.fillRect(x + w * 0.5 - 2, y + h * 0.5, 5, 1); ctx.fillRect(x + w * 0.5, y + h * 0.5 - 2, 1, 5); }
+  }
+}

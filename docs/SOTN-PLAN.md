@@ -325,11 +325,21 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   einem Rückwärts-Dash aus; ab halber Energie Nachbilder und Schattendolche. Lohn (`MINI_LOOT`): **Schattenzwilling** –
   Begleiter, der 18 Bilder hinter dir herläuft und jeden Hieb wiederholt. Hinten eine brüchige Wand (Mauerbraten, Goldsack),
   dahinter eine Nische mit der Tür zum Spiegeltunnel.
-- **Spiegeltunnel** (Thema `mirror`): das ganze Spielfeld rollt mit dem Fortschritt einmal um die Bildmitte (`def.roll`,
-  `W.roll`, world.js `applyCamFx` mit Kulisse `W.rollBack`: Kaleidoskop aus Spiegelringen in den Ecken) – in der Mitte steht
-  alles kopfüber, die Steuerung bleibt. Boden spiegelt, Standspiegel spiegeln verzögert. **Spiegelschacht:** Zylinder
-  (`wrap`, Turmmantel aus Spiegelfeldern in ps2.js) zum Hochklettern, dreht sich um die senkrechte Achse; oben eine Tür auf
-  die Empore der Marmorgalerie (Schleife).
+- **Spiegeltunnel** (Thema `mirror`): eine Spiegelgalerie wie in Versailles als Mode-7-Röhre, die sich um ihre Längsachse
+  dreht wie der Seelenstrudel (`Mode7.drawTunnel(…, 'mirror')`) – das Spielfeld bleibt aufrecht. Je Feld zwei riesige
+  Arkadenspiegel aus vielen Scheiben mit vergoldeten Sprossen, Pilaster aus rotem Rance-Marmor, Eierstab-Gesimse, goldene
+  Sonnen, Kristalllüster und goldene Kandelaber, Versailler Parkett. Die Spiegel spiegeln wirklich (js/mirror.js):
+  `Mirror.capture` hält am Ende von `World.draw` das Spielfeld fest, `Mirror.reflect` legt es im nächsten Bild unter das
+  durchscheinende Glas – nahe Wände gekippt, die Rückwand verkleinert zum Fluchtpunkt (endloser Spiegeltunnel, Verstärkung
+  unter 1, damit nichts zu Weiß aufschaukelt). **Spiegelschacht** (`mtower`): gebaut wie der Glasturm – Zickzack-Treppen
+  und zwei Aufzüge in einer stehenden Röhre (`drawGlassTube` mit Versailles-Spiegeltextur, Alpha bleibt erhalten), die sich
+  auf den Treppen mitdreht und ebenfalls spiegelt; oben eine Tür auf die Empore der Marmorgalerie (Schleife).
+- **Eisrutsche** (Tür in der Eishöhle, x 80; nur mit Schattenmantel und Enterhaken – Tor `{ relics: [...] }`): Hindernis-
+  Rutschpartie abwärts um einen Eishöhlen-Turm (`wrap`, `ice`, `iceRamps`, Turmmantel `towerTex: 'cave'` mit Fels,
+  gefrorenen Wasserfällen und Kristallbüscheln). Stachelfelder im Rutschweg, Eiswände (`icewall`, nur ein Dash zerschlägt
+  sie), niedrige Eisdecken (geduckt mit Tempo: Bauchrutscher mit vollem Schwung), eine unterbrochene Rampe mit Stacheln am
+  Fuß, zwei Gruben mit Ankerringen (18 breit, Ring-zu-Ring), Schanzen über Stachelreihen. Unten Truhe und Lebensgefäß, eine
+  Einbahn-Tür führt zurück in die Eishöhle.
 - **Selbsttest – Erreichbarkeit:** Breitensuche vom Wald über Türen und Ausgänge; jeder Raum, der so nicht erreichbar ist,
   wird gemeldet („Raum unerreichbar“).
 - **Lokschuppen und der Zugführer:** Tür am linken Bahnsteig (x 14) in den Lokschuppen über dem Bahnhof (Stufe 3). Links

@@ -267,29 +267,37 @@ const Castle = (() => {
     mirrors.decor = [6, 11, 16, 21, 26, 31].map(x => D('mirror', x, 10));
     add('spiegel', 2, 4, [14, -11], mirrors);
     LINKS.push([[2, -1], { x: 34, y: 10, door: 'side' }, ['side', 'spiegel'], 'start', {}]); // Marmorgalerie → Spiegelkabinett
-    // Spiegeltunnel: das ganze Bild rollt einmal herum (roll: von Kachel x0 bis x1, in der Mitte kopfüber), Spiegel spiegeln
-    // verzögert, der Boden spiegelt. Danach der Spiegelschacht: ein Zylinder (wrap) aus Spiegelfeldern, der sich beim Klettern um
-    // die senkrechte Achse dreht; oben führt eine Tür auf die Empore der Marmorgalerie zurück (Schleife).
+    // Spiegeltunnel: eine Spiegelgalerie wie in Versailles als Röhre, die sich um ihre Längsachse dreht (wie der Seelenstrudel) –
+    // riesige Arkadenspiegel aus vielen Scheiben, Pilaster aus rotem Marmor, Gold; die Spiegel spiegeln wirklich (js/mirror.js),
+    // der Parkettboden auch. Danach der Spiegelschacht: gebaut wie der Glasturm – senkrechter Aufstieg im Zickzack über Treppen
+    // und zwei Aufzüge, ringsum eine stehende Spiegelröhre, die sich auf den Treppen mitdreht; oben führt eine Tür auf die Empore
+    // der Marmorgalerie zurück (Schleife).
     const tunnel = R(96, 'mirror')
       .ground(0, 95)
-      .fill(20, 9, 21, 10, '#').fill(44, 8, 45, 10, '#').fill(70, 9, 71, 10, '#')     // Spiegelsäulen zum Überspringen
-      .fill(30, 7, 35, 7, '=').fill(56, 7, 61, 7, '=').fill(80, 8, 84, 8, '=')         // Glasborde
+      .fill(20, 9, 21, 10, '#').fill(44, 8, 45, 10, '#').fill(70, 9, 71, 10, '#')     // Marmorsockel zum Überspringen
+      .fill(30, 7, 35, 7, '=').fill(56, 7, 61, 7, '=').fill(80, 8, 84, 8, '=')         // vergoldete Konsolen
       .candle(10, 8, 'H').candle(32, 5).candle(50, 8, '$').candle(58, 5, 'H').candle(76, 8).candle(90, 8, 'H')
       .enemy('ghost', 26, 4).enemy('bat', 40, 3).enemy('ghost', 64, 4).enemy('knight', 52, 10).enemy('bat', 86, 3)
       .prop('vessel', { x: 58, y: 6 })
+      .prop('candelabra', { x: 6, y: 10 }).prop('candelabra', { x: 16, y: 10 }).prop('candelabra', { x: 38, y: 10 })
+      .prop('candelabra', { x: 64, y: 10 }).prop('candelabra', { x: 76, y: 10 }).prop('candelabra', { x: 93, y: 10 })
       .music('stage3').label('SPIEGELTUNNEL').start(2, 10).done();
-    tunnel.roll = [8, 88];
-    tunnel.decor = [12, 28, 40, 52, 66, 78].map(x => D('mirror', x, 10));
     add('spiegeltunnel', 2, 5, [13, -10], tunnel);
-    const shaft = R(48, 'mirror', 40)
-      .ground(0, 47, 38)
-      .fill(4, 34, 9, 34, '=').fill(9, 30, 14, 30, '=').fill(14, 26, 19, 26, '=').fill(19, 22, 24, 22, '=')
-      .fill(24, 18, 29, 18, '=').fill(29, 14, 34, 14, '=').fill(34, 10, 39, 10, '=').fill(39, 6, 44, 6, '=')
-      .fill(40, 3, 47, 3, '=')                                                            // oben: Ausstieg zur Galerie
-      .candle(6, 31, 'H').candle(16, 23).candle(26, 15, '$').candle(36, 7, 'H').candle(45, 0)
-      .enemy('bat', 10, 27).enemy('ghost', 20, 19).enemy('bat', 30, 11).enemy('ghost', 40, 4)
-      .chest(41, 2).prop('vessel', { x: 46, y: 2 })
-      .wrap().music('stage3').label('SPIEGELSCHACHT').start(2, 37).done();
+    const shaft = R(28, 'mirror', 44)
+      .ground(0, 27)
+      .stair(6, 41, 5, 1).fill(11, 37, 18, 37, '=')
+      .stair(14, 36, 5, 1).fill(19, 32, 26, 32, '=')
+      .stair(24, 31, 5, -1).fill(10, 27, 19, 27, '=')
+      .elevator(8, 27, 19).fill(10, 19, 15, 19, '=')
+      .stair(12, 18, 5, 1).fill(17, 14, 25, 14, '=')
+      .stair(24, 13, 5, -1).fill(10, 9, 19, 9, '=')
+      .elevator(8, 9, 3).fill(10, 3, 18, 3, '=')                                        // oben: Ausstieg zur Galerie
+      .candle(12, 35).candle(17, 35, 'H').candle(21, 30).candle(25, 30, '$').candle(11, 25, 'H').candle(18, 25)
+      .candle(11, 17, 'H').candle(19, 12, 'W').candle(24, 12).candle(12, 7, 'H').candle(17, 7)
+      .enemy('knight', 14, 26).enemy('ghost', 16, 34).enemy('ghost', 20, 6).enemy('bat', 22, 24).enemy('bat', 6, 15)
+      .chest(17, 2).prop('vessel', { x: 11, y: 2 })
+      .music('stage3').label('SPIEGELSCHACHT').start(2, 41).done();
+    shaft.mtower = true; // Spiegelröhre wie der Glasturm (tiles.js drawMirrorTower)
     add('spiegelschacht', 2, 5, [19, -10], shaft);
     // Versunkene Kapelle (unter dem Kanal, Tür am Kanalanfang): oben eine Luftblase mit Steg, darunter alles unter Wasser – nur
     // mit dem Taucherhelm zu erkunden. Säulenstümpfe, Simse, eine versunkene Glocke (Blender), Quallen, Altar mit Lebensgefäß.
@@ -308,10 +316,71 @@ const Castle = (() => {
     chapel.decor = [D('sbell', 33.5, 23)];
     add('kapelle', 1, 4, [14, 12], chapel);
     LINKS.push([['side', 'kanal'], { x: 6, y: 10, door: 'side' }, ['side', 'kapelle'], { x: 3, y: 7, door: 'side' }, {}]); // Kanal → versunkene Kapelle
+    // Eisrutsche (Tür in der Eishöhle, nur mit Enterhaken und Schattenmantel): eine Hindernis-Rutschpartie abwärts rund um einen
+    // Turm aus Höhlenfels im Eis (PS2-3D wie der Eisturm, eigener Mantel mit Kristallbüscheln und gefrorenen Wasserfällen).
+    // Vier Runden um den Turm: Stacheln im Rutschweg überspringen, eine Eiswand, die nur ein Dash zerschlägt, unter niedrigen
+    // Eisdecken durchrutschen (geduckt mit Tempo: Bauchrutscher), eine unterbrochene Rampe (am Fuß Stacheln – vorher abspringen),
+    // zwei Gruben, zu breit für jeden Sprung, nur am Ankerring zu überschwingen, Schanzen über Stachelreihen. Unten ein Schatz
+    // und ein Lebensgefäß, dann zurück in die Eishöhle.
+    const slide = R(60, 'ice', 88)
+      // Runde 1: Gipfel, Rampe, Stachelfeld, Eiswand (Dash), niedrige Eisdecke (rutschen), unterbrochene Rampe
+      .fill(0, 6, 5, 7, '#').statue(3, 5)
+      .stair(14, 14, 9, -1)                                                       // R1: (6,6) → (14,14)
+      .fill(14, 15, 19, 16, '#').fill(20, 15, 23, 15, '^').fill(20, 16, 23, 16, '#').fill(24, 15, 41, 16, '#') // Stachelfeld im Boden
+      .statue(25, 14)
+      .fill(28, 5, 29, 12, '#').prop('icewall', { x: 28, y0: 13, y1: 14 })        // Fels, darunter die Eiswand
+      .fill(32, 7, 38, 13, '#').prop('crawl', { x0: 32, x1: 38, row: 14, style: 'ice' }) // niedrige Eisdecke: eine Kachel Luft
+      .stair(49, 22, 8, -1)                                                       // R2: (42,15) → (49,22)
+      .fill(49, 23, 52, 23, '^').fill(49, 24, 52, 24, '#')                        // am Fuß Stacheln: vorher abspringen
+      .stair(59, 32, 7, -1)                                                       // R3: (53,26) → (59,32), endet an der Naht
+      // Runde 2: Grube mit zwei Ankerringen, Rampe, Schanze über Stacheln
+      .fill(0, 33, 3, 34, '#').statue(1, 32)
+      .fill(4, 37, 21, 37, '^').fill(4, 38, 21, 38, '#').ring(8, 29).ring(19, 24) // 18 breit: nur mit der Peitsche (zweiter Ring dort, wo der Bogen vom ersten vorbeiführt)
+      .fill(22, 33, 27, 34, '#').statue(24, 32)
+      .stair(35, 40, 8, -1).fill(35, 41, 37, 41, '=')                             // R4 mit Schanze
+      .fill(38, 45, 43, 45, '^').fill(38, 46, 43, 46, '#')
+      .stair(52, 51, 9, -1)                                                       // R5: (44,43) → (52,51)
+      // Runde 3: zweite Eiswand, zweite Eisdecke, Rampe mit Schanze über Stacheln
+      .fill(52, 52, 59, 53, '#').fill(0, 52, 24, 53, '#').statue(56, 51)
+      .fill(5, 43, 6, 49, '#').prop('icewall', { x: 5, y0: 50, y1: 51 })
+      .statue(9, 51)
+      .fill(12, 44, 18, 50, '#').prop('crawl', { x0: 12, x1: 18, row: 51, style: 'ice' })
+      .statue(21, 51)
+      .stair(32, 59, 8, -1).fill(32, 60, 34, 60, '=')                             // R6: (25,52) → (32,59) mit Schanze
+      .fill(35, 64, 40, 64, '^').fill(35, 65, 40, 65, '#')
+      .stair(49, 70, 9, -1)                                                       // R7: (41,62) → (49,70)
+      // Runde 4: zweite Ringgrube, lange Rampe hinab zum Turmfuß
+      .fill(49, 71, 59, 72, '#').fill(0, 71, 3, 72, '#').statue(54, 70)
+      .fill(4, 75, 21, 75, '^').fill(4, 76, 21, 76, '#').ring(8, 67).ring(19, 62)
+      .fill(22, 71, 32, 72, '#').statue(26, 70)
+      .stair(47, 85, 15, -1)                                                      // R8: (33,71) → (47,85)
+      .ground(0, 59, 86).statue(51, 85)                                           // Turmfuß
+      .chest(55, 85, 'big').prop('vessel', { x: 13, y: 85 })
+      .prop('hint', { x: 7, y: 3, w: 3, h: 3, key: 'hintRamp' })
+      .prop('hint', { x: 24, y: 12, w: 4, h: 3, key: 'hintIceWall' })
+      .prop('hint', { x: 29, y: 12, w: 3, h: 3, key: 'hintBelly' })
+      .prop('hint', { x: 0, y: 30, w: 4, h: 3, key: 'hintRing' })
+      .prop('hint', { x: 2, y: 49, w: 3, h: 3, key: 'hintIceWall' })
+      .prop('ticicle', { x: 10, y: 3, ty: 10.5, len: 22 }).prop('ticicle', { x: 31, y: 29, ty: 36.5, len: 22 })
+      .prop('ticicle', { x: 45, y: 59, ty: 66.5, len: 22 }).prop('ticicle', { x: 40, y: 71, ty: 78.5, len: 22 })
+      .prop('boost', { x: 31, y: 36.5 }).prop('boost', { x: 36, y: 74.5 })
+      .prop('flames', { pts: [[19.5, 13.6], [20.7, 12.7], [21.9, 12.4], [23.1, 12.7], [24.3, 13.6]] })
+      .prop('flames', { pts: [[39.5, 38.1], [41.2, 37.4], [42.8, 37.9], [44.4, 39.9]] })
+      .prop('flames', { pts: [[36.5, 57.1], [38.2, 56.4], [39.8, 56.9], [41.4, 58.9]] })
+      .prop('rampchute', { bx: 48, by: 86 })
+      .enemy('iceskel', 23, 51).enemy('iceskel', 30, 70).enemy('bat', 36, 24).enemy('bat', 44, 58)
+      .candle(2, 3, 'H').candle(36, 13).candle(25, 30, '$').candle(10, 49, 'H').candle(23, 68).candle(58, 83, 'H')
+      .wrap().ice().iceRamps().music('stage2').label('EISRUTSCHE').start(2, 5).done();
+    slide.towerTex = 'cave'; // eigener Turmmantel (ps2.js caveTex)
+    add('eisrutsche', 1, 3, [12, 3], slide);
+    LINKS.push(
+      [[1, 2], { x: 80, y: 10, door: 'side' }, ['side', 'eisrutsche'], 'start', { relics: ['dash', 'ring'] }], // Eishöhle → Eisrutsche (oben)
+      [['side', 'eisrutsche'], { x: 57, y: 85, door: 'side' }, [1, 2], { x: 24, y: 10, door: 'side' }, { oneway: true }], // Turmfuß → zurück in die Eishöhle
+    );
     LINKS.push(
       [['side', 'spiegel'], { x: 37, y: 10, door: 'side' }, ['side', 'spiegeltunnel'], 'start', {}],   // Kabinett (hinter der Wand) → Tunnel
       [['side', 'spiegeltunnel'], 'right', ['side', 'spiegelschacht'], 'start', {}],                  // Tunnel → Schacht
-      [['side', 'spiegelschacht'], { x: 43, y: 2, door: 'side' }, [2, -1], { x: 34, y: 6, door: 'side' }, {}], // Schacht oben → Empore der Galerie
+      [['side', 'spiegelschacht'], { x: 13, y: 2, door: 'side' }, [2, -1], { x: 34, y: 6, door: 'side' }, {}], // Schacht oben → Empore der Galerie
     );
     LINKS.push(
       [['side', 'bahnhof'], { x: 14, y: 17, door: 'side' }, ['side', 'schuppen'], 'start', {}],                                 // Bahnsteig → Lokschuppen
@@ -458,6 +527,7 @@ const Castle = (() => {
     if (d.gate.crack) return !!crack[d.gate.crack];
     if (d.gate.beat) { const a = ref(d.gate.beat); return !!(a && boss[roomKey(a.s, a.r)]); }
     if (d.gate.item) return !!inv[d.gate.item];
+    if (d.gate.relics) return d.gate.relics.every(k => !!relic[k]); // Relikte nötig (Eisrutsche: ohne Dash und Enterhaken säße man fest)
     return true;
   }
   // Art einer Tür: Rand (links/rechts durchgehen) oder ↑-Tür
@@ -1114,23 +1184,6 @@ const Castle = (() => {
     }
   }
   if (on && typeof BOSSES !== 'undefined') BOSSES.doppel = Doppel;
-  // Spiegeltunnel: hinter dem gedrehten Bild (world.js applyCamFx) ein Kaleidoskop – achteckige Spiegelringe fliegen auf den
-  // Betrachter zu, Facettenspeichen drehen sich, Glitzern
-  function rollBack(ctx, vw) {
-    const t = W.frame, cx = vw / 2, cy = 104;
-    ctx.fillStyle = '#04030c'; ctx.fillRect(-2, -2, vw + 4, 212);
-    for (let i = 0; i < 10; i++) {
-      const z = (i + (t * 0.01) % 1) / 10, r = 12 + z * z * 300, rot = t * 0.003 * (i % 2 ? 1 : -1) + i * 0.4;
-      ctx.strokeStyle = `rgba(${120 + i * 12},${150 + i * 9},255,${(0.12 + z * 0.45).toFixed(2)})`; ctx.lineWidth = 1 + z * 3;
-      ctx.beginPath();
-      for (let k = 0; k <= 8; k++) { const a = rot + k / 8 * Math.PI * 2, x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r * 0.8; if (k) ctx.lineTo(x, y); else ctx.moveTo(x, y); }
-      ctx.stroke();
-    }
-    ctx.strokeStyle = 'rgba(180,200,255,0.12)'; ctx.lineWidth = 1;
-    for (let k = 0; k < 8; k++) { const a = t * 0.002 + k / 8 * Math.PI * 2; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * 400, cy + Math.sin(a) * 320); ctx.stroke(); }
-    for (let k = 0; k < 14; k++) { const a = k * 2.39 + t * 0.004, rr = 30 + ((k * 37 + t * 0.6) % 260); ctx.fillStyle = k % 3 ? '#a8b8f0' : '#fcfcfc'; ctx.fillRect(Math.round(cx + Math.cos(a) * rr), Math.round(cy + Math.sin(a) * rr * 0.8), 1, 1); }
-  }
-  if (on) W.rollBack = rollBack;
   // Spiegel im Kabinett: zeigen den Helden – solange der Doppelgänger lebt, mit Verzögerung (das Spiegelbild ist nicht ganz
   // bei der Sache), danach wieder brav. Der Doppelgänger selbst hat kein Spiegelbild.
   const mirrorHist = [];
@@ -1321,10 +1374,6 @@ const Castle = (() => {
     if (lockT > 0) lockT--;
     roomT++;
     const p = W.player, def = S()[s].rooms[r];
-    if (def.roll) { // Spiegeltunnel: das Bild rollt einmal ganz herum, je nachdem, wie weit der Held ist (Mitte: kopfüber)
-      const u = clamp((p.cx - def.roll[0] * T) / ((def.roll[1] - def.roll[0]) * T), 0, 1), want = Math.PI * 2 * (u - Math.sin(Math.PI * 2 * u) / (Math.PI * 2));
-      W.roll += (want - W.roll) * 0.12;
-    }
     if (def.grates) grateBlock(p); // Gitter: nur Nebel kommt durch
     if (def.waterLine !== undefined && !relic.diver && p.alive && p.feet > def.waterLine * T + 22 && p.state !== 'dead') { Game.note('castleDrown'); p.fallPenalty(3); } // ohne Helm: ertrinken
     if (!p.alive || p.state !== 'normal' || W.arenaOn) { push = 0; lastX = p.x; return; }
@@ -1352,7 +1401,7 @@ const Castle = (() => {
       else use = I.right && (p.onGround || p.batForm || p.mistForm) && p.cx > (def.w - 2.5) * T && push >= 6; // Fledermaus und Nebel ziehen durch Seitenausgänge
       if (!use) continue;
       if (!gateOpen(d)) {
-        if (!lockT) { lockT = 90; if (d.gate.seals) Game.note('castleSeals', seals(), sealRooms().length); else if (d.gate.crack) Game.note('castleCrackHard'); else if (d.gate.beat) Game.note('castleBarred'); else if (d.gate.item) Game.note('castleLocked13'); else Game.note('castleLocked'); Audio8.sfx('select'); }
+        if (!lockT) { lockT = 90; if (d.gate.seals) Game.note('castleSeals', seals(), sealRooms().length); else if (d.gate.crack) Game.note('castleCrackHard'); else if (d.gate.beat) Game.note('castleBarred'); else if (d.gate.item) Game.note('castleLocked13'); else if (d.gate.relics) Game.note('castleNeedRelic', d.gate.relics.filter(k => !relic[k]).map(k => tr('relic_' + k)).join(' + ')); else Game.note('castleLocked'); Audio8.sfx('select'); }
         push = 0; break;
       }
       push = 0; Game.castleGo(d.to); return;
