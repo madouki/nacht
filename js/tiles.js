@@ -3389,6 +3389,38 @@ const Tiles = (() => {
     }
     ctx.setTransform(M);
   }
+  // Portal (Türen im Schloss-Modus): ein Mauerblock aus den Kacheln des Raums – Front aus Boden- und Deckkacheln, Seiten- und
+  // Deckfläche zum selben Fluchtpunkt wie die 3D-Kacheln (in den Röhren- und Turmräumen flach). So steht eine Tür nicht frei
+  // vor der Kulisse, sondern sitzt im Mauerwerk des Raums. Liefert die Steinfarben des Themas für Bogen und Laibung.
+  const portalCols = {};
+  function portalColors(theme, t) {
+    if (portalCols[theme]) return portalCols[theme];
+    const d = t.ground[0].getContext('2d').getImageData(0, 0, 16, 16).data, c = [0, 0, 0];
+    let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 128) { c[0] += d[i]; c[1] += d[i + 1]; c[2] += d[i + 2]; n++; }
+    const base = c.map(v => v / Math.max(1, n)), col = (k, a = 0) => `rgb(${base.map(v => Math.round(Math.max(0, Math.min(255, v * k + a)))).join(',')})`;
+    return (portalCols[theme] = { light: col(1.45, 26), mid: col(1.05, 6), dark: col(0.62), deep: col(0.32), joint: col(0.45) });
+  }
+  function drawPortal(ctx, room, X, Y, cols, rows, flat) {
+    const t = build(room.theme), VX = View.w / 2, VY = 60, K = 0.9, Wd = cols * 16;
+    const top = (c) => t.groundTop[((c % 4) + 4) % 4], body = (c, r) => t.ground[(((c + r * 2) % 4) + 4) % 4];
+    if (!flat && !FLAT3D.has(room.theme) && !View.lite3d) {
+      const M = ctx.getTransform(), A = M.a, B = M.b, Cc = M.c, D = M.d, E = M.e, F = M.f;
+      const face = (img, X0, Y0, ux, uy, vx2, vy2, tone) => {
+        const a = ux / 16, b = uy / 16, c = vx2 / 16, d = vy2 / 16;
+        ctx.setTransform(A * a + Cc * b, B * a + D * b, A * c + Cc * d, B * c + D * d, A * X0 + Cc * Y0 + E, B * X0 + D * Y0 + F);
+        ctx.drawImage(toned(img, tone), 0, 0);
+      };
+      for (let r = 0; r < rows; r++) {
+        const Yr = Y + r * 16, img = r ? body(0, r) : top(0);
+        if (X > VX) face(img, X, Yr, 0, 16, (VX - X) * (1 - K), (VY - Yr) * (1 - K), 1);
+        if (X + Wd < VX) face(img, X + Wd, Yr, 0, 16, (VX - X - Wd) * (1 - K), (VY - Yr) * (1 - K), 1);
+      }
+      if (Y > VY) for (let c = 0; c < cols; c++) face(top(c), X + c * 16, Y, 16, 0, (VX - X - c * 16) * (1 - K), (VY - Y) * (1 - K), 0);
+      ctx.setTransform(M);
+    }
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) ctx.drawImage(r ? body(c, r) : top(c), Math.round(X + c * 16), Math.round(Y + r * 16));
+    return portalColors(room.theme, t);
+  }
   // Treppen in PS2-3D: jede Stufe bekommt eine Trittfläche und eine Setzstufe, die zum Fluchtpunkt in die Tiefe laufen
   // (wie die Seiten der 3D-Kacheln); Farben aus der Treppenkachel des Themas. Davor liegt wie bisher die Kachel selbst.
   function stairCols(t) {
@@ -3489,5 +3521,5 @@ const Tiles = (() => {
     }
   }
 
-  return { build, drawBg, drawTiles, drawFront, layer, drawLayer, shipLights, drawCloud7, drawGlassRays };
+  return { build, drawBg, drawTiles, drawFront, layer, drawLayer, shipLights, drawCloud7, drawGlassRays, drawPortal };
 })();

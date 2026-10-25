@@ -591,14 +591,23 @@ const Castle = (() => {
       if (this.d.place && this.d.place.door === 'hotel') { drawHotelDoor(this, ctx); return; } // Hoteltür
       if (this.d.place && this.d.place.door === 'room13') { drawRoomDoor(this, ctx); return; } // Zimmer 13
       // Torbogen aus Stein wie die Speicherkammer: Quaderring, Schlussstein, dunkler Gang mit Fackelschein; verschlossen: Fallgitter
-      const cx = x + this.w / 2, bot = y + this.h, r = this.w / 2 - 4, t = this.t;
-      arch(ctx, cx, y + 2, r + 5, bot, '#1c1824'); arch(ctx, cx, y + 3, r + 4, bot, '#5c5468'); arch(ctx, cx, y + 4, r + 3, bot, '#4c4458');
-      ctx.fillStyle = '#2c2634'; // Fugen im Quaderring
+      const cx = x + this.w / 2, bot = y + this.h, r = this.w / 2 - 4, t = this.t, room = W.room;
+      // Mauerblock aus den Kacheln des Raums (3D wie die Levelblöcke), darin der Bogen in den Steinfarben des Raums
+      const pw = this.seal ? 4 : 3, ph = this.seal ? 5 : 4, px0 = cx - pw * 8;
+      ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(cx, bot, pw * 8 + 6, 4, 0, 0, Math.PI * 2); ctx.fill(); // Schatten am Boden
+      const pc = Tiles.drawPortal(ctx, room, px0, bot - ph * 16, pw, ph, room.wrap || room.theme === 'glass' || room.mtower);
+      ctx.fillStyle = 'rgba(0,0,0,0.22)'; ctx.fillRect(px0, bot - ph * 16, pw * 16, ph * 16); // Block etwas zurücknehmen, die Tür bleibt der Blickfang
+      arch(ctx, cx, y + 2, r + 5, bot, pc.deep); arch(ctx, cx, y + 3, r + 4, bot, pc.light); arch(ctx, cx, y + 4, r + 3, bot, pc.mid);
+      ctx.fillStyle = pc.joint; // Fugen im Quaderring
       for (const a of [0.2, 0.55, 0.9, 1.25, 1.6, 1.95, 2.3, 2.65, 3.0]) { const ax = Math.round(cx - Math.cos(a) * (r + 3.5)), ay = Math.round(y + 4 + r + 3 - Math.sin(a) * (r + 3)); ctx.fillRect(ax, ay, 1, 2); }
       for (let yy = y + r + 8; yy < bot - 2; yy += 7) { ctx.fillRect(cx - r - 4, yy, 3, 1); ctx.fillRect(cx + r + 1, yy, 3, 1); }
-      ctx.fillStyle = '#8c84a0'; ctx.fillRect(cx - r - 4, y + r + 6, 1, bot - y - r - 8); // Lichtkante links
+      ctx.fillStyle = pc.light; ctx.fillRect(cx - r - 4, y + r + 6, 1, bot - y - r - 8); // Lichtkante links
       if (this.seal) { arch(ctx, cx, y + 5, r + 2, bot, '#3c1c64'); ctx.fillStyle = '#b070fc'; for (let i = 0; i < 5; i++) { const a = 0.3 + i * 0.62; ctx.fillRect(Math.round(cx - Math.cos(a) * (r + 3)), Math.round(y + 4 + r + 3 - Math.sin(a) * (r + 3)), 2, 2); } } // Runen
       arch(ctx, cx, y + 6, r + 1, bot, '#07050c');
+      { const k = 0.22, VX = View.w / 2, VY = 60, bx = cx + (VX - cx) * k, by = y + 6 + (VY - y - 6) * k; // Laibung: der Gang führt perspektivisch in die Tiefe
+        arch(ctx, cx, y + 6, r + 1, bot, pc.deep);
+        ctx.save(); ctx.beginPath(); ctx.rect(cx - r - 1, y + 7 + r, (r + 1) * 2, bot - y - 7 - r); ctx.arc(cx, y + 7 + r, r + 1, Math.PI, 0); ctx.clip(); // nur innerhalb der Öffnung
+        ctx.globalAlpha = 0.8; arch(ctx, Math.round(bx), Math.round(by + 3), Math.round((r + 1) * 0.8), Math.round(bot + (VY - bot) * k * 0.4), '#020104'); ctx.restore(); }
       if (open) { // Fackelschein aus dem Gang, unten am stärksten
         const a = 0.16 + 0.06 * Math.sin(t * 0.06);
         for (let k = 0; k < 4; k++) { ctx.globalAlpha = a * (k + 1) / 4; arch(ctx, cx, y + 16 + k * 6, r - 2, bot, this.seal ? '#9c4cfc' : '#c87830'); }
@@ -608,8 +617,8 @@ const Castle = (() => {
         ctx.fillRect(cx - r, y + 18, r * 2, 2); ctx.fillRect(cx - r, y + 30, r * 2, 2);
         ctx.fillStyle = '#7c7c8c'; for (let i = -r + 2; i < r; i += 5) { ctx.fillRect(cx + i, y + 18, 1, 1); ctx.fillRect(cx + i, y + 30, 1, 1); }
       }
-      ctx.fillStyle = '#2c2634'; ctx.fillRect(cx - r - 5, bot - 2, (r + 5) * 2, 2); ctx.fillStyle = '#6c6480'; ctx.fillRect(cx - r - 5, bot - 2, (r + 5) * 2, 1); // Schwelle
-      ctx.fillStyle = '#8c84a0'; ctx.fillRect(cx - 3, y + 1, 6, 4); ctx.fillStyle = '#5c5468'; ctx.fillRect(cx - 2, y + 2, 4, 3); // Schlussstein
+      ctx.fillStyle = pc.joint; ctx.fillRect(cx - r - 5, bot - 2, (r + 5) * 2, 2); ctx.fillStyle = pc.mid; ctx.fillRect(cx - r - 5, bot - 2, (r + 5) * 2, 1); // Schwelle
+      ctx.fillStyle = pc.light; ctx.fillRect(cx - 3, y + 1, 6, 4); ctx.fillStyle = pc.mid; ctx.fillRect(cx - 2, y + 2, 4, 3); // Schlussstein
       if (open && !this.seal) for (const s of [-1, 1]) { // Wandfackeln links und rechts
         const fx = cx + s * (r + 8), fy = y + 14;
         ctx.fillStyle = '#3c2c1c'; ctx.fillRect(fx - 1, fy, 2, 6); ctx.fillStyle = '#6c6c7c'; ctx.fillRect(fx - 2, fy, 4, 1);
