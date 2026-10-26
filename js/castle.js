@@ -551,22 +551,23 @@ const Castle = (() => {
     return (doorCache[k] = out);
   }
   // wohin führt der Ausgang des aktuellen Raums? (null = wie im Arcade-Modus)
-  function forward() {
-    const s = W.stage, r = W.roomIdx;
+  function forward() { return forwardOf(W.stage, W.roomIdx); }
+  function forwardOf(s, r) { // dasselbe für einen beliebigen Raum (Wegweiser-Suche)
     if (r + 1 < S()[s].rooms.length && !S()[s].rooms[r + 1].side) return { s, r: r + 1, place: 'start' };
     for (const [A, pa, B, pb] of LINKS) { const a = ref(A), b = ref(B); if (a && b && same(a, s, r) && pa === 'exit') return { s: b.s, r: b.r, place: pb }; }
     return null;
   }
   const sealRooms = () => { const out = []; S().forEach((st, s) => { if (s < S().length - 1) st.rooms.forEach((d, r) => { if (d.arena) out.push(roomKey(s, r)); }); }); return out; };
   const seals = () => sealRooms().filter(k => boss[k]).length;
-  function gateOpen(d) {
-    if (!d.gate) return true;
-    if (d.gate.boss) return !!boss[roomKey(W.stage, W.roomIdx)];
-    if (d.gate.seals) return seals() >= sealRooms().length;
-    if (d.gate.crack) return !!crack[d.gate.crack];
-    if (d.gate.beat) { const a = ref(d.gate.beat); return !!(a && boss[roomKey(a.s, a.r)]); }
-    if (d.gate.item) return !!inv[d.gate.item];
-    if (d.gate.relics) return d.gate.relics.every(k => !!relic[k]); // Relikte nötig (Eisrutsche: ohne Dash und Enterhaken säße man fest)
+  function gateOpen(d) { return gateOk(d.gate, W.stage, W.roomIdx); }
+  function gateOk(g, s, r) { // Bedingung g einer Tür im Raum (s, r) erfüllt? (boss: der Boss dieses Raums)
+    if (!g) return true;
+    if (g.boss) return !!boss[roomKey(s, r)];
+    if (g.seals) return seals() >= sealRooms().length;
+    if (g.crack) return !!crack[g.crack];
+    if (g.beat) { const a = ref(g.beat); return !!(a && boss[roomKey(a.s, a.r)]); }
+    if (g.item) return !!inv[g.item];
+    if (g.relics) return g.relics.every(k => !!relic[k]); // Relikte nötig (Eisrutsche: ohne Dash und Enterhaken säße man fest)
     return true;
   }
   // Art einer Tür: Rand (links/rechts durchgehen) oder ↑-Tür
@@ -2467,6 +2468,148 @@ const Castle = (() => {
     Font.draw(ctx, tr(g.where), cx, y + 11, '#d0c0a0', { align: 'center', shadow: '#000' });
   }
 
+  // ---------------- Wegweiser im Bild: goldener Pfeil zur nächsten Tür auf dem Weg zum Ziel ----------------
+  // Zielraum = Raum des nächsten Ziels (ohne Ziel: der nächste unbesiegte Boss). Eine Breitensuche über den Raumgraphen (Ausgang,
+  // Türen, Verbindungen) ergibt die Tür, durch die es in diesem Raum weitergeht; Tore, die der Held noch nicht öffnen kann, zählen
+  // nicht (gibt es so keinen Weg, dann doch – der Pfeil führt ans verschlossene Tor, dessen Meldung sagt, was fehlt). Steht die Tür
+  // im Bild, wippt der Pfeil über ihr (Randausgänge: Pfeil zur Seite), sonst zeigt er vom Bildrand in ihre Richtung (Turm: kürzerer
+  // Weg über die Naht). Im Zielraum zeigt er auf das Ziel selbst. Gesucht wird bei Raum- oder Zielwechsel und sonst alle 30 Bilder
+  // (Tore öffnen sich); gezeichnet nach dem Licht (game.js), nicht im Bosskampf, in Szenen, Menüs und im Prolog. Optionen → WEGWEISER.
+  const stepMemo = {};
+  function stepsOf(s, r) { // alle Wege aus einem Raum: Ausgang { to, exit } und Türen { to, door, gate }
+    const k = s + ':' + r;
+    if (stepMemo[k]) return stepMemo[k];
+    const def = S()[s].rooms[r], f = def.exit && forwardOf(s, r), out = f ? [{ to: f, exit: true }] : [];
+    for (const d of doorsOf(s, r)) out.push({ to: d.to, door: d, gate: d.gate });
+    return (stepMemo[k] = out);
+  }
+  let backEdges = null;
+  function edgesInto() { // der Raumgraph rückwärts: 's:r' → alle Schritte, die in diesen Raum führen ({ s, r, gate } = woher, Bedingung)
+    if (backEdges) return backEdges;
+    const out = {};
+    S().forEach((stg, s) => stg.rooms.forEach((d, r) => { for (const st of stepsOf(s, r)) { const k = st.to.s + ':' + st.to.r; (out[k] || (out[k] = [])).push({ s, r, gate: st.gate }); } }));
+    return (backEdges = out);
+  }
+  function hopsFrom(tk, open) { // Breitensuche rückwärts vom Zielraum tk: 's:r' → Raumwechsel bis dorthin; open: nur Tore, die schon offen sind
+    const dist = { [tk]: 0 }, into = edgesInto();
+    for (let ring = [tk]; ring.length;) {
+      const next = [];
+      for (const k of ring) for (const e of into[k] || []) {
+        const kk = e.s + ':' + e.r;
+        if (dist[kk] === undefined && (!open || gateOk(e.gate, e.s, e.r))) { dist[kk] = dist[k] + 1; next.push(kk); }
+      }
+      ring = next;
+    }
+    return dist;
+  }
+  const seamDx = (def, dx) => { if (!def.wrap) return dx; const C = def.w * T; return ((dx + C / 2) % C + C) % C - C / 2; }; // Turmmantel: kürzerer Weg über die Naht
+  // Stelle eines Schritts im Raum: k = 'up' (↑-Tür) | 'edgeL' | 'edgeR' (Rand) | 'exit' (Ausgangszone) | 'spot' (Ziel), x = Mitte (px),
+  // feet = Standhöhe (px), h = Höhe dessen, worüber der Pfeil schwebt
+  function stepSpot(def, st) {
+    if (st.exit) {
+      const ex = def.exit, col = Math.min(ex.x1, ex.x0 + 1), feet = (clamp(floorRow(def, col, ex.y0) - 1, ex.y0, ex.y1) + 1) * T;
+      return !def.wrap && ex.x1 >= def.w - 1 ? { k: 'edgeR', x: def.w * T, feet } : { k: 'exit', x: (ex.x0 + ex.x1 + 1) * T / 2, feet, h: 16 };
+    }
+    const k = kindOf(def, st.door.place);
+    if (k === 'edgeR') return { k, x: def.w * T, feet: floorRow(def, def.w - 2, def.start.y - 2) * T };
+    if (k === 'edgeL') return { k, x: 0, feet: (def.start.y + 1) * T };
+    const u = upSpot(def, st.door.place);
+    return { k, x: u.cx, feet: u.feet, h: st.door.place.door === 'seal' ? 52 : 44 };
+  }
+  function goalSpot(s, r, def, at) { // Zielstelle im Zielraum: Arena (dort liegt danach das Relikt), Tür oder Fundort
+    if (at[1] === 'arena') return { k: 'spot', x: (def.w - 10) * T + 8, feet: (def.start.y + 1) * T, h: 28 };
+    const d = doorsOf(s, r).find(o => o.place && typeof o.place === 'object' && o.place.x === at[1] && o.place.y === at[2]);
+    return d ? stepSpot(def, { door: d }) : { k: 'spot', x: at[1] * T + 8, feet: (at[2] + 1) * T, h: 28 };
+  }
+  function guideTarget() { // Zielraum und -stelle: das nächste Ziel, sonst der nächste unbesiegte Boss
+    const g = goal(), at = g && g.at, a = at && ref(at[0]);
+    if (a) return { s: a.s, r: a.r, at, id: GOALS.indexOf(g) };
+    for (let s = 0; s < S().length; s++) for (let r = 0; r < S()[s].rooms.length; r++) {
+      const d = S()[s].rooms[r];
+      if (d.arena && !d.side && !boss[roomKey(s, r)]) return { s, r, at: [null, 'arena'], id: 'b' + s };
+    }
+    return null;
+  }
+  const guide = { key: '', t: -99, step: null, spot: null };
+  function guideSpot(s, r, def, p) {
+    const tg = guideTarget();
+    if (!tg) return null;
+    const key = s + ':' + r + '>' + tg.id, f = W.frame;
+    if (guide.key === key && f >= guide.t && f - guide.t < 30) return guide.spot;
+    const keep = guide.key === key ? guide.step : null;
+    guide.key = key; guide.t = f; guide.step = null; guide.spot = null;
+    if (tg.s === s && tg.r === r) return (guide.spot = goalSpot(s, r, def, tg.at));
+    const tk = tg.s + ':' + tg.r;
+    for (const open of [true, false]) {
+      const dist = hopsFrom(tk, open);
+      let best = null, bh = Infinity, bd = Infinity;
+      for (const st of stepsOf(s, r)) {
+        if (open && !gateOk(st.gate, s, r)) continue;
+        const h = dist[st.to.s + ':' + st.to.r];
+        if (h === undefined || h > bh) continue;
+        const sp = stepSpot(def, st), dx = st === keep ? -1 : Math.abs(seamDx(def, sp.x - p.cx)); // Gleichstand: bisherige Wahl, sonst die nächste Tür
+        if (h < bh || dx < bd) { best = st; bh = h; bd = dx; guide.spot = sp; }
+      }
+      if (best) { guide.step = best; return guide.spot; }
+    }
+    return null;
+  }
+  function guidePlan(s = W.stage, r = W.roomIdx) { // Konsole/Test: Zielraum und erster Schritt von (s, r) aus
+    const def = S()[s] && S()[s].rooms[r];
+    if (!def) return null;
+    guide.key = '';
+    const sp = guideSpot(s, r, def, W.player || { cx: 0 }), st = guide.step, tg = guideTarget();
+    guide.key = '';
+    return { target: tg ? roomKey(tg.s, tg.r) : null, spot: sp, to: st ? roomKey(st.to.s, st.to.r) : null, next: st ? { s: st.to.s, r: st.to.r } : null };
+  }
+  function guideProj(wx, wy) { // Weltpunkt → Bildpunkt im Spielfeld; Turm: auf dem Zylinder (null = hinter dem Turm)
+    const room = W.room, cam = W.cam, TW = typeof PS2 !== 'undefined' && PS2.Tower;
+    if (room.wrap && TW) { const k0 = TW.k, x = TW.place(room, cam, { cx: wx }), k = TW.k; TW.k = k0; return x === null ? null : { x, y: TW.H0 + (wy - cam.y - TW.H0) * k }; }
+    if ((room.theme === 'glass' || room.mtower) && typeof W.bendK === 'function') return { x: wx - cam.x, y: 104 + (wy - cam.y - 104) * W.bendK(wx - cam.x) }; // gewölbte Innenansicht
+    return { x: wx - cam.x, y: wy - cam.y };
+  }
+  // goldener Pfeil mit dunkler Kante, Spitze bei (x, y); dir: 'down' | 'up' | 'left' | 'right'; 14 px lang, Spitze 13 px breit
+  function guideArrow(ctx, x, y, dir, t) {
+    x = Math.round(x); y = Math.round(y);
+    const row = (u, v0, v1) => { // Zeile u Pixel hinter der Spitze, quer von v0 bis v1
+      const n = v1 - v0 + 1;
+      if (dir === 'down') ctx.fillRect(x + v0, y - u, n, 1); else if (dir === 'up') ctx.fillRect(x + v0, y + u, n, 1);
+      else if (dir === 'right') ctx.fillRect(x - u, y + v0, 1, n); else ctx.fillRect(x + u, y + v0, 1, n);
+    };
+    const k = 0.5 + 0.5 * Math.sin(t * 0.15), ax = dir === 'left' ? 7 : dir === 'right' ? -7 : 0, ay = dir === 'up' ? 7 : dir === 'down' ? -7 : 0;
+    ctx.globalAlpha = 0.14 + 0.16 * k; ctx.fillStyle = '#f8b800'; // pulsierender Schein um den Pfeil
+    ctx.beginPath(); ctx.arc(x + ax, y + ay, 12, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1; ctx.fillStyle = '#1c1008'; // dunkle Kante
+    row(-1, 0, 0); for (let u = 0; u < 7; u++) row(u, -u - 1, u + 1); row(7, -6, 6); for (let u = 8; u < 14; u++) row(u, -3, 3); row(14, -2, 2);
+    ctx.fillStyle = 'rgb(252,' + (184 + k * 44 | 0) + ',' + (k * 90 | 0) + ')'; // Gold, pulsiert ins Helle
+    for (let u = 0; u < 7; u++) row(u, -u, u); for (let u = 7; u < 14; u++) row(u, -2, 2);
+    ctx.fillStyle = '#fcf0c8'; for (let u = 2; u < 7; u++) row(u, 1 - u, 1 - u); for (let u = 7; u < 13; u++) row(u, -1, -1); // Lichtkante
+  }
+  function drawGuide(ctx) { // Bildkoordinaten: das Spielfeld beginnt bei y = 32
+    const p = W.player, s = W.stage, r = W.roomIdx, st = S()[s], def = st && st.rooms[r], room = W.room;
+    if (!on || Options.guide === false || !p || !p.alive || !def || !room || !W.cam || W.arenaOn || W.cinema > 0 || overlayOn || inPrologue()) return;
+    const sp = guideSpot(s, r, def, p);
+    if (!sp) return;
+    const wx = p.cx + seamDx(def, sp.x - p.cx), vw = View.w, t = W.frame || 0, bob = 2 + 2 * Math.sin(t * 0.15); // wippt zur Spitze hin
+    if (sp.k === 'spot' && Math.abs(wx - p.cx) < 24 && Math.abs(sp.feet - p.feet) < 40) return; // am Ziel angekommen
+    let x, y, dir;
+    if (sp.k === 'edgeL' || sp.k === 'edgeR') { // Randausgang: waagrechter Pfeil am Raumrand (außer Sicht: am Bildrand)
+      const R = sp.k === 'edgeR', q = guideProj(wx, sp.feet - 20);
+      dir = R ? 'right' : 'left';
+      x = R ? Math.min(q ? q.x - 4 : vw, vw - 7) + bob : Math.max(q ? q.x + 4 : 0, 7) - bob;
+      y = clamp(q ? q.y : 104, 12, 196);
+    } else {
+      const ty = sp.feet - (sp.h || 16) - 12, q = guideProj(wx, ty), yv = q ? q.y : ty - W.cam.y;
+      const ox = q ? Math.max(0, 8 - q.x, q.x - vw + 8) : 1e3, oy = Math.max(0, -24 - yv, yv - 216); // wie weit außer Sicht (Turm: hinter dem Mantel)
+      if (!ox && !oy) { dir = 'down'; x = q.x; y = clamp(q.y, 18, 200) + bob; } // im Bild: über der Tür
+      else if (oy > ox || (!q && oy > 0)) { dir = yv < 0 ? 'up' : 'down'; x = q ? clamp(q.x, 10, vw - 10) : wx > p.cx ? vw * 0.75 : vw * 0.25; y = yv < 0 ? 7 - bob : 201 + bob; } // darüber oder darunter
+      else { const R = q ? q.x > vw / 2 : wx > p.cx; dir = R ? 'right' : 'left'; x = R ? vw - 7 + bob : 7 - bob; y = clamp(yv, 12, 196); } // seitlich
+    }
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 32, vw, 208); ctx.clip(); ctx.translate(0, 32);
+    guideArrow(ctx, x, y, dir, t);
+    ctx.restore();
+  }
+
   // ---------------- Geschichte: Figuren, die die Handlung vorantreiben ----------------
   // Drei Figuren, absurd wie in Maniac Mansion: der zweite Held (der, den man gerade nicht spielt – auch ihn hat der Fluch am Tor
   // getroffen; er hält die Eingangshalle und weiß nach jedem Relikt, wohin es weitergeht), der alte Bibliothekar im Bergfried
@@ -3161,7 +3304,7 @@ const Castle = (() => {
     for (const [A, , B] of LINKS) if (!ref(A) || !ref(B)) out.push('Verbindung ohne Raum: ' + JSON.stringify([A, B]));
     for (const b of BEATS) { const a = ref(b.at[0]); if (!a) out.push('Szene ohne Raum: ' + b.id); else if (!ground(S()[a.s].rooms[a.r], b.at[1], b.at[2])) out.push('Figur ohne Boden: ' + b.id); }
     for (const [R, id, x, y] of FINDS) { const a = ref(R); if (!a) out.push('Fund ohne Raum: ' + id); else if (SOLID.includes(S()[a.s].rooms[a.r].grid[y][x])) out.push('Fund in der Wand: ' + id); }
-    const need = ['famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp'];
+    const need = ['famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'optGuide', 'optGuideH'];
     for (const id in GEAR) need.push('item_' + id, 'itemD_' + id);
     for (const b of BEATS) { if (b.lines !== false) need.push('story_' + b.id); need.push('story_' + (b.again || b.id) + 'Again'); }
     for (const id of SPELL_IDS) need.push('spell_' + id);
@@ -3227,7 +3370,7 @@ const Castle = (() => {
     startTest, finishTest, drawMilestones, milestones: MILESTONES.length, get testing() { return testing; },
     toolsInput, drawTools, selfCheck, get god() { return god; }, get best() { return best; },
     toggleOverlay, get overlay() { return overlayOn; },
-    tier: (s) => (TIER[S()[s].id] || 1) + 2 * (flag.ngp || 0), side: SIDE, startEpilogue, resultsInput, drawResults, ngPlus, ngRestore, drawGoalBanner, drawGoalToast, announceGoal, inPrologue, goal: () => { const g = goal(); return g && { text: goalText(g), where: tr(g.where) }; }, get vessels() { return vessel; }, get relics() { return relic; }, get cracks() { return crack; }, has,
+    tier: (s) => (TIER[S()[s].id] || 1) + 2 * (flag.ngp || 0), side: SIDE, startEpilogue, resultsInput, drawResults, ngPlus, ngRestore, drawGoalBanner, drawGoalToast, announceGoal, drawGuide, guidePlan, inPrologue, goal: () => { const g = goal(); return g && { text: goalText(g), where: tr(g.where) }; }, get vessels() { return vessel; }, get relics() { return relic; }, get cracks() { return crack; }, has,
     get seen() { return seen; }, get warps() { return warp; },
     reset() { seen = {}; boss = {}; mini = {}; warp = {}; vessel = {}; relic = {}; crack = {}; flag = {}; inv = {}; eq = {}; famx = {}; best = {}; try { localStorage.removeItem(KEY); localStorage.removeItem(SAVE_KEY); localStorage.removeItem(RESUME_KEY); } catch (e) { /* privat */ } },
   };

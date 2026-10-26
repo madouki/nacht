@@ -6,13 +6,14 @@ const OPTION_ITEMS = [ // label/hint sind Schlüssel für tr()
   { key: 'easy', label: 'optEasy', hint: 'optEasyH' },
   { key: 'maxWhip', label: 'optWhip', hint: 'optWhipH' },
   { key: 'infHearts', label: 'optHearts', hint: 'optHeartsH' },
+  { key: 'guide', label: 'optGuide', hint: 'optGuideH' }, // Wegweiser-Pfeil (nur im Schloss-Modus)
   { key: 'music', label: 'optMusic', hint: 'optMusicH' },
   { key: 'voice', label: 'optVoice', hint: 'optVoiceH' },
   { key: 'lang', label: 'optLang', hint: 'optLangH' },
   { key: 'crt', label: 'optCrt', hint: 'optCrtH' },
   { key: 'fullscreen', label: 'optFull', hint: 'optFullH' },
   { key: 'back', label: 'optBack', hint: '' },
-];
+].filter(it => it.key !== 'guide' || Castle.on);
 const BAY4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 
 const Game = {
@@ -698,6 +699,7 @@ const Game = {
         W.draw(ctx);
         Mode7.wave(ctx, 32, 208, View.w, W.waveAmp(), W.frame);
         if (W.cinema > 0) this.drawCinema(ctx);
+        if (this.state === 'play' && Castle.on) Castle.drawGuide(ctx); // Schloss: Wegweiser-Pfeil (nach dem Licht, damit er hell bleibt)
         this.drawCombo(ctx);
         this.drawHud(ctx);
         if (this.state === 'play' && Castle.on && Castle.overlay) Castle.draw(ctx, this.t, false, true); // Karten-Overlay (Select/Tab)
@@ -1319,9 +1321,10 @@ const Game = {
     ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(cx - 124, 38, 248, 168);
     ctx.fillStyle = '#c89020'; ctx.fillRect(cx - 124, 38, 248, 1); ctx.fillRect(cx - 124, 205, 248, 1); ctx.fillRect(cx - 118, 188, 236, 1);
     this.big(ctx, tr('options'), cx, 44, 2, LOGO, null, '#000');
+    const step = OPTION_ITEMS.length > 9 ? 12 : 14; // mit dem Wegweiser zehn Zeilen: etwas enger, damit alles über die Trennlinie passt
     OPTION_ITEMS.forEach((it, i) => {
-      const y = 64 + i * 14, on = this.optSel === i;
-      if (on) { ctx.fillStyle = 'rgba(200,144,32,0.2)'; ctx.fillRect(cx - 118, y - 3, 236, 13); }
+      const y = 64 + i * step, on = this.optSel === i;
+      if (on) { ctx.fillStyle = 'rgba(200,144,32,0.2)'; ctx.fillRect(cx - 118, y - 3, 236, step - 1); }
       Font.draw(ctx, tr(it.label), cx - 110, y, on ? '#fcfcfc' : '#9c9c9c', on ? { shadow: '#3c2008', wave: 1.2, t: this.t } : { shadow: '#000' });
       let val = '', good = false;
       if (it.key === 'music') {

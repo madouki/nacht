@@ -187,6 +187,10 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
 - **Wegweiser:** das nächste Ziel in der empfohlenen Reihenfolge (Relikt finden, Boss besiegen, Siegeltor öffnen, Graf)
   steht oben im Pausenmenü und unten auf der Karte, der Zielraum blinkt golden auf der Karte (auch unbetreten); nach Fluch,
   Relikt, Boss und Fortsetzen blendet es sich unten im Bild ein.
+  Im Spiel zeigt ein **goldener Pfeil** den Weg: eine Breitensuche über den Raumgraphen (Ausgang, Türen, Verbindungen; noch
+  verschlossene Tore nur, wenn es sonst keinen Weg gibt) ergibt die Tür in diesem Raum, über der er wippt – Randausgänge mit
+  Pfeil zur Seite, Türen außer Sicht mit Pfeil am Bildrand (Turm: kürzerer Weg über die Naht), im Zielraum auf das Ziel selbst.
+  Nicht im Bosskampf, in Szenen, Menüs und im Prolog; abschaltbar unter Optionen → WEGWEISER. Konsole: `Castle.guidePlan()`.
 - **Prolog überspringen** (zum Testen): solange man auf dem Schiff oder im Wald ist, Pause → PROLOG ÜBERSPRINGEN.
 - **Testmodus** (Titel → TESTMODUS): Sprung zu acht Meilensteinen (Burgtor nach dem Fluch, Rabenfeder, Riesenfledermaus,
   Knochenriese, Medusa, Sonnenwächter, fünf Siegel, vor dem Grafen) mit passender Stufe, Gold, Relikten, Siegeln, Ausrüstung,

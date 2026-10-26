@@ -52,6 +52,8 @@ const I18N = (() => {
     optCrtH: { de: 'SCANLINES + VIGNETTE', en: 'SCANLINES + VIGNETTE', fr: 'LIGNES + VIGNETTE', es: 'LÍNEAS + VIÑETA', ja: '走査線 + 周辺減光', zh: '扫描线 + 暗角' },
     optFull: { de: 'VOLLBILD', en: 'FULLSCREEN', fr: 'PLEIN ÉCRAN', es: 'PANTALLA COMPLETA', ja: '全画面', zh: '全屏' },
     optFullH: { de: 'TASTE F SCHALTET JEDERZEIT UM', en: 'KEY F TOGGLES ANYTIME', fr: 'TOUCHE F À TOUT MOMENT', es: 'TECLA F EN CUALQUIER MOMENTO', ja: 'Fキーでいつでも切替', zh: '随时按F键切换' },
+    optGuide: { de: 'WEGWEISER', en: 'GUIDE ARROW', fr: 'FLÈCHE GUIDE', es: 'FLECHA GUÍA', ja: '道しるべ', zh: '路标' },
+    optGuideH: { de: 'GOLDENER PFEIL ZUM NÄCHSTEN ZIEL', en: 'GOLDEN ARROW TO THE NEXT GOAL', fr: 'FLÈCHE DORÉE VERS LE PROCHAIN BUT', es: 'FLECHA DORADA A LA SIGUIENTE META', ja: '次の目標へ金の矢印', zh: '金色箭头指向下一个目标' },
     optBack: { de: 'ZURÜCK', en: 'BACK', fr: 'RETOUR', es: 'VOLVER', ja: 'もどる', zh: '返回' },
     on: { de: 'AN', en: 'ON', fr: 'OUI', es: 'SÍ', ja: 'ON', zh: '开' },
     off: { de: 'AUS', en: 'OFF', fr: 'NON', es: 'NO', ja: 'OFF', zh: '关' },
