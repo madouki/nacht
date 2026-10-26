@@ -789,6 +789,7 @@ const I18N = (() => {
     // Schloss-Modus: Taucherhelm, versunkene Kapelle, Quallen
     relic_diver: { de: 'TAUCHERHELM', en: 'DIVING HELMET', fr: 'CASQUE DE SCAPHANDRIER', es: 'CASCO DE BUZO', ja: '潜水ヘルメット', zh: '潜水头盔' },
     relicD_diver: { de: 'SCHWIMMEN STATT ERTRINKEN', en: 'SWIM INSTEAD OF DROWNING', fr: 'NAGER, PAS SE NOYER', es: 'NADAR, NO AHOGARSE', ja: '溺れずに泳げる', zh: '游泳而不溺水' },
+    castleDrownTest: { de: 'KEIN TAUCHERHELM – TEST: PAUSE > TEST-WERKZEUGE > ALLE RELIKTE', en: 'NO DIVING HELMET – TEST: PAUSE > TEST TOOLS > ALL RELICS', fr: 'PAS DE CASQUE – TEST : PAUSE > OUTILS DE TEST > TOUTES LES RELIQUES', es: 'SIN CASCO – PRUEBA: PAUSA > HERRAMIENTAS > TODAS LAS RELIQUIAS', ja: '潜水ヘルメットがない ― テスト:ポーズ > テストツール > 全聖遺物', zh: '没有潜水头盔 ― 测试:暂停 > 测试工具 > 全部圣物' },
     castleDrown: { de: 'KEIN TAUCHERHELM – ER LIEGT AM ENDE DES KANALS (GRUFT)', en: "NO DIVING HELMET – IT LIES AT THE CANAL'S END (CRYPT)", fr: 'PAS DE CASQUE – IL EST AU BOUT DU CANAL (CRYPTE)', es: 'SIN CASCO DE BUZO – ESTÁ AL FINAL DEL CANAL (CRIPTA)', ja: '潜水ヘルメットがない ― 運河の奥にある(地下墓所から)', zh: '没有潜水头盔 ― 它在运河尽头(从墓穴进入)' },
     item_trident: { de: 'DREIZACK DES WASSERMANNS', en: 'MERMAN\'S TRIDENT', fr: 'TRIDENT DU TRITON', es: 'TRIDENTE DEL TRITÓN', ja: '半魚人の三叉槍', zh: '鱼人的三叉戟' },
     itemD_trident: { de: 'ATT +5. GABELT AUCH SPAGHETTI.', en: 'ATT +5. ALSO FORKS SPAGHETTI.', fr: 'ATT +5. PIQUE AUSSI LES SPAGHETTIS.', es: 'ATT +5. TAMBIÉN PINCHA ESPAGUETIS.', ja: 'ATT+5。スパゲッティも巻ける。', zh: 'ATT+5。还能叉意面。' },

@@ -811,8 +811,8 @@ const PS2 = (() => {
       const g = x.createLinearGradient(0, 0, 0, Hb); g.addColorStop(0, '#0a0418'); g.addColorStop(0.3, '#2a1446'); g.addColorStop(0.42, '#46245c'); g.addColorStop(1, '#28143c');
       x.fillStyle = g; x.fillRect(0, 0, Wb, Hb);
       for (let i = 0; i < 50; i++) { const sx = ((i * 89 - ang * 120) % Wb + Wb) % Wb, sy = (i * 37) % (Hb * 0.3); x.fillStyle = i % 5 ? 'rgba(200,200,240,0.7)' : '#fff'; x.fillRect(sx, sy, 1, 1); }
-      const mx = (((Wb * 0.7 - ang * 60) % (Wb * 1.6)) + Wb * 1.6) % (Wb * 1.6) - Wb * 0.3; // Blutmond (Low-Poly-Kugel)
-      drawMoon(x, mx, 12, 6, t);
+      const mx = (((Wb * 0.7 - ang * 60) % (Wb * 1.6)) + Wb * 1.6) % (Wb * 1.6) - Wb * 0.3; // Blutmond wie im Titelbild
+      drawMoon(x, mx, 13, 8, t);
       const vis = world.chunks.filter(m => { const a = (m.cx - cx) * fx + (m.cz - cz) * fz, b = Math.abs((m.cx - cx) * -fz + (m.cz - cz) * fx); return a > -20 && a < 330 && b < a * 0.75 + 40; }) // nur Stücke im Blickfeld
         .map(m => ((m.cx - cx) ** 2 + (m.cz - cz) ** 2 > 215 * 215 ? m.lo : m)); // ferne Stücke gröber
       render(x, Wb, Hb, vis.concat([world.props]), cam, WENV);
@@ -868,49 +868,40 @@ const PS2 = (() => {
   }
   const prewarmWoods = () => { if (!woods) woods = buildWoods(); };
 
-  // ---------------- Mond als Low-Poly-Kugel (PS2) ----------------
-  // Facettierte Kugel, Krater als eingedrückte Mulden mit hellem Wall, dunkle Meere; Licht von links oben vorn, dreht sich
-  // langsam um die eigene Achse. Dazu ein weicher Schein. Gerendert in eine kleine Kachel, nur alle paar Bilder neu.
-  const MOON = { craters: null, cache: new Map() };
-  function moonMesh(rot) {
-    if (!MOON.craters) { let s = 31; const rnd = () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; MOON.craters = Array.from({ length: 11 }, () => { const u = rnd() * 6.283, v = Math.acos(rnd() * 2 - 1); return [Math.sin(v) * Math.cos(u), Math.cos(v), Math.sin(v) * Math.sin(u), 0.18 + rnd() * 0.3]; }); }
-    const m = mesh(), SEG = 18, RINGS = 12, rows = [], cr = Math.cos(rot), sr = Math.sin(rot);
-    const lit = (x, y, z) => { // Höhe und Farbe an einem Punkt der Kugel (Krater mit Wall, Meere)
-      let h = 1, dark = 0;
-      for (const [cx, cy, cz, r] of MOON.craters) { const d = Math.acos(Math.max(-1, Math.min(1, x * cx + y * cy + z * cz))) / r; if (d < 1) { h -= 0.08 * (1 - d * d); dark = Math.max(dark, 0.5 * (1 - d * 0.6)); } else if (d < 1.3) h += 0.03 * (1 - (d - 1) / 0.3); }
-      const mare = Math.sin(x * 3.1 + 1) * Math.cos(y * 2.3) + Math.sin(z * 2.7 - 0.5) * 0.6;
-      if (mare > 0.7) dark = Math.max(dark, 0.3);
-      return [h, dark];
-    };
-    for (let j = 0; j <= RINGS; j++) {
-      const v = j / RINGS * Math.PI, row = [];
-      for (let i = 0; i < SEG; i++) {
-        const u = i / SEG * Math.PI * 2, x = Math.sin(v) * Math.cos(u), y = Math.cos(v), z = Math.sin(v) * Math.sin(u), [h] = lit(x, y, z);
-        row.push(vtx(m, (x * cr - z * sr) * h, y * h, (x * sr + z * cr) * h));
-      }
-      rows.push(row);
+  // ---------------- Blutmond wie im Titelbild (boot.js mkMoon) ----------------
+  // Kugelschattierung, Meere und Krater aus Wertrauschen, Bayer-Raster zwischen sechs Rottönen, dazu derselbe pulsierende
+  // Schein wie auf dem Titel. Das Rauschen wächst mit dem Radius mit (gedämpft), so bleiben Meere und Krater auch auf dem
+  // kleinen Mond lesbar. Je Radius einmal gemalt.
+  const MOON = new Map();
+  const mHash = (i, j) => { let h = Math.imul(i * 374761393 + j * 668265263, 1274126177); h ^= h >>> 13; h = Math.imul(h, 1103515245); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+  const mNoise = (px, py) => { // Wertrauschen (wie boot.js)
+    const i = Math.floor(px), j = Math.floor(py); let fx = px - i, fy = py - j; fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy);
+    const a = mHash(i, j), b = mHash(i + 1, j), c = mHash(i, j + 1), d = mHash(i + 1, j + 1);
+    return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
+  };
+  function moonTex(R) {
+    let c = MOON.get(R); if (c) return c;
+    c = Sprites.canvas(R * 2 + 2, R * 2 + 2);
+    const q = c.getContext('2d'), BAY = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5], P = ['#2c040c', '#5c0a16', '#94141e', '#d02c20', '#f45c3c', '#fca070'];
+    const k = Math.sqrt(56 / R); // der Titelmond hat etwa Radius 56
+    for (let y = 0; y < R * 2; y++) for (let X = 0; X < R * 2; X++) {
+      const dx = (X + 0.5 - R) / R, dy = (y + 0.5 - R) / R, d = Math.hypot(dx, dy); if (d > 1) continue;
+      let l = 0.18 + Math.sqrt(1 - d * d) * 0.55 + (-dx * 0.35 - dy * 0.45) * 0.5;
+      if (mNoise(X * k * 0.06 + 3, y * k * 0.06) > 0.6) l *= 0.8; // Meere
+      const cr = mNoise(X * k * 0.22, y * k * 0.22); if (cr > 0.7) l *= 0.7; else if (cr > 0.64) l *= 1.12; // Krater mit hellem Rand
+      if (d > 0.93) l *= 0.75;
+      const v = Math.max(0, Math.min(1, l)) * (P.length - 1), i0 = Math.floor(v), th = (BAY[(y & 3) * 4 + (X & 3)] + 0.5) / 16;
+      q.fillStyle = P[Math.min(P.length - 1, i0 + (v - i0 > th ? 1 : 0))]; q.fillRect(X + 1, y + 1, 1, 1);
     }
-    for (let j = 0; j < RINGS; j++) for (let i = 0; i < SEG; i++) {
-      const v = (j + 0.5) / RINGS * Math.PI, u = (i + 0.5) / SEG * Math.PI * 2, [, dark] = lit(Math.sin(v) * Math.cos(u), Math.cos(v), Math.sin(v) * Math.sin(u));
-      const k = 1 - dark, col = [228 * k, 70 * k + 8, 52 * k + 6];
-      face(m, [rows[j][i], rows[j][(i + 1) % SEG], rows[j + 1][(i + 1) % SEG], rows[j + 1][i]], col, [0, 0, 0], { two: false });
-    }
-    return m;
+    MOON.set(R, c); return c;
   }
-  const MENV = { sun: null, sunC: [1.05, 0.72, 0.58], amb: [0.2, 0.09, 0.11], sky: [0.04, 0.01, 0.02], fog: [0, 0, 0], fogD: 0 }; // hartes Seitenlicht: Schattengrenze und Facetten
-  { const v = [-0.6, 0.55, -0.6], l = Math.hypot(...v); MENV.sun = v.map(c => c / l); }
   function drawMoon(ctx, cx, cy, r, frame) {
-    const R = Math.round(r), key = R + '|' + Math.floor(frame / 10);
-    let e = MOON.cache.get(R);
-    if (!e) { const c = Sprites.canvas(R * 2 + 4, R * 2 + 4); e = { c, x: c.getContext('2d', CPU2D), key: null }; MOON.cache.set(R, e); }
-    if (e.key !== key) { // die Kugel dreht sich langsam (alle 10 Bilder ein Stück weiter)
-      e.key = key; e.x.clearRect(0, 0, e.c.width, e.c.height);
-      render(e.x, e.c.width, e.c.height, [moonMesh(frame * 0.0012)], { x: 0, y: 0, z: -6, yaw: 0, pitch: 0, f: R * 6 * 0.985, near: 1, hy: 0.5 }, MENV);
-    }
+    const R = Math.round(r), pulse = 0.85 + 0.15 * Math.sin(frame * 0.03), hr = R * 2.6;
     ctx.save(); ctx.globalCompositeOperation = 'lighter'; // Schein
-    const g = ctx.createRadialGradient(cx, cy, r * 0.8, cx, cy, r * 2.5); g.addColorStop(0, 'rgba(200,40,50,0.38)'); g.addColorStop(0.45, 'rgba(120,20,48,0.14)'); g.addColorStop(1, 'rgba(80,10,40,0)');
-    ctx.fillStyle = g; ctx.fillRect(cx - r * 2.5, cy - r * 2.5, r * 5, r * 5); ctx.restore();
-    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.drawImage(e.c, Math.round(cx - R - 2), Math.round(cy - R - 2)); ctx.restore();
+    const g = ctx.createRadialGradient(cx, cy, R * 0.8, cx, cy, hr);
+    g.addColorStop(0, `rgba(220,40,50,${(0.42 * pulse).toFixed(3)})`); g.addColorStop(0.4, `rgba(150,20,50,${(0.16 * pulse).toFixed(3)})`); g.addColorStop(1, 'rgba(90,10,40,0)');
+    ctx.fillStyle = g; ctx.fillRect(cx - hr, cy - hr, hr * 2, hr * 2); ctx.restore();
+    ctx.drawImage(moonTex(R), Math.round(cx - R - 1), Math.round(cy - R - 1));
   }
 
   // ---------------- Kronleuchter als Low-Poly-Modell (PS2) ----------------

@@ -14,6 +14,8 @@ const Input = (() => {
   };
   const ACTIONS = ['left', 'right', 'up', 'down', 'jump', 'attack', 'sub', 'start', 'dash', 'map'];
   const kb = {}, touch = {}, held = {}, prev = {}, pressed = {}, latch = {}, prevReal = {};
+  const rep = { dir: null, n: 0 }; // Stick in Menüs: gehaltene Richtung wiederholt sich (erst nach einer Pause, dann im Takt)
+  const inMenu = () => typeof Game !== 'undefined' && Game.state !== 'play';
   let demoFn = null, realHit = false, tapHit = false; // Demo-Modus: Eingaben kommen aus einer Funktion, echte Tasten beenden ihn
   let anyListener = null, lastDevice = 'keys', padName = null, padIndex = -1, prevPadBack = false;
   let toast = null;
@@ -103,18 +105,29 @@ const Input = (() => {
     const base = document.getElementById('stickBase'), knob = document.getElementById('stickKnob'), hint = document.getElementById('stickHint');
     const active = new Map(); // touchId -> Taste
     let fullTouch = null; // Vollbild-Knopf: erst beim Loslassen umschalten (Browser verlangen eine abgeschlossene Geste)
-    const stick = { id: null, ox: 0, oy: 0, dx: 0, dy: 0 };
+    const taps = new Map(); // touchId -> Startpunkt eines möglichen Tipps in einem Menü
+    const stick = { id: null, ox: 0, oy: 0, dx: 0, dy: 0, dir: null, t0: 0, max: 0 };
     let menuT = null; // Finger im Pausenmenü (wischen/tippen)
     const refresh = () => {
       ACTIONS.forEach(a => { touch[a] = false; });
       active.forEach(a => { touch[a] = true; });
       if (stick.id !== null) {
         const { dx, dy } = stick, dz = 14, ax = Math.abs(dx), ay = Math.abs(dy);
-        if (dx < -dz && ax > ay * 0.45) touch.left = true;
-        if (dx > dz && ax > ay * 0.45) touch.right = true;
-        if (dy < -dz && ay > ax * 0.45) touch.up = true;
-        if (dy > dz && ay > ax * 0.45) touch.down = true;
-      }
+        if (inMenu()) { // Menüs: nur die stärkere Achse, Schwelle mit Spiel (rastet bei 26 px ein, löst unter 12 px), keine Schrägen
+          const d = Math.hypot(dx, dy), want = ax > ay ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down');
+          if (stick.dir && d < 12) stick.dir = null;
+          else if (!stick.dir && d > 26) stick.dir = want;
+          else if (stick.dir && want !== stick.dir && Math.max(ax, ay) > Math.min(ax, ay) * 2 && d > 26) stick.dir = want; // nur bei deutlich anderer Richtung umschwenken
+          if (stick.dir) touch[stick.dir] = true;
+        } else {
+          stick.dir = null;
+          if (dx < -dz && ax > ay * 0.45) touch.left = true;
+          if (dx > dz && ax > ay * 0.45) touch.right = true;
+          if (dy < -dz && ay > ax * 0.45) touch.up = true;
+          if (dy > dz && ay > ax * 0.45) touch.down = true;
+        }
+      } else stick.dir = null;
+      rep.dir = stick.dir;
       btns.forEach(b => b.classList.toggle('on', !!touch[b.dataset.k]));
     };
     const hitTest = (x, y) => { // großzügig: Rand + nächstgelegene Taste
@@ -142,9 +155,11 @@ const Input = (() => {
           if (typeof Game !== 'undefined' && Game.state === 'pause') { menuT = { id, y, acc: 0, moved: false }; continue; } // Pause: wischen = auswählen, tippen (beim Loslassen) = Menüpunkt bzw. weiter
           const a = hitTest(x, y);
           if (a === 'full') { fullTouch = id; continue; }
-          if (a && (x > window.innerWidth * 0.45 || a === 'start')) { latch[a] = true; active.set(id, a); }
-          else if (x < window.innerWidth * 0.5 && stick.id === null) { stick.id = id; stick.ox = x; stick.oy = y; stick.dx = 0; stick.dy = 0; if (hint) hint.style.display = 'none'; }
+          if (a && (x > window.innerWidth * 0.45 || a === 'start')) { latch[a] = true; active.set(id, a); continue; }
+          if (inMenu()) taps.set(id, { x, y, t0: performance.now() }); // Menüs: kurzer Tipp auf einen Eintrag wählt ihn
+          if (x < window.innerWidth * 0.5 && stick.id === null) { stick.id = id; stick.ox = x; stick.oy = y; stick.dx = 0; stick.dy = 0; if (hint) hint.style.display = 'none'; }
         } else if (e.type === 'touchmove') {
+          const tp = taps.get(id); if (tp && Math.hypot(x - tp.x, y - tp.y) > 12) taps.delete(id);
           if (menuT && id === menuT.id) { // Pause: senkrecht wischen blättert durch die Punkte
             menuT.acc += y - menuT.y; menuT.y = y;
             while (Math.abs(menuT.acc) >= 22) { const d = Math.sign(menuT.acc); latch[d > 0 ? 'down' : 'up'] = true; menuT.acc -= d * 22; menuT.moved = true; }
@@ -158,6 +173,8 @@ const Input = (() => {
         } else {
           if (menuT && id === menuT.id) { const m = menuT; menuT = null; if (!m.moved && e.type === 'touchend' && typeof Game !== 'undefined' && Game.state === 'pause' && !Game.pauseTouch(x, y)) latch.start = true; continue; }
           if (id === fullTouch) { fullTouch = null; if (e.type === 'touchend' && typeof Game !== 'undefined') Game.toggleFullscreen(); }
+          const tp = taps.get(id); taps.delete(id);
+          if (tp && e.type === 'touchend' && performance.now() - tp.t0 < 350 && inMenu() && Game.menuTap) { const act = Game.menuTap(x, y); if (act) latch[act] = true; }
           if (id === stick.id) { stick.id = null; stick.dx = stick.dy = 0; }
           active.delete(id);
         }
@@ -172,6 +189,8 @@ const Input = (() => {
   function update() {
     const pad = pollPad(), demo = demoFn ? demoFn() : null;
     realHit = tapHit; tapHit = false;
+    if (rep.dir && inMenu()) { rep.n++; if (rep.n >= 28 && (rep.n - 28) % 9 === 0) latch[rep.dir] = true; } else rep.n = 0; // Stick gehalten: nach ½ s alle 0,15 s ein Schritt
+    if (rep.dir !== rep.last) { rep.last = rep.dir; rep.n = 0; }
     ACTIONS.forEach(a => {
       const real = !!(kb[a] || touch[a] || pad[a] || latch[a]);
       if (real && (!prevReal[a] || latch[a])) realHit = true; // echte, frisch gedrückte Taste

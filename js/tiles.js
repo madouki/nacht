@@ -1412,7 +1412,7 @@ const Tiles = (() => {
       smooth(x, 640, 208, ['#000000', '#02020c', '#060818', '#0c0e26', '#141436', '#1e1a44', '#2a1e4c', '#3a2250', '#4a2450']);
       for (let i = 0; i < 120; i++) { const b = rand(); px(x, b < 0.2 ? '#fcfcfc' : b < 0.6 ? '#9c9cbc' : '#5c5c7c', ri(0, 639), ri(0, 110)); }
       add('sky', sky, 0, { wrap: false });
-      L.push({ name: 'moon', custom: (c2, cam, f) => PS2.drawMoon(c2, View.w - 92, 52, 22, f), par: 0, c: C(1, 1) }); // Low-Poly-Blutmond
+      L.push({ name: 'moon', custom: (c2, cam, f) => PS2.drawMoon(c2, View.w - 176, 54, 28, f), par: 0, c: C(1, 1) }); // Blutmond wie im Titelbild
       const sc = C(512, 208), sx2 = sc.getContext('2d');
       for (let i = 0; i < 40; i++) {
         const cx = ri(0, 511), cy = ri(-6, 40), rx = ri(14, 34), ry = ri(6, 14);
@@ -1654,7 +1654,7 @@ const Tiles = (() => {
       const sky = C(640, 208), xs = sky.getContext('2d');
       smooth(xs, 640, 208, ['#020208', '#050412', '#0a081c', '#100c24', '#160f2a', '#1c122e', '#221632', '#2a1a34', '#321e34']);
       for (let i = 0; i < 70; i++) px(xs, rand() < 0.3 ? '#fcfcfc' : '#7c7c9c', ri(0, 639), ri(0, 120));
-      moon(xs, 470, 46, 15);
+      PS2.drawMoon(xs, 300, 46, 20, 0); // Blutmond wie im Titelbild
       add('sky', sky, 0, { wrap: false });
       const cl = C(512, 208), xc = cl.getContext('2d'); // Rauchschwaden der Loks unter dem Dach
       for (let i = 0; i < 26; i++) {
@@ -1806,12 +1806,12 @@ const Tiles = (() => {
     } else if (theme === 'ballroom') { // Ballsaal: Spiegelsaal in PS2-3D (js/ballroom.js)
       L.push({ name: 'hall3d', custom: (c2, cam, f) => Ball.drawHall(c2, cam, f), par: 0.5, c: C(1, 1) });
     } else if (theme === 'expo') {
-      // Wintergarten: Nachthimmel hinter Glas, der Blutmond als Low-Poly-Kugel, davor der Glaspalast in PS2-3D
+      // Wintergarten: Nachthimmel hinter Glas, der Blutmond wie im Titelbild, davor der Glaspalast in PS2-3D
       const sky = C(640, 208), x = sky.getContext('2d');
       smooth(x, 640, 208, ['#02030a', '#060a1a', '#0c1428', '#121c36', '#182444', '#1e2c4c', '#243450', '#2a3a52', '#2c3c50']);
       for (let i = 0; i < 120; i++) { const b = rand(); px(x, b < 0.2 ? '#fcfcfc' : '#8c9cbc', ri(0, 639), ri(0, 140)); }
       add('sky', sky, 0, { wrap: false });
-      L.push({ name: 'moon', custom: (c2, cam, f) => PS2.drawMoon(c2, View.w - 110, 40, 18, f), par: 0, c: C(1, 1) });
+      L.push({ name: 'moon', custom: (c2, cam, f) => PS2.drawMoon(c2, View.w - 110, 40, 24, f), par: 0, c: C(1, 1) });
       L.push({ name: 'hall3d', custom: (c2, cam, f) => Expo.drawHall(c2, cam, f), par: 0.5, c: C(1, 1) });
     } else if (theme === 'forest') {
       // Wald zwischen Mole und Burg: Nachthimmel blitzt durch das Kronendach, Mond, darunter drei Tiefen PS2-Wald,
@@ -1820,7 +1820,7 @@ const Tiles = (() => {
       smooth(x, 640, 208, ['#000000', '#02060a', '#06121a', '#0c1e24', '#14303a', '#1e4048', '#28505a', '#2e5a60', '#305c60']);
       for (let i = 0; i < 90; i++) { const sx = ri(0, 639), sy = ri(0, 90), b = rand(); px(x, b < 0.25 ? '#e8f4fc' : '#7c9cac', sx, sy); }
       add('sky', sky, 0, { wrap: false });
-      L.push({ name: 'moon', custom: (c2, cam, f) => PS2.drawMoon(c2, View.w - 96, 40, 20, f), par: 0, c: C(1, 1) }); // Low-Poly-Blutmond
+      L.push({ name: 'moon', custom: (c2, cam, f) => PS2.drawMoon(c2, View.w - 96, 42, 26, f), par: 0, c: C(1, 1) }); // Blutmond wie im Titelbild
       const cl = C(512, 208), cx = cl.getContext('2d');
       for (let i = 0; i < 8; i++) {
         const y = ri(14, 70), x0 = ri(0, 511), len = ri(60, 150), th = ri(2, 3);
@@ -1849,7 +1849,7 @@ const Tiles = (() => {
         if (b < 0.06) { px(x, '#7c7c9c', sx - 1, sy); px(x, '#7c7c9c', sx + 1, sy); px(x, '#7c7c9c', sx, sy - 1); px(x, '#7c7c9c', sx, sy + 1); }
       }
       add('sky', sky, 0, { wrap: false });
-      L.push({ name: 'moon', custom: (c2, cam, f) => PS2.drawMoon(c2, View.w - 70, 46, 24, f), par: 0, c: C(1, 1) }); // Low-Poly-Blutmond
+      L.push({ name: 'moon', custom: (c2, cam, f) => PS2.drawMoon(c2, 122, 58, 30, f), par: 0, c: C(1, 1) }); // Blutmond wie im Titelbild
       const sc = C(512, 208), sx2 = sc.getContext('2d'); // Sturmwolkenbank
       for (let i = 0; i < 46; i++) {
         const cx = ri(0, 511), cy = ri(-6, 34), rx = ri(14, 34), ry = ri(6, 14);

@@ -370,11 +370,18 @@ const Game = {
   // kleine Nachricht oben im Bild (z. B. Gruß an Infernax)
   note(key, ...args) { this.noteT = 240; this.noteKey = key; this.noteArgs = args; },
   drawNote(ctx) {
-    const s = tr(this.noteKey, ...(this.noteArgs || [])), w = Font.width(s) + 12, x = Math.round(View.cx - w / 2), y = 48;
+    const s = tr(this.noteKey, ...(this.noteArgs || [])), y = 48;
+    let lines = [s];
+    if (Font.width(s) + 12 > View.w - 8) { // zu breit (schmaler Bildschirm): am Gedankenstrich oder mittleren Leerzeichen umbrechen
+      const d = s.indexOf(' – '); let k = d > 0 ? d : -1;
+      if (k < 0) for (let i = 0; i < s.length; i++) if (s[i] === ' ' && (k < 0 || Math.abs(i - s.length / 2) < Math.abs(k - s.length / 2))) k = i;
+      if (k > 0) lines = [s.slice(0, k), s.slice(k + (d === k ? 3 : 1))];
+    }
+    const w = Math.max(...lines.map(l => Font.width(l))) + 12, h = lines.length * 10 + 3, x = Math.round(View.cx - w / 2);
     ctx.globalAlpha = this.noteT < 20 ? this.noteT / 20 : 1;
-    ctx.fillStyle = 'rgba(0,0,0,0.78)'; ctx.fillRect(x, y, w, 13);
-    ctx.fillStyle = '#c89020'; ctx.fillRect(x, y, w, 1); ctx.fillRect(x, y + 12, w, 1);
-    Font.draw(ctx, s, View.cx, y + 3, '#fce0a8', { align: 'center', shadow: '#3c2008' });
+    ctx.fillStyle = 'rgba(0,0,0,0.78)'; ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = '#c89020'; ctx.fillRect(x, y, w, 1); ctx.fillRect(x, y + h - 1, w, 1);
+    lines.forEach((l, i) => Font.draw(ctx, l, View.cx, y + 3 + i * 10, '#fce0a8', { align: 'center', shadow: '#3c2008' }));
     ctx.globalAlpha = 1;
   },
   // großer Ausruf in der Bildmitte (z. B. „Land in Sicht!“)
@@ -854,6 +861,23 @@ const Game = {
     p.maxHp = Options.maxHp; p.hp = Math.max(1, Math.min(p.maxHp, Math.round(p.hp * p.maxHp / old)));
     Audio8.sfx(Options.easy ? 'heart' : 'select');
   },
+  // Touch in Titel- und Optionsmenü: Tipp auf einen Eintrag wählt ihn, ein zweiter Tipp auf den gewählten löst ihn aus
+  // (Rückgabe: die Taste, die input.js dafür auslöst, sonst null)
+  menuTap(clientX, clientY) {
+    const r = this.canvas.getBoundingClientRect(), y = (clientY - r.top) / r.height * 240;
+    let rows = null, sel = 0;
+    if (this.state === 'title' && this.revealed && this.titleRows) { rows = this.titleRows; sel = this.menu; }
+    else if (this.state === 'options') {
+      const n = OPTION_ITEMS.length, step = n > 9 ? 12 : 14, first = n <= 10 ? 0 : clamp(this.optSel - 4, 0, n - 10); // wie drawOptions
+      rows = { y0: 61 - first * step, sp: step, lo: first, hi: Math.min(n, first + 10) }; sel = this.optSel;
+    }
+    if (!rows) return null;
+    const i = Math.floor((y - rows.y0) / rows.sp);
+    if (i < rows.lo || i >= rows.hi) return null;
+    if (i === sel) return 'jump';
+    if (this.state === 'title') this.menu = i; else this.optSel = i;
+    Audio8.sfx('select'); return null;
+  },
   // Touch im Pausenmenü: Tipp auf einen Menüpunkt wählt ihn (true), sonst geht es weiter
   pauseItems() { return Castle.on ? ['resume', 'map', 'status', 'equip', ...(Castle.inPrologue() ? ['skip'] : []), Castle.testing ? 'tools' : 'easy', 'sec', 'title'] : ['resume', 'easy', 'sec', 'title']; },
   pauseTouch(clientX, clientY) {
@@ -1236,6 +1260,7 @@ const Game = {
     while (ni * msp > room() && msp > (I18N.cjk ? 10 : 9)) msp--;
     while (ni * msp > room() && lines.length > 3) drop();
     const bh = lines.length * lh + 7, by = 228 - bh, my0 = Math.max(top, Math.min(L.sub + 13, by - ni * msp - gap));
+    this.titleRows = { y0: my0 - 2, sp: msp, lo: 0, hi: ni }; // für Tipps auf die Einträge (menuTap)
     const fx = (this.langFx = Math.max(0, (this.langFx || 0) - 1)) > 0;
     const LABEL = { cont: tr('castleCont'), start: tr('start'), castle: tr('castleMode'), arcade: tr('arcadeMode'), options: tr('options'), lang: langTxt, scores: tr('hiTitle'), sections: tr('sections'), test: tr('testMode'), testEnd: tr('testEnd') };
     ids.map(id => LABEL[id]).forEach((m, i) => {

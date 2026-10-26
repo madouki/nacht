@@ -1426,7 +1426,7 @@ const Castle = (() => {
     roomT++;
     const p = W.player, def = S()[s].rooms[r];
     if (def.grates) grateBlock(p); // Gitter: nur Nebel kommt durch
-    if (def.waterLine !== undefined && !rel('diver') && p.alive && p.feet > def.waterLine * T + 22 && p.state !== 'dead') { Game.note('castleDrown'); p.fallPenalty(3); } // ohne Helm: ertrinken
+    if (def.waterLine !== undefined && !rel('diver') && p.alive && p.feet > def.waterLine * T + 22 && p.state !== 'dead') { Game.note(testing ? 'castleDrownTest' : 'castleDrown'); p.fallPenalty(3); } // ohne Helm: ertrinken (im Testmodus: wo es den Helm sofort gibt)
     if (!p.alive || p.state !== 'normal' || W.arenaOn) { push = 0; lastX = p.x; return; }
     for (const e of W.ents) { // Figuren: neue Szene beim Herantreten, danach ↑ für den Rat
       if (!(e instanceof CastleNPC) || e.go || !p.onGround || Math.abs(p.feet - (e.y + e.h)) > 16) continue;
@@ -3318,7 +3318,7 @@ const Castle = (() => {
     need.push('npcPrisoner', 'npcConcierge', 'concTitle', 'concHi', 'concSold', 'concOwned', 'concPoor', 'concThanks1', 'concThanks2', 'concThanks3', 'gramoTitle', 'gramoHi',
       'gramoPlay', 'gramoMissing', 'gramoNow', 'gramoHelp', 'hotelSign', 'boardTitle', 'formBack', 'whereWitch',
       'bossConductor', 'bossConductorNote', 'bossConductorShout', 'bossConductorRage', 'castleLocked13', 'dashKey',
-      'bossDoppel', 'bossDoppelNote', 'bossDoppelShout', 'bossDoppelRage', 'famSay_shadow', 'questTitle', 'questDone', 'questNone', 'questFrom', 'castleDrown');
+      'bossDoppel', 'bossDoppelNote', 'bossDoppelShout', 'bossDoppelRage', 'famSay_shadow', 'questTitle', 'questDone', 'questNone', 'questFrom', 'castleDrown', 'castleDrownTest');
     for (const q of QUESTS) need.push('quest_' + q.id, 'questHint_' + q.id);
     { // Erreichbarkeit: vom Wald aus über Türen und Ausgänge (alles geöffnet) – kein Raum darf abgeschnitten sein
       const key = (s, r) => s + ':' + r, seenR = new Set(), queue = [], s0 = sIdx('arrival');
