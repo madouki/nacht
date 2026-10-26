@@ -163,17 +163,27 @@ const Mirror = (() => {
     return [c[0], c[1], c[2], Math.min(255, a)];
   }
   // Arkadenspiegel: lu = waagerecht zur Bogenmitte, vy = Höhe ab Oberkante; hw Halbbreite, top Scheitel, bot Unterkante,
-  // Sprossen alle cols/rows – liefert [r,g,b,a] oder null (außerhalb von Spiegel und Rahmen)
+  // rowH ungefähre Scheibenhöhe – liefert [r,g,b,a] oder null (außerhalb von Spiegel und Rahmen). Unten ein Gitter aus Scheiben,
+  // dessen Querleisten so verteilt sind, dass eine genau am Bogenansatz liegt; darüber ein Fächerfenster: Querleiste am Ansatz,
+  // innerer Ring und drei Strahlen vom Ring zum Rahmen – alle Sprossen treffen sich an Leisten.
   function arcade(lu, vy, hw, top, bot, rowH, id) {
-    const cy = top + hw, inArch = vy >= cy ? Math.abs(lu) < hw && vy < bot : Math.hypot(lu, vy - cy) < hw;
-    const dO = Math.min(hw - Math.abs(lu), bot - vy, vy >= cy ? 1e9 : hw - Math.hypot(lu, vy - cy));
+    const cy = top + hw, r = Math.hypot(lu, vy - cy), inArch = vy >= cy ? Math.abs(lu) < hw && vy < bot : r < hw;
+    const dO = Math.min(hw - Math.abs(lu), bot - vy, vy >= cy ? 1e9 : hw - r);
     if (!inArch) return dO > -2 ? GOLD[5].concat(255) : dO > -3.5 ? GOLD[3].concat(255) : dO > -5 ? GOLD[0].concat(255) : null; // Goldrahmen
-    const cw = hw * 2 / 3, mu = Math.min(Math.abs(lu - cw / 2), Math.abs(lu + cw / 2)), mv = vy > cy ? Math.abs(((bot - vy) % rowH) - 0) : 1e9;
-    const mvv = vy > cy ? Math.min(mv, rowH - ((bot - vy) % rowH)) : Math.abs(Math.hypot(lu, vy - cy) - hw * 0.55);
-    const dm = Math.min(mu, mvv, dO);
+    const cw = hw * 2 / 3, ring = hw * 0.5;
+    let dm, pane;
+    if (vy >= cy) { // Scheibengitter
+      const n = Math.max(1, Math.round((bot - cy) / rowH)), rh = (bot - cy) / n, ry = (vy - cy) % rh;
+      dm = Math.min(Math.abs(lu - cw / 2), Math.abs(lu + cw / 2), ry, rh - ry, dO);
+      pane = (lu < -cw / 2 ? 0 : lu > cw / 2 ? 2 : 1) * 7 + Math.floor((vy - cy) / rh);
+    } else { // Fächerfenster
+      const ang = Math.atan2(cy - vy, lu); // 0 rechts … π links
+      dm = Math.min(cy - vy, Math.abs(r - ring), dO);
+      if (r > ring) for (const a of [Math.PI / 4, Math.PI / 2, Math.PI * 3 / 4]) dm = Math.min(dm, Math.abs(Math.sin(ang - a)) * r);
+      pane = r < ring ? 40 : 41 + Math.floor(ang / (Math.PI / 4));
+    }
     if (dm < 1.3 && dO >= 1.3) return (lu + vy) % 3 < 1.5 ? GOLD[4].concat(255) : GOLD[2].concat(255); // vergoldete Sprossen
-    const col = lu < -cw / 2 ? 0 : lu > cw / 2 ? 2 : 1, row = vy > cy ? Math.floor((bot - vy) / rowH) : 9;
-    return glass(lu + 200, vy, dm - (dO < 1.3 ? 0 : 1.3), id * 31 + col * 7 + row);
+    return glass(lu + 200, vy, dm - (dO < 1.3 ? 0 : 1.3), id * 31 + pane);
   }
   return { capture, reflect, reset, drawLusters, GOLD, marble, gold, sun, glass, arcade, hash };
 })();
