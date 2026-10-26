@@ -2694,122 +2694,468 @@ const Tiles = (() => {
     });
   }
 
-  // ---------------- Burghof: die Burg als Low-Poly-Modell (PS1-Look) ----------------
-  // Achteckige Türme mit Kegeldächern und Wimpeln, Zinnen-Türme, Ringmauern mit Zinnen und eine Bogenbrücke – alles echte
-  // Körper in Perspektive: beim Laufen drehen sich die Turmflächen ein wenig, die beleuchtete Seite zum Mond (rechts oben)
-  // wechselt, erleuchtete Fenster sitzen auf den Flächen. Halbe Auflösung, Eckpunkte auf ganze Pixel gerastet.
-  const CASTLE = [ // x (Welt), Tiefe dz, Radius, Höhe, Dach (Höhe oder 0 = Zinnen)
-    [-150, 0.1, 13, 130, 34], [-90, -0.05, 15, 165, 40], [-30, 0.15, 19, 205, 52], [30, 0.05, 12, 140, 0], [80, -0.1, 17, 190, 46],
-    [140, 0.12, 13, 120, 0], [190, 0.0, 11, 140, 32], [-340, 0.2, 10, 105, 28], [-290, 0.05, 14, 90, 0],
-  ];
-  let castleBuf = null;
-  function drawCastle3D(ctx, cam, frame) {
-    const w = View.w, P = 1229, Zc = 2.4, D = 130, baseY = 176, vx = w / 2, camX = cam.x * 0.6, MC = 40;
-    if (!castleBuf) castleBuf = {};
-    const flash = FX.stormOn(W.storm) ? 1 : 0;
-    PS2.shiftCache(ctx, castleBuf, { w, h: 208, dv: 1, M: MC, par: 0.6 / Zc, tol: View.lite ? 40 : 24, camX: cam.x, key: flash + '|' + w, soft: frame >> 5, draw: (x) => { // Verschiebe-Puffer (Mauern und Türme liegen fast in einer Tiefe)
-      x.save(); x.translate(MC, 0);
-      const pr = (X, Y, Z) => [vx + (X - camX - vx) / Z, baseY - Y / Z];
-      const tone = (nx, nz, up = 0) => Math.max(0, nx * 0.72 - nz * 0.35 + up * 0.5) * (1 + flash * 0.9);
-      const col = (l, k = 1) => `rgb(${Math.round((14 + 52 * l) * k)},${Math.round((8 + 30 * l) * k)},${Math.round((24 + 62 * l) * k)})`;
-      const poly = (pts, fill) => { x.fillStyle = fill; x.beginPath(); pts.forEach((p, i) => i ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1])); x.closePath(); x.fill(); };
-      const camWX = camX + vx;
-      for (let k = -1; k <= 1; k++) {
-        const ox = 400 + k * P;
-        if (Math.abs((vx + (ox - camX - vx) / Zc) - vx) > w * 1.5) continue;
-        const wl = pr(ox - 170, 0, Zc + 0.2), wr2 = pr(ox + 210, 0, Zc + 0.2), wt = pr(ox, 58, Zc + 0.2)[1];
-        const gw = x.createLinearGradient(0, wt, 0, wl[1]); gw.addColorStop(0, col(0.35)); gw.addColorStop(1, col(0.05)); // Ringmauer
-        poly([[wl[0], wt], [wr2[0], wt], [wr2[0], wl[1]], [wl[0], wl[1]]], gw);
-        x.fillStyle = col(0.3); for (let X = wl[0]; X < wr2[0]; X += 5) x.fillRect(Math.round(X), Math.round(wt) - 3, 3, 3);
-        const bl = pr(ox - 330, 0, Zc + 0.05), br = pr(ox - 175, 0, Zc + 0.05), bt = pr(ox, 40, Zc + 0.05)[1]; // Bogenbrücke
-        x.fillStyle = col(0.25); x.fillRect(bl[0], bt, br[0] - bl[0], 4);
-        x.fillStyle = col(0.12); for (let a = bl[0]; a < br[0] - 3; a += 12) { x.fillRect(a, bt + 4, 3, bl[1] - bt - 4); x.beginPath(); x.arc(a + 7.5, bt + 9, 4.5, Math.PI, 0); x.lineTo(a + 12, bt + 4); x.lineTo(a + 3, bt + 4); x.fill(); }
-        const towers = CASTLE.map(([dx, dz, r, h, roof]) => ({ X: ox + dx, Z: Zc + dz, r, h, roof })).sort((a, b) => b.Z - a.Z);
-        for (const T0 of towers) {
-          const n = 12, faces = [];
-          for (let i = 0; i < n; i++) {
-            const a0 = (i / n) * Math.PI * 2, a1 = ((i + 1) / n) * Math.PI * 2, am = (a0 + a1) / 2, nx = Math.sin(am), nz = -Math.cos(am);
-            const tx = T0.X + Math.sin(am) * T0.r - camWX, tz = T0.Z * D + nz * T0.r;
-            if (nx * -tx + nz * -tz <= 0) continue;
-            faces.push({ p0: [T0.X + Math.sin(a0) * T0.r, T0.Z - Math.cos(a0) * T0.r / D], p1: [T0.X + Math.sin(a1) * T0.r, T0.Z - Math.cos(a1) * T0.r / D], nx, nz });
-          }
-          for (const f of faces) {
-            const A = pr(f.p0[0], 0, f.p0[1]), B = pr(f.p1[0], 0, f.p1[1]), At = pr(f.p0[0], T0.h, f.p0[1]), Bt = pr(f.p1[0], T0.h, f.p1[1]), l = tone(f.nx, f.nz);
-            const g = x.createLinearGradient(0, At[1], 0, A[1]); g.addColorStop(0, col(l)); g.addColorStop(1, col(l * 0.35)); // oben heller, unten im Dunst
-            poly([At, Bt, [B[0] + 0.4, B[1]], [A[0] - 0.4, A[1]]], g);
-          }
-          for (const f of faces) if (f.nz < -0.4) { // erleuchtete Fenster mit Lichthof
-            const A = pr(f.p0[0], 0, f.p0[1]), B = pr(f.p1[0], 0, f.p1[1]), At = pr(f.p0[0], T0.h, f.p0[1]);
-            for (let wy = 0.3; wy < 0.9; wy += 0.25) if (((T0.X | 0) + Math.round(wy * 10)) % 3 !== 0) {
-              const yy = A[1] + (At[1] - A[1]) * wy, xx = (A[0] + B[0]) / 2, lit = (frame >> 4) % 23 === ((T0.X | 0) % 23) ? '#f87800' : '#f8c040';
-              x.fillStyle = 'rgba(248,160,40,0.18)'; x.fillRect(xx - 2, yy - 2, 5, 7); x.fillStyle = lit; x.fillRect(xx - 0.5, yy, 1.5, 3);
-            }
-          }
-          const topC = pr(T0.X, T0.h, T0.Z);
-          if (T0.roof) {
-            const apex = pr(T0.X, T0.h + T0.roof, T0.Z);
-            for (const f of faces) {
-              const At = pr(f.p0[0] + (f.p0[0] - T0.X) * 0.25, T0.h, f.p0[1]), Bt = pr(f.p1[0] + (f.p1[0] - T0.X) * 0.25, T0.h, f.p1[1]), l = tone(f.nx, f.nz, 0.5);
-              const g = x.createLinearGradient(apex[0], apex[1], (At[0] + Bt[0]) / 2, At[1]); g.addColorStop(0, col(l * 1.2)); g.addColorStop(1, col(l * 0.55));
-              poly([At, Bt, apex], g);
-            }
-            x.fillStyle = col(0.2); x.fillRect(apex[0] - 0.5, apex[1] - 7, 1, 7);
-            x.fillStyle = '#c8102c'; x.beginPath(); x.moveTo(apex[0] + 0.5, apex[1] - 7); x.lineTo(apex[0] + 6 + Math.sin(frame * 0.2 + T0.X) * 1.5, apex[1] - 5.5); x.lineTo(apex[0] + 0.5, apex[1] - 4); x.fill(); // Wimpel
-          } else {
-            const L0 = pr(T0.X - T0.r, T0.h, T0.Z), R0 = pr(T0.X + T0.r, T0.h, T0.Z);
-            x.fillStyle = col(0.3); for (let X = L0[0]; X <= R0[0] - 2; X += 4) x.fillRect(X, topC[1] - 3, 2.5, 3);
-          }
-        }
-      }
-      x.restore();
-    } });
+  // ---------------- Burghof: Höhenfeld-Raster (PS2-Facetten) für Berge und Felsen ----------------
+  // Ein Höhenfeld aus flach schattierten Dreiecken, einmal auf der CPU in einen 32-Bit-Puffer gerastert: Zeilen von hinten
+  // nach vorn (Maler-Verfahren), Licht je Fläche aus der echten 3D-Normalen (x rechts, y oben, z in die Tiefe). Der Blutmond
+  // steht rechts hinter Bergen und Burg: die ihm zugewandten Flanken glühen rot, die Fronten liegen im kühlen Himmelslicht.
+  // Zu jedem Bild entsteht ein Blitzlicht-Bild (von vorn oben angestrahlt), das bei Blitzen additiv darübergelegt wird.
+  const nrm3 = (x, y, z) => { const l = Math.hypot(x, y, z) || 1; return [x / l, y / l, z / l]; };
+  const LMOON = nrm3(0.8, 0.42, 0.42), LFILL = nrm3(-0.4, 0.45, -0.8), LBOLT = nrm3(0.12, 0.72, -0.68);
+  const cl8 = (v) => (v < 0 ? 0 : v > 255 ? 255 : v | 0);
+  const pk32 = (r, g, b, a = 255) => ((a << 24) | (cl8(b) << 16) | (cl8(g) << 8) | cl8(r)) >>> 0;
+  function tri32(d, f, W, H, wrap, x0, y0, x1, y1, x2, y2, c, cf) {
+    let t;
+    if (y0 > y1) { t = x0; x0 = x1; x1 = t; t = y0; y0 = y1; y1 = t; }
+    if (y1 > y2) { t = x1; x1 = x2; x2 = t; t = y1; y1 = y2; y2 = t; }
+    if (y0 > y1) { t = x0; x0 = x1; x1 = t; t = y0; y0 = y1; y1 = t; }
+    if (y2 - y0 < 1e-6) return;
+    const ya = Math.max(0, Math.ceil(y0 - 0.5)), yb = Math.min(H - 1, Math.ceil(y2 - 0.5) - 1);
+    for (let y = ya; y <= yb; y++) {
+      const yc = y + 0.5; let xa = x0 + (x2 - x0) * (yc - y0) / (y2 - y0), xb = yc < y1 ? x0 + (x1 - x0) * (yc - y0) / (y1 - y0) : x1 + (x2 - x1) * (yc - y1) / ((y2 - y1) || 1);
+      if (xa > xb) { t = xa; xa = xb; xb = t; }
+      let xs = Math.ceil(xa - 0.5), xe = Math.ceil(xb - 0.5); const row = y * W;
+      if (!wrap) { if (xs < 0) xs = 0; if (xe > W) xe = W; }
+      for (let x = xs; x < xe; x++) { const i = row + (wrap ? ((x % W) + W) % W : x); d[i] = c; f[i] = cf; }
+    }
   }
+  // o: { W, H, gx (Spaltenraster), rows, dz (Zeilentiefe), tilt (hintere Zeilen höher), base (Fußlinie), wrap, seed, L: { amb, moon, fill, bolt },
+  //      hf(x, r, i) → Höhe, alb(h, ny, i, r) → [Farbe, Schnee?] }  →  { d (Nachtbild), f (Blitzlicht), top (oberste Zeile je Spalte) }
+  function hfRaster(o) {
+    const { W, H, gx, rows: R, dz, tilt, base, wrap, L } = o, NX = Math.ceil(W / gx), NV = NX + 1;
+    const vx = new Float32Array(NV * (R + 1)), vh = new Float32Array(NV * (R + 1));
+    for (let r = 0; r <= R; r++) for (let i = 0; i <= NX; i++) {
+      const ii = wrap ? i % NX : i, k = r * NV + i, x = i * gx + (wrap || (i > 0 && i < NX) ? (hn(ii, r, o.seed) - 0.5) * gx * 0.7 : 0); // Eckpunkte leicht verrückt: unregelmäßige Facetten
+      vx[k] = x; vh[k] = o.hf(x, r, ii);
+    }
+    const d = new Uint32Array(W * H), f = new Uint32Array(W * H), sy = (k) => base - vh[k] - ((k / NV) | 0) * tilt;
+    for (let r = R - 1; r >= 0; r--) for (let i = 0; i < NX; i++) {
+      const a = (r + 1) * NV + i, b = a + 1, c = r * NV + i, e = c + 1, T3 = (i + r) & 1 ? [a, b, c, b, e, c] : [a, b, e, a, e, c];
+      for (let t = 0; t < 6; t += 3) {
+        const p = T3[t], q = T3[t + 1], s = T3[t + 2], rp = (p / NV) | 0;
+        const ux = vx[q] - vx[p], uy = vh[q] - vh[p], uz = (((q / NV) | 0) - rp) * dz, wx = vx[s] - vx[p], wy = vh[s] - vh[p], wz = (((s / NV) | 0) - rp) * dz;
+        let nx = uy * wz - uz * wy, ny = uz * wx - ux * wz, nz = ux * wy - uy * wx; const l = Math.hypot(nx, ny, nz) || 1;
+        nx /= l; ny /= l; nz /= l; if (ny < 0) { nx = -nx; ny = -ny; nz = -nz; }
+        const [al, sn] = o.alb((vh[p] + vh[q] + vh[s]) / 3, ny, i, r);
+        const dm = Math.max(0, nx * LMOON[0] + ny * LMOON[1] + nz * LMOON[2]), df = Math.max(0, nx * LFILL[0] + ny * LFILL[1] + nz * LFILL[2]), db = Math.max(0, nx * LBOLT[0] + ny * LBOLT[1] + nz * LBOLT[2]);
+        const lit = (j) => al[j] * (L.amb[j] + L.moon[j] * dm + L.fill[j] * df);
+        tri32(d, f, W, H, wrap, vx[p], sy(p), vx[q], sy(q), vx[s], sy(s), pk32(lit(0), lit(1), lit(2), sn ? 254 : 255), pk32(al[0] * L.bolt[0] * db, al[1] * L.bolt[1] * db, al[2] * L.bolt[2] * db)); // Alpha 254 markiert Schnee
+      }
+    }
+    const top = new Int16Array(W).fill(H);
+    for (let x = 0; x < W; x++) for (let y = 0; y < H; y++) if (d[y * W + x]) { top[x] = y; break; }
+    return { d, f, top };
+  }
+  const to32 = (buf, W, H) => { const c = C(W, H), x = c.getContext('2d'), img = x.createImageData(W, H); new Uint32Array(img.data.buffer).set(buf); x.putImageData(img, 0, 0); return c; };
+  const mixRim = (d, i, col, k) => { const v = d[i]; d[i] = pk32((v & 255) + (col[0] - (v & 255)) * k, ((v >> 8) & 255) + (col[1] - ((v >> 8) & 255)) * k, ((v >> 16) & 255) + (col[2] - ((v >> 16) & 255)) * k); };
 
   // ---------------- Burghof: Bergketten im PS2-Look ----------------
-  // Jeder Berg ein Fächer aus Dreiecken um Haupt- und Nebengipfel, in voller Auflösung und weich schattiert: jede Fläche
-  // mit einem Verlauf vom Gipfel (Schnee, vom Blutmond rötlich angestrahlt) zum Fuß, der im Talnebel versinkt. Ferne Ketten
-  // bläulich und blass (Luftperspektive). Zwischengespeichert, neu gerendert erst, wenn sich die nahe Kette um ein Pixel verschiebt.
-  let mtnMesh = null, mtnBuf = null;
-  function drawMountains3D(ctx, cam, frame) {
-    const P = 3000;
-    if (!mtnMesh) {
-      const sd0 = seed; seed = 4711; mtnMesh = [];
-      for (let i = 0; i < 26; i++) {
-        const z = i < 14 ? 7 + rand() * 4 : 3.6 + rand() * 1.6, h = (z > 6 ? 420 : 150) + rand() * (z > 6 ? 300 : 130), w = h * (1.1 + rand() * 0.55);
-        const ax = rand() * P, sub = [];
-        for (let k = 0; k < 2; k++) { const o = (rand() - 0.5) * w * 1.2; sub.push({ dx: o, h: h * (0.45 + rand() * 0.3), w: w * (0.45 + rand() * 0.2) }); }
-        mtnMesh.push({ z, peaks: [{ dx: 0, h, w }, ...sub], ax, skew: (rand() - 0.5) * 0.4 });
+  // Drei Ketten hintereinander, jede ein nahtloser 1024er-Streifen aus dem Höhenfeld-Raster: hinten hohe, verschneite Gipfel,
+  // blass und bläulich im Dunst (Luftperspektive), davor dunklere Felsgrate, ganz vorn bewaldete Vorberge. Gezackte Grate,
+  // Fels mit Körnung, Schnee nur auf flacheren Flächen über der Schneegrenze, rot glühende Mondsäume auf allen Graten (am
+  // stärksten an den zum Mond abfallenden Hängen), Talnebel steigt am Fuß jeder Kette auf. Einmal beim ersten Zeichnen
+  // gebaut; danach setzt der Verschiebe-Puffer nur noch die Streifen mit ihrer eigenen Parallaxe zusammen (reine Bildkopien),
+  // bei Blitzen kommt das Blitzlicht-Bild dazu – Grate und Schluchten treten hervor. Davor ziehen Nebelschwaden.
+  const MTN_W = 1024, MTN = [ // von hinten nach vorn
+    { par: 0.05, ph: 380, base: 150, rows: 7, tilt: 2.3, n: 9, hMin: 72, hMax: 118, jag: 0.22, snow: 50, haze: 0.46, mist: 34, mistA: 0.82, alb: [130, 118, 165], seed: 4711, pines: 0 },
+    { par: 0.085, ph: 120, base: 161, rows: 7, tilt: 2.4, n: 12, hMin: 36, hMax: 78, jag: 0.26, snow: 50, haze: 0.24, mist: 30, mistA: 0.86, alb: [102, 86, 124], seed: 815, pines: 50, pineH: [3, 5] },
+    { par: 0.13, ph: 640, base: 173, rows: 6, tilt: 2.6, n: 16, hMin: 16, hMax: 46, jag: 0.3, snow: 999, haze: 0.06, mist: 24, mistA: 0.9, alb: [76, 60, 90], seed: 99, pines: 170, pineH: [4, 9] },
+  ];
+  const MTN_L = { amb: [0.1, 0.08, 0.17], moon: [1.5, 0.4, 0.38], fill: [0.2, 0.22, 0.46], bolt: [0.9, 0.9, 1.15] }, SNOW = [340, 330, 396]; // Schnee wirft auch das schwache Himmelslicht hell zurück
+  const MTN_HAZE = [92, 56, 128], MTN_MIST = [104, 66, 138], MTN_RIM = [255, 100, 104], MTN_RIMS = [255, 214, 220];
+  function buildMtnBand(B) {
+    const sd0 = seed; seed = B.seed;
+    const W = MTN_W, H = 208, pk = [];
+    for (let i = 0; i < B.n; i++) { const h = B.hMin + rand() * (B.hMax - B.hMin); pk.push({ x: (i + 0.2 + rand() * 0.6) * W / B.n, r: 1.8 + rand() * (B.rows - 2.4), h, wx: h * (0.95 + rand() * 0.8), wr: 1.5 + rand() * 2, s: 1.05 + rand() * 0.45 }); }
+    const { d, f, top } = hfRaster({ W, H, gx: 8, rows: B.rows, dz: 15, tilt: B.tilt, base: B.base, wrap: true, seed: B.seed, L: MTN_L,
+      hf: (x, r, ii) => {
+        let h = 0;
+        for (const p of pk) { let dx = x - p.x; dx -= Math.round(dx / W) * W; const dr = (r - p.r) / p.wr, q = (dx / p.wx) ** 2 + dr * dr; if (q < 1) { const v = p.h * Math.pow(1 - Math.sqrt(q), p.s); if (v > h) h = v; } }
+        h += ((hn(ii, r, B.seed + 1) - 0.5) * 0.9 + (hn(ii >> 2, r, B.seed + 2) - 0.5) * 0.7) * B.jag * (h + 10); // gezackte Grate
+        return Math.max(0, h) * Math.min(1, r / 1.5) + (r ? 4 * hn(ii >> 1, r, B.seed + 3) : 0);
+      },
+      alb: (h, ny, i, r) => { if (h > B.snow + (hn(i, r, 7) - 0.5) * 18 && ny > 0.2 + (hn(i, r, 8) - 0.5) * 0.16) return [SNOW, 1]; const v = 0.88 + 0.24 * hn(i, r, B.seed + 4); return [[B.alb[0] * v, B.alb[1] * v, B.alb[2] * v], 0]; } });
+    const kh = B.haze, m0 = B.base - B.mist, mistC = pk32(...MTN_MIST), mistF = pk32(34, 22, 52);
+    for (let y = 0; y < H; y++) {
+      const m = y <= m0 ? 0 : Math.pow(Math.min(1, (y - m0) / B.mist), 1.6) * B.mistA, fk = (1 - kh * 0.5) * (1 - m * 0.6);
+      for (let x = 0; x < W; x++) {
+        const i = y * W + x, v = d[i];
+        if (!v) { if (y >= B.base) { d[i] = mistC; f[i] = mistF; } continue; }
+        const sn = (v >>> 24) === 254, g0 = sn ? 0.95 + 0.1 * hn(x, y, 3) : 0.86 + 0.28 * hn(x >> 1, y, B.seed + 5), kk = sn ? kh * 0.55 : kh; // Körnung: Fels gröber als Schnee; Schnee leuchtet durch den Dunst
+        let r = (v & 255) * g0, g = ((v >> 8) & 255) * g0, b = ((v >> 16) & 255) * g0;
+        r += (MTN_HAZE[0] - r) * kk; g += (MTN_HAZE[1] - g) * kk; b += (MTN_HAZE[2] - b) * kk;
+        d[i] = pk32(r + (MTN_MIST[0] - r) * m, g + (MTN_MIST[1] - g) * m, b + (MTN_MIST[2] - b) * m);
+        const fv = f[i]; f[i] = pk32((fv & 255) * fk + m * 34, ((fv >> 8) & 255) * fk + m * 30, ((fv >> 16) & 255) * fk + m * 46);
       }
-      mtnMesh.sort((a, b) => b.z - a.z); seed = sd0;
     }
-    const w = View.w, MM = 24;
+    for (let x = 0; x < W; x++) { // Mondsaum auf den Graten: am hellsten, wo der Hang zum Mond (rechts) abfällt
+      const t = top[x]; if (t >= B.base - 1) continue;
+      const sl = top[(x + 3) % W] - top[(x + W - 3) % W], k = Math.max(0.28, Math.min(1, 0.45 + sl * 0.1)) * (1 - kh * 0.55), v = d[t * W + x];
+      const col = (v & 255) + ((v >> 8) & 255) + ((v >> 16) & 255) > 420 ? MTN_RIMS : MTN_RIM;
+      mixRim(d, t * W + x, col, k); mixRim(d, (t + 1) * W + x, col, k * 0.4);
+    }
+    for (let n = 0; n < B.pines; n++) { // Tannen auf den unteren Hängen, die rechte Kante im Mondlicht
+      const X = ri(0, W - 1), t = top[X]; if (t > B.base - 8) continue;
+      const Y = ri(Math.max(t + 5, m0 - 8), B.base + 1), hg = ri(B.pineH[0], B.pineH[1]), m = Y <= m0 ? 0 : Math.min(1, (Y - m0) / B.mist) * B.mistA * 0.8;
+      const dk = pk32(16 + (MTN_MIST[0] - 16) * m, 8 + (MTN_MIST[1] - 8) * m, 24 + (MTN_MIST[2] - 24) * m), lt = pk32(118 + (MTN_MIST[0] - 118) * m, 42 + (MTN_MIST[1] - 42) * m, 82 + (MTN_MIST[2] - 82) * m);
+      for (let k = 0; k < hg; k++) { const hw = Math.floor(k * 0.42 + (k % 3 === 2 ? 0.5 : 0)), yy = Y - hg + k; for (let xx = -hw; xx <= hw; xx++) { const i = yy * W + ((X + xx + W) % W); d[i] = xx === hw && hw > 0 ? lt : dk; f[i] = 0; } }
+      d[Y * W + X] = dk;
+    }
+    seed = sd0;
+    return { c: to32(d, W, H), f: to32(f, W, H) };
+  }
+  function buildMtnMist() { // Nebelschwaden: nahtloses, weiches Rauschen in zwei Oktaven, oben und unten ausgeblendet
+    const W = MTN_W, H = 56, c = C(W, H), x = c.getContext('2d'), img = x.createImageData(W, H), d = new Uint32Array(img.data.buffer);
+    const vn = (u, v, P, s) => {
+      const x0 = Math.floor(u), y0 = Math.floor(v), fx = u - x0, fy = v - y0, sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
+      const a = hn(x0 % P, y0, s), b = hn((x0 + 1) % P, y0, s), c2 = hn(x0 % P, y0 + 1, s), e = hn((x0 + 1) % P, y0 + 1, s);
+      return a + (b - a) * sx + (c2 - a) * sy + (a - b - c2 + e) * sx * sy;
+    };
+    for (let y = 0; y < H; y++) { const env = Math.sin(Math.PI * y / H); for (let X = 0; X < W; X++) {
+      const a = Math.max(0, vn(X / 64, y / 9, 16, 61) * 0.65 + vn(X / 32, y / 5, 32, 62) * 0.35 - 0.47) * 2.6 * env;
+      if (a > 0.02) d[y * W + X] = pk32(172, 124, 192, Math.min(255, a * 0.46 * 255));
+    } }
+    x.putImageData(img, 0, 0);
+    return c;
+  }
+  let mtnBands = null, mtnMist = null, mtnBuf = null;
+  function drawMountains3D(ctx, cam, frame) {
+    if (!mtnBands) { mtnBands = MTN.map(buildMtnBand); mtnMist = buildMtnMist(); }
+    const w = View.w, MM = 24, flash = FX.stormOn(W.storm) ? 1 : 0;
     if (!mtnBuf) mtnBuf = {};
-    PS2.shiftCache(ctx, mtnBuf, { w, h: 208, dv: 1, M: MM, par: 0.11, tol: View.lite ? 30 : 16, camX: cam.x, key: w, soft: 0, draw: (x) => { // Verschiebe-Puffer
-      x.save(); x.translate(MM, 0);
-      const vx = w / 2, baseY = 152, Lm = [0.62, 0.6, 0.5], camX = cam.x * 0.6;
-      const mix = (c, f, to) => c.map((v, i) => Math.round(v * (1 - f) + to[i] * f));
-      const css = c => `rgb(${c[0]},${c[1]},${c[2]})`;
-      for (const M of mtnMesh) {
-        const haze = Math.min(0.72, (M.z - 2.5) / 11), sky = [44, 20, 72];
-        for (let k = -1; k <= 1; k++) for (const pk of M.peaks) {
-          const wx = M.ax + pk.dx + k * P, sx = vx + (wx - camX - vx) / M.z, half = pk.w / M.z;
-          if (sx + half < -20 - MM || sx - half > w + 20 + MM) continue;
-          const apex = [sx + M.skew * half, baseY - pk.h / M.z], foot = baseY + 14 / M.z * 10;
-          const L0 = [sx - half, baseY], L1 = [sx - half * 0.35, foot], R1 = [sx + half * 0.4, foot], R0 = [sx + half, baseY];
-          const faces = [[L0, L1, [-0.75, 0.45, 0.48]], [L1, R1, [0.05, 0.42, 0.9]], [R1, R0, [0.78, 0.45, 0.42]]];
-          for (const [p, q, n] of faces) {
-            const lum = Math.max(0, n[0] * Lm[0] + n[1] * Lm[1] + n[2] * Lm[2]) * 0.85 + 0.15, moon = n[0] > 0.5 ? 1 : 0;
-            const rock = [26 + 70 * lum + moon * 30, 18 + 50 * lum, 40 + 80 * lum], snow = [120 + 120 * lum + moon * 20, 110 + 100 * lum, 150 + 100 * lum];
-            const top = mix(pk.h / M.z > 26 ? snow : rock, haze, sky), mid = mix(rock, haze, sky), bot = mix([16, 8, 26], Math.min(0.9, haze + 0.3), sky);
-            const g = x.createLinearGradient(apex[0], apex[1], (p[0] + q[0]) / 2, (p[1] + q[1]) / 2);
-            g.addColorStop(0, css(top)); g.addColorStop(0.38, css(top)); g.addColorStop(0.46, css(mid)); g.addColorStop(1, css(bot));
-            x.fillStyle = g; x.beginPath(); x.moveTo(apex[0], apex[1]); x.lineTo(p[0], p[1]); x.lineTo(q[0], q[1]); x.closePath(); x.fill();
-          }
+    PS2.shiftCache(ctx, mtnBuf, { w, h: 208, dv: 1, M: MM, par: 0.085, tol: View.lite ? 16 : 10, camX: cam.x, key: w + '|' + flash, soft: 0, draw: (x) => { // nur Bildkopien: jede Kette mit eigener Parallaxe
+      MTN.forEach((B, i) => {
+        const u = ((Math.round(cam.x * B.par + B.ph) % MTN_W) + MTN_W) % MTN_W;
+        for (let X = MM - u - MTN_W; X < w + 2 * MM; X += MTN_W) {
+          if (X + MTN_W <= 0) continue;
+          x.drawImage(mtnBands[i].c, X, 0);
+          if (flash) { x.globalCompositeOperation = 'lighter'; x.drawImage(mtnBands[i].f, X, 0); x.globalCompositeOperation = 'source-over'; }
         }
-        if (M.z < 6) { const g = x.createLinearGradient(0, 118, 0, 168); g.addColorStop(0, 'rgba(46,18,70,0)'); g.addColorStop(1, 'rgba(46,18,70,0.75)'); x.fillStyle = g; x.fillRect(-MM, 118, w + 2 * MM, 90); } // Talnebel
-      }
-      x.restore();
+      });
     } });
+    for (const [y, sp, dr, a] of View.lite ? [[122, 0.11, 0.09, 1]] : [[122, 0.11, 0.09, 1], [144, 0.15, -0.06, 0.7]]) { // Nebelschwaden ziehen durch die Täler
+      const u = ((Math.round(cam.x * sp + frame * dr + y * 7) % MTN_W) + MTN_W) % MTN_W;
+      ctx.globalAlpha = a; for (let X = -u; X < w; X += MTN_W) ctx.drawImage(mtnMist, X, y);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // ---------------- Burghof: die Burg als PS2-Modell ----------------
+  // Gotische Burg auf einem Felssporn: Bergfried mit steilem Pyramidendach und Pfefferbüchsen an den Ecken, daneben ein
+  // Nadelturm (die höchste Spitze), Torhaus aus zwei Rundtürmen mit glühendem Fallgitter, Kapelle mit Strebepfeilern,
+  // Strebebögen, bunten Maßwerkfenstern und Dachreiter, Ringmauern mit Zinnen und Wehrgang, Ecktürme verschiedener Höhe,
+  // hinten blassere Türme im Dunst, links eine Bogenbrücke über die Schlucht zur Vorburg. Türme, Dächer und die Flanken
+  // des Bergfrieds sind echte Körper in Perspektive (Rückseiten weggelassen, Licht je Fläche, Blick von unten: man sieht
+  // unter die Traufen): beim Laufen drehen sie sich, die rechten Flanken glühen im Blutmond, die Silhouetten tragen einen
+  // roten Saum. Fassaden, Mauern, Brücke und Fels sind einmal vorgerasterte Pixelbilder (je Tiefe gedunstet). Fenster-
+  // flackern, Banner und Wimpel liegen pro Bild über dem Puffer – neu gerastert wird nur, wenn die Kamera weiterzieht;
+  // ein Blitz rastert einmal eine eigene, von vorn grell angestrahlte Fassung (Steinlagen, Strebewerk, Felsgrate treten
+  // hervor). Am Fuß versinkt alles im Nebel.
+  const CST = { P: 1843, CX: 560, D: 130, base: 176 };
+  const CST_L = [
+    { amb: [0.07, 0.05, 0.12], moon: [1.05, 0.25, 0.3], fill: [0.16, 0.15, 0.32], haze: [56, 30, 84], fog: '46,20,66', rim: [228, 80, 96] },
+    { amb: [0.3, 0.28, 0.38], moon: [0.5, 0.2, 0.26], fill: [0.66, 0.64, 0.84], haze: [128, 118, 176], fog: '132,122,186', rim: [244, 240, 255] },
+  ];
+  const ALB = { stone: [150, 136, 170], slate: [104, 86, 136], rock: [120, 104, 132] };
+  const hazeK = (Z) => Math.min(0.55, Math.max(0, (Z - 2.3) * 1.2));
+  function cLit(alb, nx, ny, nz, Z, fl) {
+    const S = CST_L[fl], Lf = fl ? LBOLT : LFILL, k = hazeK(Z);
+    const dm = Math.max(0, nx * LMOON[0] + ny * LMOON[1] + nz * LMOON[2]), df = Math.max(0, nx * Lf[0] + ny * Lf[1] + nz * Lf[2]);
+    return [0, 1, 2].map(i => alb[i] * (S.amb[i] + S.moon[i] * dm + S.fill[i] * df) * (1 - k) + S.haze[i] * k);
+  }
+  const cCss = (c, m = 1) => galCol(c[0] * m, c[1] * m, c[2] * m);
+  const cRim = (Z, fl) => { const S = CST_L[fl], k = Math.min(0.7, hazeK(Z) * 1.3); return cCss(S.rim.map((v, i) => v + (S.haze[i] - v) * k)); };
+  const fogA = (y) => Math.max(0.15, 1 - Math.max(0, (y - 112) / 66) * 0.9);
+  function cPal(Z, fl) {
+    const g = (alb, n, m = 1) => cCss(cLit(alb, n[0], n[1], n[2], Z, fl), m), S = ALB.stone, L = ALB.slate, F = [0, 0, -1];
+    return { F: g(S, F), F2: g(S, F, 0.86), F3: g(S, F, 1.14), M: g(S, F, fl ? 0.58 : 0.7), D: g(S, F, 0.45), K: g(S, [0, -1, 0], 0.55),
+      R: g(S, [0.92, 0.1, -0.38]), Lt: g(S, [-0.92, 0.1, -0.38]), T: g(S, [0, 0.85, -0.52]), S: g(L, [0, 0.5, -0.86]), SR: g(L, [0.82, 0.45, -0.36]), SL: g(L, [-0.82, 0.45, -0.36]), ST: g(L, [0, 0.95, -0.3]),
+      rim: cRim(Z, fl), win: fl ? '#d89848' : '#f8a838', winC: fl ? '#f8e0b0' : '#fff0a0', glass: fl ? ['#b04858', '#c89050', '#6070b8'] : ['#e83848', '#f8a830', '#5868e0'] };
+  }
+  const CT = (x, Z, r, y0, y1, roof, n, ring, win) => ({ t: 'tow', x, Z, r, y0, y1, roof, n, ring, win }), CS = (id, x, Z) => ({ t: 'spr', id, x, Z });
+  const CST_E = [ // Zeichenfolge von hinten nach vorn. x: Bildpunkte bei Tiefe Z relativ zur Burgmitte; Höhen in Bildpunkten über Grund.
+    // Turm: x, Z, Radius, Fuß, Mauerkrone, Kegeldach (0 = Zinnen), Ecken, Wehrgang-Kranz, Fenster [Winkel (0 = zu uns), Höhe, erleuchtet]
+    CT(-96, 2.75, 6, 26, 98, 30, 8, 0, [[0.3, 62, 1], [-0.4, 78, 1], [0.1, 88, 0]]),
+    CT(140, 2.75, 5.5, 20, 92, 28, 8, 0, [[0.2, 58, 1], [-0.2, 76, 1]]),
+    CS('chapel', 44, 2.6),
+    CT(-114, 2.5, 7, 24, 84, 32, 8, 1, [[0, 46, 1], [0.45, 62, 1], [-0.3, 72, 0]]),
+    { t: 'keep', x0: -24, x1: 24, Z: 2.42, dep: 30, y0: 28, y1: 104, apex: 140 },
+    CT(-271, 2.42, 7.5, 14, 62, 26, 8, 1, [[0, 38, 1], [0.35, 50, 0]]),
+    CS('rock2', -306, 2.42),
+    CS('bridge', -258, 2.4),
+    CS('wallL', -144, 2.4),
+    CS('wallM', -38, 2.38),
+    CT(-142, 2.36, 10, 16, 66, 0, 10, 1, [[0, 36, 0], [0.3, 50, 1]]),
+    CT(128, 2.36, 9, 16, 76, 34, 10, 1, [[0, 44, 1], [-0.35, 58, 1], [0.2, 64, 0]]),
+    CS('gate', -67, 2.33),
+    CT(-75, 2.32, 8.5, 16, 74, 30, 10, 1, [[0.1, 44, 1], [-0.35, 58, 1]]),
+    CT(-43, 2.32, 8.5, 16, 74, 30, 10, 1, [[-0.1, 44, 1], [0.35, 58, 1]]),
+    CT(42, 2.3, 7, 18, 112, 46, 10, 1, [[0, 40, 1], [0.25, 58, 1], [-0.25, 74, 1], [0.1, 90, 0], [0, 100, 1]]),
+    CS('crag', -176, 2.28), // Felskante ganz vorn: die Burg steht zurückgesetzt auf dem Plateau
+  ];
+  function buildCastleArt() {
+    const sd0 = seed, spr = {};
+    const mk = (id, Z, w, h, top, paint) => { // je ein Bild für Nacht und Blitz (gleicher Zufall), Ankerpunkte aus dem Nachtbild
+      const r = { top, c: [], an: [] };
+      for (const fl of [0, 1]) { seed = 2207 + id.length * 131 + w; const c = C(w, h), x = c.getContext('2d'), an = []; paint(x, cPal(Z, fl), an, (sy) => top - sy); r.c.push(c); if (!fl) r.an = an; }
+      spr[id] = r;
+    };
+    const courses = (x, P, u0, v0, w, h) => { // Quader mit leicht verschiedenen Tönen, Lagerfugen alle 4, versetzte Stoßfugen
+      for (let i = 0; i < w * h / 34; i++) px(x, rand() < 0.5 ? P.F2 : P.F3, u0 + ri(0, w - 3), v0 + ri(0, h - 2), ri(2, 4), 2);
+      for (let k = 0; k < h; k++) { if (k % 4 === 3) px(x, P.M, u0, v0 + k, w, 1); else if (k % 4 === 0) for (let u = u0 + ((k >> 2) & 1) * 3; u < u0 + w; u += 6) px(x, P.M, u, v0 + k, 1, 3); }
+    };
+    const crenel = (x, P, u0, w, v) => { for (let u = u0; u <= u0 + w - 3; u += 5) { px(x, P.F, u, v, 3, 5); px(x, P.T, u, v, 3, 1); px(x, P.Lt, u, v + 1, 1, 4); px(x, P.R, u + 2, v, 1, 5); } };
+    const machi = (x, P, u0, w, v) => { px(x, P.T, u0, v, w, 1); px(x, P.F3, u0, v + 1, w, 1); for (let u = u0; u < u0 + w; u += 2) px(x, P.K, u, v + 2, 1, 2); px(x, P.D, u0, v + 4, w, 1); }; // Wehrgang auf Konsolen
+    const pier = (x, P, u, v0, v1, w = 3) => { px(x, P.F3, u, v0, w, v1 - v0); px(x, P.Lt, u, v0, 1, v1 - v0); px(x, P.R, u + w - 1, v0, 1, v1 - v0); px(x, P.T, u, v0, w, 1); px(x, P.rim, u + w - 1, v0, 1, 2); };
+    const win = (x, P, an, u, v, w, h, lit, col) => { // Spitzbogenfenster (w ungerade), erleuchtet mit hellem Kern, Sohlbank im Mondlicht
+      const c = lit ? (col || P.win) : P.D;
+      px(x, P.K, u - 1, v - 1, w + 2, h + 2); px(x, c, u, v + 1, w, h - 1); px(x, c, w > 1 ? u + 1 : u, v, w > 1 ? w - 2 : 1, 1);
+      if (lit && !col) px(x, P.winC, u, v + 2, 1, Math.max(1, h - 4));
+      if (w >= 3) px(x, P.K, u + (w >> 1), v + 2, 1, h - 2);
+      px(x, P.T, u - 1, v + h + 1, w + 2, 1);
+      if (lit && an && rand() < 0.6) an.push({ g: 1, u: u + (w >> 1), v: v + (h >> 1) });
+    };
+    const wall = (P, x, an, w, vt, vb, opt) => { // Ringmauer: Zinnen, Wehrgang, Quader, Strebepfeiler, Schießscharten, ein paar Fenster
+      px(x, P.F, 0, vt + 5, w, vb - vt - 5); courses(x, P, 0, vt + 10, w, vb - vt - 10);
+      for (let u = opt.p0; u < w - 4; u += opt.ps) pier(x, P, u, vt + 12, vb, 3);
+      for (const u of opt.slits) { px(x, P.K, u, vt + 15, 1, 4); px(x, P.T, u, vt + 19, 1, 1); }
+      for (const u of opt.wins) win(x, P, an, u, vt + 14, 1, 3, 1);
+      machi(x, P, 0, w, vt + 5); crenel(x, P, 0, w, vt);
+    };
+    // Bergfried: Eckstrebepfeiler mit Rücksprüngen, Gurtgesimse, drei Fensterreihen, großes Maßwerkfenster, Wehrgang, Zinnen
+    mk('keep', 2.42, 48, 85, 112, (x, P, an, v) => {
+      px(x, P.F, 0, v(105), 48, v(28) - v(105)); courses(x, P, 0, v(100), 48, v(28) - v(100));
+      for (const sy of [48, 66, 80]) { px(x, P.T, 0, v(sy), 48, 1); px(x, P.D, 0, v(sy) + 1, 48, 1); }
+      for (const u of [0, 44]) { pier(x, P, u, v(96), v(28), 4); for (const sy of [48, 66, 80]) { px(x, P.T, u, v(sy), 4, 1); px(x, P.D, u, v(sy) + 1, 4, 1); } }
+      for (const sy of [38, 56, 69]) for (const u of [6, 19, 26, 39]) win(x, P, an, u, v(sy + 7), 3, 7, rand() < 0.8);
+      for (const u of [6, 39]) win(x, P, an, u, v(91), 3, 6, rand() < 0.7);
+      px(x, P.K, 20, v(95), 9, 15); // großes Maßwerkfenster mit bunten Scheiben
+      for (let j = 0; j < 13; j++) { const hw = j < 2 ? j : j < 4 ? 2 + (j - 2) : 3; for (let k = -hw; k <= hw; k++) px(x, j > 8 && (k + j) % 2 ? P.K : P.glass[(k + 3 + (j >> 2)) % 3], 24 + k, v(94) + j, 1, 1); }
+      px(x, P.K, 24, v(90), 1, 10); px(x, P.K, 21, v(87), 7, 1); px(x, P.T, 19, v(80), 11, 1);
+      an.push({ g: 1, u: 24, v: v(88) });
+      machi(x, P, 0, 48, v(101)); px(x, P.F, 0, v(106), 48, 5); crenel(x, P, 0, 48, v(111));
+      an.push({ b: 1, u: 10, v: v(96) }, { b: 1, u: 30, v: v(96) }); // Banner
+    });
+    // Torhaus-Mitte: Spitzbogentor mit glühendem Fallgitter, Fackeln, Pechnase, Zinnen
+    mk('gate', 2.33, 14, 52, 72, (x, P, an, v) => {
+      px(x, P.F, 0, v(66), 14, v(20) - v(66)); courses(x, P, 0, v(60), 14, v(20) - v(60));
+      for (let j = 0; j < 18; j++) { const sy = 40 - j, hw = j < 2 ? 1 : j < 4 ? 2 : j < 6 ? 3 : 4; px(x, P.T, 7 - hw - 1, v(sy), 1, 1); px(x, P.T, 7 + hw, v(sy), 1, 1);
+        for (let k = -hw; k < hw; k++) px(x, (k & 1) || j % 3 === 1 ? '#2c0c08' : j > 10 ? '#f88830' : '#c85818', 7 + k, v(sy), 1, 1); }
+      px(x, P.K, 5, v(52), 4, 4); px(x, P.win, 6, v(51), 2, 3); px(x, P.T, 4, v(47), 6, 1); // Fenster über dem Tor
+      machi(x, P, 0, 14, v(62)); px(x, P.F, 0, v(66), 14, 2); crenel(x, P, 0, 14, v(71));
+      for (const u of [1, 12]) { px(x, P.K, u, v(33), 1, 4); px(x, '#fcd040', u, v(35), 1, 2); an.push({ g: 1, u, v: v(35), a: 1.3 }); }
+      an.push({ g: 1, u: 7, v: v(30), a: 1.6 });
+    });
+    // Ringmauern
+    mk('wallL', 2.4, 64, 38, 56, (x, P, an, v) => wall(P, x, an, 64, v(56), v(18), { p0: 14, ps: 20, slits: [8, 27, 46], wins: [37] }));
+    mk('wallM', 2.38, 166, 40, 62, (x, P, an, v) => {
+      wall(P, x, an, 166, v(62), v(22), { p0: 10, ps: 22, slits: [6, 28, 72, 94, 138], wins: [17, 50, 83, 116, 150] });
+      px(x, P.K, 60, v(36), 5, 8); px(x, P.win, 61, v(35), 3, 7); px(x, P.T, 59, v(28), 7, 1); an.push({ g: 1, u: 62, v: v(32), a: 1.2 }); // Pforte
+    });
+    // Kapelle (Längsseite): Seitenschiff mit Pultdach, Obergaden mit hohen bunten Lanzettfenstern, Strebepfeiler mit Fialen,
+    // Strebebögen zum Obergaden, steiles Schieferdach mit Kamm, Dachreiter mit Laterne und Kreuz
+    mk('chapel', 2.6, 74, 106, 136, (x, P, an, v) => {
+      px(x, P.F, 6, v(88), 62, v(60) - v(88)); courses(x, P, 6, v(88), 62, v(60) - v(88));
+      for (let i = 0; i < 5; i++) win(x, P, an, 12 + i * 12, v(84), 1, 12, 1, P.glass[i % 3]);
+      for (let j = 0; j <= 18; j++) { const sy = 88 + j, a = 2 + Math.floor(j / 2.2), b = 72 - Math.floor(j / 2.2); // Dach: Walmenden
+        px(x, j === 18 ? P.ST : P.S, a, v(sy), b - a, 1); px(x, P.SL, a, v(sy), 2, 1); px(x, P.SR, b - 2, v(sy), 2, 1); if (j % 4 === 1) px(x, P.K, a + 2, v(sy), b - a - 4, 1); }
+      for (let u = 11; u < 64; u += 3) px(x, P.K, u, v(108), 1, 2); // Firstkamm
+      px(x, P.F, 0, v(58), 74, v(30) - v(58)); courses(x, P, 0, v(58), 74, v(30) - v(58));
+      for (let j = 0; j < 6; j++) px(x, j ? P.S : P.ST, j, v(64 - j), 74 - 2 * j, 1); // Pultdach des Seitenschiffs
+      for (let i = 0; i < 6; i++) win(x, P, an, 6 + i * 12, v(52), 1, 7, 1, P.glass[(i + 1) % 3]);
+      for (let i = 0; i < 7; i++) { // Strebepfeiler, Fialen, Strebebögen
+        const u = i * 12 - (i === 6 ? 1 : 0);
+        pier(x, P, u, v(70), v(30), 3); px(x, P.F3, u, v(76), 3, 6); px(x, P.F3, u + 1, v(80), 1, 4); px(x, P.rim, u + 2, v(76), 1, 6); px(x, P.T, u, v(71), 3, 1);
+        if (i < 6) for (let k = 0; k < 6; k++) { const fy = v(Math.round(70 + k * 2.4)); px(x, P.F3, u + 3 + k, fy, 1, 2); px(x, P.T, u + 3 + k, fy - 1, 1, 1); }
+      }
+      px(x, P.F3, 36, v(114), 5, 8); px(x, P.R, 40, v(114), 1, 8); px(x, P.win, 37, v(112), 1, 4); px(x, P.win, 39, v(112), 1, 4); an.push({ g: 1, u: 38, v: v(110), a: 0.9 }); // Laterne
+      for (let j = 0; j < 20; j++) { const hw = j < 7 ? 0 : j < 14 ? 1 : 2; px(x, P.S, 38 - hw, v(114 + 20 - j), hw * 2 + 1, 1); px(x, P.rim, 38 + hw, v(114 + 20 - j), 1, 1); }
+      px(x, P.K, 38, v(136), 1, 3); px(x, P.K, 37, v(135), 3, 1); // Kreuz
+    });
+    // Bogenbrücke über die Schlucht: Pfeiler mit Eisbrechern, Spitzbögen, Brüstung mit Zinnen, zwei Laternen
+    mk('bridge', 2.4, 112, 41, 31, (x, P, an, v) => {
+      const piers = [0, 28, 56, 84, 106];
+      for (let s = 0; s < 4; s++) { const u0 = piers[s] + 5, u1 = piers[s + 1], mid = (u0 + u1) / 2, half = (u1 - u0) / 2;
+        for (let u = u0; u < u1; u++) { const q = (u + 0.5 - mid) / half, ha = 7 + Math.round(12 * Math.sqrt(Math.max(0, 1 - q * q)) * (1 - 0.25 * Math.abs(q))); px(x, P.F, u, v(21), 1, v(ha) - v(21)); px(x, P.T, u, v(ha) + 1, 1, 1); px(x, P.K, u, v(ha), 1, 1); } }
+      for (const u of piers) { px(x, P.F3, u, v(21), 5, v(-9) - v(21)); px(x, P.Lt, u, v(21), 1, v(-9) - v(21)); px(x, P.R, u + 4, v(21), 1, v(-9) - v(21)); }
+      px(x, P.F, 0, v(25), 112, 5); courses(x, P, 0, v(25), 112, 4); px(x, P.D, 0, v(21), 112, 1);
+      for (let u = 0; u <= 109; u += 4) { px(x, P.F, u, v(29), 2, 4); px(x, P.T, u, v(29), 2, 1); px(x, P.R, u + 1, v(28), 1, 3); }
+      for (const u of [30, 76]) { px(x, P.K, u, v(31), 1, 6); px(x, '#fcd040', u - 1, v(31), 3, 2); an.push({ g: 1, u, v: v(30), a: 1.2 }); }
+    });
+    // Felssporn und Felsen der Vorburg: Höhenfeld wie die Berge, mit dem Licht der Burg
+    const rock = (id, w, top, Z, prof, sd) => {
+      const L0 = CST_L[0], k = hazeK(Z), H = top + 4, R = hfRaster({ W: w, H, gx: 6, rows: 4, dz: 10, tilt: 0, base: top, wrap: false, seed: sd, L: { amb: L0.amb, moon: L0.moon, fill: L0.fill, bolt: [0.55, 0.55, 0.7] },
+        hf: (X, r, ii) => r ? prof(X) * (0.8 + 0.2 * hn(ii, r, sd)) + (hn(ii, r, sd + 1) - 0.5) * 7 * Math.min(1, prof(X) / 10) : 0, alb: () => [ALB.rock, 0] });
+      const { d, f, top: tp } = R, df = new Uint32Array(d.length);
+      for (let i = 0; i < d.length; i++) { const v = d[i]; if (!v) continue; const g0 = 0.84 + 0.3 * hn((i % w) >> 1, (i / w) | 0, sd + 2);
+        let r = (v & 255) * g0, g = ((v >> 8) & 255) * g0, b = ((v >> 16) & 255) * g0; r += (L0.haze[0] - r) * k; g += (L0.haze[1] - g) * k; b += (L0.haze[2] - b) * k;
+        d[i] = pk32(r, g, b); const fv = f[i]; df[i] = pk32(r * 1.5 + (fv & 255) + 40, g * 1.5 + ((fv >> 8) & 255) + 38, b * 1.4 + ((fv >> 16) & 255) + 52); }
+      for (let X = 0; X < w; X++) { const t = tp[X]; if (t >= top - 1) continue; const sl = tp[Math.min(w - 1, X + 2)] - tp[Math.max(0, X - 2)], kk = Math.max(0.3, Math.min(1, 0.5 + sl * 0.15));
+        mixRim(d, t * w + X, CST_L[0].rim, kk * (1 - k)); mixRim(d, (t + 1) * w + X, CST_L[0].rim, kk * 0.35); mixRim(df, t * w + X, CST_L[1].rim, 0.6); }
+      spr[id] = { top, c: [to32(d, w, H), to32(df, w, H)], an: [] };
+    };
+    rock('crag', 336, 38, 2.28, (u) => {
+      let p = 30 + 4 * Math.sin(u * 0.029 + 0.6) + 2.5 * Math.sin(u * 0.09);
+      if (Math.abs(u - 109) < 10) p = Math.min(p, 17 + Math.abs(u - 109) * 0.9); // Senke vor dem Tor
+      return p * Math.pow(Math.min(1, u / 7), 0.5) * Math.pow(Math.max(0, Math.min(1, (336 - u) / 46)), 0.7);
+    }, 77);
+    rock('rock2', 68, 28, 2.42, (u) => (19 + 3 * Math.sin(u * 0.2) + 2 * Math.sin(u * 0.53)) * Math.pow(Math.min(1, u / 18), 0.8) * Math.pow(Math.min(1, (68 - u) / 5), 0.5), 78);
+    // Banner (8 Phasen, Nacht/Blitz): rotes Tuch mit goldenem Zeichen und Schwalbenschwanz, Kante im Mondlicht
+    const ban = [0, 1].map(fl => Array.from({ length: 8 }, (_, k) => {
+      const c = C(10, 30), x = c.getContext('2d'), ph = k / 8 * Math.PI * 2, R0 = fl ? ['#d03050', '#f05068', '#902038'] : ['#a8102c', '#d82840', '#600818'];
+      px(x, fl ? '#a08868' : '#2c2018', 0, 0, 9, 1);
+      for (let y = 1; y < 29; y++) {
+        const t = y / 28, dx = Math.round(Math.sin(ph + y * 0.28) * t * 1.6), wv = Math.cos(ph + y * 0.28), col = wv > 0.35 ? R0[1] : wv < -0.35 ? R0[2] : R0[0];
+        if (y < 24) { px(x, col, 1 + dx, y, 7, 1); px(x, fl ? '#fff0f4' : '#ff7088', 7 + dx, y, 1, 1); }
+        else { const cut = y - 23; px(x, col, 1 + dx, y, Math.max(1, 3 - (cut >> 1)), 1); px(x, col, 5 + dx + (cut >> 1), y, Math.max(1, 3 - (cut >> 1)), 1); }
+        if (y >= 7 && y <= 13) px(x, '#e8b030', 4 + dx, y, 1, 1); if (y === 9) px(x, '#e8b030', 3 + dx, y, 3, 1);
+      }
+      return c;
+    }));
+    const pen = Array.from({ length: 8 }, (_, k) => { // Wimpel
+      const c = C(10, 7), x = c.getContext('2d'), ph = k / 8 * Math.PI * 2;
+      for (let X = 0; X < 9; X++) { const yc = 3 + Math.round(Math.sin(ph - X * 0.7) * X / 8 * 1.5), hw = Math.round((8 - X) / 8 * 1.4); px(x, Math.cos(ph - X * 0.7) > 0.3 ? '#e8283c' : '#a80c24', X, yc - hw, 1, hw * 2 + 1); }
+      return c;
+    });
+    const glow = C(12, 12), gx = glow.getContext('2d'), gg = gx.createRadialGradient(6, 6, 0, 6, 6, 6);
+    gg.addColorStop(0, 'rgba(255,200,110,0.9)'); gg.addColorStop(0.35, 'rgba(255,130,40,0.35)'); gg.addColorStop(1, 'rgba(255,90,20,0)'); gx.fillStyle = gg; gx.fillRect(0, 0, 12, 12);
+    const dots = C(2, 2); px(dots.getContext('2d'), '#0a0412', 0, 0, 1, 2); // Konsolenschatten unter dem Wehrgang
+    seed = sd0;
+    return { spr, ban, pen, glow, dotsC: dots };
+  }
+  // Rundturm: Mantel (n-Eck), Wehrgang-Kranz auf Konsolen, Kegeldach mit Traufe (von unten sichtbar) oder Zinnen, Fenster,
+  // roter Mondsaum an der rechten Silhouette, Wimpel an der Spitze. corbel: Pfefferbüchse, unten ein umgekehrter Kegel.
+  function castleTower(x, T, ox, cv, fl, an, MC) {
+    const D = CST.D, base = CST.base, Z = T.Z, n = View.lite && T.n > 8 ? 8 : T.n, R = T.r * Z, X = ox + T.x * Z, zc = Z * D, sec = Math.cos(Math.PI / n);
+    const P = (px2, py, pz) => [cv.vx + (px2 - cv.camWX) * D / pz, base - py * D / pz], ST = ALB.stone, rimC = cRim(Z, fl), dark = cCss(cLit(ST, 0, -1, 0, Z, fl), 0.8);
+    const Y0 = T.y0 * Z, Y1 = T.y1 * Z, rr = R + 1.3 * Z, Yr = T.ring ? Y1 - 6 * Z : Y1, re = R + 1.8 * Z;
+    const ring = (rad, Y, col) => { x.fillStyle = col; x.beginPath(); for (let i = 0; i < n; i++) { const a = (i + 0.5) / n * 2 * Math.PI, q = P(X + Math.sin(a) * rad, Y, zc - Math.cos(a) * rad); i ? x.lineTo(q[0], q[1]) : x.moveTo(q[0], q[1]); } x.closePath(); x.fill(); };
+    const mantle = (rad, Ya, Yb, out) => { // sichtbare Mantelflächen → [links, rechts, oben am rechten Rand, unten am rechten Rand]
+      let xl = 1e9, xr = -1e9, yt = 0, yb = 0;
+      for (let i = 0; i < n; i++) {
+        const am = i / n * 2 * Math.PI, nx = Math.sin(am), nz = -Math.cos(am);
+        if (nx * (cv.camWX - X - nx * rad * sec) - nz * (zc + nz * rad * sec) <= 0) continue;
+        const a0 = am - Math.PI / n, a1 = am + Math.PI / n, xa = X + Math.sin(a0) * rad, za = zc - Math.cos(a0) * rad, xb = X + Math.sin(a1) * rad, zb = zc - Math.cos(a1) * rad;
+        const A = P(xa, Ya, za), B = P(xb, Ya, zb), A2 = P(xa, Yb, za), B2 = P(xb, Yb, zb), c = cLit(ST, nx, 0, nz, Z, fl);
+        x.fillStyle = cCss(c); x.beginPath(); x.moveTo(A[0] - 0.35, A[1]); x.lineTo(B[0] + 0.35, B[1]); x.lineTo(B2[0] + 0.35, B2[1]); x.lineTo(A2[0] - 0.35, A2[1]); x.closePath(); x.fill();
+        if (A[0] < xl) xl = A[0]; if (B[0] > xr) { xr = B[0]; yt = B2[1]; yb = B[1]; }
+        if (out) out.push([A2[0], B2[0], Math.min(A2[1], B2[1]), c]);
+      }
+      return [xl, xr, yt, yb];
+    };
+    const cone = (rad, Yb, Ya) => { // Kegel: Grundkreis bei Yb, Spitze bei Ya (darunter: umgekehrt) → rechte Kante für den Saum
+      const ap = P(X, Ya, zc); let bx = -1e9, best = null;
+      for (let i = 0; i < n; i++) {
+        const am = i / n * 2 * Math.PI, a0 = am - Math.PI / n, a1 = am + Math.PI / n, x0 = X + Math.sin(a0) * rad, z0 = zc - Math.cos(a0) * rad, x1 = X + Math.sin(a1) * rad, z1 = zc - Math.cos(a1) * rad;
+        const ux = x1 - x0, uz = z1 - z0, wx = X - x0, wy = Ya - Yb, wz = zc - z0;
+        let nx = -uz * wy, ny = uz * wx - ux * wz, nz = ux * wy; if (nx * Math.sin(am) - nz * Math.cos(am) < 0) { nx = -nx; ny = -ny; nz = -nz; }
+        const l = Math.hypot(nx, ny, nz); nx /= l; ny /= l; nz /= l;
+        if (nx * (cv.camWX - x0) - ny * Yb - nz * z0 <= 0) continue;
+        const A = P(x0, Yb, z0), B = P(x1, Yb, z1);
+        x.fillStyle = cCss(cLit(ALB.slate, nx, ny, nz, Z, fl)); x.beginPath(); x.moveTo(A[0] - 0.3, A[1]); x.lineTo(B[0] + 0.3, B[1]); x.lineTo(ap[0], ap[1]); x.closePath(); x.fill();
+        if (B[0] > bx) { bx = B[0]; best = B; }
+      }
+      return [ap, best];
+    };
+    if (T.roof) ring(re, Y1, dark); // Traufe von unten
+    if (T.ring) ring(rr, Yr, dark);  // Wehrgang-Kranz von unten
+    if (T.corbel) cone(R, Y0, Y0 - T.corbel * Z);
+    const [xl, xr, yt, yb] = mantle(R, Y0, Yr);
+    x.globalAlpha = 0.75; x.fillStyle = rimC; x.fillRect(Math.round(xr) - 1, yt, 1, (yb - yt) * 0.7); x.globalAlpha = 1; // Mondsaum, nach unten verlöschend
+    x.fillStyle = 'rgba(8,2,16,0.3)'; for (const k of [0.4, 0.7]) x.fillRect(xl, Math.round(base - (Y0 + (Yr - Y0) * k) / Z), xr - xl, 1); // Gurtgesimse
+    const ww = T.r >= 8 ? 2 : 1;
+    for (const [a, h, lit] of T.win) {
+      const wx = X + Math.sin(a) * R, wz = zc - Math.cos(a) * R, dx = cv.camWX - wx;
+      if ((Math.sin(a) * dx + Math.cos(a) * wz) / Math.hypot(dx, wz) < 0.35) continue;
+      const q = P(wx, h * Z, wz), qx = Math.round(q[0] - ww / 2), qy = Math.round(q[1]);
+      x.fillStyle = dark; x.fillRect(qx - 1, qy - 1, ww + 2, 5);
+      x.fillStyle = lit ? (fl ? '#d89848' : '#f8a838') : '#140818'; x.fillRect(qx, qy, ww, 3);
+      if (lit) { x.fillStyle = fl ? '#f8e0b0' : '#fff0a0'; x.fillRect(qx, qy + 1, 1, 1); an.glow.push({ x: qx + MC, y: qy + 1, ph: T.x * 0.37 + h, a: fogA(qy) * 0.8 }); }
+    }
+    let top = null;
+    if (T.ring) {
+      top = []; const [rl, rr2, ryt, ryb] = mantle(rr, Yr, Y1, top);
+      x.fillStyle = rimC; x.fillRect(Math.round(rr2) - 1, ryt, 1, ryb - ryt);
+      x.fillStyle = cv.dots; x.fillRect(Math.round(rl), Math.round(base - Yr / Z), Math.round(rr2 - rl), 2);
+    }
+    if (T.roof) {
+      const [ap, best] = cone(re, Y1, Y1 + T.roof * Z);
+      if (best) { x.strokeStyle = rimC; x.lineWidth = 1; x.beginPath(); x.moveTo(ap[0], ap[1]); x.lineTo(best[0], best[1]); x.stroke(); }
+      const axp = Math.round(ap[0]), ayp = Math.round(ap[1]);
+      x.fillStyle = dark; x.fillRect(axp, ayp - 6, 1, 6);
+      if (!T.corbel) an.pen.push({ x: axp + 1 + MC, y: ayp - 7, ph: (T.x * 3) & 7 });
+    } else if (top) for (const [a0, b0, y0, c] of top) { const wd = b0 - a0; if (wd < 1.6) continue; x.fillStyle = cCss(c, 1.15); x.fillRect(Math.round(a0 + wd * 0.22), Math.round(y0) - 3, Math.max(1, Math.round(wd * 0.56)), 3); } // Zinnen
+  }
+  // Bergfried: Flanken (die rechte im Blutmond), steiles Pyramidendach mit Saum, Fassade als Pixelbild, Pfefferbüchsen, Helmstange
+  function castleKeep(x, K, ox, cv, fl, an, MC) {
+    const D = CST.D, base = CST.base, Z = K.Z, zf = Z * D, zb = zf + K.dep * Z, X0 = ox + K.x0 * Z, X1 = ox + K.x1 * Z, Y0 = K.y0 * Z, Y1 = K.y1 * Z;
+    const P = (a) => [cv.vx + (a[0] - cv.camWX) * D / a[2], base - a[1] * D / a[2]], ST = ALB.stone, rimC = cRim(Z, fl);
+    const poly = (pts, c) => { x.fillStyle = c; x.beginPath(); pts.forEach((p, i) => { const q = P(p); i ? x.lineTo(q[0], q[1]) : x.moveTo(q[0], q[1]); }); x.closePath(); x.fill(); };
+    if (cv.camWX < X0) poly([[X0, Y0, zf], [X0, Y1, zf], [X0, Y1, zb], [X0, Y0, zb]], cCss(cLit(ST, -1, 0, 0, Z, fl)));
+    if (cv.camWX > X1) {
+      poly([[X1, Y0, zf], [X1, Y1, zf], [X1, Y1, zb], [X1, Y0, zb]], cCss(cLit(ST, 1, 0, 0, Z, fl)));
+      for (const [k, h] of [[0.35, 88], [0.7, 88], [0.5, 64]]) { const q = P([X1, h * Z, zf + (zb - zf) * k]); x.fillStyle = '#1c0c18'; x.fillRect(Math.round(q[0]) - 1, Math.round(q[1]) - 1, 2, 5); x.fillStyle = fl ? '#d89848' : '#f8a838'; x.fillRect(Math.round(q[0]), Math.round(q[1]), 1, 3); }
+    }
+    const e = 1.5 * Z, Yr = (K.y1 + 2) * Z, ap = [(X0 + X1) / 2, K.apex * Z, (zf + zb) / 2], cx = ap[0], cz = ap[2];
+    const cr = [[X0 + e, Yr, zf + e], [X1 - e, Yr, zf + e], [X1 - e, Yr, zb - e], [X0 + e, Yr, zb - e]];
+    let bx = -1e9, best = null;
+    for (let i = 0; i < 4; i++) {
+      const a = cr[i], b = cr[(i + 1) % 4], ux = b[0] - a[0], uz = b[2] - a[2], wx = ap[0] - a[0], wy = ap[1] - a[1], wz = ap[2] - a[2];
+      let nx = -uz * wy, ny = uz * wx - ux * wz, nz = ux * wy; const mx = (a[0] + b[0]) / 2 - cx, mz = (a[2] + b[2]) / 2 - cz;
+      if (nx * mx + nz * mz < 0) { nx = -nx; ny = -ny; nz = -nz; } const l = Math.hypot(nx, ny, nz); nx /= l; ny /= l; nz /= l;
+      if (nx * (cv.camWX - a[0]) - ny * a[1] - nz * a[2] <= 0) continue;
+      poly([a, b, ap], cCss(cLit(ALB.slate, nx, ny, nz, Z, fl)));
+      const q = P(b); if (q[0] > bx) { bx = q[0]; best = q; } const q0 = P(a); if (q0[0] > bx) { bx = q0[0]; best = q0; }
+    }
+    const pa = P(ap);
+    if (best) { x.strokeStyle = rimC; x.lineWidth = 1; x.beginPath(); x.moveTo(pa[0], pa[1]); x.lineTo(best[0], best[1]); x.stroke(); }
+    x.fillStyle = cCss(cLit(ST, 0, -1, 0, Z, fl)); x.fillRect(Math.round(pa[0]), Math.round(pa[1]) - 10, 1, 10); x.fillRect(Math.round(pa[0]) - 1, Math.round(pa[1]) - 7, 3, 1); // Helmstange
+    an.pen.push({ x: Math.round(pa[0]) + 1 + MC, y: Math.round(pa[1]) - 11, ph: 3 });
+    const s = castleArt.spr.keep, sx = Math.round(P([X0, 0, zf])[0]), sy = base - s.top;
+    x.drawImage(s.c[fl], sx, sy); sprAnchors(s, sx, sy, an, MC);
+    for (const u of [K.x0 - 1, K.x1 + 1]) castleTower(x, { x: u, Z: Z - 0.02, r: 4, y0: K.y1 - 10, y1: K.y1 + 7, roof: 15, n: 6, corbel: 7, win: [[0, K.y1 - 3, 1]] }, ox, cv, fl, an, MC);
+  }
+  function sprAnchors(s, sx, sy, an, MC) {
+    for (const a of s.an) { const X = sx + a.u + MC, Y = sy + a.v; if (a.b) an.ban.push({ x: X, y: Y, ph: a.u & 7 }); else an.glow.push({ x: X, y: Y, ph: a.u * 0.71 + a.v, a: (a.a || 1) * fogA(Y) }); }
+  }
+  let castleArt = null, castleBuf = null, castleBufF = null;
+  function renderCastle(x, w, MC, cam, fl, an) {
+    const vx = w / 2, camX = cam.x * 0.6, cv = { vx, camWX: camX + vx, dots: x.createPattern(castleArt.dotsC, 'repeat') };
+    x.save(); x.translate(MC, 0);
+    for (let k = -1; k <= 1; k++) {
+      const ox = CST.CX + k * CST.P, sc = vx + (ox - cv.camWX) / 2.4;
+      if (sc + 170 < -MC || sc - 320 > w + MC) continue;
+      for (const E of CST_E) {
+        if (E.t === 'spr') { const s = castleArt.spr[E.id], sx = Math.round(vx + (ox - cv.camWX) / E.Z + E.x), sy = CST.base - s.top; x.drawImage(s.c[fl], sx, sy); sprAnchors(s, sx, sy, an, MC); }
+        else if (E.t === 'tow') castleTower(x, E, ox, cv, fl, an, MC);
+        else castleKeep(x, E, ox, cv, fl, an, MC);
+      }
+    }
+    x.restore();
+    const S = CST_L[fl]; // Nebel: die Burg versinkt nach unten im Dunst, am Fuß eine Nebelbank (auch vor den Bergen)
+    x.globalCompositeOperation = 'source-atop';
+    let g = x.createLinearGradient(0, 112, 0, 178); g.addColorStop(0, `rgba(${S.fog},0)`); g.addColorStop(0.55, `rgba(${S.fog},${fl ? 0.3 : 0.42})`); g.addColorStop(1, `rgba(${S.fog},${fl ? 0.7 : 0.92})`);
+    x.fillStyle = g; x.fillRect(0, 112, w + 2 * MC, 96);
+    x.globalCompositeOperation = 'source-over';
+    g = x.createLinearGradient(0, 148, 0, 182); g.addColorStop(0, `rgba(${S.fog},0)`); g.addColorStop(1, `rgba(${S.fog},${fl ? 0.4 : 0.55})`);
+    x.fillStyle = g; x.fillRect(0, 148, w + 2 * MC, 60);
+  }
+  function drawCastle3D(ctx, cam, frame) {
+    if (!castleArt) castleArt = buildCastleArt();
+    const w = View.w, MC = 48, par = 0.6 / 2.4, flash = FX.stormOn(W.storm) ? 1 : 0;
+    const B = flash ? (castleBufF || (castleBufF = {})) : (castleBuf || (castleBuf = {})); // Blitz: eigene, grell angestrahlte Fassung
+    PS2.shiftCache(ctx, B, { w, h: 208, dv: 1, M: MC, par, tol: View.lite ? 40 : 24, camX: cam.x, key: w + '|' + flash, soft: 0, draw: (x) => { B.an = { ban: [], pen: [], glow: [] }; renderCastle(x, w, MC, cam, flash, B.an); } });
+    const A = B.an; if (!A) return;
+    const off = Math.round(-MC - (cam.x - B.camX) * par), f8 = frame >> 3, art = castleArt;
+    for (const b of A.ban) ctx.drawImage(art.ban[flash][(f8 + b.ph) & 7], b.x + off, b.y);
+    for (const p of A.pen) ctx.drawImage(art.pen[(f8 + p.ph) & 7], p.x + off, p.y);
+    if (flash) return;
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'; // Fensterlicht flackert, Fackeln und Laternen glühen
+    const lim = View.lite ? 10 : 40;
+    for (let i = 0; i < A.glow.length && i < lim; i++) {
+      const g = A.glow[i], fl2 = 0.62 + 0.22 * Math.sin(frame * 0.11 + g.ph) + 0.16 * Math.sin(frame * 0.29 + g.ph * 2.3);
+      ctx.globalAlpha = Math.min(1, Math.max(0, fl2 * g.a * 0.55)); ctx.drawImage(art.glow, g.x + off - 6, g.y - 6);
+    }
+    ctx.restore();
   }
 
   // ---------------- Marmorgalerie: Säulengang in echter Perspektive (PS1-Look) ----------------

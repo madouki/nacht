@@ -734,12 +734,13 @@ class Gatehouse extends Ent {
     }
     return m;
   }
-  persp3() { const w = View.w, dv = View.lite ? 3 : 2; return { w, dv, Wb: Math.ceil(w / dv), Hb: Math.ceil(208 / dv), cam: { x: W.cam.x + w / 2, y: this.hy - (W.cam.y + 60), z: -200, yaw: 0, pitch: 0, f: 200 / dv, near: 30, hy: 60 / 208 } }; }
+  // volle Auflösung: scharfe Kontur (im Sparmodus halbe, dann pixelig statt weich)
+  persp3() { const w = View.w, dv = View.lite ? 2 : 1; return { w, dv, Wb: Math.ceil(w / dv), Hb: Math.ceil(208 / dv), cam: { x: W.cam.x + w / 2, y: this.hy - (W.cam.y + 60), z: -200, yaw: 0, pitch: 0, f: 200 / dv, near: 30, hy: 60 / 208 } }; }
   renderPart(which) {
     const P = this.persp3(), key = Math.round(W.cam.x / P.dv) + '|' + Math.round(W.cam.y / P.dv) + '|' + P.Wb + (which === 'back' ? '|' + Math.round(this.gy) : '');
     this.bufs = this.bufs || {};
     let B = this.bufs[which];
-    if (!B || B.c.width !== P.Wb) { B = this.bufs[which] = { c: Sprites.canvas(P.Wb, P.Hb), key: null }; B.x = B.c.getContext('2d', { willReadFrequently: true }); }
+    if (!B || B.c.width !== P.Wb) { const c = document.createElement('canvas'); c.width = P.Wb; c.height = P.Hb; B = this.bufs[which] = { c, key: null }; B.x = c.getContext('2d'); } // GPU-Leinwand: wird jedes Bild gezeichnet
     if (B.key !== key) {
       if (!this.meshes) this.meshes = this.buildMeshes();
       B.key = key; B.x.clearRect(0, 0, P.Wb, P.Hb);
@@ -753,7 +754,7 @@ class Gatehouse extends Ent {
     const cx = W.cam.x, cy = W.cam.y, fx = Math.round(this.x - cx);
     if (fx > View.w + 120 || fx + this.w < -200) return;
     const B = this.renderPart('back');
-    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.drawImage(B.c, 0, 0, B.c.width, B.c.height, 0, 0, View.w, 208); ctx.restore();
+    ctx.save(); ctx.imageSmoothingEnabled = false; ctx.drawImage(B.c, 0, 0, B.c.width, B.c.height, 0, 0, View.w, 208); ctx.restore();
     const tp = this.tip(); // Kette von der Mauer zur Brückenspitze
     [[this.hx - 6, 74], [this.hx - 6, 84]].forEach(([kx, ky], j) => {
       const n = Math.ceil(Math.hypot(tp.x - kx, tp.y - ky) / 3);
@@ -770,7 +771,7 @@ class Gatehouse extends Ent {
     const G = this.geo(), p = W.player, inside = p.cx > G.X0 - 110 && p.cx < G.X1 + 90; // schon beim Herankommen Schnittansicht: Gatter und Torweg sichtbar
     this.fade = (this.fade ?? 1) + ((inside ? 0.1 : 1) - (this.fade ?? 1)) * 0.14;
     const B = this.renderPart('front');
-    ctx.save(); ctx.globalAlpha = this.fade; ctx.imageSmoothingEnabled = true; ctx.drawImage(B.c, 0, 0, B.c.width, B.c.height, 0, 0, View.w, 208);
+    ctx.save(); ctx.globalAlpha = this.fade; ctx.imageSmoothingEnabled = false; ctx.drawImage(B.c, 0, 0, B.c.width, B.c.height, 0, 0, View.w, 208);
     for (const bx of [G.X0 + 47, G.X1 - 47]) { // Banner an der Fassade
       const [sx, sy, k] = this.proj(bx, 108, G.FZ - 8);
       ctx.save(); ctx.globalAlpha = this.fade * this.fade; ctx.translate(Math.round(sx - 11 * k), Math.round(sy)); ctx.scale(k * 0.9, k * 0.75); this.drawBanner(ctx, 0, 0); ctx.restore();

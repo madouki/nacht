@@ -1223,12 +1223,14 @@ const Game = {
     const langTxt = tr('optLang') + '  < ' + I18N.NAMES[Options.lang] + ' >';
     const tags = [Options.easy && tr('tagEasy'), Options.maxWhip && tr('tagWhip'), Options.infHearts && tr('tagHearts')].filter(Boolean);
     const lh = I18N.cjk ? 11 : 9, bw = Math.min(View.w - 8, 240), ids = this.titleItems(), ni = ids.length, gap = tags.length ? 11 : 3;
-    // Platz zwischen Untertitel und Steuerungskasten: erst rücken die Menüzeilen enger, dann verliert der Kasten seine letzten
-    // Zeilen (mindestens drei bleiben) – so überlappt nichts, auch nicht bei großen Lettern, Spielstand, Schwierigkeits-Hinweis oder CJK
+    // Platz zwischen Untertitel und Steuerungskasten: erst fällt im Kasten die Ringe-Zeile weg (das Spiel erklärt die Ringe vor Ort),
+    // dann rücken die Menüzeilen auf 9 px (enger berühren sich die Umrisse der Schrift), dann gehen weitere Kastenzeilen –
+    // so überlappt nichts, auch nicht bei großen Lettern, Spielstand, Schwierigkeits-Hinweis oder CJK
     let lines = this.controlLines(), msp = I18N.cjk ? 11 : 10;
-    const top = L.sub + 11, room = () => 228 - (lines.length * lh + 7) - gap - top;
-    while (ni * msp > room() && msp > (I18N.cjk ? 10 : 8)) msp--;
-    while (ni * msp > room() && lines.length > 3) lines = lines.slice(0, -1);
+    const top = L.sub + 10, room = () => 228 - (lines.length * lh + 7) - gap - top, drop = () => { lines = lines.filter((_, i) => i !== Math.min(4, lines.length - 1)); };
+    if (ni * msp > room() && lines.length > 5) drop();
+    while (ni * msp > room() && msp > (I18N.cjk ? 10 : 9)) msp--;
+    while (ni * msp > room() && lines.length > 3) drop();
     const bh = lines.length * lh + 7, by = 228 - bh, my0 = Math.max(top, Math.min(L.sub + 13, by - ni * msp - gap));
     const fx = (this.langFx = Math.max(0, (this.langFx || 0) - 1)) > 0;
     const LABEL = { cont: tr('castleCont'), start: tr('start'), castle: tr('castleMode'), arcade: tr('arcadeMode'), options: tr('options'), lang: langTxt, scores: tr('hiTitle'), sections: tr('sections'), test: tr('testMode'), testEnd: tr('testEnd') };
