@@ -104,6 +104,7 @@ const Input = (() => {
     const active = new Map(); // touchId -> Taste
     let fullTouch = null; // Vollbild-Knopf: erst beim Loslassen umschalten (Browser verlangen eine abgeschlossene Geste)
     const stick = { id: null, ox: 0, oy: 0, dx: 0, dy: 0 };
+    let menuT = null; // Finger im Pausenmenü (wischen/tippen)
     const refresh = () => {
       ACTIONS.forEach(a => { touch[a] = false; });
       active.forEach(a => { touch[a] = true; });
@@ -138,18 +139,24 @@ const Input = (() => {
       for (const tc of e.changedTouches) {
         const id = tc.identifier, x = tc.clientX, y = tc.clientY;
         if (e.type === 'touchstart') {
-          if (typeof Game !== 'undefined' && Game.state === 'pause') { if (!Game.pauseTouch(x, y)) latch.start = true; continue; } // Pause: Menüpunkt antippen, sonst weiter
+          if (typeof Game !== 'undefined' && Game.state === 'pause') { menuT = { id, y, acc: 0, moved: false }; continue; } // Pause: wischen = auswählen, tippen (beim Loslassen) = Menüpunkt bzw. weiter
           const a = hitTest(x, y);
           if (a === 'full') { fullTouch = id; continue; }
           if (a && (x > window.innerWidth * 0.45 || a === 'start')) { latch[a] = true; active.set(id, a); }
           else if (x < window.innerWidth * 0.5 && stick.id === null) { stick.id = id; stick.ox = x; stick.oy = y; stick.dx = 0; stick.dy = 0; if (hint) hint.style.display = 'none'; }
         } else if (e.type === 'touchmove') {
+          if (menuT && id === menuT.id) { // Pause: senkrecht wischen blättert durch die Punkte
+            menuT.acc += y - menuT.y; menuT.y = y;
+            while (Math.abs(menuT.acc) >= 22) { const d = Math.sign(menuT.acc); latch[d > 0 ? 'down' : 'up'] = true; menuT.acc -= d * 22; menuT.moved = true; }
+            continue;
+          }
           if (id === stick.id) {
             stick.dx = x - stick.ox; stick.dy = y - stick.oy;
             const d = Math.hypot(stick.dx, stick.dy);
             if (d > 70) { stick.ox += stick.dx * (1 - 70 / d); stick.oy += stick.dy * (1 - 70 / d); stick.dx = x - stick.ox; stick.dy = y - stick.oy; }
           } else if (active.has(id)) { const a = hitTest(x, y); if (a) active.set(id, a); }
         } else {
+          if (menuT && id === menuT.id) { const m = menuT; menuT = null; if (!m.moved && e.type === 'touchend' && typeof Game !== 'undefined' && Game.state === 'pause' && !Game.pauseTouch(x, y)) latch.start = true; continue; }
           if (id === fullTouch) { fullTouch = null; if (e.type === 'touchend' && typeof Game !== 'undefined') Game.toggleFullscreen(); }
           if (id === stick.id) { stick.id = null; stick.dx = stick.dy = 0; }
           active.delete(id);

@@ -6,6 +6,9 @@ const OPTION_ITEMS = [ // label/hint sind Schlüssel für tr()
   { key: 'easy', label: 'optEasy', hint: 'optEasyH' },
   { key: 'maxWhip', label: 'optWhip', hint: 'optWhipH' },
   { key: 'infHearts', label: 'optHearts', hint: 'optHeartsH' },
+  { key: 'god', label: 'optGod', hint: 'optGodH' },                     // Testhilfen
+  { key: 'allRelics', label: 'optRelics', hint: 'optRelicsH' },        // (nur im Schloss-Modus)
+  { key: 'maxLevel', label: 'optMaxLv', hint: 'optMaxLvH' },
   { key: 'guide', label: 'optGuide', hint: 'optGuideH' }, // Wegweiser-Pfeil (nur im Schloss-Modus)
   { key: 'music', label: 'optMusic', hint: 'optMusicH' },
   { key: 'voice', label: 'optVoice', hint: 'optVoiceH' },
@@ -13,7 +16,7 @@ const OPTION_ITEMS = [ // label/hint sind Schlüssel für tr()
   { key: 'crt', label: 'optCrt', hint: 'optCrtH' },
   { key: 'fullscreen', label: 'optFull', hint: 'optFullH' },
   { key: 'back', label: 'optBack', hint: '' },
-].filter(it => it.key !== 'guide' || Castle.on);
+].filter(it => !['guide', 'allRelics', 'maxLevel'].includes(it.key) || Castle.on);
 const BAY4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 
 const Game = {
@@ -855,7 +858,8 @@ const Game = {
   pauseItems() { return Castle.on ? ['resume', 'map', 'status', 'equip', ...(Castle.inPrologue() ? ['skip'] : []), Castle.testing ? 'tools' : 'easy', 'sec', 'title'] : ['resume', 'easy', 'sec', 'title']; },
   pauseTouch(clientX, clientY) {
     const r = this.canvas.getBoundingClientRect(), y = (clientY - r.top) / r.height * 240;
-    for (let i = 0; i < this.pauseItems().length; i++) if (y >= 117 + i * 12 && y < 129 + i * 12) { this.pauseAct = i; return true; }
+    const n = this.pauseItems().length, i = Math.round((y - 123) / 12); // nächster Menüpunkt, großzügig
+    if (i >= 0 && i < n && Math.abs(y - (123 + i * 12)) < 9) { this.pauseAct = i; return true; }
     return false;
   },
   drawPause(ctx) {
@@ -1221,7 +1225,7 @@ const Game = {
     this.bootText(ctx, tr('subtitle'), cx, L.sub, '#e8d4f0', '#14000c');
     // Menü
     const langTxt = tr('optLang') + '  < ' + I18N.NAMES[Options.lang] + ' >';
-    const tags = [Options.easy && tr('tagEasy'), Options.maxWhip && tr('tagWhip'), Options.infHearts && tr('tagHearts')].filter(Boolean);
+    const tags = [Options.easy && tr('tagEasy'), Options.maxWhip && tr('tagWhip'), Options.infHearts && tr('tagHearts'), Options.god && tr('tagGod'), Castle.on && Options.allRelics && tr('tagRelics'), Castle.on && Options.maxLevel && 'LV 99'].filter(Boolean);
     const lh = I18N.cjk ? 11 : 9, bw = Math.min(View.w - 8, 240), ids = this.titleItems(), ni = ids.length, gap = tags.length ? 11 : 3;
     // Platz zwischen Untertitel und Steuerungskasten: erst fällt im Kasten die Ringe-Zeile weg (das Spiel erklärt die Ringe vor Ort),
     // dann rücken die Menüzeilen auf 9 px (enger berühren sich die Umrisse der Schrift), dann gehen weitere Kastenzeilen –
@@ -1323,9 +1327,13 @@ const Game = {
     ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(cx - 124, 38, 248, 168);
     ctx.fillStyle = '#c89020'; ctx.fillRect(cx - 124, 38, 248, 1); ctx.fillRect(cx - 124, 205, 248, 1); ctx.fillRect(cx - 118, 188, 236, 1);
     this.big(ctx, tr('options'), cx, 44, 2, LOGO, null, '#000');
-    const step = OPTION_ITEMS.length > 9 ? 12 : 14; // mit dem Wegweiser zehn Zeilen: etwas enger, damit alles über die Trennlinie passt
+    // mehr als zehn Zeilen: die Liste rollt mit der Auswahl (Pfeile zeigen, dass es weitergeht)
+    const n = OPTION_ITEMS.length, step = n > 9 ? 12 : 14, V = 10, first = n <= V ? 0 : clamp(this.optSel - 4, 0, n - V);
+    if (first > 0) Font.draw(ctx, '▲', cx + 114, 54 + ((this.t >> 4) & 1), '#c89020', { align: 'center' });
+    if (first + V < n) Font.draw(ctx, '▼', cx + 114, 180 + ((this.t >> 4) & 1), '#c89020', { align: 'center' });
     OPTION_ITEMS.forEach((it, i) => {
-      const y = 64 + i * step, on = this.optSel === i;
+      if (i < first || i >= first + V) return;
+      const y = 64 + (i - first) * step, on = this.optSel === i;
       if (on) { ctx.fillStyle = 'rgba(200,144,32,0.2)'; ctx.fillRect(cx - 118, y - 3, 236, step - 1); }
       Font.draw(ctx, tr(it.label), cx - 110, y, on ? '#fcfcfc' : '#9c9c9c', on ? { shadow: '#3c2008', wave: 1.2, t: this.t } : { shadow: '#000' });
       let val = '', good = false;

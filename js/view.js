@@ -27,9 +27,12 @@ const View = {
     return Math.max(0, Math.ceil(Math.max(0, r.bottom - visBottom) + Math.max(0, -r.top) - 0.5)); // zentriert: oben + unten
   },
   fit() {
-    const { iw, ih } = this.area();
+    const { iw: iw0, ih } = this.area();
     const s = ih / this.h;
-    const ideal = iw / s;
+    // Touch im Querformat: links und rechts Ränder für die Daumen (Stick, Tasten) – das Spielbild liegt nie unter den Fingern
+    const touchLand = typeof document !== 'undefined' && document.body && document.body.classList.contains('touch') && iw0 > ih * 1.2;
+    const gut = touchLand ? Math.max(0, Math.min(Math.round(Math.min(200, Math.max(72, iw0 * 0.2))), Math.floor((iw0 - this.min * s) / 2))) : 0;
+    const iw = iw0 - 2 * gut, ideal = iw / s;
     if (ideal < this.min) { // Hochformat: Breite füllen, Rest bleibt für Touch-Steuerung
       const s2 = iw / this.min;
       return { w: this.min, scale: s2, cssW: iw, cssH: Math.round(this.h * s2) };

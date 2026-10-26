@@ -44,6 +44,7 @@ const Castle = (() => {
   // seen: Raumschlüssel "<kapitel-id>:<raum>" → Set der Zellnummern; boss/mini/warp/vessel/relic/crack/flag: Schlüssel → 1;
   // inv: Gegenstand → Anzahl, eq: Platz (weapon/armor/acc/fam) → Gegenstand, famx: Begleiter → Erfahrung, best: Gegnerart → Siege
   let seen = {}, boss = {}, mini = {}, warp = {}, vessel = {}, relic = {}, crack = {}, flag = {}, inv = {}, eq = {}, famx = {}, best = {};
+  const rel = (k) => !!relic[k] || (on && Options.allRelics); // Relikt vorhanden (Testhilfe „alle Relikte“ zählt mit)
   try {
     const d = JSON.parse(localStorage.getItem(KEY) || 'null');
     if (d && d.v === 1) {
@@ -567,7 +568,7 @@ const Castle = (() => {
     if (g.crack) return !!crack[g.crack];
     if (g.beat) { const a = ref(g.beat); return !!(a && boss[roomKey(a.s, a.r)]); }
     if (g.item) return !!inv[g.item];
-    if (g.relics) return g.relics.every(k => !!relic[k]); // Relikte nötig (Eisrutsche: ohne Dash und Enterhaken säße man fest)
+    if (g.relics) return g.relics.every(k => rel(k)); // Relikte nötig (Eisrutsche: ohne Dash und Enterhaken säße man fest)
     return true;
   }
   // Art einer Tür: Rand (links/rechts durchgehen) oder ↑-Tür
@@ -817,11 +818,11 @@ const Castle = (() => {
   // Eisturm führt kein Weg zurück – wer am Relikt vorbeiläuft (oder einen Spielstand von vorher hat), findet es in der Gruft
   const MINI_RELIC = [[[1, 3], 'wolf', 29, 104, [[1, 4], 6, 10]], [['side', 'schuppen'], 'boots', 12, 17]];
   const inPrologue = () => !!(S()[W.stage] && S()[W.stage].id === 'arrival');
-  const has = (k) => !on || !!relic[k] || inPrologue();
+  const has = (k) => !on || rel(k) || inPrologue();
   if (on) { // Bewegungen hängen an den Relikten (Doppelsprung: siehe update)
     const sd = Player.prototype.startDash, wd = Player.prototype.wallDir, tl = Player.prototype.tryLatch;
     Player.prototype.startDash = function (...a) { // ↑ + DASH am Boden mit den Dampfstiefeln: Supersprung statt Dash
-      if (on && relic.boots && Input.held.up && this.onGround && this.state === 'normal') return superJump(this);
+      if (on && rel('boots') && Input.held.up && this.onGround && this.state === 'normal') return superJump(this);
       if (has('dash')) return sd.apply(this, a);
     };
     Player.prototype.wallDir = function () { return has('wall') ? wd.call(this) : 0; };
@@ -832,7 +833,7 @@ const Castle = (() => {
     update() {
       this.t++;
       const p = W.player;
-      if (relic[this.k] || !p.alive || !Phys.overlap(this, p)) return;
+      if (rel(this.k) || !p.alive || !Phys.overlap(this, p)) return;
       relic[this.k] = 1; save(); this.dead = true;
       Game.note('castleRelic', tr('relic_' + this.k), tr('relicD_' + this.k)); announceGoal(250);
       Audio8.sfx('bigItem'); Audio8.sfx('rosary'); Input.rumble(0.6, 0.5, 400); W.flash = 8;
@@ -1307,11 +1308,11 @@ const Castle = (() => {
   }
   function spawnRelics(s, r, def, arrive) {
     const here = ([R]) => same(ref(R), s, r);
-    for (const e of RELIC_AT) if (here(e) && !relic[e[1]]) W.spawn(new RelicStone(e[1], e[2], e[3]));
-    for (const [R, k] of BOSS_RELIC) if (same(ref(R), s, r) && boss[roomKey(s, r)] && !relic[k]) W.spawn(new RelicStone(k, def.w - 10, def.start.y));
+    for (const e of RELIC_AT) if (here(e) && !rel(e[1])) W.spawn(new RelicStone(e[1], e[2], e[3]));
+    for (const [R, k] of BOSS_RELIC) if (same(ref(R), s, r) && boss[roomKey(s, r)] && !rel(k)) W.spawn(new RelicStone(k, def.w - 10, def.start.y));
     for (const [R, k, x, y, F] of MINI_RELIC) {
       const a = ref(R);
-      if (relic[k] || !a || !mini[roomKey(a.s, a.r)]) continue;
+      if (rel(k) || !a || !mini[roomKey(a.s, a.r)]) continue;
       if (here([R])) W.spawn(new RelicStone(k, x, y)); else if (F && here(F)) W.spawn(new RelicStone(k, F[1], F[2]));
     }
     for (const d of doorsOf(s, r)) {
@@ -1416,7 +1417,7 @@ const Castle = (() => {
     if (!set.has(i)) { set.add(i); dirty = true; }
     if (W.miniDone[s + ':' + r] && !mini[key]) { // Zwischengegner besiegt: gemerkt, sein Relikt erscheint
       mini[key] = 1; dirty = true;
-      for (const [R, k, x, y] of MINI_RELIC) if (same(ref(R), s, r) && !relic[k]) W.spawn(new RelicStone(k, x, y));
+      for (const [R, k, x, y] of MINI_RELIC) if (same(ref(R), s, r) && !rel(k)) W.spawn(new RelicStone(k, x, y));
       for (const [R, id, x, y] of MINI_LOOT) if (same(ref(R), s, r) && !inv[id]) W.spawn(new CastleLoot(id, x * T + 8, (y + 1) * T - 8, id));
     }
     if (dirty) save();
@@ -1425,7 +1426,7 @@ const Castle = (() => {
     roomT++;
     const p = W.player, def = S()[s].rooms[r];
     if (def.grates) grateBlock(p); // Gitter: nur Nebel kommt durch
-    if (def.waterLine !== undefined && !relic.diver && p.alive && p.feet > def.waterLine * T + 22 && p.state !== 'dead') { Game.note('castleDrown'); p.fallPenalty(3); } // ohne Helm: ertrinken
+    if (def.waterLine !== undefined && !rel('diver') && p.alive && p.feet > def.waterLine * T + 22 && p.state !== 'dead') { Game.note('castleDrown'); p.fallPenalty(3); } // ohne Helm: ertrinken
     if (!p.alive || p.state !== 'normal' || W.arenaOn) { push = 0; lastX = p.x; return; }
     for (const e of W.ents) { // Figuren: neue Szene beim Herantreten, danach ↑ für den Rat
       if (!(e instanceof CastleNPC) || e.go || !p.onGround || Math.abs(p.feet - (e.y + e.h)) > 16) continue;
@@ -1451,7 +1452,7 @@ const Castle = (() => {
       else use = I.right && (p.onGround || p.batForm || p.mistForm) && p.cx > (def.w - 2.5) * T && push >= 6; // Fledermaus und Nebel ziehen durch Seitenausgänge
       if (!use) continue;
       if (!gateOpen(d)) {
-        if (!lockT) { lockT = 90; if (d.gate.seals) Game.note('castleSeals', seals(), sealRooms().length); else if (d.gate.crack) Game.note('castleCrackHard'); else if (d.gate.beat) Game.note('castleBarred'); else if (d.gate.item) Game.note('castleLocked13'); else if (d.gate.relics) Game.note('castleNeedRelic', d.gate.relics.filter(k => !relic[k]).map(k => tr('relic_' + k)).join(' + ')); else Game.note('castleLocked'); Audio8.sfx('select'); }
+        if (!lockT) { lockT = 90; if (d.gate.seals) Game.note('castleSeals', seals(), sealRooms().length); else if (d.gate.crack) Game.note('castleCrackHard'); else if (d.gate.beat) Game.note('castleBarred'); else if (d.gate.item) Game.note('castleLocked13'); else if (d.gate.relics) Game.note('castleNeedRelic', d.gate.relics.filter(k => !rel(k)).map(k => tr('relic_' + k)).join(' + ')); else Game.note('castleLocked'); Audio8.sfx('select'); }
         push = 0; break;
       }
       push = 0; Game.castleGo(d.to); return;
@@ -1469,7 +1470,7 @@ const Castle = (() => {
     W.ents = W.ents.filter(e => !(e instanceof CastleDoor));
     for (const d of doorsOf(s, W.roomIdx)) W.spawn(new CastleDoor(d, S()[s].rooms[W.roomIdx]));
     const def = S()[s].rooms[W.roomIdx];
-    for (const [R, k] of BOSS_RELIC) if (same(ref(R), s, W.roomIdx) && !relic[k]) W.spawn(new RelicStone(k, def.w - 10, def.start.y)); // Relikt des Bosses
+    for (const [R, k] of BOSS_RELIC) if (same(ref(R), s, W.roomIdx) && !rel(k)) W.spawn(new RelicStone(k, def.w - 10, def.start.y)); // Relikt des Bosses
     for (const [R, id] of BOSS_LOOT) if (same(ref(R), s, W.roomIdx) && !flag['find_' + id] && !inv[id]) W.spawn(new CastleLoot(id, (def.w - 14) * T + 8, (def.start.y + 1) * T - 10, id)); // sein Junges
     Game.bossName = 0; Audio8.tempo(1); Audio8.play('fanfare', W.songName()); Audio8.sfx('bigItem');
     Game.note('castleSeal', seals(), sealRooms().length); announceGoal(260);
@@ -1478,9 +1479,10 @@ const Castle = (() => {
 
   // ---------------- RPG: EXP, Stufe, Werte, Schadenszahlen, Beute ----------------
   const rpg = { lv: 1, exp: 0, kills: 0, frames: 0 }, MAXLV = 99;
+  const lvl = () => (Options.maxLevel ? MAXLV : rpg.lv); // wirksame Stufe (Testhilfe „maximale Stufe“; der Fortschritt im Spielstand bleibt)
   const expFor = (lv) => 15 * lv * (lv - 1); // Gesamt-EXP für Stufe lv: LV2 30, LV5 300, LV10 1350, LV20 5700
   const vessels = () => Object.keys(vessel).length;
-  const values = () => { const b = rpg.lv - 1; return { str: 10 + b, con: 10 + b, hp: Options.maxHp + 2 * b + 4 * vessels() + gear('hp') }; };
+  const values = () => { const b = lvl() - 1; return { str: 10 + b, con: 10 + b, hp: Options.maxHp + 2 * b + 4 * vessels() + gear('hp') }; };
   const strMul = () => 1 + (values().str - 10 + gear('atk')) * 0.05, conDiv = () => 1 + (values().con - 10 + gear('def')) * 0.04; // Ausrüstung zählt wie STR/CON-Punkte
   if (on) { // STR verstärkt Peitsche und Spezialwaffen, CON mindert erlittenen Schaden – nur im Schloss-Modus
     Object.defineProperty(Options, 'dmgMul', { get: () => (Options.easy ? 2 : 1) * strMul(), configurable: true });
@@ -1820,7 +1822,7 @@ const Castle = (() => {
   };
   const SPELL_IDS = ['spirit', 'hellfire', 'tetra', 'soulsteal'];
   const known = (id) => !!inv['book_' + id];
-  const mpMax = () => SPELL_IDS.some(known) || relic.bat || relic.mist || relic.wolf ? 24 + 3 * (rpg.lv - 1) + gear('mp') : 0;
+  const mpMax = () => SPELL_IDS.some(known) || rel('bat') || rel('mist') || rel('wolf') ? 24 + 3 * (lvl() - 1) + gear('mp') : 0;
   let mp = 0, lastDir = '';
   const hist = [];
   const absDir = (s, face) => s.replace('F', face > 0 ? 'R' : 'L').replace('B', face > 0 ? 'L' : 'R');
@@ -1839,17 +1841,17 @@ const Castle = (() => {
     const I = Input.held, c = (I.up ? 'U' : I.down ? 'D' : '') + (I.right ? 'R' : I.left ? 'L' : '');
     if (c !== lastDir) { if (c) { hist.push({ c, f: rpg.frames }); if (hist.length > 16) hist.shift(); } lastDir = c; }
     if (p.batForm || p.mistForm || p.wolfForm) return; // verwandelt: keine Zauber (zurück mit Sprung/Angriff, der Wolf mit ↑)
-    if (P.jump && relic.wolf && p.state === 'normal' && cmdMatch(['D', 'DF', 'F'], p.face)) { // ↓ ↘ → + Sprung: Wolfsgestalt
+    if (P.jump && rel('wolf') && p.state === 'normal' && cmdMatch(['D', 'DF', 'F'], p.face)) { // ↓ ↘ → + Sprung: Wolfsgestalt
       hist.length = 0; P.jump = false;
       if (mp < WOLF_COST) { W.popup(p.cx, p.y - 10, 'MP!', '#7c84a8'); Audio8.sfx('wall'); return; }
       toWolf(p); return;
     }
-    if (P.jump && relic.mist && p.state === 'normal' && cmdMatch(['U', 'D'], p.face)) { // ↑ ↓ + Sprung: Nebelgestalt
+    if (P.jump && rel('mist') && p.state === 'normal' && cmdMatch(['U', 'D'], p.face)) { // ↑ ↓ + Sprung: Nebelgestalt
       hist.length = 0; P.jump = false;
       if (mp < MIST_COST) { W.popup(p.cx, p.y - 10, 'MP!', '#7c84a8'); Audio8.sfx('wall'); return; }
       toMist(p); return;
     }
-    if (P.jump && relic.bat && p.state === 'normal' && cmdMatch(['D', 'U'], p.face)) { // ↓ ↑ + Sprung: Fledermausgestalt
+    if (P.jump && rel('bat') && p.state === 'normal' && cmdMatch(['D', 'U'], p.face)) { // ↓ ↑ + Sprung: Fledermausgestalt
       hist.length = 0; P.jump = false;
       if (mp < BAT_COST) { W.popup(p.cx, p.y - 10, 'MP!', '#7c84a8'); Audio8.sfx('wall'); return; }
       toBat(p); return;
@@ -1864,7 +1866,7 @@ const Castle = (() => {
     }
   }
   function cast(id) {
-    const p = W.player, lv = rpg.lv, col = SPELLS[id].col;
+    const p = W.player, lv = lvl(), col = SPELLS[id].col;
     W.popup(p.cx, p.y - 14, tr('spell_' + id), col); p.powerT = Math.max(p.powerT || 0, 16); Input.rumble(0.3, 0.3, 120);
     for (let i = 0; i < 14; i++) W.spawn(new Particle(p.cx + rnd(-10, 10), p.y + rnd(0, 30), rnd(-0.6, 0.6), rnd(-1.6, -0.2), i % 2 ? col : '#fcfcfc', 30, 1, 0));
     if (id === 'spirit') { W.spawn(new CastleSpell('spirit', p.cx, p.y + 4, p.face * 1.5, -1.2, 2 + 0.12 * lv)); Audio8.sfx('holy'); }
@@ -2087,7 +2089,7 @@ const Castle = (() => {
     if (p.wolfHurt > 0) p.wolfHurt--;
     if (p.biteT > 0) { // Biss: Satz nach vorn, die Schnauze trifft jeden Gegner einmal
       p.biteT--;
-      if (p.biteT > 4 && famStrike(biteBox(p), 1.5 + 0.1 * rpg.lv, p.biteId) && !p.biteHit) { p.biteHit = true; Audio8.sfx('chomp'); Input.rumble(0.3, 0.3, 80); }
+      if (p.biteT > 4 && famStrike(biteBox(p), 1.5 + 0.1 * lvl(), p.biteId) && !p.biteHit) { p.biteHit = true; Audio8.sfx('chomp'); Input.rumble(0.3, 0.3, 80); }
     } else if (tx) { p.face = tx; p.vx += (tx * WOLF_RUN - p.vx) * (p.onGround ? 0.22 : 0.1); }
     else p.vx *= p.onGround ? 0.72 : 0.97;
     if (ctl && P.attack && p.biteT <= 0) { p.biteT = 16; p.biteHit = false; p.biteId = 'wolf' + (++famHits); p.vx = p.face * 4.2; if (p.onGround) p.vy = -1.4; Audio8.sfx('whoosh'); }
@@ -2132,14 +2134,14 @@ const Castle = (() => {
     Player.prototype.update = function (...a) {
       if ((this.batForm || this.mistForm || this.wolfForm) && this.state === 'dead') { this.y -= HERO_H - this.h; this.batForm = false; this.mistForm = false; this.wolfForm = false; this.h = HERO_H; }
       if (this.superT > 0) { if (this.state === 'normal' && this.alive && !this.batForm && !this.mistForm && !this.wolfForm) return superUpdate(this); this.superT = 0; } // Supersprung
-      if (relic.diver && this.alive && (this.state === 'normal' || this.state === 'hurt') && !this.batForm && !this.mistForm && !this.wolfForm && inWater(this)) return swimUpdate(this, up, a); // Taucherhelm
+      if (rel('diver') && this.alive && (this.state === 'normal' || this.state === 'hurt') && !this.batForm && !this.mistForm && !this.wolfForm && inWater(this)) return swimUpdate(this, up, a); // Taucherhelm
       return this.batForm ? batUpdate(this) : this.mistForm ? mistUpdate(this) : this.wolfForm ? wolfUpdate(this) : up.apply(this, a);
     };
     Player.prototype.draw = function (ctx, cam) { return this.batForm ? batDraw(this, ctx, cam) : this.mistForm ? mistDraw(this, ctx, cam) : this.wolfForm ? wolfDraw(this, ctx, cam) : dr.call(this, ctx, cam); };
     Player.prototype.setCrouch = function (on) { if (!this.batForm && !this.mistForm && !this.wolfForm) return sc.call(this, on); }; // Treffer und Stürze ändern die Tiergestalt nicht
     const hz = Player.prototype.hazards;
     Player.prototype.hazards = function () { // mit Taucherhelm ist Wasser kein Abgrund mehr
-      if (relic.diver && Phys.tile(Math.floor(this.cx / T), Math.floor((this.feet - 6) / T)) === '~') { if (this.y > W.room.h * T + 8) this.fallPenalty(4); return; }
+      if (rel('diver') && Phys.tile(Math.floor(this.cx / T), Math.floor((this.feet - 6) / T)) === '~') { if (this.y > W.room.h * T + 8) this.fallPenalty(4); return; }
       return hz.call(this);
     };
   }
@@ -2157,7 +2159,7 @@ const Castle = (() => {
         Font.draw(ctx, itemDesc('book_' + id), lx + 8, y + 18, '#b0a080');
       } else Font.draw(ctx, tr('spellUnknown'), lx + 8, y + 9, '#5c5c6c');
     });
-    const J = ' + ' + tr('spellJump'), forms = [['bat', '↓ ↑' + J, BAT_COST], ['mist', '↑ ↓' + J, MIST_COST], ['wolf', '↓ ↘ →' + J, WOLF_COST], ['boots', '↑ + ' + tr('dashKey'), 0]].filter(([k]) => relic[k]);
+    const J = ' + ' + tr('spellJump'), forms = [['bat', '↓ ↑' + J, BAT_COST], ['mist', '↑ ↓' + J, MIST_COST], ['wolf', '↓ ↘ →' + J, WOLF_COST], ['boots', '↑ + ' + tr('dashKey'), 0]].filter(([k]) => rel(k));
     forms.forEach(([k, cmd, cost], i) => { // Verwandlungen und Supersprung: eine Zeile je Relikt (Befehl, MP)
       const y = 162 + i * 10;
       Font.draw(ctx, tr('relic_' + k), lx, y, RELIC_COL[k], { shadow: '#000' });
@@ -2381,7 +2383,7 @@ const Castle = (() => {
     ctx.fillStyle = '#c89020';
     ctx.fillRect(6, 6, w - 12, 1); ctx.fillRect(6, 233, w - 12, 1); ctx.fillRect(6, 6, 1, 228); ctx.fillRect(w - 7, 6, 1, 228);
     Game.big(ctx, tr('castleStatus'), cx, 12, 2, LOGO, null, '#000');
-    Font.draw(ctx, (p.def && p.def.name ? p.def.name : '') + '    LV ' + rpg.lv, cx, 34, '#f8b800', { align: 'center', shadow: '#000' });
+    Font.draw(ctx, (p.def && p.def.name ? p.def.name : '') + '    LV ' + lvl(), cx, 34, '#f8b800', { align: 'center', shadow: '#000' });
     const att = Math.round((p.whip >= 2 ? 2 : 1) * 10 * Options.dmgMul), next = rpg.lv >= MAXLV ? 0 : expFor(rpg.lv + 1) - rpg.exp;
     const rows = [
       [['HP', Math.ceil(Math.max(0, p.hp)) + '/' + p.maxHp], ['STR', v.str]],
@@ -2405,9 +2407,9 @@ const Castle = (() => {
     Font.draw(ctx, tr('warpCount', wl.filter(c => warp[c.key]).length, wl.length), cx, 170, '#7cdcfc', { align: 'center', shadow: '#000' });
     const vAll = S().reduce((n, st) => n + st.rooms.reduce((m, d) => m + d.ents.filter(e => e.type === 'vessel').length, 0), 0);
     Font.draw(ctx, tr('castleVesselCount', vessels(), vAll), cx, 184, '#fc7460', { align: 'center', shadow: '#000' });
-    const own = RELICS.filter(k => relic[k]); // Relikte: Anzahl, darunter je eine farbige Kugel (leer = noch nicht gefunden)
+    const own = RELICS.filter(k => rel(k)); // Relikte: Anzahl, darunter je eine farbige Kugel (leer = noch nicht gefunden)
     Font.draw(ctx, tr('castleRelicCount', own.length, RELICS.length), cx, 198, '#e0d0fc', { align: 'center', shadow: '#000' });
-    RELICS.forEach((k, i) => { const x = Math.round(cx - RELICS.length * 7 + i * 14 + 2), y = 208; ctx.fillStyle = '#1c1428'; ctx.fillRect(x - 1, y - 1, 10, 7); ctx.fillStyle = relic[k] ? RELIC_COL[k] : '#3c3448'; ctx.fillRect(x, y, 8, 5); });
+    RELICS.forEach((k, i) => { const x = Math.round(cx - RELICS.length * 7 + i * 14 + 2), y = 208; ctx.fillStyle = '#1c1428'; ctx.fillRect(x - 1, y - 1, 10, 7); ctx.fillStyle = rel(k) ? RELIC_COL[k] : '#3c3448'; ctx.fillRect(x, y, 8, 5); });
     Font.draw(ctx, tr('statusHelp'), cx, 222, '#7c7c8c', { align: 'center' });
   }
 
@@ -2416,19 +2418,19 @@ const Castle = (() => {
   const bossDone = (R) => { const a = ref(R); return !!(a && boss[roomKey(a.s, a.r)]); };
   const bossName = (id) => { const s = sIdx(id); return s < 0 ? '' : tr(S()[s].bossKey); };
   const GOALS = [
-    { done: () => relic.jump2, verb: 'castleGoalFind', obj: () => tr('relic_jump2'), where: 'whereKolo', at: [['side', 'kolosseum'], 81, 10] },
+    { done: () => rel('jump2'), verb: 'castleGoalFind', obj: () => tr('relic_jump2'), where: 'whereKolo', at: [['side', 'kolosseum'], 81, 10] },
     { done: () => bossDone([0, -1]), verb: 'castleGoalBeat', obj: () => bossName(0), where: 'whereHall', at: [[0, -1], 'arena'] },
-    { done: () => relic.dash, verb: 'castleGoalFind', obj: () => tr('relic_dash'), where: 'whereHall', at: [[0, -1], 'arena'] },
-    { done: () => relic.ring, verb: 'castleGoalFind', obj: () => tr('relic_ring'), where: 'whereIce', at: [[1, 2], 12, 10] },
-    { done: () => relic.wolf, verb: 'castleGoalFind', obj: () => tr('relic_wolf'), get where() { return witchDone() ? 'whereCrypt' : 'whereWitch'; }, get at() { return witchDone() ? [[1, 4], 6, 10] : [[1, 3], 29, 104]; } },
+    { done: () => rel('dash'), verb: 'castleGoalFind', obj: () => tr('relic_dash'), where: 'whereHall', at: [[0, -1], 'arena'] },
+    { done: () => rel('ring'), verb: 'castleGoalFind', obj: () => tr('relic_ring'), where: 'whereIce', at: [[1, 2], 12, 10] },
+    { done: () => rel('wolf'), verb: 'castleGoalFind', obj: () => tr('relic_wolf'), get where() { return witchDone() ? 'whereCrypt' : 'whereWitch'; }, get at() { return witchDone() ? [[1, 4], 6, 10] : [[1, 3], 29, 104]; } },
     { done: () => bossDone([1, -1]), verb: 'castleGoalBeat', obj: () => bossName(1), where: 'whereCrypt', at: [[1, -1], 'arena'] },
-    { done: () => relic.wall, verb: 'castleGoalFind', obj: () => tr('relic_wall'), where: 'whereCrypt', at: [[1, -1], 'arena'] },
+    { done: () => rel('wall'), verb: 'castleGoalFind', obj: () => tr('relic_wall'), where: 'whereCrypt', at: [[1, -1], 'arena'] },
     { done: () => bossDone([2, -1]), verb: 'castleGoalBeat', obj: () => bossName(2), where: 'whereGallery', at: [[2, -1], 'arena'] },
-    { done: () => relic.breaker, verb: 'castleGoalFind', obj: () => tr('relic_breaker'), where: 'whereGallery', at: [[2, -1], 'arena'] },
+    { done: () => rel('breaker'), verb: 'castleGoalFind', obj: () => tr('relic_breaker'), where: 'whereGallery', at: [[2, -1], 'arena'] },
     { done: () => bossDone(['sun', -1]), verb: 'castleGoalBeat', obj: () => bossName('sun'), where: 'whereRoof', at: [['sun', -1], 'arena'] },
-    { done: () => relic.bat, verb: 'castleGoalFind', obj: () => tr('relic_bat'), where: 'whereRoof', at: [['sun', -1], 'arena'] },
+    { done: () => rel('bat'), verb: 'castleGoalFind', obj: () => tr('relic_bat'), where: 'whereRoof', at: [['sun', -1], 'arena'] },
     { done: () => bossDone(['expo', -1]), verb: 'castleGoalBeat', obj: () => bossName('expo'), where: 'whereDome', at: [['expo', -1], 'arena'] },
-    { done: () => relic.mist, verb: 'castleGoalFind', obj: () => tr('relic_mist'), where: 'whereDome', at: [['expo', -1], 'arena'] },
+    { done: () => rel('mist'), verb: 'castleGoalFind', obj: () => tr('relic_mist'), where: 'whereDome', at: [['expo', -1], 'arena'] },
     { done: () => S().some((st, s) => st.id === 3 && layout(s).some(r => seen[r.key] && seen[r.key].size)), verb: 'castleGoalGate', obj: () => '', where: 'whereSeal', at: [[0, 1], SEAL.x, SEAL.y] },
     { done: () => false, verb: 'castleGoalBeat', obj: () => bossName(3), where: 'whereThrone', at: [[3, -1], 'arena'] },
   ];
@@ -2620,29 +2622,29 @@ const Castle = (() => {
   const BEATS = [
     { id: 'meet', who: 'ally', at: [[0, 0], 4, 10], when: () => flag.curse, leave: true, wait: 70 },  // Burghof: gleich nach dem Fluch
     { id: 'wait', who: 'ally', at: [[0, 1], 40, 17], when: () => flag.story_meet, lines: false },     // Eingangshalle: wartet
-    { id: 'feather', who: 'ally', at: [[0, 1], 40, 17], when: () => relic.jump2 },
-    { id: 'cloak', who: 'ally', at: [[0, 1], 40, 17], when: () => relic.dash },
-    { id: 'howl', who: 'ally', at: [[0, 1], 40, 17], when: () => relic.wolf },                         // Wolfsgestalt: Haustierklappe im Hotel
-    { id: 'steam', who: 'ally', at: [[0, 1], 40, 17], when: () => relic.boots },                       // Dampfstiefel: Signalbrücke im Bahnhof
-    { id: 'claw', who: 'ally', at: [[0, 1], 40, 17], when: () => relic.wall },
-    { id: 'stone', who: 'ally', at: [[0, 1], 40, 17], when: () => relic.breaker },
-    { id: 'dive', who: 'ally', at: [[0, 1], 40, 17], when: () => relic.diver },                         // Taucherhelm: versunkene Kapelle
-    { id: 'wings', who: 'ally', at: [[0, 1], 40, 17], when: () => relic.bat },                         // Fledermausgestalt: Sims unter der Decke
-    { id: 'fog', who: 'ally', at: [[0, 1], 40, 17], when: () => relic.mist },                          // Nebelgestalt: Gitter im Kerker
+    { id: 'feather', who: 'ally', at: [[0, 1], 40, 17], when: () => rel('jump2') },
+    { id: 'cloak', who: 'ally', at: [[0, 1], 40, 17], when: () => rel('dash') },
+    { id: 'howl', who: 'ally', at: [[0, 1], 40, 17], when: () => rel('wolf') },                         // Wolfsgestalt: Haustierklappe im Hotel
+    { id: 'steam', who: 'ally', at: [[0, 1], 40, 17], when: () => rel('boots') },                       // Dampfstiefel: Signalbrücke im Bahnhof
+    { id: 'claw', who: 'ally', at: [[0, 1], 40, 17], when: () => rel('wall') },
+    { id: 'stone', who: 'ally', at: [[0, 1], 40, 17], when: () => rel('breaker') },
+    { id: 'dive', who: 'ally', at: [[0, 1], 40, 17], when: () => rel('diver') },                         // Taucherhelm: versunkene Kapelle
+    { id: 'wings', who: 'ally', at: [[0, 1], 40, 17], when: () => rel('bat') },                         // Fledermausgestalt: Sims unter der Decke
+    { id: 'fog', who: 'ally', at: [[0, 1], 40, 17], when: () => rel('mist') },                          // Nebelgestalt: Gitter im Kerker
     { id: 'seals', who: 'ally', at: [[0, 1], 32, 11], when: () => seals() >= sealRooms().length },  // auf der Galerie am Siegeltor
     { id: 'lib', who: 'lib', at: [[2, 1], 15, 47], when: () => true, heal: true },                    // Bibliothek: neben dem Lesepult
     { id: 'libq', who: 'lib', at: [[2, 1], 15, 47], when: () => !!flag.story_lib, heal: true },                       // Auftrag: die Ausreißer
-    { id: 'lib2', who: 'lib', at: [[2, 1], 15, 47], when: () => relic.breaker, heal: true, again: 'lib' },
+    { id: 'lib2', who: 'lib', at: [[2, 1], 15, 47], when: () => rel('breaker'), heal: true, again: 'lib' },
     { id: 'libq2', who: 'lib', at: [[2, 1], 15, 47], when: () => questHas(QUESTS[0]) || !!flag.story_libq2, heal: true, give: 'book_tetra', take: QUESTS[0].items },
     { id: 'tent', who: 'tent', at: [['side', 'kolosseum'], 8, 10], when: () => flag.curse },          // Kolosseum: der gefeuerte Tentakel im Eimer
-    { id: 'tent3', who: 'tent', at: [['side', 'kolosseum'], 8, 10], when: () => relic.jump2, give: 'tentling' }, // gibt seinen Neffen mit
-    { id: 'tent2', who: 'tent', at: [['side', 'himmel'], 14, 8], when: () => relic.breaker && (flag.story_tent3 || inv.tentling), gold: 1000 }, // Himmelsbrücke: erobert die Wolken
+    { id: 'tent3', who: 'tent', at: [['side', 'kolosseum'], 8, 10], when: () => rel('jump2'), give: 'tentling' }, // gibt seinen Neffen mit
+    { id: 'tent2', who: 'tent', at: [['side', 'himmel'], 14, 8], when: () => rel('breaker') && (flag.story_tent3 || inv.tentling), gold: 1000 }, // Himmelsbrücke: erobert die Wolken
     { id: 'pris1', who: 'pris', at: [['side', 'kerker'], 37, 10], when: () => true, reach: 84 },        // Kerker: der Gefangene hinter dem Gitter
-    { id: 'pris2', who: 'pris', at: [['side', 'kerker'], 37, 10], when: () => relic.mist, give: 'keyring' }, // als Nebel in der Zelle
+    { id: 'pris2', who: 'pris', at: [['side', 'kerker'], 37, 10], when: () => rel('mist'), give: 'keyring' }, // als Nebel in der Zelle
     { id: 'pris3', who: 'pris', at: [['side', 'kerker'], 37, 10], when: () => !!inv.saucer || !!flag.story_pris3, reach: 84, give: 'ironball', take: ['saucer'] }, // die Untertasse
     { id: 'conc1', who: 'conc', at: [['side', 'hotel'], 24, 17], when: () => true, reach: 40 },          // Hotel Krat: der Portier
     { id: 'concq', who: 'conc', at: [['side', 'hotel'], 24, 17], when: () => !!flag.story_conc1 },         // Auftrag: die Koffer aus Zimmer 7
-    { id: 'conc2', who: 'conc', at: [['side', 'hotel'], 24, 17], when: () => relic.wolf },               // ... und Haustiere
+    { id: 'conc2', who: 'conc', at: [['side', 'hotel'], 24, 17], when: () => rel('wolf') },               // ... und Haustiere
     { id: 'conc3', who: 'conc', at: [['side', 'hotel'], 24, 17], when: () => !!inv.keyring },            // ... erkennt den Schlüsselbund
     { id: 'concq2', who: 'conc', at: [['side', 'hotel'], 24, 17], when: () => questHas(QUESTS[1]) || !!flag.story_concq2, give: 'porter', take: QUESTS[1].items },
     { id: 'tent4', who: 'tent', at: [['side', 'zimmer13'], 21, 10], when: () => !!inv.keyring, give: 'pillow' }, // Zimmer 13: der Tentakel wohnt jetzt hier
@@ -2940,7 +2942,7 @@ const Castle = (() => {
     const cx = View.cx, lx = cx - Math.min(110, View.w / 2 - 20), rx = cx + Math.min(110, View.w / 2 - 20), rank = rankOf();
     panel(ctx, tr('endTitle'), '#f8b800');
     const vAll = S().reduce((n, st) => n + st.rooms.reduce((m, d) => m + d.ents.filter(e => e.type === 'vessel').length, 0), 0);
-    const rows = [[tr('mapCastle', percent()), ''], ['TIME', playTime()], ['LV', rpg.lv], ['KILLS', rpg.kills], [tr('castleRelicCount', RELICS.filter(k => relic[k]).length, RELICS.length), ''],
+    const rows = [[tr('mapCastle', percent()), ''], ['TIME', playTime()], ['LV', rpg.lv], ['KILLS', rpg.kills], [tr('castleRelicCount', RELICS.filter(k => rel(k)).length, RELICS.length), ''],
       [tr('castleVesselCount', vessels(), vAll), ''], ['GOLD', W.score]];
     if (ngp()) rows.push(['NG+', ngp()]);
     rows.forEach(([k, v], i) => { Font.draw(ctx, k, lx, 40 + i * 12, '#d0c0a0', { shadow: '#000' }); if (v !== '') Font.draw(ctx, String(v), rx, 40 + i * 12, '#fcfcfc', { align: 'right', shadow: '#000' }); });
@@ -3284,7 +3286,7 @@ const Castle = (() => {
       Font.draw(ctx, tr('tool_' + id), lx + 10, y, on ? '#fcfcfc' : '#a8a8b8', { shadow: '#000' });
       if (id === 'god') Font.draw(ctx, tr(god ? 'on' : 'off'), rx, y, god ? '#58f898' : '#7c7c8c', { align: 'right', shadow: '#000' });
     });
-    Font.draw(ctx, 'LV ' + rpg.lv + '   GOLD ' + W.score + '   ' + tr('castleRelicCount', RELICS.filter(k => relic[k]).length, RELICS.length), cx, 180, '#c8c8d8', { align: 'center', shadow: '#000' });
+    Font.draw(ctx, 'LV ' + rpg.lv + '   GOLD ' + W.score + '   ' + tr('castleRelicCount', RELICS.filter(k => rel(k)).length, RELICS.length), cx, 180, '#c8c8d8', { align: 'center', shadow: '#000' });
     if (tools.msg) Font.draw(ctx, tools.msg, cx, 196, '#58f898', { align: 'center', shadow: '#000' });
     Font.draw(ctx, tr('testHelp'), cx, 222, '#7c7c8c', { align: 'center' });
   }
@@ -3361,6 +3363,7 @@ const Castle = (() => {
   }
 
   return {
+    hush: () => { toast = null; goalWait = 0; }, // Ziel-Tafel ausblenden (Trailer-Aufnahmen)
     on, update, settle, forward, bossBeaten, draw, openMap, mapInput, openWarp, warpInput, layout, castle, percent, roomPercent, firstVisit, seals,
     bossDone: (s, r) => !!boss[roomKey(s, r)],
     hasSave: () => !!readSave(), loadSave: readSave, applySave, chambers: allChambers, writeResume, dropResume,

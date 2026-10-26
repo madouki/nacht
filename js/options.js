@@ -5,7 +5,7 @@ const Options = (() => {
   const KEY = 'nachtmahr.opts';
   const nav = ((navigator.languages && navigator.languages[0]) || navigator.language || 'de').slice(0, 2).toLowerCase();
   const o = { easy: false, maxWhip: false, infHearts: false, crt: true, music: 8, character: 'henrik', fullscreen: true,
-    lang: ['de', 'en', 'fr', 'es', 'ja', 'zh'].includes(nav) ? nav : 'en', voice: false, guide: true }; // guide: Wegweiser-Pfeil im Schloss
+    lang: ['de', 'en', 'fr', 'es', 'ja', 'zh'].includes(nav) ? nav : 'en', voice: false, guide: true, allRelics: false, maxLevel: false, god: false }; // die letzten drei: Testhilfen // guide: Wegweiser-Pfeil im Schloss
   try { Object.assign(o, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { /* privat */ }
   if (o.optVer !== 2) { o.voice = false; o.optVer = 2; } // Sprachausgabe standardmäßig aus (auch für alte Speicherstände)
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (e) { /* privat */ } };
@@ -13,6 +13,7 @@ const Options = (() => {
     get easy() { return o.easy; }, get maxWhip() { return o.maxWhip; }, get infHearts() { return o.infHearts; },
     get crt() { return o.crt; }, get music() { return o.music; }, get character() { return o.character; }, get fullscreen() { return o.fullscreen; },
     get lang() { return o.lang; }, get voice() { return o.voice; }, get guide() { return o.guide !== false; },
+    get allRelics() { return !!o.allRelics; }, get maxLevel() { return !!o.maxLevel; }, get god() { return !!o.god; },
     get maxHp() { return o.easy ? 32 : 16; },
     get dmgMul() { return o.easy ? 2 : 1; },
     set(k, v) { o[k] = v; save(); },

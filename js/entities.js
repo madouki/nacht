@@ -203,7 +203,7 @@ class Player {
   }
 
   hurt(dmg, srcX) {
-    if (this.inv > 0 || !this.alive || W.cleared || Game.state === 'demo') return; // Demo: unverwundbar
+    if (this.inv > 0 || !this.alive || W.cleared || Game.state === 'demo' || Options.god) return; // Demo und Testhilfe: unverwundbar
     if (this.stoneT > 0) this.breakStone(false); // ein Treffer sprengt den Stein
     this.dangle = false; W.combo.n = 0; W.combo.t = 0; W.stats.hits++;
     if (this.state === 'swing') { this.state = 'normal'; this.ring = null; }
@@ -594,6 +594,7 @@ class Player {
 
   fallPenalty(dmg) {
     if (!this.alive || W.cleared) return;
+    if (Options.god) dmg = 0; // Testhilfe: zurücksetzen ja, Schaden nein
     this.fellAt = W.frame; // Brücke: Einsturz zurücksetzen
     if (this.hp <= dmg) { this.hp = 0; this.die(true); return; }
     this.hp -= dmg;
