@@ -1114,6 +1114,7 @@ const Castle = (() => {
   }
   function drawRoomDoor(d, ctx) { // Zimmertür 13: Mahagoni mit Füllungen, Messingschild, Schild „Bitte nicht stören“ am Knauf
     const x = Math.round(d.x - W.cam.x), y = Math.round(d.y - W.cam.y), cx = x + 16, bot = y + d.h, open = gateOpen(d.d), t = d.t;
+    doorBlock(ctx, cx, bot, 3, 4);
     ctx.fillStyle = '#2c1206'; ctx.fillRect(cx - 13, y + 2, 26, bot - y - 2); ctx.fillStyle = '#c89020'; ctx.fillRect(cx - 13, y + 2, 26, 1);
     ctx.fillStyle = '#5c2810'; ctx.fillRect(cx - 11, y + 4, 22, bot - y - 4);
     ctx.fillStyle = '#3c1c08'; ctx.fillRect(cx - 9, y + 19, 18, 8); ctx.fillRect(cx - 9, y + 29, 18, 12); ctx.fillStyle = '#7c3c18'; ctx.fillRect(cx - 9, y + 19, 18, 1); ctx.fillRect(cx - 9, y + 29, 18, 1);
@@ -2584,8 +2585,28 @@ const Castle = (() => {
     return true;
   }
   // Hoteltür (Burghof und Lobby): Flügeltür aus Mahagoni mit Glasoberlicht und Messinggriffen, darüber das Schild
+  // Mauerblock hinter einer Tür: aus den Kacheln des Raums, 3D wie die Levelblöcke, mit Schatten am Boden (siehe CastleDoor.draw)
+  function doorBlock(ctx, cx, bot, pw, ph) {
+    const room = W.room, px0 = cx - pw * 8;
+    ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(cx, bot, pw * 8 + 6, 4, 0, 0, Math.PI * 2); ctx.fill();
+    const pc = Tiles.drawPortal(ctx, room, px0, bot - ph * 16, pw, ph, room.wrap || room.theme === 'glass' || room.mtower);
+    ctx.fillStyle = 'rgba(0,0,0,0.22)'; ctx.fillRect(px0, bot - ph * 16, pw * 16, ph * 16);
+    return pc;
+  }
   function drawHotelDoor(d, ctx) {
     const x = Math.round(d.x - W.cam.x), y = Math.round(d.y - W.cam.y), cx = x + 16, bot = y + d.h, t = d.t, outside = W.room.theme !== 'hotel';
+    doorBlock(ctx, cx, bot, outside ? 5 : 3, outside ? 5 : 4); // im Burghof eine Hotelfassade, in der Lobby ein Mauerblock
+    if (outside) { // Fassade: zwei warm erleuchtete Fenster mit Vorhängen, Vordach mit Laternen
+      for (const sx of [-30, 30]) {
+        const wx = cx + sx - 6, wy = y + 6;
+        ctx.fillStyle = '#2c1206'; ctx.fillRect(wx - 1, wy - 1, 14, 22); ctx.fillStyle = '#c89020'; ctx.fillRect(wx - 1, wy - 1, 14, 1);
+        ctx.fillStyle = '#e8a848'; ctx.fillRect(wx, wy, 12, 20); ctx.globalAlpha = 0.25 + 0.08 * Math.sin(t * 0.05 + sx); ctx.fillStyle = '#fff0b8'; ctx.fillRect(wx + 2, wy + 2, 8, 16); ctx.globalAlpha = 1;
+        ctx.fillStyle = '#8c1c24'; ctx.fillRect(wx, wy, 3, 20); ctx.fillRect(wx + 9, wy, 3, 20); ctx.fillStyle = '#5c2c10'; ctx.fillRect(wx + 5, wy, 2, 20); ctx.fillRect(wx, wy + 9, 12, 1);
+        ctx.fillStyle = '#d8c8b0'; ctx.fillRect(wx - 2, wy + 20, 16, 2); // Fensterbank
+      }
+      ctx.fillStyle = '#1c1410'; ctx.fillRect(cx - 20, y + 1, 40, 3); ctx.fillStyle = '#c89020'; ctx.fillRect(cx - 20, y + 1, 40, 1); // Vordach
+      for (const sx of [-18, 17]) { const f = ((t >> 3) + (sx > 0 ? 1 : 0)) & 1; ctx.fillStyle = '#3c3428'; ctx.fillRect(cx + sx, y + 4, 2, 3); ctx.fillStyle = f ? '#fce0a8' : '#f8c060'; ctx.fillRect(cx + sx - 1, y + 7, 4, 4); }
+    }
     ctx.fillStyle = '#2c1206'; ctx.fillRect(cx - 15, y + 4, 30, bot - y - 4); ctx.fillStyle = '#c89020'; ctx.fillRect(cx - 15, y + 4, 30, 1); ctx.fillRect(cx - 15, y + 4, 1, bot - y - 4); ctx.fillRect(cx + 14, y + 4, 1, bot - y - 4); // Rahmen
     arch(ctx, cx, y + 6, 12, y + 18, '#5c2c10'); arch(ctx, cx, y + 7, 11, y + 18, '#e8a848'); // Oberlicht, innen warm
     ctx.fillStyle = '#5c2c10'; ctx.fillRect(cx, y + 7, 1, 11); ctx.fillRect(cx - 11, y + 13, 22, 1);
