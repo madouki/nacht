@@ -256,7 +256,7 @@ const Castle = (() => {
     add('zimmer13', 0, 1, [2, -3], room13);
     // Spiegelkabinett (unter der Marmorgalerie, Tür x 34): Marmorsaal mit Standspiegeln (Blender). Aus dem rechten Spiegel tritt
     // der Doppelgänger. Danach liegt sein Schatten als Begleiterkarte im Saal; hinten eine brüchige Wand mit Mauerbraten.
-    const mirrors = R(40, 'gallery')
+    const mirrors = R(40, 'mirror')
       .ground(0, 39)
       .fill(33, 7, 36, 7, '=')                                    // Empore mit dem Lebensgefäß
       .fill(36, 5, 39, 10, '#').fill(37, 8, 39, 10, '.').set(36, 10, 'X').set(36, 9, 'Y') // brüchige Wand: Braten, Goldsack – dahinter die Tür zum Spiegeltunnel
@@ -265,6 +265,7 @@ const Castle = (() => {
       .mini('doppel', 9, 29, 11, 0)
       .music('stage3').label('SPIEGELKABINETT').start(2, 10).done();
     mirrors.decor = [6, 11, 16, 21, 26, 31].map(x => D('mirror', x, 10));
+    mirrors.mhall = true; // Galerie der Spiegel wie in Versailles: Rückwand aus echten Spiegeln (tiles.js drawMirrorHall)
     add('spiegel', 2, 4, [14, -11], mirrors);
     LINKS.push([[2, -1], { x: 34, y: 10, door: 'side' }, ['side', 'spiegel'], 'start', {}]); // Marmorgalerie → Spiegelkabinett
     // Spiegeltunnel: eine Spiegelgalerie wie in Versailles als Röhre, die sich um ihre Längsachse dreht (wie der Seelenstrudel) –
@@ -295,7 +296,7 @@ const Castle = (() => {
       .candle(12, 35).candle(17, 35, 'H').candle(21, 30).candle(25, 30, '$').candle(11, 25, 'H').candle(18, 25)
       .candle(11, 17, 'H').candle(19, 12, 'W').candle(24, 12).candle(12, 7, 'H').candle(17, 7)
       .enemy('knight', 14, 26).enemy('ghost', 16, 34).enemy('ghost', 20, 6).enemy('bat', 22, 24).enemy('bat', 6, 15)
-      .chest(17, 2).prop('vessel', { x: 11, y: 2 })
+      .chest(17, 2).prop('vessel', { x: 11, y: 2, id: 46 }) // id: Speicherschlüssel des alten Schachts (Gefäß stand bei x 46)
       .music('stage3').label('SPIEGELSCHACHT').start(2, 41).done();
     shaft.mtower = true; // Spiegelröhre wie der Glasturm (tiles.js drawMirrorTower)
     add('spiegelschacht', 2, 5, [19, -10], shaft);
@@ -373,6 +374,45 @@ const Castle = (() => {
       .wrap().ice().iceRamps().music('stage2').label('EISRUTSCHE').start(2, 5).done();
     slide.towerTex = 'cave'; // eigener Turmmantel (ps2.js caveTex)
     add('eisrutsche', 1, 3, [12, 3], slide);
+    // Hoftheater (Tür im Ballsaal hinter dem verfluchten Parkett, x 101): ein barockes Theater aus weißem Marmor und Gold, ein
+    // wenig wie ein Wiener Hoftheater. Foyer mit riesigen Rundbogenfenstern (Mondlicht, Lichtstrahlen) und Prunkstiege mit rotem
+    // Läufer hinauf zur Galerie, dort die Tür in den Zuschauerraum.
+    const thFoyer = R(64, 'theater', 26)
+      .ground(0, 63)                                                         // Marmorboden (Oberkante Reihe 24)
+      .stair(24, 23, 10, 1).fill(34, 14, 63, 14, '=')                        // Prunkstiege hinauf zur Galerie
+      .fill(6, 20, 12, 20, '=').fill(12, 16, 18, 16, '=')                    // Balkone links (Doppelsprung)
+      .candle(4, 21, 'H').candle(17, 21).candle(9, 18, '$').candle(15, 14, 'H').candle(40, 12).candle(47, 12, 'W').candle(54, 12)
+      .prop('candelabra', { x: 3, y: 23 }).prop('candelabra', { x: 20, y: 23 }).prop('candelabra', { x: 46, y: 23 }).prop('candelabra', { x: 60, y: 23 })
+      .enemy('ghost', 30, 10).enemy('knight', 48, 13).enemy('bat', 14, 8).enemy('ghost', 56, 18)
+      .statue(10, 23)
+      .music('hotel').label('FOYER DES HOFTHEATERS').start(5, 23).done();
+    thFoyer.puppets = [[38, 23], [52, 23]];
+    add('theaterfoyer', 3, 6, [13, -23], thFoyer);
+    // Zuschauerraum: man steht mitten im Rund – vier Logenränge, Kaiserloge, Geisterpublikum; das Rund dreht sich beim Durchlaufen
+    // perspektivisch mit (tiles.js drawTheaterRound). Im Parkett Marionetten, Logenbalkone als Kletterweg, zwei Kronleuchter über
+    // dem Orchestergraben, dahinter die Bühne: oben hebt sich der Vorhang und gibt Truhe und Lebensgefäß frei.
+    const aud = R(112, 'theater', 26)
+      .ground(0, 79)                                                         // Parkett (Oberkante Reihe 24)
+      .ground(80, 89, 25)                                                    // Orchestergraben, eine Reihe tiefer
+      .fill(90, 21, 111, 25, '#')                                            // Bühne (Oberkante Reihe 21)
+      .fill(8, 20, 14, 20, '=').fill(24, 20, 30, 20, '=').fill(40, 20, 46, 20, '=').fill(56, 20, 62, 20, '=')   // 1. Rang
+      .fill(16, 16, 22, 16, '=').fill(32, 16, 38, 16, '=').fill(48, 16, 54, 16, '=').fill(64, 16, 70, 16, '=')  // 2. Rang
+      .fill(24, 12, 30, 12, '=').fill(56, 12, 62, 12, '=')                                                     // 3. Rang
+      .grand(77, 6, 150, 0.24, 0).grand(86, 6, 136, 0.24, Math.PI)                                             // Kronleuchter über dem Graben
+      .candle(11, 18, 'H').candle(27, 18).candle(43, 18, '$').candle(59, 18).candle(19, 14, 'W').candle(35, 14).candle(51, 14, 'H')
+      .candle(67, 14).candle(27, 10, '$').candle(59, 10, 'H').candle(96, 18).candle(104, 18, '1')
+      .enemy('ghost', 20, 10).enemy('ghost', 52, 8).enemy('bat', 36, 6).enemy('bat', 70, 8).enemy('knight', 66, 23)
+      .chest(100, 20, 'big').prop('vessel', { x: 106, y: 20 })
+      .prop('curtain', { x0: 92, y0: 9, x1: 111, y1: 20, trig: 91 })
+      .statue(4, 23)
+      .music('expo').label('ZUSCHAUERRAUM').start(2, 23).done();
+    aud.round = true;
+    aud.puppets = [[18, 23], [34, 23], [50, 23], [70, 23]];
+    add('theater', 3, 6, [17, -23], aud);
+    LINKS.push(
+      [[3, 3], { x: 101, y: 10, door: 'side' }, ['side', 'theaterfoyer'], 'start', {}],                       // Ballsaal → Foyer
+      [['side', 'theaterfoyer'], { x: 58, y: 13, door: 'side' }, ['side', 'theater'], 'start', {}],         // Galerie → Zuschauerraum
+    );
     LINKS.push(
       [[1, 2], { x: 80, y: 10, door: 'side' }, ['side', 'eisrutsche'], 'start', { relics: ['dash', 'ring'] }], // Eishöhle → Eisrutsche (oben)
       [['side', 'eisrutsche'], { x: 57, y: 85, door: 'side' }, [1, 2], { x: 24, y: 10, door: 'side' }, { oneway: true }], // Turmfuß → zurück in die Eishöhle
@@ -1313,7 +1353,7 @@ const Castle = (() => {
     for (const d of doorsOf(s, r)) W.spawn(new CastleDoor(d, def));
     for (const g of def.grates || []) W.spawn(new CastleGrate(g)); // Gitter (nur Nebel kommt durch)
     for (const c of chambersOf(s, r)) W.spawn(new CastleChamber(c));
-    for (const e of def.ents) if (e.type === 'vessel') { const k = key + ':v' + e.x; if (!vessel[k]) W.spawn(new LifeVessel(e, k)); } // Lebensgefäße
+    for (const e of def.ents) if (e.type === 'vessel') { const k = key + ':v' + (e.id ?? e.x); if (!vessel[k]) W.spawn(new LifeVessel(e, k)); } // Lebensgefäße
     if (arrive && def.side) Game.note('castleSideRoom', def.label, '*'.repeat(def.tier)); // Zusatzraum: Name und Gefahrenstufe
     if (arrive && arrive.place && (arrive.place.chamber === 'save' || arrive.place.resume)) announceGoal(90); // Fortsetzen: woran war ich?
     spawnRelics(s, r, def, arrive);

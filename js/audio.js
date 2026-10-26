@@ -777,7 +777,7 @@ const Audio8 = (() => {
       hp.disconnect(); lp.type = 'lowpass'; lp.frequency.value = 4200; hp.connect(lp); lp.connect(out);
       const bp = ambNoise(nodes, out, 'bandpass', 480, 6); ambLfo(nodes, bp.frequency, 0.06, 220);
       ambLfo(nodes, out.gain, 0.1, 0.01); level = 0.028;
-    } else if (theme === 'library' || theme === 'hotel' || theme === 'station') { // Bibliothek, Hotel-Lobby, Bahnhofshalle: gedämpfter Regen an den hohen Fenstern, tiefer Raumklang
+    } else if (theme === 'library' || theme === 'hotel' || theme === 'station' || theme === 'theater') { // Bibliothek, Hotel-Lobby, Bahnhofshalle: gedämpfter Regen an den hohen Fenstern, tiefer Raumklang
       const hp = ambNoise(nodes, out, 'highpass', 1200), lp = ac.createBiquadFilter();
       hp.disconnect(); lp.type = 'lowpass'; lp.frequency.value = 3000; hp.connect(lp); lp.connect(out);
       ambDrone(nodes, out, 'sine', 65.4, 0.25);

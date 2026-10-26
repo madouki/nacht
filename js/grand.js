@@ -221,10 +221,12 @@ const Rays = (() => {
     hall: [[64, 128, 32, '140,160,255'], [320, 128, 32, '140,160,255']],
     throne: [[435, 92, 48, '255,96,170'], [59, 132, 32, '255,200,96'], [315, 132, 32, '110,170,255']],
     crypt: [[20, 88, 22, '120,150,255'], [272, 122, 22, '120,150,255']],
+    theater: [[34, 176, 60, '170,190,255'], [162, 176, 60, '170,190,255'], [290, 176, 60, '170,190,255'], [418, 176, 60, '170,190,255']], // Foyer des Hoftheaters
   };
   const grads = new Map();
   function draw(ctx, room, cam, frame) {
-    if (room.theme === 'glass') { Tiles.drawGlassRays(ctx, cam, frame); return; } // Glasturm: Lichtschächte aus den Fenstern der Röhre (tiles.js)
+    if (room.theme === 'glass') { Tiles.drawGlassRays(ctx, cam, frame); return; }
+    if (room.round) return; // Zuschauerraum: keine Fenster // Glasturm: Lichtschächte aus den Fenstern der Röhre (tiles.js)
     const wins = WIN[room.theme];
     if (!wins) return;
     const off = ((Math.floor(cam.x * 0.5) % 512) + 512) % 512;

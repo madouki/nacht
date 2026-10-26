@@ -486,5 +486,6 @@ const Mode7 = (() => {
   }
 
   const mapData = () => { if (!map) makeMap(); return { map, mapH, MS, POINTS, trees }; };
-  return { drawTunnel, tubeProject, drawMap, drawOcean, wave, mosaic, drawFire, mapData };
+  const prepMirror = () => { if (!mtex) makeMirrorTex(); };
+  return { drawTunnel, prepMirror, tubeProject, drawMap, drawOcean, wave, mosaic, drawFire, mapData };
 })();

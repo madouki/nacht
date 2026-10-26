@@ -31,6 +31,7 @@ const Tiles = (() => {
     forest: { a: ['#8c7454', '#5c4a34', '#3e3022', '#271d14', '#100a06'], b: ['#a08060', '#76583c', '#523a24', '#33230f', '#140c04'], moss: ['#1e4a22', '#3a7a2c', '#86c050'] },
     spire: { a: ['#fcf0d4', '#e8cc98', '#c09c60', '#846438', '#382412'], b: ['#fce8b0', '#e8c070', '#b8883c', '#7c5420', '#2c1808'] },
     ballroom: { a: ['#fcf4e4', '#e4d4b8', '#bca480', '#806848', '#2c1c10'], b: ['#fce0a8', '#f8b800', '#a80020', '#680010', '#1c0008'] },
+    theater: { a: ['#fcf8f0', '#ece4d4', '#cfc3a8', '#948670', '#3c3428'], b: ['#e8b4a0', '#b8403c', '#8c1c24', '#4c0c10', '#1c0406'] }, // Hoftheater: weißer Marmor, roter Samt
     mirror: { a: ['#fcecc8', '#e0b878', '#b07c40', '#704018', '#2c1406'], b: ['#e8a890', '#b05848', '#802c24', '#4c1410', '#1c0604'] }, // Versailles: Gold, Creme, Rance-Marmor
     station: { a: ['#c8705c', '#9c4c34', '#7c3824', '#4c1c10', '#1c0804'], b: ['#9cb4a8', '#5c7c70', '#3c5448', '#1c2c26', '#0a1410'] },
     hotel: { a: ['#e8b070', '#a86c34', '#7c4820', '#4c2810', '#180a04'], b: ['#c89058', '#8c5428', '#5c3014', '#3c1c08', '#140804'] },
@@ -1644,7 +1645,11 @@ const Tiles = (() => {
       L.push({ name: 'stacks', custom: drawStacks3D, par: 1, c: C(1, 1) }); // PS2-3D: frei stehende Regale ragen aus den Pilastern
       L.push({ name: 'books', custom: drawBookFlock, par: 0.7, c: C(1, 1) }); // in der Ferne kreisen Bücherschwärme
     } else if (theme === 'mirror') { // Spiegelgalerie (Versailles): liegende Röhre im Tunnel, stehende im Schacht – beide spiegeln wirklich (js/mirror.js)
-      L.push({ name: 'mirrortube', custom: (ctx, cam, frame) => W.room.mtower ? drawMirrorTower(ctx, cam, frame) : drawMirrorTunnel(ctx, cam, frame), par: 0.5, c: C(1, 1) });
+      mirrorTower = mirrorTower || buildMirrorTower(); tubeTex(mirrorTower.c, mirrorTower.gc); if (Mode7.prepMirror) Mode7.prepMirror(); // beim Vorladen bauen, nicht im ersten Bild
+      L.push({ name: 'mirrortube', custom: (ctx, cam, frame) => W.room.mtower ? drawMirrorTower(ctx, cam, frame) : W.room.mhall ? drawMirrorHall(ctx, cam, frame) : drawMirrorTunnel(ctx, cam, frame), par: 0.5, c: C(1, 1) });
+    } else if (theme === 'theater') { // Hoftheater: Foyer mit Marmor und Rundbogenfenstern, Zuschauerraum als Rund, das sich beim Laufen mitdreht (js/theater.js)
+      Theater.foyerTex(); Theater.roundTex(); // beim Vorladen malen
+      L.push({ name: 'theater', custom: (ctx, cam, frame) => W.room.round ? drawTheaterRound(ctx, cam, frame) : drawTheaterFoyer(ctx, cam, frame), par: 0.5, c: C(1, 1) });
     } else if (theme === 'station') { // Bahnhof Krat: Bahnhofshalle aus Eisen und Glas – Bogenbinder, Glasdach mit Nachthimmel, hinten Backsteinwand mit Bogenfenstern
       const sky = C(640, 208), xs = sky.getContext('2d');
       smooth(xs, 640, 208, ['#020208', '#050412', '#0a081c', '#100c24', '#160f2a', '#1c122e', '#221632', '#2a1a34', '#321e34']);
@@ -2243,11 +2248,11 @@ const Tiles = (() => {
     if (cache[theme]) return cache[theme];
     seed = 42;
     const p = PALS[theme];
-    const gen = { gallery: (o) => marble(p.a, o), bridge: (o) => stone(p.a, o), vortex: (o) => stone(p.a, o), courtyard: (o) => stone(p.a, o), forest: () => earth(p.a), expo: (o) => stone(p.a, o), hall: (o) => bricks(p.a, o), cave: () => rock(p.a), crypt: (o) => bricks(p.a, o), tower: (o) => stone(p.a, o), throne: (o) => bricks(p.a, o), glass: (o) => marble(p.a, o), foyer: (o) => checker(o), library: (o) => parquet(o), ship: () => planks(p.a, { hull: true }), cathedral: (o) => marble(p.a, o), spire: (o) => marble(p.a, o), ballroom: (o) => marble(p.a, o), ice: (o) => iceTile(p.a, o), hotel: () => parquet({}), station: (o) => bricks(p.a, o), mirror: () => mirrorTile(false) }[theme];
+    const gen = { gallery: (o) => marble(p.a, o), bridge: (o) => stone(p.a, o), vortex: (o) => stone(p.a, o), courtyard: (o) => stone(p.a, o), forest: () => earth(p.a), expo: (o) => stone(p.a, o), hall: (o) => bricks(p.a, o), cave: () => rock(p.a), crypt: (o) => bricks(p.a, o), tower: (o) => stone(p.a, o), throne: (o) => bricks(p.a, o), glass: (o) => marble(p.a, o), foyer: (o) => checker(o), library: (o) => parquet(o), ship: () => planks(p.a, { hull: true }), cathedral: (o) => marble(p.a, o), spire: (o) => marble(p.a, o), ballroom: (o) => marble(p.a, o), ice: (o) => iceTile(p.a, o), hotel: () => parquet({}), station: (o) => bricks(p.a, o), mirror: () => mirrorTile(false), theater: (o) => marble(p.a, o) }[theme];
     const ground = [gen({}), gen({ crack: true }), gen({ chip: true }), gen({})];
     const groundTop = theme === 'throne' ? [0, 1, 2, 3].map(() => bricks(p.a, { carpet: true }))
       : theme === 'ship' ? [0, 1, 2, 3].map(() => planks(p.a, { top: true }))
-      : theme === 'glass' || theme === 'gallery' || theme === 'cathedral' || theme === 'spire' || theme === 'ballroom' ? [0, 1, 2, 3].map(() => marble(p.a, { inlay: true }))
+      : theme === 'glass' || theme === 'gallery' || theme === 'cathedral' || theme === 'spire' || theme === 'ballroom' || theme === 'theater' ? [0, 1, 2, 3].map(() => marble(p.a, { inlay: true }))
       : theme === 'library' ? [0, 1, 2, 3].map(() => parquet({ top: true }))
       : theme === 'hotel' ? [0, 1, 2, 3].map(() => hotelCarpet())
       : theme === 'station' ? [0, 1, 2, 3].map(() => platformTop())
@@ -2256,11 +2261,11 @@ const Tiles = (() => {
       : theme === 'expo' ? [0, 1, 2, 3].map(() => tilesTop())
       : theme === 'ice' ? [0, 1, 2, 3].map(i => iceTile(p.a, { top: true, crack: i === 1 }))
       : theme === 'foyer' ? [checker({ top: true }), checker({ top: true, crack: true }), checker({ top: true }), checker({ top: true })] : ground;
-    const alt = theme === 'ice' ? [0, 1, 2].map(() => iceTile(p.b, { top: true })) : theme === 'gallery' || theme === 'cathedral' || theme === 'spire' ? [balcony(), balcony(), balcony()] : theme === 'throne' || theme === 'ballroom' ? [goldLedge(), goldLedge(), goldLedge()] : theme === 'bridge' ? [bridgeDeck(), bridgeDeck(), bridgeDeck()] : theme === 'ship' ? [beam(p.b), beam(p.b), beam(p.b)] : theme === 'glass' ? [balcony(), balcony(), balcony()] : theme === 'foyer' || theme === 'hotel' ? [gallery(), gallery(), gallery()] : theme === 'library' ? [shelfWalk(), shelfWalk(), shelfWalk()] : theme === 'forest' ? [logTile(), logTile(), logTile()] : theme === 'expo' || theme === 'station' ? [ironGrate(), ironGrate(), ironGrate()] : theme === 'mirror' ? [0, 1, 2].map(() => mirrorTile(false, true)) : [stone(p.b, {}), stone(p.b, { crack: true }), stone(p.b, {})];
+    const alt = theme === 'ice' ? [0, 1, 2].map(() => iceTile(p.b, { top: true })) : theme === 'gallery' || theme === 'cathedral' || theme === 'spire' ? [balcony(), balcony(), balcony()] : theme === 'throne' || theme === 'ballroom' || theme === 'theater' ? [goldLedge(), goldLedge(), goldLedge()] : theme === 'bridge' ? [bridgeDeck(), bridgeDeck(), bridgeDeck()] : theme === 'ship' ? [beam(p.b), beam(p.b), beam(p.b)] : theme === 'glass' ? [balcony(), balcony(), balcony()] : theme === 'foyer' || theme === 'hotel' ? [gallery(), gallery(), gallery()] : theme === 'library' ? [shelfWalk(), shelfWalk(), shelfWalk()] : theme === 'forest' ? [logTile(), logTile(), logTile()] : theme === 'expo' || theme === 'station' ? [ironGrate(), ironGrate(), ironGrate()] : theme === 'mirror' ? [0, 1, 2].map(() => mirrorTile(false, true)) : [stone(p.b, {}), stone(p.b, { crack: true }), stone(p.b, {})];
     const t = {
       ground, groundTop, alt,
       X: stone(p.b, { crack: true, chip: true }), Y: stone(p.b, { crack: true, chip: true }),
-      spikes: spikes(), up: theme === 'library' ? stairTile(p.b, 1, '#e8c070') : theme === 'foyer' || theme === 'hotel' ? carpetStair(1) : theme === 'ship' ? ratline(1) : theme === 'glass' || theme === 'mirror' ? stairTile(p.a, 1, '#fce0a8') : stairTile(p.b, 1), down: theme === 'library' ? stairTile(p.b, -1, '#e8c070') : theme === 'foyer' || theme === 'hotel' ? carpetStair(-1) : theme === 'ship' ? ratline(-1) : theme === 'glass' || theme === 'mirror' ? stairTile(p.a, -1, '#fce0a8') : stairTile(p.b, -1),
+      spikes: spikes(), up: theme === 'library' ? stairTile(p.b, 1, '#e8c070') : theme === 'foyer' || theme === 'hotel' || theme === 'theater' ? carpetStair(1) : theme === 'ship' ? ratline(1) : theme === 'glass' || theme === 'mirror' ? stairTile(p.a, 1, '#fce0a8') : stairTile(p.b, 1), down: theme === 'library' ? stairTile(p.b, -1, '#e8c070') : theme === 'foyer' || theme === 'hotel' || theme === 'theater' ? carpetStair(-1) : theme === 'ship' ? ratline(-1) : theme === 'glass' || theme === 'mirror' ? stairTile(p.a, -1, '#fce0a8') : stairTile(p.b, -1),
       toppers: [0, 1, 2, 3].map(v => topper(theme, v)), hangers: [0, 1, 2].map(v => hanger(theme, v)),
       bg: buildBg(theme), crate: theme === 'ship' ? crate(p.b) : null,
       B: theme === 'library' ? [0, 1, 2, 3].map(() => bookcase(false)) : null, Btop: theme === 'library' ? [0, 1, 2, 3].map(() => bookcase(true)) : null,
@@ -3071,9 +3076,9 @@ const Tiles = (() => {
     for (let x = 0; x < w; x++) { gx.fillStyle = `rgba(6,2,12,${(0.08 + sh[x] * 0.42).toFixed(3)})`; gx.fillRect(x, 0, 1, 1); } // ferne Wand im Dunst
     return (tubeTab = { w, u, s, sh, shade: gr });
   }
-  let tubeTx = null, tubeOut = null;
+  const tubeTxs = new Map(); let tubeOut = null; // je Röhrentextur eigene Leuchtstufen (Glasturm und Spiegelschacht verdrängen sich nicht)
   function tubeTex(tex, glow) { // Textur in 5 Leuchtstufen (Glas + Leuchtebene × Stärke) – pro Bild nur nachschlagen
-    if (tubeTx && tubeTx.src === tex) return tubeTx;
+    if (tubeTxs.has(tex)) return tubeTxs.get(tex);
     const w = tex.width, h = tex.height, a = tex.getContext('2d').getImageData(0, 0, w, h).data, g = glow.getContext('2d').getImageData(0, 0, w, h).data;
     const levels = [0.1, 0.18, 0.26, 0.34, 0.8].map(k => {
       const out = new Int32Array(w * h);
@@ -3083,27 +3088,43 @@ const Tiles = (() => {
       }
       return out;
     });
-    return (tubeTx = { src: tex, w, h, levels });
+    const tx = { src: tex, w, h, levels }; tubeTxs.set(tex, tx); return tx;
   }
   const BAY4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
   const glassCloud = (u, f) => 0.5 + 0.3 * Math.sin(u * Math.PI * 2 / 512 + f * 0.011) + 0.2 * Math.sin(u * Math.PI * 6 / 512 - f * 0.0071 + 1.3); // Helligkeit des Mondlichts hinter dem Glas (nahtlos über 512 px)
-  function drawGlassTube(ctx, cam, frame, tex, glow) {
+  function drawGlassTube(ctx, cam, frame, tex, glow, opt) { // opt (Theater-Rund): eigene Drehung u0, Höhe camV, feste Leuchtstufe level
     const w = View.w, H = 208, tb = tubeTable(w), TX = tubeTex(tex, glow), TW = TX.w, TH = TX.h;
     if (!tubeOut || tubeOut.w !== w) { const c = Sprites.canvas(w, H), x = c.getContext('2d'), img = x.createImageData(w, H); tubeOut = { w, c, x, img, buf: new Int32Array(img.data.buffer) }; }
     if (W.tubeRotS === undefined) W.tubeRotS = W.tubeRot || 0;
     W.tubeRotS += ((W.tubeRot || 0) - W.tubeRotS) * 0.08; // weich nachziehen
-    const storm = FX.stormOn(W.storm), LV = TX.levels;
-    const u0 = cam.x * 0.5 + W.tubeRotS, camV = cam.y * 0.5 + 104, out = tubeOut.buf; // dreht sich nur, wenn der Held sich bewegt (Treppe: vor und zurück)
+    const storm = W.room.theme === 'glass' && FX.stormOn(W.storm), LV = TX.levels; // Blitze nur im Glasturm (nur dort läuft das Gewitter)
+    const u0 = opt ? opt.u0 : cam.x * 0.5 + W.tubeRotS, camV = opt ? opt.camV : cam.y * 0.5 + 104, out = tubeOut.buf; // dreht sich nur, wenn der Held sich bewegt (Treppe: vor und zurück)
     for (let x = 0; x < w; x++) { // Wolken ziehen am Mond vorbei: helle und dunkle Bänder wandern über die Fenster (Leuchtstufen gerastert gemischt)
       const s = tb.s[x], su = ((Math.floor(u0 + tb.u[x]) % TW) + TW) % TW;
       let lo = LV[4], hi = lo, fr = 0;
-      if (!storm) { const c = Math.max(0, Math.min(2.999, glassCloud(su, frame) * 3)), k = Math.floor(c); lo = LV[k]; hi = LV[k + 1]; fr = (c - k) * 16; }
+      if (!storm) { const c = Math.max(0, Math.min(2.999, opt && opt.level !== undefined ? opt.level : glassCloud(su, frame) * 3)), k = Math.floor(c); lo = LV[k]; hi = LV[k + 1]; fr = (c - k) * 16; }
       let v = (((camV - 104 * s) % TH) + TH) % TH;
       for (let y = 0, o = x; y < H; y++, o += w) { out[o] = (BAY4[((y & 3) << 2) | (x & 3)] < fr ? hi : lo)[(v | 0) * TW + su]; v += s; if (v >= TH) v -= TH; }
     }
     tubeOut.x.putImageData(tubeOut.img, 0, 0);
     ctx.drawImage(tubeOut.c, 0, 0);
     ctx.drawImage(tb.shade, 0, 0, w, 1, 0, 0, w, H); // ferne Wand im Dunst
+  }
+
+  // ---------------- Hoftheater ----------------
+  // Zuschauerraum: das Rund wie der Glasturm als Zylinder von innen (drawGlassTube); es dreht sich mit dem Weg durch den Saal –
+  // am Anfang sieht man die Kaiserloge, am Ende steht das Bühnenportal vor einem. Oben Kristalllüster.
+  function drawTheaterRound(ctx, cam, frame) {
+    const R = Theater.roundTex(), tb = tubeTable(View.w), xmax = Math.max(1, W.room.w * T - View.w), ymid = (W.room.h * T - 208) / 2;
+    const u0 = 512 - tb.u[View.w >> 1] - (xmax - cam.x) * 0.42, camV = 232 + (cam.y - ymid) * 0.5;
+    drawGlassTube(ctx, cam, frame, R.c, R.gc, { u0, camV, level: 1.6 + 0.4 * Math.sin(frame * 0.013) });
+    Mirror.drawLusters(ctx, cam, frame, 'v');
+  }
+  // Foyer: weiße Marmorwand mit riesigen Fenstern (Parallaxe 0.5, senkrecht gekachelt), Kristalllüster, Lichtstrahlen (grand.js Rays)
+  function drawTheaterFoyer(ctx, cam, frame) {
+    const F = Theater.foyerTex(), off = ((Math.floor(cam.x * 0.5) % 512) + 512) % 512, oy = W.room.h > 13 ? ((Math.floor(cam.y * 0.5) % 208) + 208) % 208 : 0;
+    for (let y = -oy; y < 208; y += 208) for (let x = -off; x < View.w; x += 512) ctx.drawImage(F, x, y);
+    Mirror.drawLusters(ctx, cam, frame, 'v');
   }
 
   // ---------------- Glasturm: volumetrische Lichtschächte ----------------
@@ -3187,6 +3208,46 @@ const Tiles = (() => {
     Mirror.reflect(ctx, 'h');
     drawGlassTube(ctx, cam, frame, mirrorTower.c, mirrorTower.gc);
     Mirror.drawLusters(ctx, cam, frame, 'h');
+  }
+  // Spiegelkabinett: gerade Galerie wie die Galerie des Glaces – Rückwand aus riesigen Arkadenspiegeln zwischen Pilastern aus
+  // Rance-Marmor, darüber Gesims und Deckenfresko in Goldrahmen, unten ein Sockel mit Goldleiste. Die Spiegel zeigen den ganzen
+  // Saal noch einmal (Mirror.reflect 'hall'), samt Held und Doppelgänger; die Wand zieht mit halber Geschwindigkeit vorbei.
+  let mirrorHall = null;
+  function drawMirrorHall(ctx, cam, frame) {
+    if (!mirrorHall) mirrorHall = buildMirrorHall();
+    Mirror.reflect(ctx, 'hall');
+    const off = ((Math.floor(cam.x * 0.5) % 512) + 512) % 512;
+    for (let x = -off; x < View.w; x += 512) ctx.drawImage(mirrorHall, x, 0);
+    Mirror.drawLusters(ctx, cam, frame, 'v');
+  }
+  function buildMirrorHall() {
+    const TWm = 512, THm = 208, M = Mirror, G = M.GOLD, c = C(TWm, THm), x = c.getContext('2d'), img = x.createImageData(TWm, THm), d = img.data;
+    const put = (X, Y, col) => { const i = (Y * TWm + X) * 4; d[i] = col[0]; d[i + 1] = col[1]; d[i + 2] = col[2]; d[i + 3] = col.length > 3 ? col[3] : 255; };
+    for (let Y = 0; Y < THm; Y++) for (let X = 0; X < TWm; X++) {
+      const lx = X % 128, pd = Math.min(lx, 128 - lx);
+      if (Y < 24) { // Deckenfresko: Himmel mit Wolken in Goldrahmen, je Feld ein Rahmen
+        const fx = lx - 64, fy = Y - 12, edge = Math.max(Math.abs(fx) / 58, Math.abs(fy) / 10);
+        if (edge > 1) put(X, Y, G[Math.abs(fy) > 10.5 || Math.abs(fx) > 58.5 ? 1 : 3]);
+        else if (edge > 0.9) put(X, Y, G[edge > 0.95 ? 5 : 2]);
+        else { const cl = Math.sin(X * 0.09 + Math.sin(Y * 0.3) * 2) * Math.sin(X * 0.031 + Y * 0.2) > 0.25, k = Y / 24; put(X, Y, cl ? [236 - k * 30, 226 - k * 30, 214 - k * 20] : [96 + k * 40, 140 + k * 40, 196 + k * 20]); }
+        continue;
+      }
+      if (Y < 34) { const e = Y - 24, ex = X % 10; put(X, Y, e < 1.5 || e > 8.5 ? G[0] : e < 3 ? G[5] : (ex === 0 || ex === 9) ? G[0] : Math.hypot((ex - 4.5) / 3.6, (e - 6) / 3) < 1 ? M.gold(5 - Math.hypot(ex - 3.5, e - 5.5) * 0.55) : G[1]); continue; } // Gesims mit Eierstab
+      if (Y >= 190) { put(X, Y, Y < 192 ? G[5] : Y < 194 ? G[2] : M.marble(X, Y, 10)); continue; } // Sockel mit Goldleiste
+      if (pd < 18) { // Pilaster: Basis, Schaft aus Marmor zwischen Goldleisten, Kapitell
+        const e = 18 - pd;
+        if (Y < 46) put(X, Y, e < 2 ? G[0] : Math.sin(pd * 0.7 + Y * 0.5) > 0.1 ? M.gold(4.2 - (Y - 34) / 12) : G[2]);
+        else if (Y > 178) put(X, Y, e < 2 ? G[0] : M.gold(4 - Math.abs(Y - 184) * 0.5));
+        else if (e < 2) put(X, Y, G[0]); else if (e < 4) put(X, Y, lx < 64 ? G[2] : G[5]); else put(X, Y, M.marble(X, Y));
+        continue;
+      }
+      const a = M.arcade(lx - 64, Y - 34, 42, 6, 152, 24, Math.floor(X / 128));
+      if (a) { put(X, Y, a); continue; }
+      const sn = M.sun(Math.abs(lx - 64) - 34, Y - 44, 9); // Sonnen in den Zwickeln
+      put(X, Y, sn || M.marble(X, Y, 22));
+    }
+    x.putImageData(img, 0, 0);
+    return c;
   }
   // Turmmantel 512 × 624 (läuft zweimal um die Röhre): drei Geschosse à 208 px, je Geschoss zwei Arkadenspiegel (150 × 180)
   // zwischen Pilastern aus Rance-Marmor mit vergoldeten Kapitellen und Basen, Gesimse mit Eierstab, Sonnen in den Zwickeln.

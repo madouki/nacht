@@ -44,6 +44,9 @@ const Mirror = (() => {
     const w = View.w;
     ctx.fillStyle = '#05040c'; ctx.fillRect(0, 0, w, 208);
     if (!live || !prev || prev.width !== w) return;
+    if (axis === 'hall') { // gerade Spiegelwand (Spiegelkabinett): der ganze Saal noch einmal, zum Fluchtpunkt (Bildmitte, Höhe 60) hin verkleinert
+      const k = 0.8; ctx.save(); ctx.globalAlpha = 0.92; ctx.drawImage(prev, w * (1 - k) / 2, 60 * (1 - k), w * k, 208 * k); ctx.restore(); return;
+    }
     ctx.save();
     ctx.globalAlpha = 0.9;
     if (axis === 'v') { ctx.translate(0, 208); ctx.scale(1, -1); } else { ctx.translate(w, 0); ctx.scale(-1, 1); }
