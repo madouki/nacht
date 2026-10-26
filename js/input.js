@@ -17,7 +17,7 @@ const Input = (() => {
   // Stick in Menüs: ↑↓ gehalten wiederholt sich (erst nach einer Pause, dann im Takt) – nur in Listen, nicht bei Schaltern (←→),
   // Namenseingabe oder Gesprächen; eine aus dem vorigen Zustand mitgebrachte Richtung wiederholt erst nach dem Loslassen
   const rep = { dir: null, n: 0, state: null, block: null };
-  const REPEAT = ['title', 'options', 'sections', 'pausesec', 'milestones', 'tools', 'equip', 'shop', 'pause'];
+  const REPEAT = ['title', 'options', 'sections', 'pausesec', 'milestones', 'tools', 'equip', 'shop', 'pause', 'warp', 'status', 'map']; // Bestiarium, Warp-Ziele, Karte (gezoomt) blättern auch
   let remapTouch = null; // Stick neu deuten, wenn das Spiel zwischen Spiel- und Menüzustand wechselt (setupTouch)
   const inMenu = () => typeof Game !== 'undefined' && Game.state !== 'play';
   let demoFn = null, realHit = false, tapHit = false; // Demo-Modus: Eingaben kommen aus einer Funktion, echte Tasten beenden ihn
