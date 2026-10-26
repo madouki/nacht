@@ -475,6 +475,7 @@ const Game = {
         }
         break;
       case 'charsel': {
+        if ((P.up || P.down) && HEROES.hasSkin(Options.character)) { Options.set('skin', Options.skin === 'adv' ? '' : 'adv'); Audio8.sfx('item'); } // zweiter Look
         if (P.left || P.right) {
           const ids = HEROES.list.map(d => d.id), i = ids.indexOf(Options.character);
           Options.set('character', ids[(i + (P.right ? 1 : ids.length - 1)) % ids.length]); Audio8.sfx('select');
@@ -866,6 +867,7 @@ const Game = {
   menuTap(clientX, clientY) {
     const r = this.canvas.getBoundingClientRect(), y = (clientY - r.top) / r.height * 240;
     let rows = null, sel = 0;
+    if (this.state === 'charsel') return y > 199 && y < 212 && HEROES.hasSkin(Options.character) ? 'down' : null; // Zeile „Look“: umschalten
     if (this.state === 'title' && this.revealed && this.titleRows) { rows = this.titleRows; sel = this.menu; }
     else if (this.state === 'options') {
       const n = OPTION_ITEMS.length, step = n > 9 ? 12 : 14, first = n <= 10 ? 0 : clamp(this.optSel - 4, 0, n - 10); // wie drawOptions
@@ -1458,6 +1460,10 @@ const Game = {
     });
     const pulse = 0.55 + 0.45 * Math.sin(this.t * 0.1);
     ctx.globalAlpha = pulse; this.bootText(ctx, '<', 8, 124, '#fce0a8', '#400008', 'left'); this.bootText(ctx, '>', View.w - 8, 124, '#fce0a8', '#400008', 'right'); ctx.globalAlpha = 1;
+    if (HEROES.hasSkin(Options.character)) { // Look wählen (▲▼ oder Tipp auf die Zeile)
+      const adv = Options.skin === 'adv';
+      Font.draw(ctx, '▲▼ ' + tr('skinLbl') + ': ' + tr(adv ? 'skinAdv' : 'skinClassic'), cx, 204, adv ? '#fca070' : '#d0b8e0', { align: 'center', shadow: '#000' });
+    }
     this.bootText(ctx, tr(Input.device === 'pad' ? 'selPad' : 'selKey'), cx, 214, '#d0b8e0', '#000');
   },
 

@@ -32,6 +32,8 @@ const HEROES = (() => {
     coat: ['#140a10', '#2c1820', '#4e3038', '#6c4450', '#8c6068'], // Gehrock
     bootK: ['#06040a', '#16121a', '#2a2430', '#46404c', '#6c6474'],
     woodD: ['#1c0c04', '#3c200c', '#5c3418', '#7c4a24', '#9c6434'],
+    jacket: ['#20100a', '#42220f', '#683a1a', '#90562a', '#b47a44'], // abgewetzte Lederjacke (Abenteurer)
+    khaki: ['#3a3020', '#62543a', '#8c7c58', '#b4a47c', '#d8cca4'],
   };
 
   // ---------------- Köpfe (10x10, Blick nach rechts) ----------------
@@ -43,6 +45,7 @@ const HEROES = (() => {
     zombie: ['..1121....', '.122g21...', '.gggggg2..', '1ggGGGGg..', '1gggkGGG..', '.ggGGrGGG.', '.gggGGGGG.', '..ggGmmG..', '...gGGG...', '....gg....'],
     fish: ['..rr......', '.rRrg.....', '.rgggggg..', 'rgGGGGGGg.', 'rgGGwkGGGg', '.gGGwwGGGG', '.gGGGGGmmm', '..gGGGGGG.', '...gggg...', '....gg....'],
     count: ['...1111...', '..111111..', '.11111111.', '.11pp1ppp.', '.1ppppppL.', '.1pprpprL.', '.1pppppPP.', '..pPppmp..', '...pppw...', '....pp....'],
+    henrikAdv: ['...hhhh...', '..hHHHHh..', '..kkkkkk..', 'hhhHHHHhhh', '.1121aasL.', '.121asesL.', '.12.aassLL', '...dasssm.', '....ddas..', '......as..'], // Filzhut mit Band, kurzes Haar, Stoppeln
     kaspar: ['...11221..', '..1223321.', '.122333221', '.1222w2w2.', '.122dwwwW.', '.12dwwweW.', '.12dWwwwwW', '..1dWwwkW.', '...dWwwW..', '....dWW...'],
   };
   const EYE_ROW = 5;
@@ -64,6 +67,17 @@ const HEROES = (() => {
     scarf: { a: '#241c30', b: '#3c3450', d: '#08040c', w: 3 },
     icon: ['.1111..', '122221.', 'rrrrrr.', '1aesL..', '11sss..', '.111...'],
     iconPal: { 1: '#08040c', 2: '#241c30', r: '#c81c1c', a: '#9c5430', s: '#d88c5c', L: '#f4bc8c', e: '#000' },
+  };
+  // Henrik im Abenteurer-Look (zweiter Look, in der Heldenwahl mit ▲▼): Filzhut mit breiter Krempe, abgewetzte Lederjacke über
+  // dem Khakihemd, Umhängetasche am Kreuzgurt, Halstuch statt langer Haare. Eigener 3D-Atlas (rid), sonst ganz Henrik
+  const HENRIK_ADV = {
+    ...HENRIK, rid: 'henrikAdv', head: 'henrikAdv', hurtRow: '.121aaasL.',
+    headPal: { ...HENRIK.headPal, h: '#5c3c20', H: '#86603a', k: '#2a180c', d: '#9c6440' },
+    sleeve: RAMP.jacket, arm: { r: 1.8 }, thigh: RAMP.khaki, boot: RAMP.leather, torso: 'jacket', pauldron: false, satchel: true,
+    flap: null, sash: null,
+    scarf: { a: '#b08a50', b: '#d4ae70', d: '#4c3418', w: 2 }, // Halstuch weht
+    icon: ['.hhhh..', 'hkkkkh.', 'hhhhhhh', '1aesL..', '1dsss..', '..ss...'],
+    iconPal: { h: '#6c4826', k: '#2a180c', 1: '#2c1408', a: '#a85c34', s: '#e09a68', L: '#fcd0a4', e: '#000', d: '#9c6440' },
   };
   // Kaspar, die Marionette ohne Fäden, hat sich zum Uhrwerk-Automaten umgebaut: Porzellangesicht, dunkles Haar, ein
   // Bernsteinauge; Gehrock mit langen Schößen und Messingknöpfen über Hemd und Krawatte, ein Arm aus Messing und Rotguss
@@ -165,10 +179,10 @@ const HEROES = (() => {
     const shF = [CX + 2.6 + lean, 11.8 + ty], shB = [CX - 2.6 + lean, 11.8 + ty];
     const fA = armGeo(pose.fa, shF[0], shF[1]), bA = armGeo(pose.ba, shB[0], shB[1]);
     const ar = def.arm.r, armsHidden = def.cape && !pose.capeOpen;
-    const rid = def.id + '@' + S;
+    const rid = (def.rid || def.id) + '@' + S;
     if (REC || R3D[rid]) {
       const key = poseKey(pose);
-      if (REC) REC.push({ id: def.id, S, key, lean, ty, hipY, flare: pose.flare || 0, coil: !!pose.coil, hurt: !!pose.hurt, blink: !!pose.blink, legs: pose.legs,
+      if (REC) REC.push({ id: def.rid || def.id, S, key, lean, ty, hipY, flare: pose.flare || 0, coil: !!pose.coil, hurt: !!pose.hurt, blink: !!pose.blink, legs: pose.legs,
         fL: [fL.hx, fL.hy, fL.kx, fL.ky, fL.ax, fL.ay], bL: [bL.hx, bL.hy, bL.kx, bL.ky, bL.ax, bL.ay],
         fA: [fA.sx, fA.sy, fA.ex, fA.ey, fA.hx, fA.hy], bA: [bA.sx, bA.sy, bA.ex, bA.ey, bA.hx, bA.hy], head: [Math.round(12 + lean), ty] });
       const A = R3D[rid], r = A && A.map[key];
@@ -237,6 +251,10 @@ const HEROES = (() => {
           else if (def.torso === 'rags') ramp = ((pxi * 7 + yr * 3) % 11 === 0 || (yr > 15 && (pxi + yr) % 5 === 0)) ? def.skin : RAMP.rags;
           else if (def.torso === 'scales') { ramp = nx > 0.25 ? RAMP.belly : RAMP.fish; if ((pxi + yr) % 3 === 0) l -= 0.25; }
           else if (def.torso === 'suit') { ramp = (yr <= 15 && nx > 0.3 - (yr - 10) * 0.04) ? RAMP.shirt : RAMP.noble; }
+          else if (def.torso === 'jacket') { // offene Lederjacke über dem Khakihemd, Kragen aufgestellt
+            ramp = (yr <= 17 && nx > 0.32 - (yr - 10) * 0.03) ? RAMP.khaki : RAMP.jacket;
+            if (yr === 10 && nx < 0.32) l += 0.3;
+          }
           else if (def.torso === 'jerkin') { ramp = RAMP.cloth; if (Math.abs(nx - 0.32) < 0.13 && yr % 3 === 1) ramp = RAMP.gold; else if (yr === 10) ramp = RAMP.wood; } // Wams mit Goldknöpfen, Holzhals
           else if (def.torso === 'frock') { // Gehrock: oben Hemd und Krawatte im Ausschnitt, darunter Messingknöpfe
             ramp = RAMP.coat;
@@ -260,6 +278,7 @@ const HEROES = (() => {
       P(gx, gy, RAMP.leather[1]); P(gx + 1, gy, RAMP.leather[2]);
       if (k % 4 === 2) P(gx, gy, RAMP.gold[3]);
     }
+    if (def.satchel) { disc(CX - 4.6 + lean, 20 + ty, 2.4, 2.1, RAMP.khaki, -0.1); P(CX - 4.6 + lean, 18.6 + ty, RAMP.leather[1]); P(CX - 3.6 + lean, 19.2 + ty, RAMP.gold[3]); } // Umhängetasche hinten an der Hüfte
     if (def.belt) {
       for (let px = CX - 4; px <= CX + 4; px++) { P(px, 18 + ty, RAMP.leather[2]); P(px, 19 + ty, RAMP.leather[1]); }
       P(CX + 1, 18 + ty, RAMP.gold[4]); P(CX + 2, 18 + ty, RAMP.gold[3]); P(CX + 1, 19 + ty, RAMP.gold[2]); P(CX + 2, 19 + ty, RAMP.gold[2]);
@@ -446,14 +465,15 @@ const HEROES = (() => {
   }
   const list = [HENRIK, RAGNOR, KASPAR];
   const built = {}; // Helden erst bei Bedarf (und nach dem Laden ihres 3D-Atlas neu) bauen
-  const defOf = (id) => list.find(x => x.id === id) || list[0];
-  const get = (id) => { const d = defOf(id); return built[d.id] || (built[d.id] = build(d)); };
+  const skinOf = (d) => d.id === 'henrik' && Options.skin === 'adv' ? HENRIK_ADV : d; // gewählter Look
+  const defOf = (id) => skinOf(list.find(x => x.id === id) || list[0]);
+  const get = (id) => { const d = defOf(id), k = d.rid || d.id; return built[k] || (built[k] = build(d)); };
   Object.defineProperty(Sprites.S, 'heroes', { configurable: true, get: () => { list.forEach(d => get(d.id)); return built; } });
   Object.defineProperty(Sprites.S, 'hero', { configurable: true, get: () => get('henrik'), set() {} });
   // Gelenke aller Posen (für den Blender-Export): ein Held per id, oder alle Gegner aus dem Rig ('monsters')
   function exportRig(id) {
     REC = [];
-    if (id === 'monsters') { buildMonsters(); monReady = false; } else build(list.find(x => x.id === id));
+    if (id === 'monsters') { buildMonsters(); monReady = false; } else build(id === HENRIK_ADV.rid ? HENRIK_ADV : list.find(x => x.id === id));
     const out = REC; REC = null; const seen = new Set();
     return out.filter(r => { const k = r.id + '@' + r.S + ':' + r.key; return !seen.has(k) && seen.add(k); });
   }
@@ -462,12 +482,13 @@ const HEROES = (() => {
     const img = new Image();
     img.onload = () => {
       R3D[id + '@' + S] = { img, map };
-      if (list.some(x => x.id === id)) { // Held: beim nächsten Zugriff mit 3D-Bildern neu bauen
+      const hid = id === HENRIK_ADV.rid ? 'henrik' : id; // zweiter Look gehört zu Henrik
+      if (list.some(x => x.id === hid)) { // Held: beim nächsten Zugriff mit 3D-Bildern neu bauen
         delete built[id];
-        if (typeof W !== 'undefined' && W.player && W.player.heroId === id) W.player.H = null;
+        if (typeof W !== 'undefined' && W.player && W.player.heroId === hid) W.player.H = null;
       } else { Sprites.S.rig3d = true; monReady = false; } // Gegner: einmal neu, sobald sie gebraucht werden
     };
     img.src = url;
   }
-  return { list, get, def: (id) => defOf(id), ensureMonsters, exportRig, load3d };
+  return { list, get, def: (id) => defOf(id), ensureMonsters, exportRig, load3d, hasSkin: (id) => id === 'henrik' };
 })();

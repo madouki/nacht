@@ -69,6 +69,9 @@ const I18N = (() => {
     optNavKey: { de: 'PFEILE WÄHLEN  Z ÄNDERN  ENTER ZURÜCK', en: 'ARROWS SELECT  Z CHANGE  ENTER BACK', fr: 'FLÈCHES CHOISIR  Z CHANGER  ENTRÉE', es: 'FLECHAS ELEGIR  Z CAMBIAR  ENTER', ja: '矢印で選択  Zで変更  ENTERで戻る', zh: '方向键选择  Z改变  ENTER返回' },
     // ---------------- Heldenwahl ----------------
     choose: { de: 'WÄHLE DEINEN HELDEN', en: 'CHOOSE YOUR HERO', fr: 'CHOISIS TON HÉROS', es: 'ELIGE TU HÉROE', ja: 'ヒーローを選べ', zh: '选择你的英雄' },
+    skinLbl: { de: 'LOOK', en: 'LOOK', fr: 'STYLE', es: 'ESTILO', ja: '衣装', zh: '造型' },
+    skinClassic: { de: 'KLASSISCH', en: 'CLASSIC', fr: 'CLASSIQUE', es: 'CLÁSICO', ja: 'クラシック', zh: '经典' },
+    skinAdv: { de: 'ABENTEURER', en: 'ADVENTURER', fr: 'AVENTURIER', es: 'AVENTURERO', ja: '冒険者', zh: '冒险家' },
     henrikTitle: { de: 'VAMPIRJÄGER', en: 'VAMPIRE HUNTER', fr: 'CHASSEUR DE VAMPIRES', es: 'CAZAVAMPIROS', ja: 'ヴァンパイアハンター', zh: '吸血鬼猎人' },
     henrikDesc: { de: ['MORGENSTERN-PEITSCHE', 'GROSSE REICHWEITE'], en: ['MORNING STAR WHIP', 'LONG REACH'], fr: ['FOUET ÉTOILE DU MATIN', 'GRANDE PORTÉE'], es: ['LÁTIGO LUCERO', 'GRAN ALCANCE'], ja: ['モーニングスター', 'リーチが長い'], zh: ['晨星鞭', '攻击距离远'] },
     ragnorTitle: { de: 'BARBAR AUS DEM NORDEN', en: 'BARBARIAN OF THE NORTH', fr: 'BARBARE DU NORD', es: 'BÁRBARO DEL NORTE', ja: '北の蛮族', zh: '北方蛮族' },
