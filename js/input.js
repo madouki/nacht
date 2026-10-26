@@ -14,7 +14,11 @@ const Input = (() => {
   };
   const ACTIONS = ['left', 'right', 'up', 'down', 'jump', 'attack', 'sub', 'start', 'dash', 'map'];
   const kb = {}, touch = {}, held = {}, prev = {}, pressed = {}, latch = {}, prevReal = {};
-  const rep = { dir: null, n: 0 }; // Stick in Menüs: gehaltene Richtung wiederholt sich (erst nach einer Pause, dann im Takt)
+  // Stick in Menüs: ↑↓ gehalten wiederholt sich (erst nach einer Pause, dann im Takt) – nur in Listen, nicht bei Schaltern (←→),
+  // Namenseingabe oder Gesprächen; eine aus dem vorigen Zustand mitgebrachte Richtung wiederholt erst nach dem Loslassen
+  const rep = { dir: null, n: 0, state: null, block: null };
+  const REPEAT = ['title', 'options', 'sections', 'pausesec', 'milestones', 'tools', 'equip', 'shop', 'pause'];
+  let remapTouch = null; // Stick neu deuten, wenn das Spiel zwischen Spiel- und Menüzustand wechselt (setupTouch)
   const inMenu = () => typeof Game !== 'undefined' && Game.state !== 'play';
   let demoFn = null, realHit = false, tapHit = false; // Demo-Modus: Eingaben kommen aus einer Funktion, echte Tasten beenden ihn
   let anyListener = null, lastDevice = 'keys', padName = null, padIndex = -1, prevPadBack = false;
@@ -106,6 +110,7 @@ const Input = (() => {
     const active = new Map(); // touchId -> Taste
     let fullTouch = null; // Vollbild-Knopf: erst beim Loslassen umschalten (Browser verlangen eine abgeschlossene Geste)
     const taps = new Map(); // touchId -> Startpunkt eines möglichen Tipps in einem Menü
+    remapTouch = () => { refresh(); showStick(); };
     const stick = { id: null, ox: 0, oy: 0, dx: 0, dy: 0, dir: null, t0: 0, max: 0 };
     let menuT = null; // Finger im Pausenmenü (wischen/tippen)
     const refresh = () => {
@@ -189,8 +194,12 @@ const Input = (() => {
   function update() {
     const pad = pollPad(), demo = demoFn ? demoFn() : null;
     realHit = tapHit; tapHit = false;
-    if (rep.dir && inMenu()) { rep.n++; if (rep.n >= 28 && (rep.n - 28) % 9 === 0) latch[rep.dir] = true; } else rep.n = 0; // Stick gehalten: nach ½ s alle 0,15 s ein Schritt
+    const st = typeof Game !== 'undefined' ? Game.state : null;
+    if (st !== rep.state) { rep.state = st; if (remapTouch) remapTouch(); rep.block = rep.dir; rep.n = 0; } // neuer Zustand: Stick neu deuten, mitgebrachte Richtung sperren
+    if (rep.block && rep.dir !== rep.block) rep.block = null;
     if (rep.dir !== rep.last) { rep.last = rep.dir; rep.n = 0; }
+    if ((rep.dir === 'up' || rep.dir === 'down') && !rep.block && REPEAT.includes(st)) { rep.n++; if (rep.n >= 28 && (rep.n - 28) % 9 === 0) latch[rep.dir] = true; } // nach ½ s alle 0,15 s ein Schritt
+    else rep.n = 0;
     ACTIONS.forEach(a => {
       const real = !!(kb[a] || touch[a] || pad[a] || latch[a]);
       if (real && (!prevReal[a] || latch[a])) realHit = true; // echte, frisch gedrückte Taste

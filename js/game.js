@@ -372,10 +372,11 @@ const Game = {
   drawNote(ctx) {
     const s = tr(this.noteKey, ...(this.noteArgs || [])), y = 48;
     let lines = [s];
-    if (Font.width(s) + 12 > View.w - 8) { // zu breit (schmaler Bildschirm): am Gedankenstrich oder mittleren Leerzeichen umbrechen
-      const d = s.indexOf(' – '); let k = d > 0 ? d : -1;
-      if (k < 0) for (let i = 0; i < s.length; i++) if (s[i] === ' ' && (k < 0 || Math.abs(i - s.length / 2) < Math.abs(k - s.length / 2))) k = i;
-      if (k > 0) lines = [s.slice(0, k), s.slice(k + (d === k ? 3 : 1))];
+    const max = View.w - 20;
+    if (Font.width(s) > max) { // zu breit (schmaler Bildschirm): am Gedankenstrich, wenn beide Teile passen, sonst wortweise umbrechen
+      const d = s.indexOf(' – '), two = d > 0 ? [s.slice(0, d), s.slice(d + 3)] : null;
+      if (two && two.every(l => Font.width(l) <= max)) lines = two;
+      else { lines = []; let cur = ''; for (const w of s.split(' ')) { const t = cur ? cur + ' ' + w : w; if (cur && Font.width(t) > max) { lines.push(cur); cur = w; } else cur = t; } if (cur) lines.push(cur); }
     }
     const w = Math.max(...lines.map(l => Font.width(l))) + 12, h = lines.length * 10 + 3, x = Math.round(View.cx - w / 2);
     ctx.globalAlpha = this.noteT < 20 ? this.noteT / 20 : 1;
@@ -862,6 +863,12 @@ const Game = {
     p.maxHp = Options.maxHp; p.hp = Math.max(1, Math.min(p.maxHp, Math.round(p.hp * p.maxHp / old)));
     Audio8.sfx(Options.easy ? 'heart' : 'select');
   },
+  // Optionsliste mit mehr als zehn Zeilen: oberste sichtbare Zeile; rollt nur, wenn die Auswahl das Fenster verlässt
+  optFirst() {
+    const n = OPTION_ITEMS.length, V = 10; if (n <= V) return 0;
+    let f = this.optTop || 0; if (this.optSel < f) f = this.optSel; else if (this.optSel > f + V - 1) f = this.optSel - V + 1;
+    return (this.optTop = clamp(f, 0, n - V));
+  },
   // Touch in Titel- und Optionsmenü: Tipp auf einen Eintrag wählt ihn, ein zweiter Tipp auf den gewählten löst ihn aus
   // (Rückgabe: die Taste, die input.js dafür auslöst, sonst null)
   menuTap(clientX, clientY) {
@@ -870,7 +877,7 @@ const Game = {
     if (this.state === 'charsel') return y > 199 && y < 212 && HEROES.hasSkin(Options.character) ? 'down' : null; // Zeile „Look“: umschalten
     if (this.state === 'title' && this.revealed && this.titleRows) { rows = this.titleRows; sel = this.menu; }
     else if (this.state === 'options') {
-      const n = OPTION_ITEMS.length, step = n > 9 ? 12 : 14, first = n <= 10 ? 0 : clamp(this.optSel - 4, 0, n - 10); // wie drawOptions
+      const n = OPTION_ITEMS.length, step = n > 9 ? 12 : 14, first = this.optFirst(); // wie drawOptions
       rows = { y0: 61 - first * step, sp: step, lo: first, hi: Math.min(n, first + 10) }; sel = this.optSel;
     }
     if (!rows) return null;
@@ -1355,7 +1362,7 @@ const Game = {
     ctx.fillStyle = '#c89020'; ctx.fillRect(cx - 124, 38, 248, 1); ctx.fillRect(cx - 124, 205, 248, 1); ctx.fillRect(cx - 118, 188, 236, 1);
     this.big(ctx, tr('options'), cx, 44, 2, LOGO, null, '#000');
     // mehr als zehn Zeilen: die Liste rollt mit der Auswahl (Pfeile zeigen, dass es weitergeht)
-    const n = OPTION_ITEMS.length, step = n > 9 ? 12 : 14, V = 10, first = n <= V ? 0 : clamp(this.optSel - 4, 0, n - V);
+    const n = OPTION_ITEMS.length, step = n > 9 ? 12 : 14, V = 10, first = this.optFirst();
     if (first > 0) Font.draw(ctx, '▲', cx + 114, 54 + ((this.t >> 4) & 1), '#c89020', { align: 'center' });
     if (first + V < n) Font.draw(ctx, '▼', cx + 114, 180 + ((this.t >> 4) & 1), '#c89020', { align: 'center' });
     OPTION_ITEMS.forEach((it, i) => {
