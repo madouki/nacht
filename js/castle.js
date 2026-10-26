@@ -254,7 +254,7 @@ const Castle = (() => {
       .music('hotel').label('ZIMMER 13').start(2, 10).done();
     room13.decor = [D('bed', 15.5, 10), D('chair', 10, 10), D('cart', 25, 10, true)];
     add('zimmer13', 0, 1, [2, -3], room13);
-    // Spiegelkabinett (unter der Marmorgalerie, Tür x 34): Marmorsaal mit Standspiegeln (Blender). Aus dem rechten Spiegel tritt
+    // Spiegelkabinett (unter der Marmorgalerie, Tür x 34): Galerie der Spiegel wie in Versailles. Aus der Spiegelwand rechts tritt
     // der Doppelgänger. Danach liegt sein Schatten als Begleiterkarte im Saal; hinten eine brüchige Wand mit Mauerbraten.
     const mirrors = R(40, 'mirror')
       .ground(0, 39)
@@ -264,7 +264,6 @@ const Castle = (() => {
       .prop('vessel', { x: 34, y: 6 })
       .mini('doppel', 9, 29, 11, 0)
       .music('stage3').label('SPIEGELKABINETT').start(2, 10).done();
-    mirrors.decor = [6, 11, 16, 21, 26, 31].map(x => D('mirror', x, 10));
     mirrors.mhall = true; // Galerie der Spiegel wie in Versailles: Rückwand aus echten Spiegeln (tiles.js drawMirrorHall)
     add('spiegel', 2, 4, [14, -11], mirrors);
     LINKS.push([[2, -1], { x: 34, y: 10, door: 'side' }, ['side', 'spiegel'], 'start', {}]); // Marmorgalerie → Spiegelkabinett
