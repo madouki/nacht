@@ -37,6 +37,9 @@ const Levels = (() => {
       pendulum(px, py, len, amp = 0.55, phase = 0, speed = 0.03) { r.ents.push({ type: 'pendulum', x: px, y: py, len, amp, phase, speed }); return api; },
       cog(cx, cy, rad, n = 4, speed = 0.011) { r.ents.push({ type: 'cog', x: cx, y: cy, r: rad, n, speed }); return api; },
       elevator(x, rowLow, rowHigh) { r.ents.push({ type: 'elevator', x, y: rowLow, y1: rowHigh }); return api; },
+      // Aufzug als Abkürzung (lift.js): Kabine 3 Kacheln breit ab x, Haltestellen = Standreihen von oben nach unten,
+      // opts: { id (Spielstand-Flag), start (Haltestelle), lock: 'top' | 'bottom' (von dort erst nach der ersten Fahrt) }
+      lift(x, stops, opts = {}) { r.ents.push({ type: 'lift', x, stops, ...opts }); return api; },
       crumble(x, y) { r.ents.push({ type: 'crumble', x, y }); return api; },
       statue(x, y) { r.ents.push({ type: 'statue', x, y }); return api; },
       ring(x, y) { r.ents.push({ type: 'ring', x, y }); return api; },

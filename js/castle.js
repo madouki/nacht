@@ -783,11 +783,11 @@ const Castle = (() => {
     const def = S()[s].rooms[r], out = [], taken = [];
     for (const d of doorsOf(s, r)) if (d.place && typeof d.place === 'object') taken.push(d.place.x);
     let from = def.start.x + 3;
-    for (const [R, kind, hx, hy] of CHAMBERS) {
+    for (const [R, kind, hx, hy, oldKey] of CHAMBERS) { // oldKey: Kammer in einen eigenen Raum umgezogen – Freischaltung und Spielstand bleiben gültig
       if (!same(ref(R), s, r)) continue;
       const spot = spotOk(def, hx, hy) ? { x: hx, y: hy } : findSpot(def, from, taken);
       if (!spot) { console.warn('[NACHTMAHR] Schloss: kein Platz für die ' + kind + '-Kammer in ' + roomKey(s, r)); continue; }
-      out.push({ kind, s, r, x: spot.x, y: spot.y, key: roomKey(s, r) + ':' + kind });
+      out.push({ kind, s, r, x: spot.x, y: spot.y, key: oldKey || roomKey(s, r) + ':' + kind });
       taken.push(spot.x); from = spot.x + 4;
     }
     return (chamberCache[k] = out);
@@ -3402,7 +3402,7 @@ const Castle = (() => {
     need.push('npcPrisoner', 'npcConcierge', 'concTitle', 'concHi', 'concSold', 'concOwned', 'concPoor', 'concThanks1', 'concThanks2', 'concThanks3', 'gramoTitle', 'gramoHi',
       'gramoPlay', 'gramoMissing', 'gramoNow', 'gramoHelp', 'hotelSign', 'boardTitle', 'formBack', 'whereWitch',
       'bossConductor', 'bossConductorNote', 'bossConductorShout', 'bossConductorRage', 'castleLocked13', 'dashKey',
-      'bossDoppel', 'bossDoppelNote', 'bossDoppelShout', 'bossDoppelRage', 'famSay_shadow', 'questTitle', 'questDone', 'questNone', 'questFrom', 'castleDrown', 'castleDrownTest');
+      'liftLocked', 'liftOpen', 'bossDoppel', 'bossDoppelNote', 'bossDoppelShout', 'bossDoppelRage', 'famSay_shadow', 'questTitle', 'questDone', 'questNone', 'questFrom', 'castleDrown', 'castleDrownTest');
     for (const q of QUESTS) need.push('quest_' + q.id, 'questHint_' + q.id);
     { // Erreichbarkeit: vom Wald aus über Türen und Ausgänge (alles geöffnet) – kein Raum darf abgeschnitten sein
       const key = (s, r) => s + ':' + r, seenR = new Set(), queue = [], s0 = sIdx('arrival');
@@ -3471,6 +3471,7 @@ const Castle = (() => {
     openEquip, equipInput, drawEquip, openShop, shopInput, drawShop, get inv() { return inv; }, get eq() { return eq; }, giveItem,
     preUpdate, statusInput, mpMax, get mp() { return mp; }, set mp(v) { mp = v; },
     startTest, finishTest, drawMilestones, milestones: MILESTONES.length, get testing() { return testing; },
+    setFlag: (k) => { flag[k] = 1; save(); }, // z. B. Aufzug als Abkürzung freigeschaltet (lift.js)
     toolsInput, drawTools, selfCheck, mapReport, get god() { return god; }, get best() { return best; },
     toggleOverlay, get overlay() { return overlayOn; },
     tier: (s) => (TIER[S()[s].id] || 1) + 2 * (flag.ngp || 0), side: SIDE, startEpilogue, resultsInput, drawResults, ngPlus, ngRestore, drawGoalBanner, drawGoalToast, announceGoal, drawGuide, guidePlan, inPrologue, goal: () => { const g = goal(); return g && { text: goalText(g), where: tr(g.where) }; }, get vessels() { return vessel; }, get relics() { return relic; }, get cracks() { return crack; }, has,
