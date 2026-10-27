@@ -135,14 +135,14 @@ const Input = (() => {
       rep.dir = stick.dir;
       btns.forEach(b => b.classList.toggle('on', !!touch[b.dataset.k]));
     };
-    const hitTest = (x, y) => { // großzügig: Rand + nächstgelegene Taste
+    const hitTest = (x, y) => { // großzügig: nächstgelegene Taste, gemessen in Tastenradien (kleine Tasten verlieren nicht gegen große)
       let best = null, bd = 1e9;
       for (const b of btns) {
         const r = b.getBoundingClientRect(), cx = (r.left + r.right) / 2, cy = (r.top + r.bottom) / 2;
-        const d = Math.hypot(x - cx, y - cy) - r.width / 2;
+        const d = Math.hypot(x - cx, y - cy) / Math.max(1, r.width / 2);
         if (d < bd) { bd = d; best = b.dataset.k; }
       }
-      return bd < 34 ? best : null;
+      return bd < 1.75 ? best : null;
     };
     const showStick = () => {
       base.classList.toggle('on', stick.id !== null);

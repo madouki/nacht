@@ -119,7 +119,10 @@ class Player {
     }
     if (wantSub && this.sub && this.hearts >= 1 && W.subCount() < 2) {
       this.atkSub = true; if (!Options.infHearts) this.hearts -= 1;
-    } else if (strict) return;
+    } else if (strict) { // SUB-Taste ohne Wirkung: sagen, warum (keine Spezialwaffe / keine Herzen)
+      if (wantSub && Input.pressed.sub && W.frame - (this.subMsgT || -999) > 120) { this.subMsgT = W.frame; Game.note(this.sub ? 'subNoHearts' : 'subNone'); Audio8.sfx('wall'); }
+      return;
+    }
     else { this.atkSub = false; Audio8.sfx('whip'); }
     this.atkT = 1; this.atkId = ++W.atkId;
     this.crouchAtk = this.crouch && this.state === 'normal';

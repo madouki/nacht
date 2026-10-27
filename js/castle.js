@@ -884,14 +884,21 @@ const Castle = (() => {
   const MINI_RELIC = [[[1, 3], 'wolf', 29, 104, [[1, 4], 6, 10]], [['side', 'schuppen'], 'boots', 12, 17]];
   const inPrologue = () => !!(S()[W.stage] && S()[W.stage].id === 'arrival');
   const has = (k) => !on || rel(k) || inPrologue();
+  let needT = 0; // Hinweis „dafür fehlt noch …“ höchstens alle zwei Sekunden
+  const needNote = (k) => { if (W.frame - needT < 120) return; needT = W.frame; Game.note('needRelic', tr('relic_' + k)); Audio8.sfx('wall'); };
   if (on) { // Bewegungen hängen an den Relikten (Doppelsprung: siehe update)
     const sd = Player.prototype.startDash, wd = Player.prototype.wallDir, tl = Player.prototype.tryLatch;
     Player.prototype.startDash = function (...a) { // ↑ + DASH am Boden mit den Dampfstiefeln: Supersprung statt Dash
       if (on && rel('boots') && Input.held.up && this.onGround && this.state === 'normal') return superJump(this);
       if (has('dash')) return sd.apply(this, a);
+      if (Input.pressed.dash) needNote('dash'); // Dash-Taste ohne Schattenmantel: sagen, was fehlt
     };
     Player.prototype.wallDir = function () { return has('wall') ? wd.call(this) : 0; };
-    Player.prototype.tryLatch = function (...a) { return has('ring') ? tl.apply(this, a) : false; };
+    Player.prototype.tryLatch = function (...a) { // ohne Enterhaken: in Reichweite eines Rings sagen, was fehlt
+      if (has('ring')) return tl.apply(this, a);
+      if (this.atkT === 1 && W.rings && W.rings.length && this.nearRing(this.wlen + 56)) needNote('ring');
+      return false;
+    };
   }
   class RelicStone extends Ent { // Steinsockel, darüber schwebt das Relikt als leuchtende Kugel
     constructor(k, x, y) { super(x * T, (y + 1) * T - 28, 16, 28); this.kind = 'prop'; this.k = k; }
@@ -3402,7 +3409,7 @@ const Castle = (() => {
     need.push('npcPrisoner', 'npcConcierge', 'concTitle', 'concHi', 'concSold', 'concOwned', 'concPoor', 'concThanks1', 'concThanks2', 'concThanks3', 'gramoTitle', 'gramoHi',
       'gramoPlay', 'gramoMissing', 'gramoNow', 'gramoHelp', 'hotelSign', 'boardTitle', 'formBack', 'whereWitch',
       'bossConductor', 'bossConductorNote', 'bossConductorShout', 'bossConductorRage', 'castleLocked13', 'dashKey',
-      'liftLocked', 'liftOpen', 'bossDoppel', 'bossDoppelNote', 'bossDoppelShout', 'bossDoppelRage', 'famSay_shadow', 'questTitle', 'questDone', 'questNone', 'questFrom', 'castleDrown', 'castleDrownTest');
+      'liftLocked', 'liftOpen', 'needRelic', 'subNone', 'subNoHearts', 'bossDoppel', 'bossDoppelNote', 'bossDoppelShout', 'bossDoppelRage', 'famSay_shadow', 'questTitle', 'questDone', 'questNone', 'questFrom', 'castleDrown', 'castleDrownTest');
     for (const q of QUESTS) need.push('quest_' + q.id, 'questHint_' + q.id);
     { // Erreichbarkeit: vom Wald aus über Türen und Ausgänge (alles geöffnet) – kein Raum darf abgeschnitten sein
       const key = (s, r) => s + ':' + r, seenR = new Set(), queue = [], s0 = sIdx('arrival');
