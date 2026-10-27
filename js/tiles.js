@@ -2177,32 +2177,15 @@ const Tiles = (() => {
       L.push({ name: 'city', custom: (cx2, cam, f) => PS2.drawSpireBg(cx2, cam, f), par: 0, c: C(1, 1) });
     } else if (theme === 'gallery') { // Marmorgalerie: alles im Säulengang wird live in Perspektive gezeichnet
       L.push({ name: 'colonnade', custom: drawColonnade, par: 1, c: C(1, 1) });
-    } else if (theme === 'bridge') { // Brücke zum Bergfried: Sturmhimmel mit Blutmond, der Bergfried mit erleuchteten Fenstern,
-      // davor der Mode-7-Wolkenstrom im Zeitraffer, darunter die Pfeiler der Brücke, die im Wolkenmeer versinken
+    } else if (theme === 'bridge') { // Brücke zum Bergfried: Sturmhimmel mit Blutmond (wie im Titelbild), drüben die Burg als
+      // PS2-Modell (dieselbe wie im Burghof, Fuß im Nebel), davor der Mode-7-Wolkenstrom im Zeitraffer, darunter die Pfeiler der
+      // Brücke, die im Wolkenmeer versinken
       const sky = C(640, 208), xs = sky.getContext('2d');
       smooth(xs, 640, 208, ['#020008', '#05021a', '#0c0428', '#160834', '#220c40', '#301046', '#461446', '#641c40', '#842c3c']);
       for (let i = 0; i < 80; i++) px(xs, rand() < 0.3 ? '#fcfcfc' : '#8c84ac', ri(0, 639), ri(0, 64));
-      for (let y = -34; y <= 34; y++) for (let X = -34; X <= 34; X++) { // Blutmond mit Hof
-        const d = Math.hypot(X, y);
-        if (d > 34) continue;
-        if (d > 22) { if (bay(X, y) < (34 - d) / 12 * 0.5) px(xs, '#5c1428', 112 + X, 52 + y); continue; }
-        const n = hn((X + 40) >> 2, (y + 40) >> 2, 5);
-        px(xs, d > 20 ? '#a82820' : n > 0.72 ? '#c83c2c' : n > 0.3 ? '#e85c3c' : '#f88c5c', 112 + X, 52 + y);
-      }
       add('sky', sky, 0, { wrap: false });
-      const kp = C(512, 208), xk = kp.getContext('2d'), K = '#0a0614', KL = '#1c1430';
-      const tower = (X0, w, top, roof) => {
-        px(xk, K, X0, top, w, 208 - top); px(xk, KL, X0, top, 1, 208 - top);
-        for (let X = X0; X < X0 + w; X += 4) px(xk, K, X, top - 3, 2, 3); // Zinnen
-        for (let k = 0; k < roof; k++) { const half = (roof - k) * w / (2 * roof) + 1; px(xk, K, Math.round(X0 + w / 2 - half), top - 3 - k, Math.round(half * 2), 1); } // Spitzhelm
-        for (let Y = top + 10; Y < 180; Y += 18) for (let X = X0 + 3; X < X0 + w - 4; X += 7) if (rand() < 0.45) { // Fenster
-          px(xk, '#f8b800', X, Y, 2, 4); px(xk, '#fce0a8', X, Y + 1, 1, 2); px(xk, '#a85000', X, Y + 4, 2, 1);
-        }
-      };
-      tower(300, 30, 96, 24); tower(326, 52, 64, 34); tower(372, 28, 104, 20); tower(394, 40, 82, 30); tower(430, 22, 120, 14);
-      px(xk, K, 288, 150, 170, 58); for (let X = 288; X < 458; X += 5) px(xk, K, X, 146, 3, 4); // Ringmauer
-      for (let X = 352; X < 360; X++) for (let Y = 70; Y < 92; Y++) if ((X - 356) ** 2 / 16 + (Y - 82) ** 2 / 144 < 1) px(xk, '#fc3c3c', X, Y); // Fenster des Grafen
-      add('keep', kp, 0.08);
+      L.push({ name: 'moon', custom: (c2, cam, f) => PS2.drawMoon(c2, View.w - 128, 74, 42, f), par: 0, c: C(1, 1) }); // Blutmond wie im Titelbild, groß hinter der Burg
+      L.push({ name: 'castle', custom: drawCastle3D, par: 0.25, c: C(1, 1) });
       L.push({ name: 'clouds', custom: drawCloudStream, par: 0, c: C(1, 1) });
       L.push({ name: 'piers', custom: drawBridgePiers, par: 1, c: C(1, 1) });
     } else if (theme === 'tower') {

@@ -747,8 +747,11 @@ const Castle = (() => {
     draw(ctx) {
       if (S()[this.c.s].rooms[this.c.r].side === 'hotel' && drawHotelChamber(this, ctx)) return; // Hotel: Sternlampe und Aufzug
       const x = Math.round(this.x - W.cam.x), y = Math.round(this.y - W.cam.y), cx = x + 20, bot = y + 52, save = this.c.kind === 'save', t = this.t;
-      const fr = save ? '#5c5468' : '#2c6cb0', dk = save ? '#1c1824' : '#0c1c3c', hi = save ? '#a8a0b8' : '#a8dcfc';
-      arch(ctx, cx, y, 20, bot, dk); arch(ctx, cx, y + 1, 19, bot, fr); arch(ctx, cx, y + 2, 18, bot, hi); arch(ctx, cx, y + 3, 17, bot, fr);
+      const pc = doorBlock(ctx, cx, bot, 4, 4); // Nische in einem Mauerblock aus den Kacheln des Raums (wie die Türen), nicht frei stehend
+      ctx.fillStyle = pc.joint; for (const a of [0.25, 0.7, 1.15, 1.6, 2.05, 2.5, 2.95]) ctx.fillRect(Math.round(cx - Math.cos(a) * 21), Math.round(y + 21 - Math.sin(a) * 21), 1, 2); // Fugen im Bogenring
+      const fr = save ? pc.mid : '#2c6cb0', dk = save ? pc.deep : '#0c1c3c', hi = save ? pc.light : '#a8dcfc';
+      arch(ctx, cx, y - 1, 21, bot, pc.deep); arch(ctx, cx, y, 20, bot, pc.light); arch(ctx, cx, y + 1, 19, bot, pc.mid); // Quaderring in den Steinfarben des Raums
+      arch(ctx, cx, y + 2, 18, bot, dk); arch(ctx, cx, y + 3, 17, bot, fr); if (!save) { arch(ctx, cx, y + 3, 17, bot, hi); arch(ctx, cx, y + 4, 16, bot, fr); } // Warp: blau leuchtender Innenring
       if (save) arch(ctx, cx, y + 4, 16, bot, '#9c7830'); // feine Goldkante
       arch(ctx, cx, y + 5, 15, bot, '#07050c');
       if (save) { // Ruhenische: dunkler Sarg aus poliertem Holz mit Messingbeschlag, zwei Kerzen, warmes Kerzenlicht
