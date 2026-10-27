@@ -138,13 +138,14 @@ const Castle = (() => {
     if (vortex) open(vortex, 0, vortex.h - 2, 1, vortex.h - 1);                    // Seelenstrudel: Schacht links im Boden (hinab zum Siegeltor)
     if (crypt) crypt.lift = { x: 93, y: 10, y1: 0 };                               // Gruft: nach dem Knochenriesen fährt ein Aufzug hinauf
   }
-  // Burghof Rand an Rand (Schloss-Modus): Schacht im Hof hinab ins Kolosseum (x 37), Simse am rechten Torturm hinauf zur Luke
-  // der Torstube (x 27): vom Block (Reihe 9) über die Simse in Reihe 7, 5 und 3 – jeder Satz zwei Reihen, ohne Doppelsprung
+  // Burghof Rand an Rand (Schloss-Modus): Schacht im Hof hinab ins Kolosseum (x 36, unter der Treppe); eine Treppe neben dem
+  // rechten Torturm führt hinauf zum Absatz unter der Luke der Torstube (Reihe 3, x 30–32) – von dort ein einfacher Sprung hinein
   function edgeBurg() {
     const s = sIdx(0), yard = s >= 0 && S()[s].rooms[0];
     if (!yard) return;
-    for (let y = yard.h - 2; y < yard.h; y++) for (let x = 37; x <= 38; x++) yard.grid[y][x] = '.';
-    for (const [x0, x1, y] of [[32, 34, 7], [29, 31, 5], [27, 28, 3]]) for (let x = x0; x <= x1; x++) yard.grid[y][x] = '=';
+    for (let y = yard.h - 2; y < yard.h; y++) for (let x = 36; x <= 37; x++) yard.grid[y][x] = '.';
+    for (let i = 0; i < 8; i++) yard.grid[10 - i][40 - i] = '\\';              // Treppe von (40, 10) hinauf nach links bis (33, 3)
+    for (let x = 30; x <= 32; x++) yard.grid[3][x] = '=';                    // Absatz unter der Luke
   }
   function buildSide() {
     const R = Levels.room;
@@ -513,10 +514,10 @@ const Castle = (() => {
       .music('hotel').label('HOTELAUFZUG').start(12, 49).done();
     add('hotelaufzug', 0, 1, null, hlift);
     LINKS.push(
-      [[0, 0], { e: 'B', x: 37 }, ['side', 'kolosseum'], { e: 'T', x: 36 }, {}],                    // Burghof: Schacht im Hof → Kolosseum (Aufzug zurück)
+      [[0, 0], { e: 'B', x: 36 }, ['side', 'kolosseum'], { e: 'T', x: 36 }, {}],                    // Burghof: Schacht im Hof → Kolosseum (Aufzug zurück)
       [['side', 'kolosseum'], 'right', ['side', 'kasematte'], 'start', {}],                          // Kolosseum → Kasematte (Speichern)
       [['side', 'kasematte'], 'right', [1, 0], 'start', {}],                                         // ... → Katakomben (linker Rand)
-      [[0, 0], { e: 'T', x: 27 }, ['side', 'torstube'], { e: 'B', x: 10 }, {}],                      // Burghof: Simse am Torturm → Luke der Torstube (Warp)
+      [[0, 0], { e: 'T', x: 30, y: 2, door: 'gate' }, ['side', 'torstube'], { e: 'B', x: 10 }, {}],   // Burghof: Treppe am Torturm → Turmtür, Torstube (Warp)
       [['side', 'torstube'], 'start', ['side', 'zwinger'], 'right', {}],                             // Torstube → Zwinger
       [['side', 'zwinger'], { e: 'L', y: 10, door: 'hotel' }, ['side', 'hotelaufzug'], { e: 'R', y: 49, door: 'hotel' }, {}], // Zwinger → Hotelfassade → Aufzug
       [['side', 'hotelaufzug'], { e: 'L', y: 10 }, ['side', 'hotel'], { e: 'R', y: 10 }, {}],        // Aufzug oben → Galerie des Hotels
@@ -711,6 +712,16 @@ const Castle = (() => {
       for (let k = 0; k < 13; k++) { const d = 6 - Math.abs(k - 6); ctx.fillRect(cx - 6 + k + o, y + dir * d + o - (dir < 0 ? 2 : 0), 1, 3); }
     }
   }
+  // Turmtür über der Treppe im Burghof (Schacht oben, door 'gate'): Mauerblock aus den Kacheln des Raums mit dunklem Rundbogen
+  // und Fackelschein, darunter die Steinplatte des Absatzes – vor dem Torturm gezeichnet, der die Kacheln sonst verdeckt
+  function gateHatch(d, ctx, x, y) {
+    const cx = Math.round(x + d.w / 2), bot = y + (d.d.place.y + 1) * T, t = d.t;
+    const pc = doorBlock(ctx, cx, bot, 3, 3);
+    arch(ctx, cx, bot - 42, 13, bot, pc.deep); arch(ctx, cx, bot - 41, 12, bot, pc.light); arch(ctx, cx, bot - 40, 11, bot, '#07050c');
+    ctx.globalAlpha = 0.16 + 0.05 * Math.sin(t * 0.06); arch(ctx, cx, bot - 30, 8, bot, '#c87830'); ctx.globalAlpha = 1; // Fackelschein von drinnen
+    ctx.fillStyle = pc.joint; ctx.fillRect(cx - 26, bot, 52, 6); ctx.fillStyle = pc.mid; ctx.fillRect(cx - 26, bot, 52, 4); // Absatz
+    ctx.fillStyle = pc.light; ctx.fillRect(cx - 26, bot, 52, 1);
+  }
   // Siegelschacht in der Decke: steinerne Wangen, darunter das Siegelgitter mit den fünf Siegeln (besiegte Bosse rot);
   // offen schwingt es zu beiden Seiten auf und violettes Licht fällt herab. x, y: linke obere Ecke der Tür (Bildpunkte)
   function sealHatch(d, ctx, x, y, open) {
@@ -766,6 +777,7 @@ const Castle = (() => {
       if (this.k === 'edgeT' || this.k === 'edgeB') { // Schacht: drei Winkelpfeile wandern zur Öffnung (hinauf bzw. hinab), sobald der Held nah ist
         const dist = Math.abs(p.cx - this.cx), dir = this.k === 'edgeT' ? -1 : 1;
         if (this.seal) sealHatch(this, ctx, x, y, open);
+        else if (this.d.place.door === 'gate') gateHatch(this, ctx, x, y);
         if (!open || dist > 8 * T) return;
         const a = clamp(1.4 - dist / (6 * T), 0.4, 1), ey = this.k === 'edgeT' ? y : y + this.h;
         for (let i = 0; i < 3; i++) {
