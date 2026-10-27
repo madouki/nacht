@@ -1,7 +1,8 @@
 // Schloss-Modus (Standard; ?arcade = lineares Arcade-Spiel – Plan in docs/SOTN-PLAN.md): aus den Kapiteln wird ein zusammenhängendes Schloss im Stil
 // von Symphony of the Night. Die Kapitel sind Regionen, jeder Raum hat Türen in beide Richtungen (zurück durch den linken
-// Rand, in Turmräumen mit ↑ an der Starttür), die Eingangshalle ist der Knoten: Kellertür in die Katakomben, Turmtür auf dem
-// Sims zum Bergfried, Siegeltor auf der Galerie zum Thron. Hinter besiegten Bossen öffnen sich neue Wege; Bosse bleiben
+// Rand, in Turmräumen mit ↑ an der Starttür), die Eingangshalle ist der Knoten: Kellerschacht hinab in die Katakomben (Aufzug
+// zurück), Turmschacht über dem Sims hinauf zum Bergfried, Siegelschacht über der oberen Galerie zum Thron – auf der Karte liegen
+// verbundene Räume Rand an Rand (Seitenausgänge links/rechts, Schächte oben/unten). Hinter besiegten Bossen öffnen sich neue Wege; Bosse bleiben
 // besiegt und geben je ein Siegel. Kein Zeitlimit.
 // Karte: jeder Raum zerfällt in Zellen zu 16×13 Kacheln (etwa ein Bildschirm); betretene Zellen werden aufgedeckt und mit
 // den Siegeln im localStorage gemerkt. Pause → KARTE zeigt das ganze Schloss (Angriff: Zoom, Pfeile: Scrollen).
@@ -665,17 +666,18 @@ const Castle = (() => {
   // offen schwingt es zu beiden Seiten auf und violettes Licht fällt herab. x, y: linke obere Ecke der Tür (Bildpunkte)
   function sealHatch(d, ctx, x, y, open) {
     const cx = Math.round(x + d.w / 2), n = sealRooms().length, h = seals(), t = d.t, gy = y + 24;
-    ctx.fillStyle = '#1c1028'; ctx.fillRect(cx - 21, y, 5, gy - y + 4); ctx.fillRect(cx + 16, y, 5, gy - y + 4); // Wangen
-    ctx.fillStyle = '#6c4c8c'; ctx.fillRect(cx - 17, y, 1, gy - y + 4); ctx.fillRect(cx + 16, y, 1, gy - y + 4);
+    ctx.fillStyle = '#2c1840'; ctx.fillRect(cx - 21, y, 5, gy - y + 4); ctx.fillRect(cx + 16, y, 5, gy - y + 4); // Wangen
+    ctx.fillStyle = '#9c74c8'; ctx.fillRect(cx - 17, y, 1, gy - y + 4); ctx.fillRect(cx + 16, y, 1, gy - y + 4);
     if (open) {
       const a = 0.18 + 0.07 * Math.sin(t * 0.06);
       for (let k = 0; k < 4; k++) { ctx.globalAlpha = a * (4 - k) / 4; ctx.fillStyle = '#9c4cfc'; ctx.fillRect(cx - 15 + k * 2, y, 30 - k * 4, gy - y + 8 + k * 6); }
       ctx.globalAlpha = 1;
       ctx.fillStyle = '#3c3c4c'; ctx.fillRect(cx - 16, gy - 14, 2, 18); ctx.fillRect(cx + 14, gy - 14, 2, 18); // aufgeschwungene Gitterflügel
-    } else {
-      ctx.fillStyle = '#3c3c4c'; for (let i = -14; i < 15; i += 5) ctx.fillRect(cx + i, y, 2, gy - y);
-      ctx.fillRect(cx - 16, gy - 2, 32, 4); ctx.fillRect(cx - 16, y + 8, 32, 2);
-      ctx.fillStyle = '#7c7c8c'; for (let i = -14; i < 15; i += 5) ctx.fillRect(cx + i, gy - 2, 1, 1);
+    } else { // Gitter mit violettem Schimmer der Runen
+      ctx.globalAlpha = 0.25 + 0.12 * Math.sin(t * 0.05); ctx.fillStyle = '#7c3cdc'; ctx.fillRect(cx - 16, y, 32, gy - y); ctx.globalAlpha = 1;
+      ctx.fillStyle = '#5c5c74'; for (let i = -14; i < 15; i += 5) ctx.fillRect(cx + i, y, 2, gy - y);
+      ctx.fillRect(cx - 16, gy - 2, 32, 4); ctx.fillRect(cx - 16, y + 10, 32, 2);
+      ctx.fillStyle = '#b0b0c8'; for (let i = -14; i < 15; i += 5) { ctx.fillRect(cx + i, y, 1, gy - y); ctx.fillRect(cx + i, gy - 2, 1, 1); }
     }
     ctx.fillStyle = '#3c1c64'; ctx.fillRect(cx - n * 3 - 3, gy + 2, n * 6 + 5, 8); // Siegelleiste unter dem Gitter
     ctx.fillStyle = '#b070fc'; ctx.fillRect(cx - n * 3 - 3, gy + 2, n * 6 + 5, 1);
