@@ -138,6 +138,14 @@ const Castle = (() => {
     if (vortex) open(vortex, 0, vortex.h - 2, 1, vortex.h - 1);                    // Seelenstrudel: Schacht links im Boden (hinab zum Siegeltor)
     if (crypt) crypt.lift = { x: 93, y: 10, y1: 0 };                               // Gruft: nach dem Knochenriesen fährt ein Aufzug hinauf
   }
+  // Burghof Rand an Rand (Schloss-Modus): Schacht im Hof hinab ins Kolosseum (x 37), Simse am rechten Torturm hinauf zur Luke
+  // der Torstube (x 27): vom Block (Reihe 9) über die Simse in Reihe 7, 5 und 3 – jeder Satz zwei Reihen, ohne Doppelsprung
+  function edgeBurg() {
+    const s = sIdx(0), yard = s >= 0 && S()[s].rooms[0];
+    if (!yard) return;
+    for (let y = yard.h - 2; y < yard.h; y++) for (let x = 37; x <= 38; x++) yard.grid[y][x] = '.';
+    for (const [x0, x1, y] of [[32, 34, 7], [29, 31, 5], [27, 28, 3]]) for (let x = x0; x <= x1; x++) yard.grid[y][x] = '=';
+  }
   function buildSide() {
     const R = Levels.room;
     const add = (key, id, tier, at, def) => {
@@ -147,9 +155,12 @@ const Castle = (() => {
       S()[s].rooms.push(def); SIDE[key] = { s, r: S()[s].rooms.length - 1 };
     };
     edgeHub();
-    // Kolosseum (unter dem Burghof): Kampfbahn mit Rittern und Skeletten, Zombies und Schädel kommen immer nach – zum Aufleveln
-    add('kolosseum', 0, 2, [1, 1], R(84, 'gallery')
-      .ground(0, 83)
+    edgeBurg();
+    // Kolosseum (unter dem Burghof): Kampfbahn mit Rittern und Skeletten, Zombies und Schädel kommen immer nach – zum Aufleveln.
+    // Hinein fällt man durch den Schacht im Burghof, hinauf fährt ein Aufzug wie im Hypogäum (x 36); ein Loch in der Arena führt
+    // hinab in den Kerker, rechts geht es durch die Kasematte in die Katakomben
+    add('kolosseum', 0, 2, null, R(84, 'gallery')
+      .ground(0, 83).fill(50, 11, 51, 12, '.').elevator(36, 10, 0)
       .fill(10, 8, 14, 8, '=').fill(24, 7, 30, 7, '=').fill(40, 8, 44, 8, '=').fill(54, 7, 60, 7, '=').fill(70, 8, 74, 8, '=')
       .candle(6, 9, 'H').candle(12, 6).candle(27, 5, '$').candle(42, 6, 'H').candle(57, 5).candle(72, 6, 'H')
       .enemy('knight', 20, 10).enemy('skel', 34, 10).enemy('knight', 48, 10).enemy('skel', 62, 10).enemy('knight', 76, 10)
@@ -205,31 +216,33 @@ const Castle = (() => {
       .enemy('raven', 20, 7).enemy('raven', 64, 7).enemy('ghost', 40, 5).enemy('ghost', 84, 5)
       .statue(46, 8)
       .label('HIMMELSBRÜCKE').start(2, 8).done());
-    // Dachboden über der Eingangshalle: nur fliegend erreichbar – Sims unter der Decke zwischen zwei Kronleuchtern (Fledermausgestalt);
-    // er ist zugleich die obere Galerie mit dem Siegelschacht (edgeHub)
+    // Sims unter der Decke der Eingangshalle zwischen zwei Kronleuchtern (nur fliegend erreichbar): die obere Galerie mit dem
+    // Siegelschacht (edgeHub). Der Dachboden liegt links neben der oberen Halle – vom Sims oben links (Doppelsprung) geht es hinein
     const foyer = sIdx(0) >= 0 && S()[sIdx(0)].rooms[1];
     if (foyer) for (let x = 62; x <= 74; x++) foyer.grid[3][x] = '=';
-    add('attic', 0, 3, [2, -1], R(48, 'library')
+    add('attic', 0, 3, null, R(48, 'library')
       .ground(0, 47).fill(9, 8, 14, 8, '=').fill(21, 7, 28, 7, '=').fill(35, 8, 40, 8, '=')
       .candle(4, 9, 'H').candle(12, 6).candle(24, 5, '$').candle(38, 6, 'H').candle(44, 9)
       .enemy('bat', 16, 3).enemy('bat', 32, 3).enemy('ghost', 26, 4).enemy('book', 40, 9)
       .chest(44, 10, 'big').prop('vessel', { x: 24, y: 6 })
       .label('DACHBODEN').start(2, 10).done());
-    LINKS.push([[0, 1], { x: 67, y: 2, door: 'side' }, ['side', 'attic'], 'start', {}]); // Eingangshalle, Sims unter der Decke → Dachboden
+    LINKS.push([[0, 1], { e: 'L', y: 2 }, ['side', 'attic'], { e: 'R', y: 10 }, {}]); // Eingangshalle, Sims oben links → Dachboden
     // Kerker unter dem Kolosseum: früh betretbar, aber ein Gitter (bis zur Decke vermauert) trennt die Zelle des Gefangenen ab –
-    // erst die Nebelgestalt schwebt hindurch (wie in SotN: das Ziel sieht man lange, bevor man es erreicht)
+    // erst die Nebelgestalt schwebt hindurch (wie in SotN: das Ziel sieht man lange, bevor man es erreicht). Man fällt durch das Loch
+    // in der Arena herein, der Aufzug (x 17) fährt wieder hinauf
     const kerker = R(56, 'crypt')
-      .ground(0, 55).fill(34, 0, 34, 6, '#').fill(8, 8, 12, 8, '=').fill(20, 7, 26, 7, '=').fill(44, 8, 48, 8, '=')
+      .ground(0, 55).fill(34, 0, 34, 6, '#').fill(8, 8, 12, 8, '=').fill(20, 7, 26, 7, '=').fill(44, 8, 48, 8, '=').elevator(17, 10, 0)
       .candle(5, 9, 'H').candle(10, 6).candle(23, 5, '$').candle(30, 9).candle(40, 9).candle(52, 9, 'H')
       .enemy('skel', 16, 10).enemy('ghost', 24, 4).enemy('skel', 28, 10).enemy('bat', 12, 3)
       .prop('vessel', { x: 50, y: 9 }).chest(53, 10, 'big')
       .label('KERKER').start(2, 10).done();
     kerker.grates = [{ x: 34, y0: 7, y1: 10 }];
-    add('kerker', 0, 2, [2, 2], kerker);
-    LINKS.push([['side', 'kolosseum'], { x: 50, y: 10, door: 'side' }, ['side', 'kerker'], 'start', {}]); // Kolosseum → Kerker
+    add('kerker', 0, 2, null, kerker);
+    LINKS.push([['side', 'kolosseum'], { e: 'B', x: 50 }, ['side', 'kerker'], { e: 'T', x: 17 }, {}]); // Kolosseum: Loch in der Arena → Kerker
     // Hotel Krat (Hommage an „Lies of P“): Lobby über dem Burghof – ein sicherer Ort mit Sternlampe (Speichern), Aufzug (Warp),
     // Grammophon (Schallplatten), dem Portier (eine Puppe, die nicht lügen kann) und seinem Laden. Unter der Galerie hinter einer
-    // Haustierklappe der Gepäckraum: nur die Wolfsgestalt kommt hinein. Links geht es in den Bahnhof. Möbel und Tresen sind
+    // Haustierklappe der Gepäckraum: nur die Wolfsgestalt kommt hinein. Links geht es in den Bahnhof, rechts von der Galerie in den
+    // Hotelaufzug (hinab zum Zwinger über dem Burgtor, hinüber nach Zimmer 13). Möbel und Tresen sind
     // Blender-Modelle (img/krat3d.png); decor: [Bild, Anker x, Anker y (px), gespiegelt, unten abschneiden bei y]
     const D = (k, tx, row, flip) => [k, Math.round(tx * T + 8), (row + 1) * T, !!flip];
     const hotel = R(64, 'hotel', 20)
@@ -241,7 +254,7 @@ const Castle = (() => {
       .music('hotel').label('HOTEL KRAT').start(2, 17).done();
     hotel.grates = [{ x: 56, y0: 17, y1: 17, pet: true }];
     hotel.decor = [D('keys', 24, 14.6), D('chair', 6.6, 17), D('chair', 11.4, 17, true), D('cart', 17.5, 17), D('chair', 48, 17), D('cart', 52.5, 17, true)];
-    add('hotel', 0, 1, [-2, -4], hotel);
+    add('hotel', 0, 1, null, hotel);
     // Bahnhof Krat: Bahnsteighalle mit Glasdach. Die Dampflok „KRAT“ steht mit zwei Wagen unter Dampf, davor Bahnsteigdächer,
     // Bänke und Gaslaternen, oben eine Fußgängerbrücke und die Abfahrtstafel. Hier sind die Puppen los: Gepäckträger ohne Fäden.
     const station = R(112, 'station', 20)
@@ -249,6 +262,7 @@ const Castle = (() => {
       .stair(36, 17, 7, 1).fill(43, 11, 69, 11, '=').stair(76, 17, 7, -1)   // Fußgängerbrücke über die Halle
       .fill(0, 9, 7, 9, '=')                                                  // Sims am Stellwerk
       .fill(70, 4, 84, 4, '=').chest(84, 3)                                   // Signalbrücke unter dem Dach (nur mit Supersprung)
+      .elevator(9, 17, 0)                                                     // Lastenaufzug hinauf in den Lokschuppen (Schacht oben)
       .candle(4, 15, 'H').candle(28, 15).candle(46, 8, '$').candle(56, 8, 'H').candle(66, 8).candle(88, 15, 'W').candle(104, 15)
       .enemy('raven', 30, 5).enemy('raven', 84, 4)
       .chest(2, 8, 'big').prop('vessel', { x: 56, y: 10 })
@@ -262,25 +276,25 @@ const Castle = (() => {
       ...[160, 352, 1408, 1632].map((x, i) => ['bench', x, plat, i % 2 === 1]), ...[96, 480, 1296, 1696].map(x => ['lamppost', x, plat, false]),
       ['board', 56 * T + 8, 40],
     ];
-    add('bahnhof', 0, 2, [-9, -4], station);
-    // Lokschuppen (über dem Bahnhof, Tür am linken Bahnsteig): Arena des Zugführers, einer riesigen Schaffnerpuppe. Danach liegen
-    // die Dampfstiefel (Supersprung) im Schuppen, und gleich daneben ein Kransims, das man nur mit ihnen erreicht.
+    add('bahnhof', 0, 2, null, station);
+    // Lokschuppen (über dem Bahnhof, Lastenaufzug vom linken Bahnsteig, Luke links im Boden): Arena des Zugführers, einer riesigen
+    // Schaffnerpuppe. Danach liegen die Dampfstiefel (Supersprung) im Schuppen, und gleich daneben ein Kransims, das man nur mit ihnen erreicht.
     const shed = R(40, 'station', 20)
-      .ground(0, 39, 18)
+      .ground(0, 39, 18).fill(1, 18, 2, 19, '.')                 // Luke des Lastenaufzugs
       .fill(5, 10, 10, 10, '=')                                   // Sims über dem Wasserkran (nur mit Supersprung)
       .candle(3, 14, 'H').candle(16, 14).candle(30, 13, '$').candle(37, 14, 'H')
       .prop('vessel', { x: 7, y: 9 })
       .mini('conductor', 18, 38, 20, 0)
-      .music('stage1').label('LOKSCHUPPEN').start(2, 17).done();
+      .music('stage1').label('LOKSCHUPPEN').start(4, 17).done();
     shed.decor = [['loco', 150, 18 * T + 10, false, 18 * T], ['crane', 6 * T, 18 * T, false], ...[2 * T, 17 * T, 26 * T, 36 * T].map(x => ['lamppost', x, 18 * T, false])];
-    add('schuppen', 0, 3, [-9, -6], shed);
+    add('schuppen', 0, 3, null, shed);
     // Zimmer 13 (Hotel Krat, Galerie): seit 1391 abgeschlossen – der Schlüsselbund des Gefangenen passt nirgends, nur hier
     const room13 = R(28, 'hotel', 13)
       .ground(0, 27)
       .candle(6, 7, 'H').candle(24, 7)
       .music('hotel').label('ZIMMER 13').start(2, 10).done();
     room13.decor = [D('bed', 15.5, 10), D('chair', 10, 10), D('cart', 25, 10, true)];
-    add('zimmer13', 0, 1, [0, -5], room13);
+    add('zimmer13', 0, 1, null, room13);
     // Spiegelkabinett (unter der Marmorgalerie, Tür x 34): Galerie der Spiegel wie in Versailles. Aus der Spiegelwand rechts tritt
     // der Doppelgänger. Danach liegt sein Schatten als Begleiterkarte im Saal; hinten eine brüchige Wand mit Mauerbraten.
     const mirrors = R(40, 'mirror')
@@ -449,17 +463,13 @@ const Castle = (() => {
       [['side', 'spiegelschacht'], { x: 13, y: 2, door: 'side' }, [2, -1], { x: 34, y: 6, door: 'side' }, {}], // Schacht oben → Empore der Galerie
     );
     LINKS.push(
-      [['side', 'bahnhof'], { x: 14, y: 17, door: 'side' }, ['side', 'schuppen'], 'start', {}],                                 // Bahnsteig → Lokschuppen
-      [['side', 'hotel'], { x: 46, y: 10, door: 'room13' }, ['side', 'zimmer13'], { x: 3, y: 10, door: 'room13' }, { item: 'keyring' }], // Galerie → Zimmer 13
+      [['side', 'bahnhof'], { e: 'T', x: 9 }, ['side', 'schuppen'], { e: 'B', x: 1 }, {}],                                     // Bahnsteig: Lastenaufzug → Lokschuppen
     );
     LINKS.push(
-      [[0, 0], { x: 50, y: 10, door: 'hotel' }, ['side', 'hotel'], { x: 3, y: 17, door: 'hotel' }, {}], // Burghof → Hotel Krat
       [['side', 'bahnhof'], 'right', ['side', 'hotel'], 'start', {}],                                  // Bahnhof ↔ Hotel-Lobby
     );
     LINKS.push( // Schleifen: das Schloss als 2D-Open-World, Regionen über Nebenwege verzahnt
-      [['side', 'kolosseum'], 'right', [1, 1], { x: 4, y: 27, door: 'side' }, {}],              // Kolosseum → Geheimgang → Brunnenschacht
-      [[2, 0], { x: 40, y: 10, door: 'side' }, ['side', 'wehrgang'], 'start', {}],              // Bergfried → Wehrgang
-      [['side', 'wehrgang'], 'right', [0, 2], { x: 8, y: 15, door: 'side' }, {}],                // Wehrgang → Glockenturm
+      [[2, 0], 'start', ['side', 'wehrgang'], 'right', {}],                                       // Bergfried (linker Rand) ↔ Wehrgang
       // Himmelsbrücke: Kathedralendach hinter dem Wächter ↔ Kuppel hinter der Menschenfalle; in eine Arena mit lebendem Boss führt
       // sie nicht (beat: dieser Boss muss besiegt sein, sonst „von der anderen Seite verriegelt“; back: Bedingung der Rückrichtung)
       [['sun', -1], 'right', ['side', 'himmel'], 'start', { boss: true, back: { beat: ['sun', -1] } }],
@@ -468,11 +478,50 @@ const Castle = (() => {
     const dome = sIdx('expo') >= 0 && S()[sIdx('expo')].rooms[mainCount(sIdx('expo')) - 1];
     if (dome) for (let x = 0; x <= 3; x++) dome.grid[7][x] = '='; // Kuppel: Sims am linken Rand, dort kommt die Himmelsbrücke an
     LINKS.push( // crack: Tür mit rissigem Gestein verschlossen – erst der Steinbrecher (Medusas Relikt) zerschlägt es
-      [[0, 0], { x: 37, y: 10, door: 'side' }, ['side', 'kolosseum'], 'start', {}],                  // Burghof → Kolosseum
       [[1, 4], { x: 5, y: 10, door: 'side' }, ['side', 'kanal'], 'start', { crack: 'kanal' }],       // Gruft → Kanal
       [['side', 'kanal'], 'right', ['expo', 0], { x: 14, y: 27, door: 'side' }, {}],                  // Kanal → Palmenhaus (Schleife, von dort offen)
       [[2, 1], { x: 1, y: 17, door: 'side' }, ['side', 'schatz'], 'start', { crack: 'schatz' }],     // Bibliothek → Schatzkammer
       [[3, 1], { x: 4, y: 41, door: 'side' }, ['side', 'verlies'], 'start', { crack: 'verlies' }],   // Glasturm → Verlies
+    );
+    // ---- Burghof und Stadt Rand an Rand: Kasematte, Torstube, Zwinger, Hotelaufzug (Plätze auf der Karte von selbst) ----
+    // Kasematte zwischen Kolosseum und Katakomben: ruhige Speicherkammer mit Sarg und Kerzen (die der Eingangshalle ist hierher gezogen)
+    add('kasematte', 0, 1, null, R(16, 'crypt')
+      .ground(0, 15).fill(0, 0, 15, 2, '#')
+      .candle(2, 9).candle(13, 9)
+      .music('stage1').label('KASEMATTE').start(2, 10).done());
+    // Torstube im rechten Torturm über dem Burgtor: Warpkammer; die Luke im Boden führt hinab auf den Absatz im Burghof, links der Zwinger
+    add('torstube', 0, 1, null, R(16, 'hall')
+      .ground(0, 15).fill(10, 11, 11, 12, '.').fill(15, 0, 15, 10, '#').fill(0, 0, 14, 1, '#')
+      .candle(2, 9).candle(13, 9)
+      .music('stage1').label('TORSTUBE').start(2, 10).done());
+    // Zwinger: Gang zwischen den Ringmauern unter dem Wehrgang, vom Torturm nach links bis zur Fassade des Hotels Krat (Hotelaufzug)
+    add('zwinger', 0, 2, null, R(64, 'courtyard')
+      .ground(0, 63)
+      .fill(14, 8, 18, 8, '=').fill(30, 7, 34, 7, '=').fill(46, 8, 50, 8, '=')
+      .candle(6, 9, 'H').candle(16, 6).candle(25, 9).candle(32, 5, '$').candle(40, 9).candle(48, 6, 'H').candle(57, 9)
+      .enemy('raven', 22, 6).enemy('skel', 28, 10).enemy('raven', 42, 5).enemy('skel', 52, 10)
+      .zone('ghoul', 10, 54, { interval: 170, max: 2 })
+      .music('stage1').label('ZWINGER').start(2, 10).done());
+    // Hotelaufzug: Schacht des Hotels Krat mit Kabine (lift.js, ↑/↓). Oben links die Galerie, gegenüber Zimmer 13 (Schlüsselbund),
+    // in der Mitte rechts der Wehrgang, unten rechts der Zwinger – ein senkrechter Schacht, der die Räume an ihren Haltestellen berührt
+    const hlift = R(16, 'hotel', 52)
+      .fill(0, 0, 15, 4, '#')                                        // Decke über der obersten Haltestelle
+      .fill(0, 11, 5, 51, '#')                                       // links: Mauer unter dem Absatz zur Galerie
+      .fill(9, 11, 15, 33, '#').fill(9, 37, 15, 46, '#').ground(0, 15, 50) // rechts: Absätze zu Zimmer 13, zum Wehrgang, zum Zwinger
+      .lift(6, [10, 36, 49], { id: 'hotel' })
+      .candle(2, 8).candle(13, 8).candle(13, 34).candle(13, 47)
+      .music('hotel').label('HOTELAUFZUG').start(12, 49).done();
+    add('hotelaufzug', 0, 1, null, hlift);
+    LINKS.push(
+      [[0, 0], { e: 'B', x: 37 }, ['side', 'kolosseum'], { e: 'T', x: 36 }, {}],                    // Burghof: Schacht im Hof → Kolosseum (Aufzug zurück)
+      [['side', 'kolosseum'], 'right', ['side', 'kasematte'], 'start', {}],                          // Kolosseum → Kasematte (Speichern)
+      [['side', 'kasematte'], 'right', [1, 0], 'start', {}],                                         // ... → Katakomben (linker Rand)
+      [[0, 0], { e: 'T', x: 27 }, ['side', 'torstube'], { e: 'B', x: 10 }, {}],                      // Burghof: Simse am Torturm → Luke der Torstube (Warp)
+      [['side', 'torstube'], 'start', ['side', 'zwinger'], 'right', {}],                             // Torstube → Zwinger
+      [['side', 'zwinger'], { e: 'L', y: 10, door: 'hotel' }, ['side', 'hotelaufzug'], { e: 'R', y: 49, door: 'hotel' }, {}], // Zwinger → Hotelfassade → Aufzug
+      [['side', 'hotelaufzug'], { e: 'L', y: 10 }, ['side', 'hotel'], { e: 'R', y: 10 }, {}],        // Aufzug oben → Galerie des Hotels
+      [['side', 'hotelaufzug'], { e: 'R', y: 10, door: 'room13' }, ['side', 'zimmer13'], { e: 'L', y: 10, door: 'room13' }, { item: 'keyring' }], // ... → Zimmer 13
+      [['side', 'wehrgang'], 'start', ['side', 'hotelaufzug'], { e: 'R', y: 36 }, {}],               // Wehrgang (linker Rand) → Aufzug
     );
   }
   if (on && Levels.room) buildSide();
@@ -728,6 +777,12 @@ const Castle = (() => {
         return;
       }
       if (this.k !== 'up') { // Seitenausgang: Lichtschein am Rand und drei Winkelpfeile, die hinauslaufen (hinter dem Boss erst nach dem Sieg)
+        const door = this.d.place && this.d.place.door;
+        if (door === 'hotel' || door === 'room13') { // Hoteltür / Zimmer 13 am Rand: dieselbe Tür, ein Stück vom Rand abgerückt, ohne ↑
+          const o = Object.create(this), out = door === 'hotel' && W.room.theme !== 'hotel';
+          o.x = this.x + (this.k === 'edgeL' ? 1 : -1) * (out ? 30 : 8);
+          if (door === 'hotel') drawHotelDoor(o, ctx, true); else drawRoomDoor(o, ctx, true);
+        }
         const dist = Math.abs(p.cx - this.cx);
         if (!open || dist > 12 * T || Math.abs(p.feet - (this.y + this.h)) > 4 * T) return;
         const dir = this.k === 'edgeL' ? -1 : 1, ex = this.k === 'edgeL' ? x : x + this.w, a = clamp(1.5 - dist / (8 * T), 0.45, 1);
@@ -792,7 +847,7 @@ const Castle = (() => {
   // Passt ein Platz nach einem Umbau nicht mehr, sucht findSpot die nächste freie Bodenstelle rechts vom Start.
   const CHAMBERS = [
     [['arrival', -1], 'save', 7, 10],                              // Wald: gleich nach der Landung
-    [[0, 1], 'save', 63, 17], [[0, 1], 'warp', 67, 17],            // Eingangshalle: unter dem rechten Sims
+    [['side', 'kasematte'], 'save', 7, 10, '0:1:save'], [['side', 'torstube'], 'warp', 5, 10, '0:1:warp'], // Eingangshalle → eigene Räume: Kasematte, Torstube
     [[1, 0], 'save', 8, 10], [[1, 0], 'warp', 15, 10],             // Katakomben: Ufer des Höhlensees
     [[2, 0], 'save', 6, 10], [[2, 0], 'warp', 10, 10],             // Bergfried: vor der Stachelgrube
     [['sun', 0], 'save', 6, 15], [['sun', 0], 'warp', 11, 15],     // Sonnenkathedrale: Vorplatz
@@ -1229,7 +1284,7 @@ const Castle = (() => {
     if (r === -1 || p.superT <= 0) { p.superT = 0; p.vy = r === -1 ? 0.5 : -2.4; }
     p.onGround = false; p.state = 'normal'; p.clampRoom(); p.walkT++;
   }
-  function drawRoomDoor(d, ctx) { // Zimmertür 13: Mahagoni mit Füllungen, Messingschild, Schild „Bitte nicht stören“ am Knauf
+  function drawRoomDoor(d, ctx, edge) { // Zimmertür 13: Mahagoni mit Füllungen, Messingschild, Schild „Bitte nicht stören“ am Knauf (edge: Randausgang, ohne ↑)
     const x = Math.round(d.x - W.cam.x), y = Math.round(d.y - W.cam.y), cx = x + 16, bot = y + d.h, open = gateOpen(d.d), t = d.t;
     doorBlock(ctx, cx, bot, 3, 4);
     ctx.fillStyle = '#2c1206'; ctx.fillRect(cx - 13, y + 2, 26, bot - y - 2); ctx.fillStyle = '#c89020'; ctx.fillRect(cx - 13, y + 2, 26, 1);
@@ -1240,7 +1295,7 @@ const Castle = (() => {
     ctx.fillStyle = '#f8b800'; ctx.fillRect(cx + 7, y + 25, 2, 2); // Knauf
     ctx.fillStyle = '#a81c28'; ctx.fillRect(cx + 6 + ((t >> 6) & 1 ? 1 : 0), y + 27, 5, 7); ctx.fillStyle = '#fce0a8'; ctx.fillRect(cx + 7 + ((t >> 6) & 1 ? 1 : 0), y + 29, 3, 1); ctx.fillRect(cx + 7 + ((t >> 6) & 1 ? 1 : 0), y + 31, 3, 1);
     const p = W.player;
-    if (Math.abs(p.cx - d.cx) < 14 && Math.abs(p.feet - (d.y + d.h)) < 8) Font.draw(ctx, '↑', cx - 2, y - 12 + Math.round(Math.sin(t * 0.12) * 2), open ? '#fcfcfc' : '#8c8c9c', { shadow: '#000' });
+    if (!edge && Math.abs(p.cx - d.cx) < 14 && Math.abs(p.feet - (d.y + d.h)) < 8) Font.draw(ctx, '↑', cx - 2, y - 12 + Math.round(Math.sin(t * 0.12) * 2), open ? '#fcfcfc' : '#8c8c9c', { shadow: '#000' });
   }
   // ---------------- Spiegelkabinett: der Doppelgänger und der Schattenzwilling ----------------
   // Schattenbild eines Heldenbilds: dunkelviolett eingefärbt, die Zeichnung schimmert durch (je Bild und Richtung einmal erzeugt)
@@ -2867,7 +2922,7 @@ const Castle = (() => {
     ctx.fillStyle = 'rgba(0,0,0,0.22)'; ctx.fillRect(px0, bot - ph * 16, pw * 16, ph * 16);
     return pc;
   }
-  function drawHotelDoor(d, ctx) {
+  function drawHotelDoor(d, ctx, edge) { // edge: Randausgang (ohne ↑)
     const x = Math.round(d.x - W.cam.x), y = Math.round(d.y - W.cam.y), cx = x + 16, bot = y + d.h, t = d.t, outside = W.room.theme !== 'hotel';
     doorBlock(ctx, cx, bot, outside ? 5 : 3, outside ? 5 : 4); // im Burghof eine Hotelfassade, in der Lobby ein Mauerblock
     if (outside) { // Fassade: zwei warm erleuchtete Fenster mit Vorhängen, Vordach mit Laternen
@@ -2897,7 +2952,7 @@ const Castle = (() => {
       Font.draw(ctx, s, cx, y - 10, (t >> 5) % 8 ? '#fce0a8' : '#f8b800', { align: 'center' });
     }
     const p = W.player;
-    if (Math.abs(p.cx - d.cx) < 14 && Math.abs(p.feet - (d.y + d.h)) < 8) Font.draw(ctx, '↑', cx - 2, y - (outside ? 24 : 12) + Math.round(Math.sin(t * 0.12) * 2), '#fcfcfc', { shadow: '#000' });
+    if (!edge && Math.abs(p.cx - d.cx) < 14 && Math.abs(p.feet - (d.y + d.h)) < 8) Font.draw(ctx, '↑', cx - 2, y - (outside ? 24 : 12) + Math.round(Math.sin(t * 0.12) * 2), '#fcfcfc', { shadow: '#000' });
   }
   class CastleNPC extends Ent {
     constructor(b) { super(b.at[1] * T, (b.at[2] + 1) * T - 30, 16, 30); this.kind = 'prop'; this.b = b; this.face = -1; this.go = 0; this.walk = 0; }
