@@ -4,7 +4,7 @@
 // Gewitter über dem ganzen Schloss: [Dunkelheit zwischen den Blitzen, Restdunkel im Blitz] (Hof und Schiff: Freiluft, ohne Abdunklung)
 // Licht fürs 3D-Tor: warm von vorn links (Fackeln), dazu kühles Umgebungslicht
 const DOOR_ENV = (() => { const v = [-0.35, 0.55, -0.75], l = Math.hypot(...v); return { static: true, sun: v.map(c => c / l), sunC: [0.85, 0.66, 0.46], amb: [0.36, 0.34, 0.44], sky: [0.16, 0.14, 0.22], fog: [0, 0, 0], fogD: 0 }; })();
-const STORMY = { courtyard: null, ship: null, bridge: null, glass: [0.44, 0.12], foyer: [0.88, 0.02], library: [0.52, 0.08], hall: [0.5, 0.1], tower: [0.5, 0.1], throne: [0.46, 0.1] };
+const STORMY = { courtyard: null, ship: null, bridge: null, glass: [0.44, 0.12], foyer: [0.88, 0.02], library: [0.52, 0.08], hall: [0.5, 0.1], tower: [0.5, 0.1], throne: [0.46, 0.1], lab: [0.5, 0.06] };
 // Fenster in der Wandebene (x, Oberkante, Breite, Höhe): werfen im Blitz Lichtbahnen in den Raum
 const STORM_WINS = { foyer: [[44, 20, 56, 216], [300, 20, 56, 216]], library: [[296, 24, 48, 98]], hall: [[64, 40, 32, 88], [320, 40, 32, 88]], throne: [[59, 24, 32, 108], [315, 24, 32, 108]] };
 const W = {
@@ -34,7 +34,7 @@ const W = {
     this.sway = { a: 0, v: 0 }; this.zoomFx = null; this.bellCd = 200; this.tubeRot = 0; this.tubeRotS = 0;
     this.sail = def.dock || def.atSea ? 1 : 0; this.roll = 0; this.rollAmp = 0; this.heave = 0; this.docked = 0; this.dockT = 0; this.rogue = null; this.kraken = null; this.gust = 0;
     this.spawners = def.zones.map(z => new Spawner(z));
-    const torch = def.theme === 'expo' ? 'gas' : def.theme === 'courtyard' || def.theme === 'forest';
+    const torch = def.theme === 'expo' || def.theme === 'lab' ? 'gas' : def.theme === 'courtyard' || def.theme === 'forest';
     def.ents.forEach(d => {
       switch (d.type) {
         case 'candle': this.spawn(new Candle(d.x, d.y, d.drop, torch)); break;
@@ -76,6 +76,7 @@ const W = {
         case 'iceskel': this.spawn(new IceSkeleton(d.x, d.y)); break;
         case 'icewall': this.spawn(new IceWall(d)); break;
         case 'curtain': this.spawn(new TheaterCurtain(d)); break;
+        case 'lab': this.spawn(Lab.mk(d)); break; // Galvani-Laboratorium: Lichtbögen, Stromplatten, Schalter, Tisch (js/lab.js)
         case 'witchgate': this.spawn(new WitchGate(d)); break;
         case 'armor': this.spawn(new ArmorSuit(d)); break;
         case 'pillar': this.spawn(new Pillar(d.x, d.y)); break;

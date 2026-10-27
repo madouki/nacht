@@ -191,6 +191,7 @@ const Audio8 = (() => {
     slime: () => { noise(0.4, 0.18, 'lowpass', 600, 150); tone('sine', 140, 60, 0.4, 0.12); }, // Schleimkokon gluckert
     splat: () => { noise(0.3, 0.35, 'bandpass', 900, 200); tone('sine', 220, 50, 0.25, 0.18); }, // Kokon platzt
     tink: () => { tone('square', 2600, 2100, 0.05, 0.07); tone('pulse', 3400, 3000, 0.07, 0.05, 0.125); noise(0.05, 0.12, 'highpass', 6000); }, // abgeprallt
+    zap: () => { noise(0.18, 0.3, 'highpass', 4200, 1800); tone('sawtooth', 120, 90, 0.16, 0.08); tone('square', 2400, 600, 0.06, 0.05); }, // Lichtbogen knistert
     stepWet: () => { noise(0.07, 0.06, 'bandpass', 2600, 900); noise(0.04, 0.05, 'lowpass', 900, 250); },
   };
   // x (optional): Weltposition der Quelle → Stereo-Position relativ zur Bildmitte
@@ -777,7 +778,7 @@ const Audio8 = (() => {
       hp.disconnect(); lp.type = 'lowpass'; lp.frequency.value = 4200; hp.connect(lp); lp.connect(out);
       const bp = ambNoise(nodes, out, 'bandpass', 480, 6); ambLfo(nodes, bp.frequency, 0.06, 220);
       ambLfo(nodes, out.gain, 0.1, 0.01); level = 0.028;
-    } else if (theme === 'library' || theme === 'hotel' || theme === 'station' || theme === 'theater') { // Bibliothek, Hotel-Lobby, Bahnhofshalle: gedämpfter Regen an den hohen Fenstern, tiefer Raumklang
+    } else if (theme === 'library' || theme === 'hotel' || theme === 'station' || theme === 'theater' || theme === 'lab') { // Bibliothek, Hotel-Lobby, Bahnhofshalle: gedämpfter Regen an den hohen Fenstern, tiefer Raumklang
       const hp = ambNoise(nodes, out, 'highpass', 1200), lp = ac.createBiquadFilter();
       hp.disconnect(); lp.type = 'lowpass'; lp.frequency.value = 3000; hp.connect(lp); lp.connect(out);
       ambDrone(nodes, out, 'sine', 65.4, 0.25);

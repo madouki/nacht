@@ -446,6 +446,37 @@ const Castle = (() => {
       [[2, 1], { x: 1, y: 17, door: 'side' }, ['side', 'schatz'], 'start', { crack: 'schatz' }],     // Bibliothek → Schatzkammer
       [[3, 1], { x: 4, y: 41, door: 'side' }, ['side', 'verlies'], 'start', { crack: 'verlies' }],   // Glasturm → Verlies
     );
+    // Galvani-Laboratorium (Kellertür in der Maschinenhalle, x 70): galvanische Versuchshalle unter einem Glasdach im Gewitter
+    // (js/lab.js) – Glastank mit einer schwebenden Gestalt, Teslaspulen, Blitzableiter. Unten ein Gang mit Stromplatten und
+    // Lichtbögen (Messerschalter legt ihn still), oben über eine Eisentreppe ein Laufgang mit Truhe und Lebensgefäß; ganz hinten
+    // der Operationstisch: der Blitz erweckt den Erweckten (Zwischengegner), danach liegt sein Glasherz auf dem Tisch.
+    const lab = R(112, 'lab', 28)
+      .ground(0, 111)                                                           // Hallenboden (Oberkante Reihe 26)
+      .stair(7, 25, 13, 1).fill(20, 13, 86, 13, '=')                            // Eisentreppe hinauf zum Laufgang
+      .fill(77, 9, 81, 9, '=')                                                  // Rohrsims mit dem Lebensgefäß (Doppelsprung)
+      .candle(4, 25, 'H').candle(21, 25).candle(35, 25, '$').candle(64, 25, 'H').candle(76, 25)
+      .candle(23, 12, 'H').candle(38, 12).candle(51, 12, 'W').candle(73, 12).candle(84, 12, 'H').candle(81, 8, '$')
+      .prop('lab', { k: 'ctl' })
+      .prop('lab', { k: 'arc', x0: 25, x1: 30, y: 25, per: 150, ph: 0 })                       // unten: erstes Spulenpaar
+      .prop('lab', { k: 'lever', x: 33, y: 25, g: 'a' })                                       // Messerschalter für den Gang
+      .prop('lab', { k: 'plate', x0: 38, x1: 44, y: 26, per: 150, ph: 0, g: 'a' })
+      .prop('lab', { k: 'plate', x0: 46, x1: 52, y: 26, per: 150, ph: 100, g: 'a' })
+      .prop('lab', { k: 'plate', x0: 54, x1: 60, y: 26, per: 150, ph: 50, g: 'a' })
+      .prop('lab', { k: 'arc', x0: 66, x1: 71, y: 25, per: 130, ph: 60, g: 'a' })
+      .prop('lab', { k: 'arc', x0: 27, x1: 32, y: 12, per: 140, ph: 30 })                      // oben: Laufgang
+      .prop('lab', { k: 'plate', x0: 36, x1: 44, y: 13, per: 120, ph: 0, g: 'b' })
+      .prop('lab', { k: 'lever', x: 47, y: 12, g: 'b', dur: 360 })
+      .prop('lab', { k: 'arc', x0: 55, x1: 60, y: 12, per: 120, ph: 80, g: 'b' })
+      .prop('lab', { k: 'plate', x0: 63, x1: 70, y: 13, per: 120, ph: 60, g: 'b' })
+      .prop('lab', { k: 'table', x: 97.5, y: 25 })
+      .enemy('ghost', 44, 19).enemy('ghost', 70, 5).enemy('bat', 30, 4).enemy('bat', 58, 18)
+      .chest(52, 12, 'big').prop('vessel', { x: 79, y: 8 })
+      .statue(80, 25)
+      .mini('awakened', 84, 111, 88, 20)
+      .music('chapel').label('GALVANI-LABORATORIUM').start(2, 25).done();
+    lab.puppets = [[49, 25], [61, 25], [42, 12]];
+    add('galvani', 'expo', 5, [27, 0], lab);
+    LINKS.push([['expo', 1], { x: 70, y: 15, door: 'cellar' }, ['side', 'galvani'], 'start', {}]); // Maschinenhalle → Galvani-Laboratorium
   }
   if (on && Levels.room) buildSide();
   // Gefahrenstufe je Region: tiefer im Schloss mehr Lebensenergie, Schaden und EXP der Gegner
@@ -1577,6 +1608,7 @@ const Castle = (() => {
     fairy: { slot: 'fam', fam: 'fairy', price: 7000, col: '#58f898' },  // Fee im Glas (Laden des Bibliothekars)
     tentling: { slot: 'fam', fam: 'tent', col: '#d880fc' },            // Neffe des Tentakels (Kolosseum, nach der Rabenfeder)
     shadowcard: { slot: 'fam', fam: 'shadow', col: '#8c5cc8' },        // Schatten des Doppelgängers: wiederholt jeden Hieb
+    galvheart: { slot: 'acc', hp: 6, atk: 3, col: '#58f8b0' },          // Glasherz des Erweckten (Galvani-Laboratorium)
     book_spirit: { spell: 'spirit', price: 2500, col: '#a4e4fc' },      // Zauberbücher (Laden): lehren je einen Zauber
     book_hellfire: { spell: 'hellfire', price: 6000, col: '#fc7c1c' },
     book_soulsteal: { spell: 'soulsteal', price: 12000, col: '#d880fc' },
@@ -1603,7 +1635,7 @@ const Castle = (() => {
   const STOCK = ['potion', 'elixir', 'leather', 'chain', 'silver', 'heartamulet', 'fairy', 'map', 'book_spirit', 'book_hellfire', 'book_soulsteal'];
   const once = (g) => !!(g.slot || g.key || g.spell || g.rec || g.quest); // gibt es nur einmal
   const BOSS_LOOT = [[[0, -1], 'batcard']];
-  const MINI_LOOT = [[['side', 'spiegel'], 'shadowcard', 20, 10]]; // nach dem Doppelgänger: sein Schatten als Begleiter
+  const MINI_LOOT = [[['side', 'spiegel'], 'shadowcard', 20, 10], [['side', 'galvani'], 'galvheart', 97, 25]]; // nach dem Doppelgänger: sein Schatten als Begleiter; nach dem Erweckten: sein Glasherz
   const FINDS = [ // Einzelstücke: [Raum, Gegenstand, Kachel-x, Standreihe]
     [['side', 'kolosseum'], 'leather', 12, 7], [['side', 'kanal'], 'bloodstone', 43, 7], [['side', 'schatz'], 'greedring', 25, 6],
     [['side', 'verlies'], 'dragonfang', 28, 6], [['side', 'wehrgang'], 'luckcoin', 37, 6], [['side', 'himmel'], 'mirror', 44, 5],
@@ -2332,9 +2364,9 @@ const Castle = (() => {
 
   // ---------------- Bestiarium wie die Gegnerliste in SotN (Status, dritte Seite): Siege je Gegnerart, absurde Einträge ----------------
   const BEASTS = ['Bat', 'Skeleton', 'Ghoul', 'Raven', 'Knight', 'LivingArmor', 'Panther', 'Skull', 'Fishman', 'Ghost', 'Snake', 'FlyBook', 'Tome',
-    'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Jelly', 'Conductor', 'Doppel',
+    'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Jelly', 'Conductor', 'Doppel', 'Awakened',
     'TentacleBoss', 'GiantBat', 'IceWitch', 'GiantSkeleton', 'Medusa', 'SunWarden', 'ManTrap', 'Count'];
-  const BEAST_BOSS = { TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel' };
+  const BEAST_BOSS = { TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel', Awakened: 'bossAwakened' };
   const BEAST_SET = new Set(BEASTS);
   const beastName = (k) => tr(BEAST_BOSS[k] || 'beast_' + k);
   const beasts = { sel: 0 };
@@ -3318,7 +3350,7 @@ const Castle = (() => {
     need.push('npcPrisoner', 'npcConcierge', 'concTitle', 'concHi', 'concSold', 'concOwned', 'concPoor', 'concThanks1', 'concThanks2', 'concThanks3', 'gramoTitle', 'gramoHi',
       'gramoPlay', 'gramoMissing', 'gramoNow', 'gramoHelp', 'hotelSign', 'boardTitle', 'formBack', 'whereWitch',
       'bossConductor', 'bossConductorNote', 'bossConductorShout', 'bossConductorRage', 'castleLocked13', 'dashKey',
-      'bossDoppel', 'bossDoppelNote', 'bossDoppelShout', 'bossDoppelRage', 'famSay_shadow', 'questTitle', 'questDone', 'questNone', 'questFrom', 'castleDrown', 'castleDrownTest');
+      'bossDoppel', 'bossDoppelNote', 'bossDoppelShout', 'bossDoppelRage', 'famSay_shadow', 'bossAwakened', 'bossAwakenedNote', 'bossAwakenedShout', 'bossAwakenedRage', 'labCut', 'questTitle', 'questDone', 'questNone', 'questFrom', 'castleDrown', 'castleDrownTest');
     for (const q of QUESTS) need.push('quest_' + q.id, 'questHint_' + q.id);
     { // Erreichbarkeit: vom Wald aus über Türen und Ausgänge (alles geöffnet) – kein Raum darf abgeschnitten sein
       const key = (s, r) => s + ':' + r, seenR = new Set(), queue = [], s0 = sIdx('arrival');
