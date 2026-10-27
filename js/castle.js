@@ -486,14 +486,15 @@ const Castle = (() => {
     S()[s].rooms.forEach((def, i) => {
       const { cw, ch } = dims(def), sc = { x: cellX(def.start.x, cw), y: cellY(def.start.y, ch) };
       let gx = 0, gy = 0, link = null;
-      if (def.side) { const at = REGION_AT[S()[s].id] || [0, 0]; gx = def.mapAt[0] - at[0]; gy = def.mapAt[1] - at[1]; } // Zusatzraum: fester Platz
+      if (def.side && !def.mapAt) { gx = NaN; gy = NaN; } // Zusatzraum ohne festen Platz: castle() legt ihn an seinen Randausgang
+      else if (def.side) { const at = REGION_AT[S()[s].id] || [0, 0]; gx = def.mapAt[0] - at[0]; gy = def.mapAt[1] - at[1]; } // Zusatzraum: fester Platz
       else if (i > 0) {
         const p = out[i - 1], ax = p.gx + p.exit.x, ay = p.gy + p.exit.y, up = p.exit.dir === 'up';
         gx = up ? ax - sc.x : ax + 1 - sc.x; gy = up ? ay - 1 - sc.y : ay - sc.y;
         for (let n = 0; n < 64 && !fits(gx, gy, cw, ch); n++) { if (up) gy--; else gx++; }
         link = { ax, ay, bx: gx + sc.x, by: gy + sc.y, from: p.key, fromCell: p.exit.y * p.cw + p.exit.x, toCell: sc.y * cw + sc.x };
       }
-      for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) used.add((gx + x) + ',' + (gy + y));
+      if (!Number.isNaN(gx)) for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) used.add((gx + x) + ',' + (gy + y));
       const marks = [];
       def.ents.forEach(e => { if (e.type === 'statue') marks.push({ x: cellX(e.x, cw), y: cellY(e.y, ch), c: '#5cb8f8' }); }); // Engel: blau wie ihr Schein (rot = Speicherkammer)
       if (def.arena) marks.push({ x: cw - 1, y: cellY(def.start.y, ch), boss: true });
@@ -511,12 +512,25 @@ const Castle = (() => {
     let bottom = 0, extra = 0;
     S().forEach((st, s) => {
       const at = REGION_AT[st.id];
-      layout(s).forEach(r => { if (at) bottom = Math.max(bottom, at[1] + r.gy + r.ch); });
+      layout(s).forEach(r => { if (at && !Number.isNaN(r.gy)) bottom = Math.max(bottom, at[1] + r.gy + r.ch); });
     });
     S().forEach((st, s) => {
       const at = REGION_AT[st.id] || [0, bottom + 2 + (extra++) * 4];
       layout(s).forEach(r => rooms.push({ ...r, ax: at[0] + r.gx, ay: at[1] + r.gy }));
     });
+    // Zusatzräume ohne festen Platz: an den Randausgang eines schon gelegten Nachbarn anlegen (Tür an Tür, Zelle an Zelle)
+    const free = (r) => Number.isNaN(r.ax), find = (a) => a && rooms.find(x => x.s === a.s && x.i === a.r);
+    for (let pass = 0; pass < 12 && rooms.some(free); pass++) for (const [A, pa, B, pb] of LINKS) {
+      const ra = find(ref(A)), rb = find(ref(B));
+      if (!ra || !rb) continue;
+      for (const [p, pp, q, qp] of [[ra, pa, rb, pb], [rb, pb, ra, pa]]) {
+        if (free(p) || !free(q) || pp === 'exit') continue;
+        const d = edgeDir(p.def, pp), dq = edgeDir(q.def, qp); if (!d || !dq) continue; // nur Rand an Rand legt die Lage fest
+        const pc = placeCell(p, pp), qc = placeCell(q, qp);
+        q.ax = p.ax + pc.x + d[0] - qc.x; q.ay = p.ay + pc.y + d[1] - qc.y;
+      }
+    }
+    for (const r of rooms) if (free(r)) { console.warn('[NACHTMAHR] Schlosskarte: ' + r.key + ' ohne Randverbindung zu einem gelegten Raum'); r.ax = 0; r.ay = bottom + 2 + (extra++) * 4; }
     const used = new Map(); // Überlappung melden (z. B. wenn ein Raum größer wurde) – die Karte zeichnet trotzdem
     for (const r of rooms) for (let y = 0; y < r.ch; y++) for (let x = 0; x < r.cw; x++) {
       const k = (r.ax + x) + ',' + (r.ay + y);
@@ -532,6 +546,8 @@ const Castle = (() => {
     if (place === 'start') return rm.start;
     if (place === 'exit') return rm.exit;
     if (place === 'right') return { x: rm.cw - 1, y: cellY(rm.def.start.y, rm.ch) };
+    if (isEdge(place)) return place.e === 'L' ? { x: 0, y: cellY(place.y, rm.ch) } : place.e === 'R' ? { x: rm.cw - 1, y: cellY(place.y, rm.ch) }
+      : { x: cellX(place.x, rm.cw), y: place.e === 'T' ? 0 : rm.ch - 1 };
     return { x: cellX(place.x, rm.cw), y: cellY(place.y, rm.ch) };
   }
 
@@ -571,8 +587,30 @@ const Castle = (() => {
     if (g.relics) return g.relics.every(k => rel(k)); // Relikte nötig (Eisrutsche: ohne Dash und Enterhaken säße man fest)
     return true;
   }
-  // Art einer Tür: Rand (links/rechts durchgehen) oder ↑-Tür
+  // Randausgänge mit Lage (für eine stimmige Karte: Räume grenzen dort aneinander, wo man hinübergeht):
+  // { e: 'L' | 'R', y } – Ausgang am linken/rechten Rand, y = Standreihe (Boden in y + 1);
+  // { e: 'T' | 'B', x } – Schacht oben/unten, x = linke von zwei offenen Spalten. 'start'/'right' sind die alten Randausgänge.
+  const isEdge = (pl) => !!(pl && typeof pl === 'object' && pl.e);
+  function edgeRow(def, place) { // Standreihe eines Seitenausgangs
+    if (isEdge(place)) return place.y;
+    if (place === 'right') return floorRow(def, def.w - 2, def.start.y - 2) - 1;
+    return def.start.y;
+  }
+  function edgeDir(def, place) { // Richtung, in der der Nachbarraum auf der Karte liegt (null: ↑-Tür, keine feste Lage)
+    const k = kindOf(def, place);
+    return k === 'edgeR' ? [1, 0] : k === 'edgeL' ? [-1, 0] : k === 'edgeT' ? [0, -1] : k === 'edgeB' ? [0, 1] : null;
+  }
+  function holeSpot(def, x) { // aus dem Schacht unten heraufgekommen: neben der Öffnung auf festem Boden stehen
+    for (const dx of [2, -1, 3, -2, 4, -3, 5, -4]) {
+      const col = x + dx; if (col < 1 || col > def.w - 2) continue;
+      const fr = floorRow(def, col, Math.max(0, def.h - 10));
+      if (fr < def.h - 1 || SOLID.includes(def.grid[def.h - 1][col])) return { cx: col * T + 8, feet: fr * T, face: dx > 0 ? 1 : -1 };
+    }
+    return { cx: (x + 1) * T, feet: (def.h - 1) * T, face: 1 };
+  }
+  // Art einer Tür: Rand (links/rechts durchgehen, oben/unten durch einen Schacht) oder ↑-Tür
   function kindOf(def, place) {
+    if (isEdge(place)) return 'edge' + place.e;
     if (place === 'right') return 'edgeR';
     if (place === 'start') return !def.wrap && def.start.x <= 3 ? 'edgeL' : 'up';
     return 'up';
@@ -589,6 +627,13 @@ const Castle = (() => {
     for (let y = 0; y < r; y++) { const h = Math.round(Math.sqrt(r * r - (r - y - 0.5) * (r - y - 0.5))); ctx.fillRect(cx - h, top + y, h * 2, 1); }
     ctx.fillRect(cx - r, top + r, r * 2, bottom - top - r);
   }
+  // Winkelpfeil nach oben (dir -1) oder unten (dir 1) für Schächte, 13×7, mit dunkler Kante
+  function vchevron(ctx, cx, y, dir) {
+    for (const [col, o] of [['#1c1008', 1], ['#f8b800', 0]]) {
+      ctx.fillStyle = col;
+      for (let k = 0; k < 13; k++) { const d = 6 - Math.abs(k - 6); ctx.fillRect(cx - 6 + k + o, y + dir * d + o - (dir < 0 ? 2 : 0), 1, 3); }
+    }
+  }
   // Winkelpfeil (7×13, drei Pixel stark, mit dunkler Kante) für Seitenausgänge; dir = 1 nach rechts, -1 nach links
   function chevron(ctx, x, y, dir) {
     for (const [col, o] of [['#1c1008', 1], ['#f8b800', 0]]) {
@@ -602,19 +647,36 @@ const Castle = (() => {
       const seal = !!(d.place && d.place.door === 'seal');
       super(0, 0, seal ? 40 : 32, seal ? 52 : 44); this.kind = 'prop'; this.d = d; this.k = kindOf(def, d.place); this.seal = seal;
       if (this.k === 'up') { const u = upSpot(def, d.place); this.x = u.cx - this.w / 2; this.y = u.feet - this.h; }
-      else if (this.k === 'edgeR') { this.x = def.w * T - this.w; this.y = floorRow(def, def.w - 2, def.start.y - 2) * T - this.h; }
-      else { this.x = 0; this.y = (def.start.y + 1) * T - this.h; this.noWrap = true; }
+      else if (this.k === 'edgeR') { this.x = def.w * T - this.w; this.y = (edgeRow(def, d.place) + 1) * T - this.h; }
+      else if (this.k === 'edgeT' || this.k === 'edgeB') { this.x = (d.place.x + 1) * T - this.w / 2; this.y = this.k === 'edgeT' ? 0 : def.h * T - this.h; } // Schacht oben/unten
+      else { this.x = 0; this.y = (edgeRow(def, d.place) + 1) * T - this.h; this.noWrap = true; }
     }
     update() { this.t++; }
     lightUp(L, cx, cy) {
       if (!gateOpen(this.d)) return;
       if (this.k === 'up') { L.push({ x: this.cx - cx, y: this.y - cy + this.h / 2, r: 30 + Math.sin(this.t * 0.07) * 3, c: this.seal ? [190, 120, 252] : [252, 180, 110], a: 0.45 }); return; }
+      if (this.k === 'edgeT' || this.k === 'edgeB') { // Schacht: Licht fällt aus der Öffnung
+        const p = W.player; if (Math.abs(p.cx - this.cx) < 10 * T) L.push({ x: this.cx - cx, y: (this.k === 'edgeT' ? this.y : this.y + this.h) - cy, r: 34, c: [252, 210, 140], a: 0.35 });
+        return;
+      }
       const p = W.player; // Seitenausgang: warmer Schein am Rand, sobald der Held in der Nähe ist
       if (Math.abs(p.cx - this.cx) < 12 * T) L.push({ x: (this.k === 'edgeL' ? this.x : this.x + this.w) - cx, y: this.y - cy + this.h / 2, r: 30, c: [252, 210, 140], a: 0.4 });
     }
     draw(ctx) {
       const x = Math.round(this.x - W.cam.x), y = Math.round(this.y - W.cam.y), p = W.player, open = gateOpen(this.d);
       const near = Math.abs(p.cx - this.cx) < 14 && Math.abs(p.feet - (this.y + this.h)) < 8;
+      if (this.k === 'edgeT' || this.k === 'edgeB') { // Schacht: drei Winkelpfeile wandern zur Öffnung (hinauf bzw. hinab), sobald der Held nah ist
+        const dist = Math.abs(p.cx - this.cx), dir = this.k === 'edgeT' ? -1 : 1;
+        if (!open || dist > 8 * T) return;
+        const a = clamp(1.4 - dist / (6 * T), 0.4, 1), ey = this.k === 'edgeT' ? y : y + this.h;
+        for (let i = 0; i < 3; i++) {
+          const ph = ((this.t * 0.5 + i * 9) % 27) / 27;
+          ctx.globalAlpha = a * Math.sin(ph * Math.PI);
+          vchevron(ctx, Math.round(x + this.w / 2), Math.round(ey - dir * (40 - ph * 26)), dir);
+        }
+        ctx.globalAlpha = 1;
+        return;
+      }
       if (this.k !== 'up') { // Seitenausgang: Lichtschein am Rand und drei Winkelpfeile, die hinauslaufen (hinter dem Boss erst nach dem Sieg)
         const dist = Math.abs(p.cx - this.cx);
         if (!open || dist > 12 * T || Math.abs(p.feet - (this.y + this.h)) > 4 * T) return;
@@ -1379,6 +1441,12 @@ const Castle = (() => {
         cx = col * T + 8; feet = floorRow(def, col, ex.y0) * T; face = ex.x1 >= def.w - 1 || cx > def.w * T / 2 ? -1 : 1;
       } else if (arrive.place === 'right') {
         cx = (def.w - 2) * T + 8; feet = floorRow(def, def.w - 2, def.start.y - 2) * T; face = -1;
+      } else if (isEdge(arrive.place)) { // Randausgang mit Lage
+        const pl = arrive.place;
+        if (pl.e === 'L') { cx = T + 8; feet = (pl.y + 1) * T; face = 1; }
+        else if (pl.e === 'R') { cx = (def.w - 2) * T + 8; feet = (pl.y + 1) * T; face = -1; }
+        else if (pl.e === 'T') { cx = (pl.x + 1) * T; feet = HERO_H + 6; face = p.face || 1; } // von oben herein: fällt durch den Schacht
+        else { const h = holeSpot(def, pl.x); cx = h.cx; feet = h.feet; face = h.face; } // von unten herauf: neben der Öffnung
       } else if (arrive.place.px !== undefined) { cx = arrive.place.px; feet = arrive.place.feet; face = arrive.place.face || 1; } // Fortsetzungspunkt
       else { const u = upSpot(def, arrive.place); cx = u.cx; feet = u.feet; }
       p.reset(cx, feet); p.face = face;
@@ -1451,8 +1519,10 @@ const Castle = (() => {
       const k = kindOf(def, d.place);
       let use = false;
       if (k === 'up') { const u = upSpot(def, d.place); use = P.up && p.onGround && Math.abs(p.cx - u.cx) < 14 && Math.abs(p.feet - u.feet) < 8; }
-      else if (k === 'edgeL') use = I.left && (p.onGround || p.batForm || p.mistForm) && p.cx < (def.start.x + 1.5) * T && Math.abs(p.feet - (def.start.y + 1) * T) <= 2 * T && push >= 6;
-      else use = I.right && (p.onGround || p.batForm || p.mistForm) && p.cx > (def.w - 2.5) * T && push >= 6; // Fledermaus und Nebel ziehen durch Seitenausgänge
+      else if (k === 'edgeL') use = I.left && (p.onGround || p.batForm || p.mistForm) && p.cx < ((isEdge(d.place) ? 0 : def.start.x) + 1.5) * T && Math.abs(p.feet - (edgeRow(def, d.place) + 1) * T) <= 2 * T && push >= 6;
+      else if (k === 'edgeT') use = p.feet < T * 0.75 && p.cx >= d.place.x * T - 6 && p.cx <= (d.place.x + 2) * T + 6; // oben durch den Schacht hinaus
+      else if (k === 'edgeB') use = p.y > def.h * T - 10 && p.cx >= d.place.x * T - 6 && p.cx <= (d.place.x + 2) * T + 6; // durch die Öffnung im Boden hinab
+      else use = I.right && (p.onGround || p.batForm || p.mistForm) && p.cx > (def.w - 2.5) * T && (!isEdge(d.place) || Math.abs(p.feet - (d.place.y + 1) * T) <= 2 * T) && push >= 6; // Fledermaus und Nebel ziehen durch Seitenausgänge
       if (!use) continue;
       if (!gateOpen(d)) {
         if (!lockT) { lockT = 90; if (d.gate.seals) Game.note('castleSeals', seals(), sealRooms().length); else if (d.gate.crack) Game.note('castleCrackHard'); else if (d.gate.beat) Game.note('castleBarred'); else if (d.gate.item) Game.note('castleLocked13'); else if (d.gate.relics) Game.note('castleNeedRelic', d.gate.relics.filter(k => !rel(k)).map(k => tr('relic_' + k)).join(' + ')); else Game.note('castleLocked'); Audio8.sfx('select'); }
@@ -2143,7 +2213,8 @@ const Castle = (() => {
     Player.prototype.draw = function (ctx, cam) { return this.batForm ? batDraw(this, ctx, cam) : this.mistForm ? mistDraw(this, ctx, cam) : this.wolfForm ? wolfDraw(this, ctx, cam) : dr.call(this, ctx, cam); };
     Player.prototype.setCrouch = function (on) { if (!this.batForm && !this.mistForm && !this.wolfForm) return sc.call(this, on); }; // Treffer und Stürze ändern die Tiergestalt nicht
     const hz = Player.prototype.hazards;
-    Player.prototype.hazards = function () { // mit Taucherhelm ist Wasser kein Abgrund mehr
+    Player.prototype.hazards = function () { // mit Taucherhelm ist Wasser kein Abgrund mehr; durch einen Schacht unten geht es weiter, statt abzustürzen
+      if (this.y > W.room.h * T - 12 && doorsOf(W.stage, W.roomIdx).some(d => isEdge(d.place) && d.place.e === 'B' && this.cx >= d.place.x * T - 6 && this.cx <= (d.place.x + 2) * T + 6)) return;
       if (rel('diver') && Phys.tile(Math.floor(this.cx / T), Math.floor((this.feet - 6) / T)) === '~') { if (this.y > W.room.h * T + 8) this.fallPenalty(4); return; }
       return hz.call(this);
     };
@@ -2516,8 +2587,9 @@ const Castle = (() => {
       return !def.wrap && ex.x1 >= def.w - 1 ? { k: 'edgeR', x: def.w * T, feet } : { k: 'exit', x: (ex.x0 + ex.x1 + 1) * T / 2, feet, h: 16 };
     }
     const k = kindOf(def, st.door.place);
-    if (k === 'edgeR') return { k, x: def.w * T, feet: floorRow(def, def.w - 2, def.start.y - 2) * T };
-    if (k === 'edgeL') return { k, x: 0, feet: (def.start.y + 1) * T };
+    if (k === 'edgeR') return { k, x: def.w * T, feet: (edgeRow(def, st.door.place) + 1) * T };
+    if (k === 'edgeL') return { k, x: 0, feet: (edgeRow(def, st.door.place) + 1) * T };
+    if (k === 'edgeT' || k === 'edgeB') return { k: 'spot', x: (st.door.place.x + 1) * T, feet: k === 'edgeT' ? 3 * T : def.h * T - 4, h: 28 }; // Schacht
     const u = upSpot(def, st.door.place);
     return { k, x: u.cx, feet: u.feet, h: st.door.place.door === 'seal' ? 52 : 44 };
   }
@@ -3304,7 +3376,16 @@ const Castle = (() => {
     }
     const ground = (def, x, y) => x >= 0 && x < def.w && y >= 1 && y + 1 < def.h && SOLID.includes(def.grid[y + 1][x]) && !SOLID.includes(def.grid[y][x]) && !SOLID.includes(def.grid[y - 1][x]);
     S().forEach((st, s) => st.rooms.forEach((def, r) => {
-      for (const d of doorsOf(s, r)) if (d.place && typeof d.place === 'object' && !(ground(def, d.place.x, d.place.y) && ground(def, d.place.x + 1, d.place.y))) out.push('Tür ohne Boden/Platz: ' + roomKey(s, r) + ' ' + d.place.x + ',' + d.place.y);
+      for (const d of doorsOf(s, r)) if (d.place && typeof d.place === 'object' && !isEdge(d.place) && d.place.px === undefined && !(ground(def, d.place.x, d.place.y) && ground(def, d.place.x + 1, d.place.y))) out.push('Tür ohne Boden/Platz: ' + roomKey(s, r) + ' ' + d.place.x + ',' + d.place.y);
+      for (const d of doorsOf(s, r)) { // Randausgänge: am Rand Boden und Kopffreiheit, Schächte offen
+        const pl = d.place; if (!isEdge(pl)) continue;
+        const open = (x, y) => x >= 0 && x < def.w && y >= 0 && y < def.h && !SOLID.includes(def.grid[y][x]);
+        const where = roomKey(s, r) + ' ' + JSON.stringify(pl);
+        if (pl.e === 'L' || pl.e === 'R') { const x = pl.e === 'L' ? 0 : def.w - 1; if (!(ground(def, x, pl.y) && open(x, pl.y - 1))) out.push('Seitenausgang ohne Boden/Platz: ' + where); }
+        else if (pl.e === 'T') { if (![0, 1].every(k => open(pl.x + k, 0) && open(pl.x + k, 1))) out.push('Schacht oben zu: ' + where); }
+        else if (![0, 1].every(k => open(pl.x + k, def.h - 1) && open(pl.x + k, def.h - 2))) out.push('Schacht unten zu: ' + where);
+        if (pl.e === 'B' && d.gate && Object.keys(d.gate).length) out.push('Schacht unten mit Sperre (man fiele ins Leere): ' + where);
+      }
     }));
     for (const [A, , B] of LINKS) if (!ref(A) || !ref(B)) out.push('Verbindung ohne Raum: ' + JSON.stringify([A, B]));
     for (const b of BEATS) { const a = ref(b.at[0]); if (!a) out.push('Szene ohne Raum: ' + b.id); else if (!ground(S()[a.s].rooms[a.r], b.at[1], b.at[2])) out.push('Figur ohne Boden: ' + b.id); }
@@ -3349,6 +3430,22 @@ const Castle = (() => {
     for (const k of need) if (tr(k) === k) out.push('Text fehlt: ' + k);
     return out;
   }
+  // Karte prüfen: jede Verbindung Rand an Rand (Zellen grenzen in Ausgangsrichtung aneinander, Gegenrichtung passt);
+  // ↑-Türen (in die Wand hinein) zählen als noch nicht umgebaut
+  function mapReport() {
+    const L = castle(), find = (a) => a && L.find(x => x.s === a.s && x.i === a.r), bad = [], doors = [];
+    for (const [A, pa, B, pb] of LINKS) {
+      const ra = find(ref(A)), rb = find(ref(B)); if (!ra || !rb) continue;
+      const name = ra.key + (ra.def.label ? ' ' + ra.def.label : '') + ' → ' + rb.key + (rb.def.label ? ' ' + rb.def.label : '');
+      if (pa === 'exit') continue;
+      const da = edgeDir(ra.def, pa), db = edgeDir(rb.def, pb);
+      if (!da || !db) { doors.push(name); continue; }
+      const ca = placeCell(ra, pa), cb = placeCell(rb, pb);
+      if (da[0] !== -db[0] || da[1] !== -db[1]) { bad.push('Gegenrichtung passt nicht: ' + name); continue; }
+      if (ra.ax + ca.x + da[0] !== rb.ax + cb.x || ra.ay + ca.y + da[1] !== rb.ay + cb.y) bad.push('Räume grenzen nicht aneinander: ' + name);
+    }
+    return { bad, doors };
+  }
   function selfCheckLog() {
     const r = selfCheck();
     if (r.length) console.warn('[NACHTMAHR] Selbsttest: ' + r.length + ' Probleme', r); else console.info('[NACHTMAHR] Selbsttest OK');
@@ -3374,7 +3471,7 @@ const Castle = (() => {
     openEquip, equipInput, drawEquip, openShop, shopInput, drawShop, get inv() { return inv; }, get eq() { return eq; }, giveItem,
     preUpdate, statusInput, mpMax, get mp() { return mp; }, set mp(v) { mp = v; },
     startTest, finishTest, drawMilestones, milestones: MILESTONES.length, get testing() { return testing; },
-    toolsInput, drawTools, selfCheck, get god() { return god; }, get best() { return best; },
+    toolsInput, drawTools, selfCheck, mapReport, get god() { return god; }, get best() { return best; },
     toggleOverlay, get overlay() { return overlayOn; },
     tier: (s) => (TIER[S()[s].id] || 1) + 2 * (flag.ngp || 0), side: SIDE, startEpilogue, resultsInput, drawResults, ngPlus, ngRestore, drawGoalBanner, drawGoalToast, announceGoal, drawGuide, guidePlan, inPrologue, goal: () => { const g = goal(); return g && { text: goalText(g), where: tr(g.where) }; }, get vessels() { return vessel; }, get relics() { return relic; }, get cracks() { return crack; }, has,
     get seen() { return seen; }, get warps() { return warp; },
