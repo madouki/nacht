@@ -200,8 +200,8 @@ const Castle = (() => {
       .zone('skull', 10, 90, { interval: 260, max: 2 }).zone('ghoul', 10, 90, { interval: 150, max: 2 })
       .statue(48, 10).chest(92, 10, 'big').prop('vessel', { x: 60, y: 6 })
       .label('VERLIES').start(2, 10).done());
-    // Wehrgang (zwischen Glockenturm und Bergfried): Mauerkrone im Gewitter, zwei Scharten zum Überspringen, Raben und ein Ritter
-    add('wehrgang', 2, 3, [-3, -2], R(72, 'courtyard')
+    // Wehrgang (zwischen Hotelaufzug und Bergfried, Rand an Rand): Mauerkrone im Gewitter, zwei Scharten zum Überspringen, Raben und ein Ritter
+    add('wehrgang', 2, 3, null, R(72, 'courtyard')
       .ground(0, 22).ground(26, 47).ground(51, 71)
       .fill(12, 7, 15, 7, '=').fill(36, 7, 40, 7, '=').fill(60, 7, 63, 7, '=')
       .candle(5, 9, 'H').candle(13, 5).candle(30, 9).candle(38, 5, '$').candle(44, 9, 'H').candle(61, 5).candle(68, 9)
