@@ -553,6 +553,7 @@ const W = {
     const tl = (theme === 'cathedral' || theme === 'spire') && PS2.dayNight(this.frame); // Zeitraffer: nachts dunkel und blau, Kerzen leuchten
     FX.render(ctx, this.collectLights(), theme, theme === 'ballroom' ? Ball.amb() : dark ? (flashOn ? dark[1] : dark[0]) : tl ? 0.05 + tl.night * 0.5 : undefined, tl && tl.night > 0.2 ? '6,8,34' : undefined); // zwischen den Blitzen dunkel, im Blitz taghell
     Rays.draw(ctx, this.room, this.cam, this.frame);
+    for (const e of this.ents) if (e.drawLit && !e.dead) e.drawLit(ctx); // Riesen (Steingolem): nach Licht und Nebel, mit eigener 3D-Beleuchtung
     if (theme === 'mirror') Mirror.capture(ctx); // Spiegelgalerie: dieses Bild spiegelt sich im nächsten (vor Blitz, Blutmond und Warnrand)
     if (this.bloodT > 0) this.drawBloodMoon(ctx, vw);
     if (this.stopT > 0 && (this.stopT > 50 || (this.stopT & 4))) { ctx.fillStyle = 'rgba(120,150,230,0.16)'; ctx.fillRect(0, 0, vw, 208); } // angehaltene Zeit

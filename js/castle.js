@@ -639,6 +639,16 @@ const Castle = (() => {
     // Abgrund – hinüber nur am Ankerring mit der Peitsche (je Trommel zwei Ringe), zwischen den Trommeln Steinringe zum
     // Verschnaufen; Verwandlungen reißt der Wirbel zurück. Am Ende Truhe, Lebensgefäß und die Prismenklinge, dann durch die
     // Luke hinab zurück in die Kathedrale (Einbahn)
+    // Golemstollen (links vom Eiskeller, unter der Felsenkammer): ein Bergwerksstollen, an dessen Ende ein Steingolem kauert, der den
+    // ganzen Stollen ausfüllt (js/golem.js). Augenlaser, Faustschlag, Steinschlag; danach liegt die Steinhaut im Staub
+    add('golemstollen', 1, 3, null, R(72, 'cave')
+      .ground(0, 71)
+      .fill(40, 8, 44, 8, '=').fill(54, 7, 59, 7, '=')
+      .candle(6, 8, 'H').candle(24, 8).candle(36, 9, 'H').candle(42, 6).candle(50, 9, '$').candle(57, 5, 'H').candle(66, 9)
+      .enemy('bat', 46, 3).enemy('skel', 52, 10)
+      .mini('golem', 2, 26, 3, 0)
+      .music('stage2').label('GOLEMSTOLLEN').start(2, 10).done());
+    LINKS.push([['side', 'eiskeller'], 'start', ['side', 'golemstollen'], 'right', {}]); // Eiskeller (linker Rand) → Golemstollen
     const kal = R(128, 'kaleido')
       .fill(0, 9, 7, 12, '#').fill(4, 9, 5, 12, '.')                                   // Anfang, Luke hinab in die Kathedrale
       .fill(105, 9, 127, 12, '#').fill(118, 9, 119, 12, '.')                           // Ende, Luke zurück (Einbahn)
@@ -1558,6 +1568,7 @@ const Castle = (() => {
     }
   }
   if (on && typeof BOSSES !== 'undefined') BOSSES.doppel = Doppel;
+  if (on && typeof BOSSES !== 'undefined' && typeof GolemBoss !== 'undefined') BOSSES.golem = GolemBoss; // Steingolem im Golemstollen (js/golem.js)
   // Spiegel im Kabinett: zeigen den Helden – solange der Doppelgänger lebt, mit Verzögerung (das Spiegelbild ist nicht ganz
   // bei der Sache), danach wieder brav. Der Doppelgänger selbst hat kein Spiegelbild.
   const mirrorHist = [];
@@ -1932,6 +1943,7 @@ const Castle = (() => {
     ironball: { slot: 'acc', atk: 4, col: '#8c8c9c' },                        // Eisenkugel des Gefangenen (Lohn für die Untertasse)
     trident: { slot: 'weapon', atk: 5, col: '#58c8d8' },                     // Dreizack des Wassermanns (versunkene Kapelle)
     prisma: { slot: 'weapon', atk: 6, col: '#fc7cf8' },                      // Prismenklinge (Ende des Kaleidoskops)
+    steinhaut: { slot: 'armor', def: 6, col: '#8c8478' },                    // Steinhaut (Lohn des Steingolems)
     rec_kraken: { rec: 'kraken', col: '#7c4cc8' },     // Hotelbademantel (Portier): weich, heilt langsam
     // Schallplatten fürs Grammophon im Hotel (spielen ein Stück des Schlosses): gefunden, gekauft, eine liegt schon auf dem Teller
     rec_hotel: { rec: 'hotel', col: '#c89020' }, rec_title: { rec: 'title', col: '#9c6cfc' }, rec_stage1: { rec: 'stage1', price: 1500, col: '#fc7460' },
@@ -1945,7 +1957,7 @@ const Castle = (() => {
   const STOCK = ['potion', 'elixir', 'leather', 'chain', 'silver', 'heartamulet', 'fairy', 'map', 'book_spirit', 'book_hellfire', 'book_soulsteal'];
   const once = (g) => !!(g.slot || g.key || g.spell || g.rec || g.quest); // gibt es nur einmal
   const BOSS_LOOT = [[[0, -1], 'batcard']];
-  const MINI_LOOT = [[['side', 'spiegel'], 'shadowcard', 20, 10]]; // nach dem Doppelgänger: sein Schatten als Begleiter
+  const MINI_LOOT = [[['side', 'spiegel'], 'shadowcard', 20, 10], [['side', 'golemstollen'], 'steinhaut', 12, 10]]; // nach dem Doppelgänger: sein Schatten als Begleiter
   const FINDS = [ // Einzelstücke: [Raum, Gegenstand, Kachel-x, Standreihe]
     [['side', 'kolosseum'], 'leather', 12, 7], [['side', 'kanal'], 'bloodstone', 43, 7], [['side', 'schatz'], 'greedring', 25, 6],
     [['side', 'verlies'], 'dragonfang', 28, 6], [['side', 'wehrgang'], 'luckcoin', 37, 6], [['side', 'himmel'], 'mirror', 44, 5],
@@ -2676,9 +2688,9 @@ const Castle = (() => {
 
   // ---------------- Bestiarium wie die Gegnerliste in SotN (Status, dritte Seite): Siege je Gegnerart, absurde Einträge ----------------
   const BEASTS = ['Bat', 'Skeleton', 'Ghoul', 'Raven', 'Knight', 'LivingArmor', 'Panther', 'Skull', 'Fishman', 'Ghost', 'Snake', 'FlyBook', 'Tome',
-    'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Jelly', 'Conductor', 'Doppel',
+    'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Jelly', 'Conductor', 'Doppel', 'GolemBoss',
     'TentacleBoss', 'GiantBat', 'IceWitch', 'GiantSkeleton', 'Medusa', 'SunWarden', 'ManTrap', 'Count'];
-  const BEAST_BOSS = { TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel' };
+  const BEAST_BOSS = { TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel', GolemBoss: 'bossGolem' };
   const BEAST_SET = new Set(BEASTS);
   const beastName = (k) => tr(BEAST_BOSS[k] || 'beast_' + k);
   const beasts = { sel: 0 };
@@ -3672,7 +3684,7 @@ const Castle = (() => {
     need.push('npcPrisoner', 'npcConcierge', 'concTitle', 'concHi', 'concSold', 'concOwned', 'concPoor', 'concThanks1', 'concThanks2', 'concThanks3', 'gramoTitle', 'gramoHi',
       'gramoPlay', 'gramoMissing', 'gramoNow', 'gramoHelp', 'hotelSign', 'boardTitle', 'formBack', 'whereWitch',
       'bossConductor', 'bossConductorNote', 'bossConductorShout', 'bossConductorRage', 'castleLocked13', 'dashKey',
-      'liftLocked', 'liftOpen', 'needRelic', 'subNone', 'subNoHearts', 'bossDoppel', 'bossDoppelNote', 'bossDoppelShout', 'bossDoppelRage', 'famSay_shadow', 'questTitle', 'questDone', 'questNone', 'questFrom', 'kaleidoForm', 'castleDrown', 'castleDrownTest');
+      'liftLocked', 'liftOpen', 'needRelic', 'subNone', 'subNoHearts', 'bossDoppel', 'bossDoppelNote', 'bossDoppelShout', 'bossDoppelRage', 'famSay_shadow', 'questTitle', 'questDone', 'questNone', 'questFrom', 'kaleidoForm', 'bossGolem', 'bossGolemNote', 'bossGolemShout', 'bossGolemRage', 'castleDrown', 'castleDrownTest');
     for (const q of QUESTS) need.push('quest_' + q.id, 'questHint_' + q.id);
     { // Erreichbarkeit: vom Wald aus über Türen und Ausgänge (alles geöffnet) – kein Raum darf abgeschnitten sein
       const key = (s, r) => s + ':' + r, seenR = new Set(), queue = [], s0 = sIdx('arrival');

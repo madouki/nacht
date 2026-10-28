@@ -284,6 +284,13 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   gut 10 Kacheln weit, mit den Ringen klappt jede Trommel); Fledermaus, Nebel und Wolf reißt der Wirbel zurück. Am Ende Truhe,
   Lebensgefäß und die **Prismenklinge** (ATT +6), dann durch die Luke hinab auf den Pfeiler der Kathedrale (Einbahn).
 - **Ring-Schwung:** jeder Absprung vom Ankerring endet mit einem Salto in Flugrichtung.
+- **Steingolem im Golemstollen** (`js/golem.js`, links vom Eiskeller, Zwischengegner): bildschirmfüllendes PS2-Low-Poly-Modell,
+  jedes Bild aus Felsquadern neu gebaut und mit der Software-3D gerastert, gezeichnet nach dem Licht (`drawLit`, eigene
+  Fackelbeleuchtung). Augenlaser fegt über den Boden zum Helden und zurück (drüberspringen), flacher Laser mit dem Kopf am
+  Boden in Kopfhöhe (ducken), Faust schwebt über dem Helden (Schatten) und kracht herab (Gesteinsbrocken), Brüllen lässt
+  Steine aus der Decke fallen; ab halber Energie schneller, Laser doppelt. Treffbar nur das Runenherz im Bauch (im Stand mit
+  Sprung, kniend nach dem Faustschlag vom Boden). Lohn: **Steinhaut** (Rüstung, DEF +6). Zwischengegner starten nur noch,
+  wenn der Held in ihrer Arena steht (nicht von rechts hinter einer Wand).
 - **Speicher- und Warpkammern als eigene kleine Räume** (eine Kartenzelle, Seitenausgang): Kasematte/Torstube (Burghof),
   Felsenkammer/Grottenportal (Brunnenschacht), Lesezimmer/Turmstube (Bibliothek), Sakristei/Kreuzgang (Kathedrale),
   Orangerie/Treibhaus (Palmenhaus), Vorzimmer/Seelenportal (über dem Seelenstrudel). Sie behalten den alten Schlüssel

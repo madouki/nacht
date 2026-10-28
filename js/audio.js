@@ -190,6 +190,8 @@ const Audio8 = (() => {
     tome: () => { tone('sine', 196, 98, 0.5, 0.14); tone('triangle', 392, 370, 0.4, 0.06); arp(['e6', 'g6', 'a#6', 'e7'], 0.05, 'pulse', 0.04, 0.125); }, // Zauberbuch schlägt auf
     slime: () => { noise(0.4, 0.18, 'lowpass', 600, 150); tone('sine', 140, 60, 0.4, 0.12); }, // Schleimkokon gluckert
     splat: () => { noise(0.3, 0.35, 'bandpass', 900, 200); tone('sine', 220, 50, 0.25, 0.18); }, // Kokon platzt
+    laser: () => { tone('sawtooth', 1900, 260, 0.55, 0.09); tone('square', 960, 140, 0.55, 0.05, 0.25); noise(0.55, 0.12, 'bandpass', 3200, 700); }, // Augenlaser des Golems
+    charge: () => { tone('triangle', 160, 1300, 0.7, 0.08); tone('sine', 80, 640, 0.7, 0.06); noise(0.7, 0.05, 'highpass', 5000); }, // Laser lädt auf
     tink: () => { tone('square', 2600, 2100, 0.05, 0.07); tone('pulse', 3400, 3000, 0.07, 0.05, 0.125); noise(0.05, 0.12, 'highpass', 6000); }, // abgeprallt
     stepWet: () => { noise(0.07, 0.06, 'bandpass', 2600, 900); noise(0.04, 0.05, 'lowpass', 900, 250); },
   };
