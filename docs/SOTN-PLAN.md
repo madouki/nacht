@@ -276,6 +276,14 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   bis zur ersten Fahrt): **Eisaufzug** (Eishöhle ↔ Eiskeller ↔ Gruftgang ↔ Gruft; oben verriegelt, die Kabine wartet unter
   der Luke), **Pumpenschacht** (Kanal ↔ Kuppel des Wintergartens; vom Kanal aus verriegelt), **Himmelsaufzug**
   (Himmelsbrücke ↔ Menschenfalle; von unten verriegelt), dazu Hotelaufzug und Lastenaufzug im Bahnhof.
+- **Kaleidoskop** (`js/kaleido.js`, über der Sonnenkathedrale: Aufzug links im Vorplatz hinauf durch die Luke): liegende Röhre
+  aus Buntglas (Lanzettfenster, Rosetten, Bleiruten) in fünf Trommeln, die sich abwechselnd vorwärts und rückwärts um die
+  Längsachse drehen; Steinringe mit Goldkante zwischen den Trommeln. Volumetrische Lichtschächte aus den Fenstern (Mantel,
+  Kern, Streifen, Lichthof, Staub, farbiger Dunst über dem Abgrund) kreisen mit ihrer Trommel. Unter jeder Trommel 17 Kacheln
+  Abgrund mit zwei Ankerringen: nur mit der Peitsche zu schaffen (Bot-Test: Sprung + Doppelsprung + Luft-Dash kommen höchstens
+  gut 10 Kacheln weit, mit den Ringen klappt jede Trommel); Fledermaus, Nebel und Wolf reißt der Wirbel zurück. Am Ende Truhe,
+  Lebensgefäß und die **Prismenklinge** (ATT +6), dann durch die Luke hinab auf den Pfeiler der Kathedrale (Einbahn).
+- **Ring-Schwung:** jeder Absprung vom Ankerring endet mit einem Salto in Flugrichtung.
 - **Speicher- und Warpkammern als eigene kleine Räume** (eine Kartenzelle, Seitenausgang): Kasematte/Torstube (Burghof),
   Felsenkammer/Grottenportal (Brunnenschacht), Lesezimmer/Turmstube (Bibliothek), Sakristei/Kreuzgang (Kathedrale),
   Orangerie/Treibhaus (Palmenhaus), Vorzimmer/Seelenportal (über dem Seelenstrudel). Sie behalten den alten Schlüssel

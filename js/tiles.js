@@ -32,6 +32,7 @@ const Tiles = (() => {
     spire: { a: ['#fcf0d4', '#e8cc98', '#c09c60', '#846438', '#382412'], b: ['#fce8b0', '#e8c070', '#b8883c', '#7c5420', '#2c1808'] },
     ballroom: { a: ['#fcf4e4', '#e4d4b8', '#bca480', '#806848', '#2c1c10'], b: ['#fce0a8', '#f8b800', '#a80020', '#680010', '#1c0008'] },
     theater: { a: ['#fcf8f0', '#ece4d4', '#cfc3a8', '#948670', '#3c3428'], b: ['#e8b4a0', '#b8403c', '#8c1c24', '#4c0c10', '#1c0406'] }, // Hoftheater: weißer Marmor, roter Samt
+    kaleido: { a: ['#c8b8d8', '#8c7ca8', '#5c4c74', '#342844', '#140c1c'], b: ['#fce0a8', '#e8b048', '#a87420', '#5c3c10', '#1c1004'] }, // Kaleidoskop: violetter Stein, Gold (js/kaleido.js)
     mirror: { a: ['#fcecc8', '#e0b878', '#b07c40', '#704018', '#2c1406'], b: ['#e8a890', '#b05848', '#802c24', '#4c1410', '#1c0604'] }, // Versailles: Gold, Creme, Rance-Marmor
     station: { a: ['#c8705c', '#9c4c34', '#7c3824', '#4c1c10', '#1c0804'], b: ['#9cb4a8', '#5c7c70', '#3c5448', '#1c2c26', '#0a1410'] },
     hotel: { a: ['#e8b070', '#a86c34', '#7c4820', '#4c2810', '#180a04'], b: ['#c89058', '#8c5428', '#5c3014', '#3c1c08', '#140804'] },
@@ -1647,6 +1648,9 @@ const Tiles = (() => {
     } else if (theme === 'mirror') { // Spiegelgalerie (Versailles): liegende Röhre im Tunnel, stehende im Schacht – beide spiegeln wirklich (js/mirror.js)
       mirrorTower = mirrorTower || buildMirrorTower(); tubeTex(mirrorTower.c, mirrorTower.gc); if (Mode7.prepMirror) Mode7.prepMirror(); // beim Vorladen bauen, nicht im ersten Bild
       L.push({ name: 'mirrortube', custom: (ctx, cam, frame) => W.room.mtower ? drawMirrorTower(ctx, cam, frame) : W.room.mhall ? drawMirrorHall(ctx, cam, frame) : drawMirrorTunnel(ctx, cam, frame), par: 0.5, c: C(1, 1) });
+    } else if (theme === 'kaleido') { // Kaleidoskop: liegende Buntglasröhre, Trommeln drehen gegeneinander (js/kaleido.js)
+      Kaleido.prewarm();
+      L.push({ name: 'kaleido', custom: (ctx, cam, frame) => Kaleido.drawTube(ctx, cam, frame), par: 0.5, c: C(1, 1) });
     } else if (theme === 'theater') { // Hoftheater: Foyer mit Marmor und Rundbogenfenstern, Zuschauerraum als Rund, das sich beim Laufen mitdreht (js/theater.js)
       Theater.foyerTex(); Theater.roundTex(); // beim Vorladen malen
       L.push({ name: 'theater', custom: (ctx, cam, frame) => W.room.round ? drawTheaterRound(ctx, cam, frame) : drawTheaterFoyer(ctx, cam, frame), par: 0.5, c: C(1, 1) });
@@ -2231,11 +2235,11 @@ const Tiles = (() => {
     if (cache[theme]) return cache[theme];
     seed = 42;
     const p = PALS[theme];
-    const gen = { gallery: (o) => marble(p.a, o), bridge: (o) => stone(p.a, o), vortex: (o) => stone(p.a, o), courtyard: (o) => stone(p.a, o), forest: () => earth(p.a), expo: (o) => stone(p.a, o), hall: (o) => bricks(p.a, o), cave: () => rock(p.a), crypt: (o) => bricks(p.a, o), tower: (o) => stone(p.a, o), throne: (o) => bricks(p.a, o), glass: (o) => marble(p.a, o), foyer: (o) => checker(o), library: (o) => parquet(o), ship: () => planks(p.a, { hull: true }), cathedral: (o) => marble(p.a, o), spire: (o) => marble(p.a, o), ballroom: (o) => marble(p.a, o), ice: (o) => iceTile(p.a, o), hotel: () => parquet({}), station: (o) => bricks(p.a, o), mirror: () => mirrorTile(false), theater: (o) => marble(p.a, o) }[theme];
+    const gen = { kaleido: (o) => marble(p.a, o), gallery: (o) => marble(p.a, o), bridge: (o) => stone(p.a, o), vortex: (o) => stone(p.a, o), courtyard: (o) => stone(p.a, o), forest: () => earth(p.a), expo: (o) => stone(p.a, o), hall: (o) => bricks(p.a, o), cave: () => rock(p.a), crypt: (o) => bricks(p.a, o), tower: (o) => stone(p.a, o), throne: (o) => bricks(p.a, o), glass: (o) => marble(p.a, o), foyer: (o) => checker(o), library: (o) => parquet(o), ship: () => planks(p.a, { hull: true }), cathedral: (o) => marble(p.a, o), spire: (o) => marble(p.a, o), ballroom: (o) => marble(p.a, o), ice: (o) => iceTile(p.a, o), hotel: () => parquet({}), station: (o) => bricks(p.a, o), mirror: () => mirrorTile(false), theater: (o) => marble(p.a, o) }[theme];
     const ground = [gen({}), gen({ crack: true }), gen({ chip: true }), gen({})];
     const groundTop = theme === 'throne' ? [0, 1, 2, 3].map(() => bricks(p.a, { carpet: true }))
       : theme === 'ship' ? [0, 1, 2, 3].map(() => planks(p.a, { top: true }))
-      : theme === 'glass' || theme === 'gallery' || theme === 'cathedral' || theme === 'spire' || theme === 'ballroom' || theme === 'theater' ? [0, 1, 2, 3].map(() => marble(p.a, { inlay: true }))
+      : theme === 'glass' || theme === 'gallery' || theme === 'cathedral' || theme === 'spire' || theme === 'ballroom' || theme === 'theater' || theme === 'kaleido' ? [0, 1, 2, 3].map(() => marble(p.a, { inlay: true }))
       : theme === 'library' ? [0, 1, 2, 3].map(() => parquet({ top: true }))
       : theme === 'hotel' ? [0, 1, 2, 3].map(() => hotelCarpet())
       : theme === 'station' ? [0, 1, 2, 3].map(() => platformTop())
@@ -2244,7 +2248,7 @@ const Tiles = (() => {
       : theme === 'expo' ? [0, 1, 2, 3].map(() => tilesTop())
       : theme === 'ice' ? [0, 1, 2, 3].map(i => iceTile(p.a, { top: true, crack: i === 1 }))
       : theme === 'foyer' ? [checker({ top: true }), checker({ top: true, crack: true }), checker({ top: true }), checker({ top: true })] : ground;
-    const alt = theme === 'ice' ? [0, 1, 2].map(() => iceTile(p.b, { top: true })) : theme === 'gallery' || theme === 'cathedral' || theme === 'spire' ? [balcony(), balcony(), balcony()] : theme === 'throne' || theme === 'ballroom' || theme === 'theater' ? [goldLedge(), goldLedge(), goldLedge()] : theme === 'bridge' ? [bridgeDeck(), bridgeDeck(), bridgeDeck()] : theme === 'ship' ? [beam(p.b), beam(p.b), beam(p.b)] : theme === 'glass' ? [balcony(), balcony(), balcony()] : theme === 'foyer' || theme === 'hotel' ? [gallery(), gallery(), gallery()] : theme === 'library' ? [shelfWalk(), shelfWalk(), shelfWalk()] : theme === 'forest' ? [logTile(), logTile(), logTile()] : theme === 'expo' || theme === 'station' ? [ironGrate(), ironGrate(), ironGrate()] : theme === 'mirror' ? [0, 1, 2].map(() => mirrorTile(false, true)) : [stone(p.b, {}), stone(p.b, { crack: true }), stone(p.b, {})];
+    const alt = theme === 'ice' ? [0, 1, 2].map(() => iceTile(p.b, { top: true })) : theme === 'gallery' || theme === 'cathedral' || theme === 'spire' ? [balcony(), balcony(), balcony()] : theme === 'throne' || theme === 'ballroom' || theme === 'theater' || theme === 'kaleido' ? [goldLedge(), goldLedge(), goldLedge()] : theme === 'bridge' ? [bridgeDeck(), bridgeDeck(), bridgeDeck()] : theme === 'ship' ? [beam(p.b), beam(p.b), beam(p.b)] : theme === 'glass' ? [balcony(), balcony(), balcony()] : theme === 'foyer' || theme === 'hotel' ? [gallery(), gallery(), gallery()] : theme === 'library' ? [shelfWalk(), shelfWalk(), shelfWalk()] : theme === 'forest' ? [logTile(), logTile(), logTile()] : theme === 'expo' || theme === 'station' ? [ironGrate(), ironGrate(), ironGrate()] : theme === 'mirror' ? [0, 1, 2].map(() => mirrorTile(false, true)) : [stone(p.b, {}), stone(p.b, { crack: true }), stone(p.b, {})];
     const t = {
       ground, groundTop, alt,
       X: stone(p.b, { crack: true, chip: true }), Y: stone(p.b, { crack: true, chip: true }),

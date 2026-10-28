@@ -167,7 +167,7 @@ const Castle = (() => {
     if (crypt) open(crypt, 13, 11, 14, 12);                                       // Gruft: Loch unter der Brücke
     if (well) ledge(well, 27, 27, 22);                                            // Brunnenschacht: Steg bis zum rechten Rand
     if (lib) { open(lib, 0, 29, 0, 30); ledge(lib, 1, 2, 31); }                    // Bibliothek: Öffnung links über dem unteren Steg
-    if (cath) ledge(cath, 0, 4, 12);                                              // Kathedrale: Sims links oben (Doppelsprung)
+    if (cath) { ledge(cath, 0, 4, 12); cath.ents.push({ type: 'elevator', x: 6, y: 15, y1: 0 }); } // Kathedrale: Sims links oben (Doppelsprung), Aufzug hinauf ins Kaleidoskop
     if (palm) ledge(palm, 0, 11, 23);                                             // Palmenhaus: Sims links über dem Eingang
     if (trap) trap.ents.push({ type: 'elevator', x: 20, y: 10, y1: 0 });          // Menschenfalle: Aufzug hinauf zur Luke
     if (vortex) vortex.ents.push({ type: 'elevator', x: 58, y: 10, y1: 0 });      // Seelenstrudel: Aufzug hinauf ins Vorzimmer
@@ -633,6 +633,28 @@ const Castle = (() => {
       [['side', 'orangerie'], { e: 'L', y: 10 }, ['side', 'treibhaus'], { e: 'R', y: 10 }, {}],
       [[3, 0], { e: 'T', x: 58 }, ['side', 'vorzimmer'], { e: 'B', x: 2 }, {}],                     // Seelenstrudel: Aufzug → Vorzimmer → Seelenportal
       [['side', 'vorzimmer'], { e: 'L', y: 10 }, ['side', 'seelenportal'], { e: 'R', y: 10 }, {}],
+    );
+    // Kaleidoskop (über der Sonnenkathedrale: Aufzug links im Vorplatz hinauf durch die Luke; js/kaleido.js): eine liegende Röhre
+    // aus Buntglas in fünf Trommeln, die sich abwechselnd vorwärts und rückwärts um die Längsachse drehen. Unter den Trommeln nur
+    // Abgrund – hinüber nur am Ankerring mit der Peitsche (je Trommel zwei Ringe), zwischen den Trommeln Steinringe zum
+    // Verschnaufen; Verwandlungen reißt der Wirbel zurück. Am Ende Truhe, Lebensgefäß und die Prismenklinge, dann durch die
+    // Luke hinab zurück in die Kathedrale (Einbahn)
+    const kal = R(128, 'kaleido')
+      .fill(0, 9, 7, 12, '#').fill(4, 9, 5, 12, '.')                                   // Anfang, Luke hinab in die Kathedrale
+      .fill(105, 9, 127, 12, '#').fill(118, 9, 119, 12, '.')                           // Ende, Luke zurück (Einbahn)
+      .prop('hint', { x: 0, y: 6, w: 4, h: 3, key: 'hintRing' })
+      .candle(2, 6, 'H').candle(110, 6, '$').candle(125, 6, 'H')
+      .enemy('ghost', 58, 4).enemy('ghost', 96, 3)
+      .chest(113, 8, 'big').prop('vessel', { x: 124, y: 8 });
+    for (let k = 0; k < 5; k++) { // Trommel k: Abgrund x0 … x0+16, zwei Ringe; danach ein Steinring (der letzte gehört zum Ende)
+      const x0 = 8 + 20 * k;
+      kal.ring(x0 + 5, 3).ring(x0 + 12, 3);
+      if (k < 4) kal.fill(x0 + 17, 9, x0 + 19, 12, '#').candle(x0 + 18, 6, k % 2 ? 'H' : '$');
+    }
+    add('kaleido', 'sun', 5, null, kal.music('sun').label('KALEIDOSKOP').start(2, 8).done());
+    LINKS.push(
+      [['sun', 0], { e: 'T', x: 6 }, ['side', 'kaleido'], { e: 'B', x: 4 }, {}],                      // Kathedrale: Aufzug → Luke im Anfang
+      [['side', 'kaleido'], { e: 'B', x: 118 }, ['sun', 0], { e: 'T', x: 118 }, { oneway: true }],     // Ende: Luke hinab auf den Pfeiler rechts
     );
   }
   if (on && Levels.room) buildSide();
@@ -1738,6 +1760,10 @@ const Castle = (() => {
     roomT++;
     const p = W.player, def = S()[s].rooms[r];
     if (def.grates) grateBlock(p); // Gitter: nur Nebel kommt durch
+    if (def.side === 'kaleido' && (p.batForm || p.mistForm || p.wolfForm) && Kaleido.drum(p.cx) >= 0) { // der Wirbel der Trommeln: nur die Peitsche bringt hinüber
+      if (p.wolfForm) fromWolf(p, true); else fromBat(p, true);
+      Game.note('kaleidoForm'); Audio8.sfx('whoosh'); W.puff(p.cx, p.feet);
+    }
     if (def.waterLine !== undefined && !rel('diver') && p.alive && p.feet > def.waterLine * T + 22 && p.state !== 'dead') { Game.note(testing ? 'castleDrownTest' : 'castleDrown'); p.fallPenalty(3); } // ohne Helm: ertrinken (im Testmodus: wo es den Helm sofort gibt)
     if (!p.alive || p.state !== 'normal' || W.arenaOn) { push = 0; lastX = p.x; return; }
     for (const e of W.ents) { // Figuren: neue Szene beim Herantreten, danach ↑ für den Rat
@@ -1905,6 +1931,7 @@ const Castle = (() => {
     porter: { slot: 'acc', mp: 12, def: 1, col: '#c83040' },                  // Portiersmütze (Lohn für die Koffer)
     ironball: { slot: 'acc', atk: 4, col: '#8c8c9c' },                        // Eisenkugel des Gefangenen (Lohn für die Untertasse)
     trident: { slot: 'weapon', atk: 5, col: '#58c8d8' },                     // Dreizack des Wassermanns (versunkene Kapelle)
+    prisma: { slot: 'weapon', atk: 6, col: '#fc7cf8' },                      // Prismenklinge (Ende des Kaleidoskops)
     rec_kraken: { rec: 'kraken', col: '#7c4cc8' },     // Hotelbademantel (Portier): weich, heilt langsam
     // Schallplatten fürs Grammophon im Hotel (spielen ein Stück des Schlosses): gefunden, gekauft, eine liegt schon auf dem Teller
     rec_hotel: { rec: 'hotel', col: '#c89020' }, rec_title: { rec: 'title', col: '#9c6cfc' }, rec_stage1: { rec: 'stage1', price: 1500, col: '#fc7460' },
@@ -1930,6 +1957,7 @@ const Castle = (() => {
     [['side', 'kolosseum'], 'qcase1', 57, 6], [['side', 'attic'], 'qcase2', 30, 10], [['side', 'kanal'], 'qcase3', 100, 10],
     [['side', 'zimmer13'], 'saucer', 7, 10],
     [['side', 'kapelle'], 'trident', 10, 17], [['side', 'kapelle'], 'rec_kraken', 39, 18],
+    [['side', 'kaleido'], 'prisma', 108, 8],
   ];
   // Nebenaufträge (Status, vierte Seite): Auftraggeber, Stücke, Szene zum Annehmen und zum Abgeben
   const QUESTS = [
@@ -3626,7 +3654,7 @@ const Castle = (() => {
         if (pl.e === 'L' || pl.e === 'R') { const x = pl.e === 'L' ? 0 : def.w - 1; if (!(ground(def, x, pl.y) && open(x, pl.y - 1))) out.push('Seitenausgang ohne Boden/Platz: ' + where); }
         else if (pl.e === 'T') { if (![0, 1].every(k => open(pl.x + k, 0) && open(pl.x + k, 1))) out.push('Schacht oben zu: ' + where); }
         else if (![0, 1].every(k => open(pl.x + k, def.h - 1) && open(pl.x + k, def.h - 2))) out.push('Schacht unten zu: ' + where);
-        if (pl.e === 'B' && d.gate && Object.keys(d.gate).length) out.push('Schacht unten mit Sperre (man fiele ins Leere): ' + where);
+        if (pl.e === 'B' && d.gate && Object.keys(d.gate).some(k => k !== 'oneway' && k !== 'back')) out.push('Schacht unten mit Sperre (man fiele ins Leere): ' + where); // Einbahn sperrt nichts
       }
     }));
     for (const [A, , B] of LINKS) if (!ref(A) || !ref(B)) out.push('Verbindung ohne Raum: ' + JSON.stringify([A, B]));
@@ -3644,7 +3672,7 @@ const Castle = (() => {
     need.push('npcPrisoner', 'npcConcierge', 'concTitle', 'concHi', 'concSold', 'concOwned', 'concPoor', 'concThanks1', 'concThanks2', 'concThanks3', 'gramoTitle', 'gramoHi',
       'gramoPlay', 'gramoMissing', 'gramoNow', 'gramoHelp', 'hotelSign', 'boardTitle', 'formBack', 'whereWitch',
       'bossConductor', 'bossConductorNote', 'bossConductorShout', 'bossConductorRage', 'castleLocked13', 'dashKey',
-      'liftLocked', 'liftOpen', 'needRelic', 'subNone', 'subNoHearts', 'bossDoppel', 'bossDoppelNote', 'bossDoppelShout', 'bossDoppelRage', 'famSay_shadow', 'questTitle', 'questDone', 'questNone', 'questFrom', 'castleDrown', 'castleDrownTest');
+      'liftLocked', 'liftOpen', 'needRelic', 'subNone', 'subNoHearts', 'bossDoppel', 'bossDoppelNote', 'bossDoppelShout', 'bossDoppelRage', 'famSay_shadow', 'questTitle', 'questDone', 'questNone', 'questFrom', 'kaleidoForm', 'castleDrown', 'castleDrownTest');
     for (const q of QUESTS) need.push('quest_' + q.id, 'questHint_' + q.id);
     { // Erreichbarkeit: vom Wald aus über Türen und Ausgänge (alles geöffnet) – kein Raum darf abgeschnitten sein
       const key = (s, r) => s + ':' + r, seenR = new Set(), queue = [], s0 = sIdx('arrival');

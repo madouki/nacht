@@ -30,8 +30,8 @@ const FX = (() => {
     return c;
   }
 
-  const AMB = { expo: 0.3, forest: 0.36, cathedral: 0.06, spire: 0.05, gallery: 0.38, bridge: 0.26, library: 0.5, foyer: 0.6, glass: 0.24, ship: 0.32, vortex: 0.2, courtyard: 0.3, hall: 0.34, cave: 0.42, crypt: 0.42, tower: 0.36, throne: 0.3, ballroom: 0.34, ice: 0.36, hotel: 0.46, station: 0.42, mirror: 0.2, theater: 0.22 };
-  const TINT = { expo: '0,12,30', forest: '0,12,18', cathedral: '40,10,0', spire: '40,10,0', gallery: '10,6,30', bridge: '18,0,34', library: '20,8,2', foyer: '8,4,26', glass: '20,8,40', ship: '4,6,30', vortex: '26,0,40', courtyard: '12,0,32', hall: '24,0,12', cave: '10,4,0', crypt: '0,6,28', tower: '8,8,20', throne: '28,0,14', ballroom: '26,4,32', ice: '0,14,40', hotel: '22,10,4', station: '8,10,26', mirror: '30,12,22', theater: '30,16,12' };
+  const AMB = { kaleido: 0.3, expo: 0.3, forest: 0.36, cathedral: 0.06, spire: 0.05, gallery: 0.38, bridge: 0.26, library: 0.5, foyer: 0.6, glass: 0.24, ship: 0.32, vortex: 0.2, courtyard: 0.3, hall: 0.34, cave: 0.42, crypt: 0.42, tower: 0.36, throne: 0.3, ballroom: 0.34, ice: 0.36, hotel: 0.46, station: 0.42, mirror: 0.2, theater: 0.22 };
+  const TINT = { kaleido: '24,6,40', expo: '0,12,30', forest: '0,12,18', cathedral: '40,10,0', spire: '40,10,0', gallery: '10,6,30', bridge: '18,0,34', library: '20,8,2', foyer: '8,4,26', glass: '20,8,40', ship: '4,6,30', vortex: '26,0,40', courtyard: '12,0,32', hall: '24,0,12', cave: '10,4,0', crypt: '0,6,28', tower: '8,8,20', throne: '28,0,14', ballroom: '26,4,32', ice: '0,14,40', hotel: '22,10,4', station: '8,10,26', mirror: '30,12,22', theater: '30,16,12' };
   const lc = Sprites.canvas(256, 208), lx = lc.getContext('2d');
   let vignette = null;
 
@@ -92,7 +92,7 @@ const FX = (() => {
 
   // ---------------- Nebel ----------------
   const fogCache = {};
-  const FOG = { expo: [150, 200, 180, 0.24], forest: [60, 116, 100, 0.42], bridge: [130, 90, 170, 0.42], ship: [90, 110, 180, 0.3], vortex: [160, 60, 220, 0.45], courtyard: [120, 70, 170, 0.5], cave: [70, 110, 60, 0.32], crypt: [90, 120, 220, 0.42], tower: [110, 110, 130, 0.22], ballroom: [150, 170, 236, 0.26], ice: [170, 220, 250, 0.3] }; // Ballsaal: fahler Geisternebel über dem Parkett
+  const FOG = { kaleido: [150, 110, 200, 0.26], expo: [150, 200, 180, 0.24], forest: [60, 116, 100, 0.42], bridge: [130, 90, 170, 0.42], ship: [90, 110, 180, 0.3], vortex: [160, 60, 220, 0.45], courtyard: [120, 70, 170, 0.5], cave: [70, 110, 60, 0.32], crypt: [90, 120, 220, 0.42], tower: [110, 110, 130, 0.22], ballroom: [150, 170, 236, 0.26], ice: [170, 220, 250, 0.3] }; // Ballsaal: fahler Geisternebel über dem Parkett
   function fogStrip(theme) {
     if (fogCache[theme]) return fogCache[theme];
     const f = FOG[theme];

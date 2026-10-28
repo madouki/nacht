@@ -814,6 +814,10 @@ const I18N = (() => {
       ja: ['A:潜水ヘルメットか！これで泳げる。水中ではジャンプがひとかきになる。', 'A:水路の入口に下へ続く穴がある。その下に沈んだ礼拝堂がある。鐘もある。もう鳴らない。泡を吹く。'],
       zh: ['A:潜水头盔！现在你能游泳了。在水里，每次跳跃都是一次划水。', 'A:水道入口有个往下的洞。下面是一座沉没的礼拜堂。还有一口钟。它不再响了。它冒泡。'],
     },
+    // Kaleidoskop: Prismenklinge, Wirbel gegen Verwandlungen
+    item_prisma: { de: 'PRISMENKLINGE', en: 'PRISM BLADE', fr: 'LAME PRISMATIQUE', es: 'HOJA PRISMÁTICA', ja: 'プリズムの刃', zh: '棱镜之刃' },
+    itemD_prisma: { de: 'ATT +6. SCHNEIDET LICHT IN SIEBEN FARBEN. DIE ACHTE IST GEHEIM.', en: 'ATT +6. CUTS LIGHT INTO SEVEN COLOURS. THE EIGHTH IS A SECRET.', fr: 'ATT +6. TRANCHE LA LUMIÈRE EN SEPT COULEURS. LA HUITIÈME EST SECRÈTE.', es: 'ATT +6. CORTA LA LUZ EN SIETE COLORES. EL OCTAVO ES SECRETO.', ja: 'ATT+6。光を七色に切り分ける。八色目は秘密。', zh: 'ATT+6。把光切成七种颜色。第八种是秘密。' },
+    kaleidoForm: { de: 'DER WIRBEL REISST DICH ZURÜCK IN MENSCHENGESTALT!', en: 'THE VORTEX TEARS YOU BACK INTO HUMAN FORM!', fr: 'LE TOURBILLON TE REND TA FORME HUMAINE !', es: '¡EL TORBELLINO TE DEVUELVE A FORMA HUMANA!', ja: '渦が君を人の姿に引き戻す！', zh: '漩涡把你拽回人形！' },
     hiTitle: { de: 'BESTENLISTE', en: 'HIGH SCORES', fr: 'MEILLEURS SCORES', es: 'RÉCORDS', ja: 'ハイスコア', zh: '高分榜' },
     newHi: { de: 'NEUER HIGHSCORE!', en: 'NEW HIGH SCORE!', fr: 'NOUVEAU RECORD !', es: '¡NUEVO RÉCORD!', ja: 'ハイスコア更新！', zh: '新高分！' },
     enterName: { de: 'GIB DEINE INITIALEN EIN', en: 'ENTER YOUR INITIALS', fr: 'ENTRE TES INITIALES', es: 'INTRODUCE TUS INICIALES', ja: 'イニシャルを入力', zh: '输入你的名字缩写' },
