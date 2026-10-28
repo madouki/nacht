@@ -106,7 +106,7 @@ const Castle = (() => {
   const mainCount = (s) => S()[s].rooms.filter(d => !d.side).length; // ohne die Zusatzräume des Schloss-Modus
   const ref = ([id, r]) => { if (id === 'side') return SIDE[r] || null; const s = sIdx(id); return s < 0 ? null : { s, r: r < 0 ? mainCount(s) + r : r }; };
   const same = (a, s, r) => a && a.s === s && a.r === r;
-  const dims = (def) => ({ cw: Math.ceil(def.w / CW), ch: def.mapH || Math.ceil(def.h / CH) }); // mapH: Kartenhöhe in Zellen (gerundet statt aufgerundet)
+  const dims = (def) => ({ cw: def.mapW || Math.ceil(def.w / CW), ch: def.mapH || Math.ceil(def.h / CH) }); // mapW/mapH: Kartenbreite/-höhe in Zellen (statt aufgerundet)
   const cellX = (x, cw) => clamp(Math.floor(x / CW), 0, cw - 1);
   const cellY = (y, ch) => clamp(Math.floor(y / CH), 0, ch - 1);
   const floorRow = (def, col, from) => { for (let y = Math.max(0, from); y < def.h; y++) if (SOLID.includes(def.grid[y][col])) return y; return def.h - 1; };
@@ -519,14 +519,14 @@ const Castle = (() => {
     );
     // ---- Burghof und Stadt Rand an Rand: Kasematte, Torstube, Zwinger, Hotelaufzug (Plätze auf der Karte von selbst) ----
     // Kasematte zwischen Kolosseum und Katakomben: ruhige Speicherkammer mit Sarg und Kerzen (die der Eingangshalle ist hierher gezogen)
-    const hall = (def) => { def.hall = true; return def; }; // Kammer mit Gewölbe und Brunnen (js/kammer.js)
-    add('kasematte', 0, 1, null, hall(R(16, 'crypt')
-      .ground(0, 15).candle(1, 9).candle(14, 9).prop('kammerhall', { bays: 1 }).prop('fountain', { x: 8, big: true })
+    const hall = (def) => { def.hall = true; def.mapW = 1; return def; }; // Kammer mit Gewölbe (js/kammer.js): bildfüllend breit, auf der Karte eine Zelle
+    add('kasematte', 0, 1, null, hall(R(32, 'crypt')
+      .ground(0, 31).candle(1, 9).candle(30, 9).prop('kammerhall', { bays: 3 }).prop('fountain', { x: 16, big: true })
       .music('stage1').label('KASEMATTE').start(2, 10).done()));
     // Torstube im rechten Torturm über dem Burgtor: Warpkammer; die Luke im Boden führt hinab auf den Absatz im Burghof, links der Zwinger
-    add('torstube', 0, 1, null, hall(R(16, 'hall')
-      .ground(0, 15).fill(10, 11, 11, 12, '.').fill(15, 0, 15, 10, '#')
-      .candle(1, 9).candle(14, 9).prop('kammerhall', { bays: 1 })
+    add('torstube', 0, 1, null, hall(R(32, 'hall')
+      .ground(0, 31).fill(10, 11, 11, 12, '.')
+      .candle(1, 9).candle(30, 9).prop('kammerhall', { bays: 3 })
       .music('stage1').label('TORSTUBE').start(2, 10).done()));
     // Zwinger: Gang zwischen den Ringmauern unter dem Wehrgang, vom Torturm nach links bis zur Fassade des Hotels Krat (Hotelaufzug)
     add('zwinger', 0, 2, null, R(64, 'courtyard')
@@ -603,10 +603,11 @@ const Castle = (() => {
     // Speicherkammer: ruhig, Kerzen, die Sargnische; Warpkammer daneben als Sackgasse mit dem leuchtenden Portal. Beide als kleine
     // Kapelle mit zwei Jochen unter einem Kreuzrippengewölbe (js/kammer.js): die Nische im hinteren Joch, im anderen ein Brunnen.
     // Die Kammern nehmen den alten Schlüssel mit (CHAMBERS), Spielstände und freigeschaltete Portale bleiben gültig
+    // Die Kammer füllt das ganze Bild (32 Kacheln, drei Joche, keine Mauersäulen): Sackgassen enden am gemalten Pfeiler.
+    // walls bleibt als Merkmal der Sackgasse (Seite ohne Ausgang), wird aber nicht mehr als Steinsäule gebaut
     const kammer = (key, id, theme, music, label, walls, save) => { // save: Speicherkammer mit dem Brunnen der Rast (sonst Warpkammer mit dem Kugelportal)
-      const k = R(16, theme).ground(0, 15).candle(1, 9).candle(14, 9).prop('kammerhall', { bays: 1 });
-      if (save) k.prop('fountain', { x: 8, big: true });
-      if (walls === 'L') k.fill(0, 0, 0, 10, '#'); else if (walls === 'R') k.fill(15, 0, 15, 10, '#');
+      const k = R(32, theme).ground(0, 31).candle(1, 9).candle(30, 9).prop('kammerhall', { bays: 3 });
+      if (save) k.prop('fountain', { x: 16, big: true });
       add(key, id, 1, null, hall(k.music(music).label(label).start(2, 10).done()));
     };
     kammer('felsenkammer', 1, 'cave', 'stage2', 'FELSENKAMMER', null, true);                 // Katakomben: rechts am Brunnenschacht
@@ -1104,12 +1105,12 @@ const Castle = (() => {
   // Passt ein Platz nach einem Umbau nicht mehr, sucht findSpot die nächste freie Bodenstelle rechts vom Start.
   const CHAMBERS = [
     [['arrival', -1], 'save', 7, 10],                              // Wald: gleich nach der Landung
-    [['side', 'kasematte'], 'save', 7, 10, '0:1:save'], [['side', 'torstube'], 'warp', 7, 10, '0:1:warp'], // Eingangshalle → eigene Räume: Kasematte, Torstube
-    [['side', 'felsenkammer'], 'save', 7, 10, '1:0:save'], [['side', 'grottenportal'], 'warp', 7, 10, '1:0:warp'], // Katakomben: am Brunnenschacht
-    [['side', 'lesezimmer'], 'save', 7, 10, '2:0:save'], [['side', 'turmstube'], 'warp', 7, 10, '2:0:warp'],       // Bergfried: an der Bibliothek
-    [['side', 'sakristei'], 'save', 7, 10, 'sun:0:save'], [['side', 'kreuzgang'], 'warp', 7, 10, 'sun:0:warp'],     // Kathedrale: am Vorplatz
-    [['side', 'orangerie'], 'save', 7, 10, 'expo:0:save'], [['side', 'treibhaus'], 'warp', 7, 10, 'expo:0:warp'],   // Wintergarten: am Palmenhaus
-    [['side', 'vorzimmer'], 'save', 7, 10, '3:0:save'], [['side', 'seelenportal'], 'warp', 7, 10, '3:2:warp'],      // Thron: über dem Seelenstrudel
+    [['side', 'kasematte'], 'save', 15, 10, '0:1:save'], [['side', 'torstube'], 'warp', 15, 10, '0:1:warp'], // Eingangshalle → eigene Räume: Kasematte, Torstube
+    [['side', 'felsenkammer'], 'save', 15, 10, '1:0:save'], [['side', 'grottenportal'], 'warp', 15, 10, '1:0:warp'], // Katakomben: am Brunnenschacht
+    [['side', 'lesezimmer'], 'save', 15, 10, '2:0:save'], [['side', 'turmstube'], 'warp', 15, 10, '2:0:warp'],       // Bergfried: an der Bibliothek
+    [['side', 'sakristei'], 'save', 15, 10, 'sun:0:save'], [['side', 'kreuzgang'], 'warp', 15, 10, 'sun:0:warp'],     // Kathedrale: am Vorplatz
+    [['side', 'orangerie'], 'save', 15, 10, 'expo:0:save'], [['side', 'treibhaus'], 'warp', 15, 10, 'expo:0:warp'],   // Wintergarten: am Palmenhaus
+    [['side', 'vorzimmer'], 'save', 15, 10, '3:0:save'], [['side', 'seelenportal'], 'warp', 15, 10, '3:2:warp'],      // Thron: über dem Seelenstrudel
     [['side', 'hotel'], 'save', 9, 17], [['side', 'hotel'], 'warp', 44, 17], // Hotel Krat: Sternlampe und Aufzug
   ];
   function spotOk(def, x, y) { // ebener Boden unter beiden Kacheln, darüber drei Reihen frei

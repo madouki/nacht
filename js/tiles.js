@@ -3760,6 +3760,7 @@ const Tiles = (() => {
   }
   let frontA = 1;
   function drawFront(ctx, room, cam) {
+    if (room.hall) return; // Speicher-/Warpkammer (js/kammer.js): ein klarer Innenraum ohne Ketten und Silhouetten des Themas davor
     if (room.theme === 'ship') { drawShipFront(ctx, room, cam, W.frame); return; }
     if (room.theme === 'glass' || room.mtower) { drawGlassFront(ctx, room, cam); return; }
     frontA += ((W.arenaOn && !W.room.mini ? 0.2 : 1) - frontA) * 0.06; // im Bosskampf treten die Vordergrund-Silhouetten zurück

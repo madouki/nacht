@@ -7,7 +7,8 @@
 'use strict';
 
 class ChamberHall extends Ent {
-  constructor(d) { super(0, 0, 1, 1); this.kind = 'prop'; this.noWrap = true; this.cache = null; this.nb = d.bays || 0; } // bays: 1 = ein großes Mitteljoch
+  constructor(d) { super(0, 0, 1, 1); this.kind = 'prop'; this.noWrap = true; this.cache = null; this.nb = d.bays || 0; } // bays: 1 = ein großes Mitteljoch, 3 = Mitteljoch mit Seitenjochen
+  static main(n, i) { return n === 1 || (n === 3 && i === 1); } // Hauptjoch: große Rosette, Lichtschacht senkrecht auf die Mitte
   // Steinfarben je Region (dunkel, mittel, hell, Licht), Kappen (Nachtblau), Gold
   static pal(theme) {
     const S = {
@@ -23,23 +24,23 @@ class ChamberHall extends Ent {
   update() { this.t++; }
   draw() { }
   bays() { const Wr = W.room.w * T, n = this.nb || Math.max(1, Math.round(Wr / 128)), w = Wr / n; return [...Array(n)].map((_, i) => ({ x0: i * w, x1: (i + 1) * w, cx: (i + 0.5) * w })); }
-  lightUp(L, cx, cy) { const F = (W.room.h - 2) * T; for (const b of this.bays()) L.push({ x: b.cx - cx, y: F - 106 - cy, r: 30, c: [150, 170, 255], a: 0.22 }); }
+  lightUp(L, cx, cy) { const F = (W.room.h - 2) * T; this.bays().forEach((b, i) => L.push({ x: b.cx - cx, y: F - 106 - cy, r: ChamberHall.main(this.nb, i) ? 40 : 28, c: [150, 170, 255], a: 0.22 })); }
   drawBack(ctx) {
     const R = W.room, key = R.theme + R.w + 'x' + R.h + '/' + this.nb;
     if (!this.cache || this.cache.key !== key) this.cache = { key, c: ChamberHall.paint(R, this.nb) };
     const ox = -Math.round(W.cam.x), oy = -Math.round(W.cam.y), F = (R.h - 2) * T, t = this.t;
     ctx.drawImage(this.cache.c, ox, oy);
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
-    for (const b of this.bays()) { // Mondlicht durch die Rosenfenster: Glut im Glas und ein schräger Lichtschacht bis zum Boden
-      const rx = ox + b.cx, ry = oy + F - 106, a = 0.16 + 0.05 * Math.sin(t * 0.021 + b.cx);
+    this.bays().forEach((b, bi) => { // Mondlicht durch die Rosenfenster: Glut im Glas und ein Lichtschacht bis zum Boden
+      const main = ChamberHall.main(this.nb, bi), rx = ox + b.cx, ry = oy + F - 106 - (main ? 4 : 0), a = 0.16 + 0.05 * Math.sin(t * 0.021 + b.cx);
       const g = ctx.createRadialGradient(rx, ry, 2, rx, ry, 22); g.addColorStop(0, `rgba(170,190,255,${a.toFixed(3)})`); g.addColorStop(1, 'rgba(120,140,255,0)');
       ctx.fillStyle = g; ctx.fillRect(rx - 22, ry - 22, 44, 44);
       const sh = ctx.createLinearGradient(0, ry, 0, oy + F); sh.addColorStop(0, `rgba(150,160,255,${(a * 0.5).toFixed(3)})`); sh.addColorStop(1, 'rgba(150,160,255,0)');
       ctx.fillStyle = sh; ctx.beginPath();
-      if (this.nb === 1) { ctx.moveTo(rx - 14, ry + 10); ctx.lineTo(rx + 14, ry + 10); ctx.lineTo(rx + 46, oy + F); ctx.lineTo(rx - 46, oy + F); } // senkrecht auf die Mitte (Brunnen, Portal)
+      if (main) { ctx.moveTo(rx - 14, ry + 10); ctx.lineTo(rx + 14, ry + 10); ctx.lineTo(rx + 46, oy + F); ctx.lineTo(rx - 46, oy + F); } // senkrecht auf die Mitte (Brunnen, Portal)
       else { ctx.moveTo(rx - 9, ry + 6); ctx.lineTo(rx + 9, ry + 6); ctx.lineTo(rx + 34, oy + F); ctx.lineTo(rx + 2, oy + F); }
       ctx.closePath(); ctx.fill();
-    }
+    });
     ctx.restore();
   }
   // ---------------- einmal malen: Mauer, Blendarkade, Dienste, Gewölbe, Rosenfenster ----------------
@@ -104,7 +105,7 @@ class ChamberHall extends Ent {
         x.fillStyle = G[1]; x.fillRect(Math.round(p[0] + dx / l * 3.5), Math.round(p[1] + dy / l * 3.5), 1, 1);
       }
       // Rosenfenster in der Schildwand: Steinring, acht Glasblätter, Maßwerkspeichen, Vierpass in der Mitte
-      const rr = n === 1 ? 21 : 13, k = rr / 13, rx = cx, ry = F - 106 - (n === 1 ? 4 : 0), GL = ['#2c3c9c', '#9c2c4c', '#2c3c9c', '#c8901c'];
+      const mainB = ChamberHall.main(n, b), rr = mainB ? 21 : 13, k = rr / 13, rx = cx, ry = F - 106 - (mainB ? 4 : 0), GL = ['#2c3c9c', '#9c2c4c', '#2c3c9c', '#c8901c'];
       x.fillStyle = S[0]; x.beginPath(); x.arc(rx, ry, rr + 3, 0, Math.PI * 2); x.fill();
       x.fillStyle = S[3]; x.beginPath(); x.arc(rx, ry, rr + 2, 0, Math.PI * 2); x.fill();
       x.fillStyle = '#0c0a18'; x.beginPath(); x.arc(rx, ry, rr, 0, Math.PI * 2); x.fill();

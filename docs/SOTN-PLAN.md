@@ -304,7 +304,8 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   Felsenkammer/Grottenportal (Brunnenschacht), Lesezimmer/Turmstube (Bibliothek), Sakristei/Kreuzgang (Kathedrale),
   Orangerie/Treibhaus (Palmenhaus), Vorzimmer/Seelenportal (über dem Seelenstrudel). Sie behalten den alten Schlüssel
   (`CHAMBERS`, 5. Feld) – Spielstände und freigeschaltete Portale bleiben gültig. Das Hotel behält Sternlampe und Aufzug.
-  Jede Kammer ist eine kleine Kapelle (`js/kammer.js`, `def.hall`): ein großes Joch unter einem Kreuzrippengewölbe mit
+  Jede Kammer ist eine kleine Kapelle (`js/kammer.js`, `def.hall`), bildfüllend 32 Kacheln breit ohne Mauersäulen (auf der
+  Karte weiter eine Zelle: `def.mapW = 1`), drei Joche – ein großes Mitteljoch zwischen zwei Seitenjochen – unter einem Kreuzrippengewölbe mit
   Sternenhimmel in den Kappen, Rippen mit Goldfilet, Nasenbesatz am Schildbogen, goldener Schlussstein, Dienstbündel mit
   Blattkapitellen, Blendarkade im Sockel, ein großes Rosenfenster, dessen Mondlichtschacht senkrecht auf die Mitte fällt;
   Steinfarben nach Region. In der **Speicherkammer** steht dort der Brunnen als Ort der Rast (kein Sarg mehr): Plattform,
