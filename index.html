@@ -11,6 +11,13 @@
   html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; touch-action: none; }
   body { position: fixed; inset: 0; box-sizing: border-box; padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); display: flex; align-items: center; justify-content: center; font-family: monospace; color: #fcfcfc; }
   #wrap { position: relative; line-height: 0; flex: none; }
+  /* Lade-Kranz unten rechts, solange ein Abschnitt vorgebaut wird: eine CSS-Animation, die der Browser auch dann weiterdreht, wenn das
+     Spiel gerade an einem großen Hintergrund rechnet – so sieht ein kurzes Stocken nicht wie ein Absturz aus */
+  #loadspin { position: absolute; right: 4%; bottom: 6%; width: 22px; height: 22px; display: none; pointer-events: none; }
+  #loadspin.on { display: block; animation: loadspin 0.8s steps(8) infinite; }
+  #loadspin::before { content: ''; position: absolute; left: 9px; top: 0; width: 4px; height: 4px; background: #fce0a8;
+    box-shadow: 6px 3px 0 #e8b848, 9px 9px 0 #c89020, 6px 15px 0 #a06818, 0 18px 0 #804810, -6px 15px 0 #603008, -9px 9px 0 #401c04, -6px 3px 0 #2c1404; }
+  @keyframes loadspin { to { transform: rotate(360deg); } }
   canvas#screen {
     display: block; image-rendering: pixelated; image-rendering: crisp-edges;
     background: #000;
@@ -64,7 +71,7 @@
 </head>
 <body>
 <div id="boot"><canvas aria-label="NACHTMAHR lädt"></canvas></div>
-<div id="wrap"><canvas id="screen" width="256" height="240" aria-label="NACHTMAHR Spielfeld"></canvas><div id="crt"></div></div>
+<div id="wrap"><canvas id="screen" width="256" height="240" aria-label="NACHTMAHR Spielfeld"></canvas><div id="crt"></div><div id="loadspin" aria-hidden="true"></div></div>
 <div id="touch" aria-hidden="true">
   <div id="stickBase"><div id="stickKnob"></div></div>
   <div id="stickHint">LINKE HÄLFTE: STEUERN</div>

@@ -157,10 +157,12 @@ const Input = (() => {
       for (const tc of e.changedTouches) {
         const id = tc.identifier, x = tc.clientX, y = tc.clientY;
         if (e.type === 'touchstart') {
-          if (typeof Game !== 'undefined' && Game.state === 'pause') { menuT = { id, y, acc: 0, moved: false }; continue; } // Pause: wischen = auswählen, tippen (beim Loslassen) = Menüpunkt bzw. weiter
-          const a = hitTest(x, y);
+          const a = hitTest(x, y), btn = a && a !== 'full' && (x > window.innerWidth * 0.45 || a === 'start');
+          // Pause: wischen = auswählen, tippen (beim Loslassen) = Menüpunkt bzw. weiter. Die Tasten bleiben Tasten (A bestätigt den
+          // gewählten Punkt) – vorher galt ein Druck auf A als Tipp auf die Menüzeile in derselben Höhe, oft ZUM TITEL
+          if (!btn && a !== 'full' && typeof Game !== 'undefined' && Game.state === 'pause') { menuT = { id, y, acc: 0, moved: false }; continue; }
           if (a === 'full') { fullTouch = id; continue; }
-          if (a && (x > window.innerWidth * 0.45 || a === 'start')) { latch[a] = true; active.set(id, a); continue; }
+          if (btn) { latch[a] = true; active.set(id, a); continue; }
           if (inMenu()) taps.set(id, { x, y, t0: performance.now() }); // Menüs: kurzer Tipp auf einen Eintrag wählt ihn
           if (x < window.innerWidth * 0.5 && stick.id === null) { stick.id = id; stick.ox = x; stick.oy = y; stick.dx = 0; stick.dy = 0; if (hint) hint.style.display = 'none'; }
         } else if (e.type === 'touchmove') {

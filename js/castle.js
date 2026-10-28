@@ -123,6 +123,7 @@ const Castle = (() => {
     const room = (id, i) => { const s = sIdx(id); return s >= 0 ? S()[s].rooms[i] : null; };
     const open = (def, x0, y0, x1, y1) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) def.grid[y][x] = '.'; };
     const ledge = (def, x0, x1, y) => { for (let x = x0; x <= x1; x++) def.grid[y][x] = '='; };
+    const stair = (def, c0, r0, len, dir) => { for (let i = 0; i < len; i++) def.grid[r0 - i][c0 + i * dir] = dir > 0 ? '/' : '\\'; }; // wie levels.js
     const hall = room(0, 1), bell = room(0, 2), cave = room(1, 0), well = room(1, 1), keep = room(2, 0), vortex = room(3, 0);
     // Glockenturm und Brunnenschacht (30 Reihen, gut zwei Bildschirme) zählen auf der Karte zwei Zellen hoch: über dem Glockenturm
     // bleibt so Platz für den Thron, und die Große Halle liegt auf Höhe der oberen Halle
@@ -132,7 +133,7 @@ const Castle = (() => {
       open(hall, CELLAR.x, hall.h - 2, CELLAR.x + 1, hall.h - 1);                 // Kellerschacht im Boden
       ledge(hall, 24, 27, 5); ledge(hall, 14, 19, 3); ledge(hall, 0, 9, 3);       // vom Sims über der Galerie hinauf zum Turmschacht oben links
     }
-    if (cave) cave.ents.push({ type: 'elevator', x: 18, y: 10, y1: 0 });          // Katakomben: Aufzug am Ufer hinauf in den Kellerschacht
+    if (cave) stair(cave, 9, 10, 11, 1);                                          // Katakomben: Treppe am Ufer hinauf in den Kellerschacht
     if (keep) open(keep, 48, keep.h - 2, 49, keep.h - 1);                          // Bergfried: Luke im Boden (hinab in die Halle)
     if (vortex) open(vortex, 0, vortex.h - 2, 1, vortex.h - 1);                    // Seelenstrudel: Schacht links im Boden (hinab zum Siegeltor)
   }
@@ -153,7 +154,11 @@ const Castle = (() => {
     if (lib) { for (let x = 29; x <= 34; x++) lib.grid[17][x] = '='; lib.grid[15][35] = lib.grid[16][35] = '.'; } // Bibliothek: Steg zur Öffnung rechts
     if (gal) for (let y = gal.h - 2; y < gal.h; y++) for (let x = 22; x <= 23; x++) gal.grid[y][x] = '.';      // Marmorgalerie: Loch ins Kabinett
     if (glass) glass.grid[14][26] = glass.grid[14][27] = '=';                                                 // Glasturm: Steg zur Öffnung rechts
-    if (ball) ball.ents.push({ type: 'elevator', x: 100, y: 10, y1: 0 });                                     // Ballsaal: Aufzug zur Luke
+    if (ball) { // Ballsaal: Treppe mit Podest hinauf zur Luke – Fuß auf dem sicheren Zielpodest (das Parkett davor ist verflucht)
+      for (let i = 0; i < 6; i++) ball.grid[10 - i][108 - i] = '\\';
+      for (let x = 97; x <= 102; x++) ball.grid[5][x] = '=';
+      for (let i = 0; i < 5; i++) ball.grid[4 - i][97 + i] = '/';
+    }
     if (gear) gear.grid[16][0] = gear.grid[17][0] = '.';                                                      // Uhrturm: Öffnung links zur Pendelhalle
   }
   // Tiefe und Kammern Rand an Rand (Schloss-Modus): Löcher in der Eishöhle (Lücke in der Stachelgrube → Eisrutsche, vor dem Eisturm
@@ -163,15 +168,16 @@ const Castle = (() => {
     const room = (id, i) => { const s = sIdx(id); return s >= 0 ? S()[s].rooms[i] : null; };
     const open = (def, x0, y0, x1, y1) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) def.grid[y][x] = '.'; };
     const ledge = (def, x0, x1, y) => { for (let x = x0; x <= x1; x++) def.grid[y][x] = '='; };
+    const stair = (def, c0, r0, len, dir) => { for (let i = 0; i < len; i++) def.grid[r0 - i][c0 + i * dir] = dir > 0 ? '/' : '\\'; }; // wie levels.js
     const ice = room(1, 2), crypt = room(1, 4), well = room(1, 1), lib = room(2, 1), cath = room('sun', 0), palm = room('expo', 0), trap = room('expo', 3), vortex = room(3, 0), spire = room('sun', 1);
     if (ice) { open(ice, 40, 11, 41, 12); open(ice, 96, 11, 97, 12); }          // Eishöhle: Lücke in der Stachelgrube, Loch vor dem Eisturm
     if (crypt) open(crypt, 13, 11, 14, 12);                                       // Gruft: Loch unter der Brücke
     if (well) ledge(well, 27, 27, 22);                                            // Brunnenschacht: Steg bis zum rechten Rand
     if (lib) { open(lib, 0, 29, 0, 30); ledge(lib, 1, 2, 31); }                    // Bibliothek: Öffnung links über dem unteren Steg
-    if (cath) { ledge(cath, 0, 4, 12); cath.ents.push({ type: 'elevator', x: 6, y: 15, y1: 0 }); } // Kathedrale: Sims links oben (Doppelsprung), Aufzug hinauf ins Kaleidoskop
+    if (cath) { ledge(cath, 0, 4, 12); stair(cath, 13, 15, 8, -1); ledge(cath, 0, 5, 8); stair(cath, 0, 7, 8, 1); } // Kathedrale: Sims links oben (Doppelsprung); Treppe mit Podest hinauf ins Kaleidoskop
     if (palm) ledge(palm, 0, 11, 23);                                             // Palmenhaus: Sims links über dem Eingang
-    if (trap) trap.ents.push({ type: 'elevator', x: 20, y: 10, y1: 0 });          // Menschenfalle: Aufzug hinauf zur Luke
-    if (vortex) vortex.ents.push({ type: 'elevator', x: 58, y: 10, y1: 0 });      // Seelenstrudel: Aufzug hinauf ins Vorzimmer
+    if (trap) stair(trap, 11, 10, 11, 1);                                         // Menschenfalle: Treppe hinauf zur Luke
+    if (vortex) { stair(vortex, 59, 10, 4, -1); ledge(vortex, 53, 55, 7); stair(vortex, 53, 6, 7, 1); } // Seelenstrudel: Treppe mit Podest hinauf ins Vorzimmer (Fuß vor dem Ausgang rechts)
     if (spire) spire.crumbleLedges = true;                                        // Sonnenturm: die Simse bröckeln unter den Füßen weg
     const mach = room('expo', 1); if (mach) open(mach, 70, mach.h - 2, 71, mach.h - 1); // Maschinenhalle: Luke hinab ins Galvani-Laboratorium
   }
@@ -188,11 +194,11 @@ const Castle = (() => {
     edgeKeep();
     edgeDeep();
     // Kolosseum (unter dem Burghof): Kampfbahn mit Rittern und Skeletten, Zombies und Schädel kommen immer nach – zum Aufleveln.
-    // Hinein fällt man durch den Schacht im Burghof, hinauf fährt ein Aufzug wie im Hypogäum (x 36); ein Loch in der Arena führt
+    // Hinein fällt man durch den Schacht im Burghof, hinauf führt eine Treppe (x 36); ein Loch in der Arena führt
     // hinab in den Kerker, rechts geht es durch die Kasematte in die Katakomben
     add('kolosseum', 0, 2, null, R(84, 'gallery')
-      .ground(0, 83).fill(50, 11, 51, 12, '.').elevator(36, 10, 0)
-      .fill(10, 8, 14, 8, '=').fill(24, 7, 30, 7, '=').fill(40, 8, 44, 8, '=').fill(54, 7, 60, 7, '=').fill(70, 8, 74, 8, '=')
+      .ground(0, 83).fill(50, 11, 51, 12, '.').stair(27, 10, 11, 1)
+      .fill(10, 8, 14, 8, '=').fill(24, 7, 28, 7, '=').fill(40, 8, 44, 8, '=').fill(54, 7, 60, 7, '=').fill(70, 8, 74, 8, '=')
       .candle(6, 9, 'H').candle(12, 6).candle(27, 5, '$').candle(42, 6, 'H').candle(57, 5).candle(72, 6, 'H')
       .enemy('knight', 20, 10).enemy('skel', 34, 10).enemy('knight', 48, 10).enemy('skel', 62, 10).enemy('knight', 76, 10)
       .enemy('ghost', 30, 4).enemy('ghost', 60, 4)
@@ -200,11 +206,11 @@ const Castle = (() => {
       .statue(4, 10).chest(78, 10, 'big').prop('vessel', { x: 72, y: 7 }) // am Ende liegt das erste Relikt (Doppelsprung)
       .label('KOLOSSEUM').start(2, 10).done());
     // Unterirdischer Kanal (rechts hinter der Gruft): zwei Becken mit Fischmenschen, Trittsteine, bröckelnde Steine; am Anfang ein Loch
-    // hinab in die versunkene Kapelle, in der Mitte ein Aufzug hinauf in den Pumpenschacht (zur Kuppel des Wintergartens)
+    // hinab in die versunkene Kapelle, in der Mitte eine Treppe hinauf in den Pumpenschacht (zur Kuppel des Wintergartens)
     add('kanal', 1, 3, null, R(112, 'cave')
-      .ground(0, 14).fill(6, 11, 7, 12, '.').fill(15, 11, 34, 12, '~').elevator(48, 10, 0)
+      .ground(0, 14).fill(6, 11, 7, 12, '.').fill(15, 11, 34, 12, '~')
       .fill(17, 9, 20, 9, '=').fill(24, 8, 27, 8, '=').fill(31, 9, 33, 9, '=')
-      .ground(35, 52).fill(40, 8, 46, 8, '=')
+      .ground(35, 52).fill(43, 8, 46, 8, '=').stair(39, 10, 11, 1)
       .fill(53, 11, 70, 12, '~').crumble(55, 9).crumble(59, 8).crumble(63, 9).fill(67, 9, 69, 9, '=')
       .ground(71, 111).fill(80, 8, 86, 8, '=').fill(94, 7, 100, 7, '=')
       .candle(4, 9).candle(10, 9, 'H').candle(25, 6).candle(43, 6, 'H').candle(50, 9, '$').candle(68, 7, 'H').candle(83, 6).candle(105, 9, 'H')
@@ -261,9 +267,9 @@ const Castle = (() => {
     LINKS.push([[0, 1], { e: 'L', y: 2 }, ['side', 'attic'], { e: 'R', y: 10 }, {}]); // Eingangshalle, Sims oben links → Dachboden
     // Kerker unter dem Kolosseum: früh betretbar, aber ein Gitter (bis zur Decke vermauert) trennt die Zelle des Gefangenen ab –
     // erst die Nebelgestalt schwebt hindurch (wie in SotN: das Ziel sieht man lange, bevor man es erreicht). Man fällt durch das Loch
-    // in der Arena herein, der Aufzug (x 17) fährt wieder hinauf
+    // in der Arena herein, eine Treppe (x 17) führt wieder hinauf
     const kerker = R(56, 'crypt')
-      .ground(0, 55).fill(34, 0, 34, 6, '#').fill(8, 8, 12, 8, '=').fill(20, 7, 26, 7, '=').fill(44, 8, 48, 8, '=').elevator(17, 10, 0)
+      .ground(0, 55).fill(34, 0, 34, 6, '#').fill(8, 8, 12, 8, '=').fill(20, 7, 22, 7, '=').fill(44, 8, 48, 8, '=').stair(27, 10, 11, -1)
       .candle(5, 9, 'H').candle(10, 6).candle(23, 5, '$').candle(30, 9).candle(40, 9).candle(52, 9, 'H')
       .enemy('skel', 16, 10).enemy('ghost', 24, 4).enemy('skel', 28, 10).enemy('bat', 12, 3)
       .prop('vessel', { x: 50, y: 9 }).chest(53, 10, 'big')
@@ -292,12 +298,11 @@ const Castle = (() => {
     const station = R(112, 'station', 20)
       .ground(0, 111, 18)
       .stair(36, 17, 7, 1).fill(43, 11, 69, 11, '=').stair(76, 17, 7, -1)   // Fußgängerbrücke über die Halle
-      .fill(0, 9, 7, 9, '=')                                                  // Sims am Stellwerk
+      .fill(0, 9, 12, 9, '=').stair(21, 17, 9, -1).stair(2, 8, 9, 1)          // Sims am Stellwerk als Podest: Treppe hinauf, weiter zum Schacht in den Lokschuppen
       .fill(70, 4, 84, 4, '=').chest(84, 3)                                   // Signalbrücke unter dem Dach (nur mit Supersprung)
-      .elevator(9, 17, 0)                                                     // Lastenaufzug hinauf in den Lokschuppen (Schacht oben)
       .candle(4, 15, 'H').candle(28, 15).candle(46, 8, '$').candle(56, 8, 'H').candle(66, 8).candle(88, 15, 'W').candle(104, 15)
       .enemy('raven', 30, 5).enemy('raven', 84, 4)
-      .chest(2, 8, 'big').prop('vessel', { x: 56, y: 10 })
+      .chest(0, 8, 'big').prop('vessel', { x: 56, y: 10 })
       .music('stage1').label('BAHNHOF KRAT').start(2, 17).done();
     station.puppets = [[20, 17], [50, 10], [63, 10], [70, 17], [92, 17], [102, 17]];
     const rail = 18 * T + 10, plat = 18 * T; // Gleis hinter der Bahnsteigkante: die Räder verschwinden unter der Kante
@@ -334,7 +339,7 @@ const Castle = (() => {
       .ground(0, 39)
       .fill(33, 7, 36, 7, '=')                                    // Empore mit dem Lebensgefäß
       .fill(36, 5, 39, 10, '#').fill(37, 8, 39, 10, '.').set(36, 10, 'X').set(36, 9, 'Y') // brüchige Wand: Braten, Goldsack – dahinter die Tür zum Spiegeltunnel
-      .elevator(4, 10, 0)                                         // hinauf zum Loch in der Galerie
+      .stair(0, 10, 6, 1).fill(6, 5, 8, 5, '=').stair(8, 4, 5, -1) // Treppe mit Podest hinauf zum Loch in der Galerie
       .candle(7, 6, 'H').candle(31, 6).candle(36, 4, '$')
       .prop('vessel', { x: 34, y: 6 })
       .mini('doppel', 9, 29, 11, 0)
@@ -383,7 +388,7 @@ const Castle = (() => {
     // mit dem Taucherhelm zu erkunden. Säulenstümpfe, Simse, eine versunkene Glocke (Blender), Quallen, Altar mit Lebensgefäß.
     const chapel = R(64, 'crypt', 26)
       .ground(0, 63, 24)
-      .fill(0, 8, 7, 9, '#').elevator(3, 7, 0)                                          // Steg in der Luftblase, Aufzug hinauf in den Kanal
+      .fill(0, 8, 10, 9, '#').stair(10, 7, 8, -1)                                       // Steg in der Luftblase, Treppe hinauf in den Kanal
       .fill(14, 14, 15, 23, '#').fill(30, 12, 31, 23, '#').fill(46, 14, 47, 23, '#')    // Säulenstümpfe
       .fill(8, 18, 12, 18, '=').fill(20, 15, 26, 15, '=').fill(36, 19, 42, 19, '=').fill(52, 16, 58, 16, '=')
       .fill(56, 21, 61, 23, '#')                                                        // Altar
@@ -571,9 +576,9 @@ const Castle = (() => {
       .enemy('iceskel', 20, 10).enemy('bat', 38, 3).enemy('iceskel', 40, 10).enemy('ghost', 54, 4)
       .chest(31, 6)
       .music('stage2').label('EISKELLER').start(2, 10).done());
-    // Gruftgang unter dem Eisturm: von der Luke unter der Brücke der Gruft (Aufzug hinauf) nach links zum Eisaufzug
+    // Gruftgang unter dem Eisturm: von der Luke unter der Brücke der Gruft (Treppe hinauf) nach links zum Eisaufzug
     add('gruftgang', 1, 3, null, R(80, 'crypt')
-      .ground(0, 79).elevator(70, 10, 0)
+      .ground(0, 79).stair(61, 10, 11, 1)
       .fill(14, 8, 18, 8, '=').fill(32, 7, 37, 7, '=').fill(52, 8, 56, 8, '=')
       .candle(6, 9, 'H').candle(16, 6).candle(26, 9).candle(35, 5, '$').candle(46, 9, 'H').candle(54, 6).candle(64, 9)
       .enemy('skel', 24, 10).enemy('bat', 30, 3).enemy('skel', 44, 10).enemy('ghost', 58, 4).enemy('knight', 62, 10)
@@ -689,7 +694,7 @@ const Castle = (() => {
     const lab = R(112, 'lab', 28)
       .ground(0, 111)                                                           // Hallenboden (Oberkante Reihe 26)
       .stair(7, 25, 13, 1).fill(20, 13, 86, 13, '=')                            // Eisentreppe hinauf zum Laufgang
-      .elevator(70, 12, 0)                                                      // vom Laufgang hinauf zur Luke in der Maschinenhalle
+      .stair(59, 12, 13, 1)                                                     // vom Laufgang hinauf zur Luke in der Maschinenhalle
       .fill(77, 9, 81, 9, '=')                                                  // Rohrsims mit dem Lebensgefäß (Doppelsprung)
       .candle(4, 25, 'H').candle(21, 25).candle(35, 25, '$').candle(64, 25, 'H').candle(76, 25)
       .candle(23, 12, 'H').candle(38, 12).candle(51, 12, 'W').candle(73, 12).candle(84, 12, 'H').candle(81, 8, '$')
@@ -3662,12 +3667,14 @@ const Castle = (() => {
   ];
   const msName = (m) => tr(m.name[0], m.name[1] ? m.name[1]() : '');
   const msItems = (n) => MS_ITEMS.slice(0, n + 1).flat();
+  function enterTest() { // in die Test-Spielstände wechseln, ?test in die Adresse (der echte Spielstand bleibt, wie er war)
+    if (testing) return;
+    testing = true; setKeys();
+    try { const u = new URL(location.href); u.searchParams.set('test', ''); history.replaceState(null, '', u.toString().replace(/=(?=&|$)/g, '')); } catch (e) { /* ohne History */ }
+  }
   function startTest(n) { // Zustand im Speicher setzen; Rückgabe: Zielraum für Game.newGame
     const m = MILESTONES[n];
-    if (!testing) { // in die Test-Spielstände wechseln, ?test in die Adresse
-      testing = true; setKeys();
-      try { const u = new URL(location.href); u.searchParams.set('test', ''); history.replaceState(null, '', u.toString().replace(/=(?=&|$)/g, '')); } catch (e) { /* ohne History */ }
-    }
+    enterTest();
     try { localStorage.removeItem(SAVE_KEY); localStorage.removeItem(RESUME_KEY); } catch (e) { /* privat */ }
     seen = {}; boss = {}; mini = {}; warp = {}; vessel = {}; relic = {}; crack = {}; flag = { curse: 1 }; inv = {}; eq = {}; famx = {}; best = {};
     for (const k of m.relics) relic[k] = 1;
@@ -3716,7 +3723,7 @@ const Castle = (() => {
   }
 
   // Test-Werkzeugkasten (Pause → TEST-WERKZEUGE, nur im Testmodus): ↑↓ wählt, Sprung führt aus, Start zurück
-  const TOOLS = ['god', 'relics', 'lv', 'gold', 'warps', 'reveal', 'boss', 'milestones', 'ending', 'check'];
+  const TOOLS = ['god', 'relics', 'gear', 'lv', 'gold', 'warps', 'reveal', 'boss', 'milestones', 'ending', 'check'];
   const tools = { sel: 0, msg: '' };
   let god = false;
   if (on) { const hurt = Player.prototype.hurt; Player.prototype.hurt = function (...a) { return god ? false : hurt.apply(this, a); }; } // unverwundbar (Stürze zählen weiter)
@@ -3729,6 +3736,16 @@ const Castle = (() => {
     Audio8.sfx('item');
     if (id === 'god') god = !god;
     else if (id === 'relics') { for (const k of RELICS) relic[k] = 1; save(); }
+    else if (id === 'gear') { // alles Anlegbare ins Inventar, je Platz das Stärkste anlegen (Vertraute nur ins Inventar), dazu Tränke
+      const power = (g) => (g.atk || 0) * 2 + (g.def || 0) * 2 + (g.hp || 0) / 2 + (g.mp || 0) / 4 + (g.regen || 0) + (g.luck || 0) + (g.greed || 0);
+      for (const k in GEAR) {
+        const g = GEAR[k]; if (!g.slot) continue;
+        inv[k] = Math.max(inv[k] || 0, 1);
+        if (g.slot !== 'fam' && (!eq[g.slot] || power(g) > power(GEAR[eq[g.slot]]))) eq[g.slot] = k;
+      }
+      for (const k of DRINKS) inv[k] = Math.max(inv[k] || 0, 9);
+      applyHp(p); p.hp = p.maxHp; save();
+    }
     else if (id === 'lv') { rpg.lv = Math.min(MAXLV, rpg.lv + 5); rpg.exp = expFor(rpg.lv); applyHp(p); p.hp = p.maxHp; mp = mpMax(); }
     else if (id === 'gold') W.score += 10000;
     else if (id === 'warps') { for (const c of allChambers()) if (c.kind === 'warp') warp[c.key] = 1; save(); }
@@ -3749,8 +3766,8 @@ const Castle = (() => {
     const cx = View.cx, lx = cx - Math.min(120, View.w / 2 - 16), rx = cx + Math.min(120, View.w / 2 - 16);
     panel(ctx, tr('testTools'), '#58f898');
     TOOLS.forEach((id, i) => {
-      const y = 36 + i * 14, on = i === tools.sel;
-      if (on) { ctx.fillStyle = 'rgba(88,248,152,0.14)'; ctx.fillRect(lx - 4, y - 3, rx - lx + 8, 13); if ((t >> 4) % 2 === 0) Sprites.draw(ctx, Sprites.S.heartS, lx - 2, y - 1); }
+      const y = 36 + i * 13, on = i === tools.sel;
+      if (on) { ctx.fillStyle = 'rgba(88,248,152,0.14)'; ctx.fillRect(lx - 4, y - 3, rx - lx + 8, 12); if ((t >> 4) % 2 === 0) Sprites.draw(ctx, Sprites.S.heartS, lx - 2, y - 1); }
       Font.draw(ctx, tr('tool_' + id), lx + 10, y, on ? '#fcfcfc' : '#a8a8b8', { shadow: '#000' });
       if (id === 'god') Font.draw(ctx, tr(god ? 'on' : 'off'), rx, y, god ? '#58f898' : '#7c7c8c', { align: 'right', shadow: '#000' });
     });
@@ -3863,7 +3880,8 @@ const Castle = (() => {
     newRun, drawStatus, expProgress, gainExp, get rpg() { return rpg; }, talkInput, drawTalk, get talk() { return talk; }, get flags() { return flag; },
     openEquip, equipInput, drawEquip, openShop, shopInput, drawShop, get inv() { return inv; }, get eq() { return eq; }, giveItem,
     preUpdate, statusInput, mpMax, get mp() { return mp; }, set mp(v) { mp = v; },
-    startTest, finishTest, drawMilestones, milestones: MILESTONES.length, get testing() { return testing; },
+    toolCount: TOOLS.length, get toolSel() { return tools.sel; }, set toolSel(v) { tools.sel = v; },
+    startTest, enterTest, finishTest, drawMilestones, milestones: MILESTONES.length, msLabel: (n) => msName(MILESTONES[n]), msTarget: (n) => { const a = ref(MILESTONES[n].at); return { s: a.s, r: a.r }; }, get testing() { return testing; },
     setFlag: (k) => { flag[k] = 1; save(); }, // z. B. Aufzug als Abkürzung freigeschaltet (lift.js)
     toolsInput, drawTools, selfCheck, mapReport, doorsOf, get god() { return god; }, get best() { return best; },
     toggleOverlay, get overlay() { return overlayOn; },

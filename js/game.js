@@ -158,6 +158,12 @@ const Game = {
     const keep = Castle.ngPlus();
     this.newGame(Levels.STAGES.findIndex(st => st.id === 0), 0); Castle.ngRestore(keep);
   },
+  // Abschnitt bzw. Meilenstein laden: Ladebild sofort, der Aufbau beginnt erst, wenn es einmal zu sehen war (auf langsamen Geräten laufen
+  // sonst mehrere Spielschritte im selben Bild, und das Spiel stand ohne Anzeige sekundenlang still)
+  loadSection(g) { // Schloss: Abschnittswahl ist Testspielen – eigene Test-Spielstände, im Pausenmenü dann die TEST-WERKZEUGE (unverwundbar, Ausrüstung, Stufe …)
+    if (Castle.on) Castle.enterTest();
+    this.secGo = g; this.secShown = false; this.go('secload');
+  },
   startMilestone(i) { // Testmodus: Meilenstein laden und dort beginnen
     Audio8.setMusicVolume(0.5); Audio8.muffle(false);
     const tg = Castle.startTest(i);
@@ -178,7 +184,8 @@ const Game = {
     W.loadRoom(s, Math.min(room, Levels.STAGES[s].rooms.length - 1)); this.shoutT = 0; this.noteT = 0;
     if (Castle.on) Castle.settle(this.arrival);
     Audio8.stop();
-    if (Castle.on && this.warmedStages && this.warmedStages.has(s)) this.warmJobs = []; else this.prewarmStage(s); // Schloss: Region schon vorgebaut
+    if (this.quickStart) { this.quickStart = false; this.warmJobs = [() => this.warmRoom()]; this.warmTotal = 1; this.warmDoneT = -1; this.warmFor = null; } // Abschnittswahl: Zielraum ist schon vorgebaut
+    else if (Castle.on && this.warmedStages && this.warmedStages.has(s)) this.warmJobs = []; else this.prewarmStage(s); // Schloss: Region schon vorgebaut
     this.go('card');
     if (say) Voice.say(Levels.STAGES[s].voice || 'stage' + (s + 1));
   },
@@ -198,7 +205,7 @@ const Game = {
   },
   titleItems() { // Titelmenü; der Moduswechsel lädt die Seite mit bzw. ohne ?castle neu
     if (!Castle.on) return ['start', 'castle', 'options', 'lang', 'scores', 'sections'];
-    if (Castle.testing) return [...(Castle.hasSave() ? ['cont'] : []), 'test', 'testEnd', 'options', 'lang']; // Testmodus: eigene Spielstände
+    if (Castle.testing) return [...(Castle.hasSave() ? ['cont'] : []), 'test', 'sections', 'testEnd', 'options', 'lang']; // Testmodus: eigene Spielstände
     return [...(Castle.hasSave() ? ['cont'] : []), 'start', 'arcade', 'options', 'lang', 'scores', 'sections', 'test'];
   },
   endTest() { const u = new URL(location.href); u.searchParams.delete('test'); location.href = u.toString().replace(/=(?=&|$)/g, ''); },
@@ -468,13 +475,17 @@ const Game = {
       case 'options': this.updateOptions(P); break;
       case 'sections': this.updateSections(P); break;
       case 'pausesec': this.updateSections(P, true); break;
-      case 'secload': // ein Bild Ladeanzeige ist schon zu sehen: jetzt den Abschnitt bauen (danach Kapitelkarte mit Ladebalken)
-        if (this.t >= 2 && this.secGo) {
-          const { e, ingame } = this.secGo; this.secGo = null;
-          if (ingame) { Audio8.setMusicVolume(0.5); Audio8.muffle(false); W.player.hp = W.player.maxHp; this.startStage(e.s, e.r); }
-          else this.newGame(e.s, e.r);
-        }
+      case 'secload': { // Ladeanzeige ist schon gezeichnet (secShown): Hintergründe der Ziel-Region vorbauen (runWarm, Balken läuft), dann starten
+        const g = this.secGo;
+        if (!g || !this.secShown) break;
+        if (!g.pre) { g.pre = true; this.prewarmStage(g.s, g.r); this.warmFor = null; this.warmJobs.pop(); this.warmTotal = this.warmJobs.length; break; } // ohne warmRoom: den Raum gibt es noch nicht
+        if (this.warming()) break;
+        this.secGo = null; this.quickStart = true; // startStage: nur noch den Raum einmal vorzeichnen
+        if (g.ms !== undefined) this.startMilestone(g.ms);
+        else if (g.ingame) { Audio8.setMusicVolume(0.5); Audio8.muffle(false); W.player.hp = W.player.maxHp; this.startStage(g.s, g.r); }
+        else this.newGame(g.s, g.r);
         break;
+      }
       case 'charsel': {
         if ((P.up || P.down) && HEROES.hasSkin(Options.character)) { Options.set('skin', Options.skin === 'adv' ? '' : 'adv'); Audio8.sfx('item'); } // zweiter Look
         if (P.left || P.right) {
@@ -559,7 +570,7 @@ const Game = {
         if (this.t < 8) break;
         const n = Castle.milestones;
         if (P.up || P.down) { this.msSel = (this.msSel + (P.down ? 1 : n - 1)) % n; Audio8.sfx('select'); }
-        if (P.jump || P.attack) { Audio8.sfx('bigItem'); this.startMilestone(this.msSel); }
+        if (P.jump || P.attack) { Audio8.sfx('bigItem'); const tg = Castle.msTarget(this.msSel); this.loadSection({ ms: this.msSel, e: { label: Castle.msLabel(this.msSel) }, s: tg.s, r: tg.r }); }
         else if (P.start) { if (this.msFrom === 'tools') this.go('tools'); else this.go('title'); Audio8.sfx('pause'); }
         break;
       }
@@ -687,6 +698,8 @@ const Game = {
   // ---------------- Render ----------------
   render() {
     const ctx = this.ctx, w = View.w;
+    const loading = this.state === 'secload' || (this.state === 'card' && this.warming()); // Lade-Kranz (index.html) an/aus
+    if (loading !== !!this.spinOn) { this.spinOn = loading; const el = document.getElementById('loadspin'); if (el) el.classList.toggle('on', loading); }
     ctx.fillStyle = '#000'; ctx.fillRect(0, 0, w, 240);
     switch (this.state) {
       case 'title': this.drawTitle(ctx); break;
@@ -869,7 +882,7 @@ const Game = {
     let f = this.optTop || 0; if (this.optSel < f) f = this.optSel; else if (this.optSel > f + V - 1) f = this.optSel - V + 1;
     return (this.optTop = clamp(f, 0, n - V));
   },
-  // Touch in Titel- und Optionsmenü: Tipp auf einen Eintrag wählt ihn, ein zweiter Tipp auf den gewählten löst ihn aus
+  // Touch in Titel-, Options-, Abschnitts- und Testmenü: Tipp auf einen Eintrag wählt ihn, ein zweiter Tipp auf den gewählten löst ihn aus
   // (Rückgabe: die Taste, die input.js dafür auslöst, sonst null)
   menuTap(clientX, clientY) {
     const r = this.canvas.getBoundingClientRect(), y = (clientY - r.top) / r.height * 240;
@@ -880,11 +893,20 @@ const Game = {
       const n = OPTION_ITEMS.length, step = n > 9 ? 12 : 14, first = this.optFirst(); // wie drawOptions
       rows = { y0: 61 - first * step, sp: step, lo: first, hi: Math.min(n, first + 10) }; sel = this.optSel;
     }
+    else if (this.state === 'milestones' && this.t >= 8) { rows = { y0: 33, sp: 17, lo: 0, hi: Castle.milestones }; sel = this.msSel || 0; } // wie Castle.drawMilestones
+    else if (this.state === 'tools' && this.t > 8) { rows = { y0: 33, sp: 13, lo: 0, hi: Castle.toolCount }; sel = Castle.toolSel; } // wie Castle.drawTools
+    else if ((this.state === 'sections' || this.state === 'pausesec') && this.t > 8) { // Abschnittswahl (wie drawSections): Überschriften zählen nicht
+      const L = this.sectionList(), rooms = L.filter(e => !e.head), top = this.secTop(L);
+      const k = Math.floor((y - 56) / 11), e = k >= 0 && k < 13 ? L[top + k] : null;
+      if (!e || e.head) return null;
+      const i = rooms.indexOf(e); if (i === this.secSel) return 'jump';
+      this.secSel = i; Audio8.sfx('select'); return null;
+    }
     if (!rows) return null;
     const i = Math.floor((y - rows.y0) / rows.sp);
     if (i < rows.lo || i >= rows.hi) return null;
     if (i === sel) return 'jump';
-    if (this.state === 'title') this.menu = i; else this.optSel = i;
+    if (this.state === 'title') this.menu = i; else if (this.state === 'milestones') this.msSel = i; else if (this.state === 'tools') Castle.toolSel = i; else this.optSel = i;
     Audio8.sfx('select'); return null;
   },
   // Touch im Pausenmenü: Tipp auf einen Menüpunkt wählt ihn (true), sonst geht es weiter
@@ -1000,8 +1022,8 @@ const Game = {
     return c;
   },
   // Hintergründe aller Räume der Stage vorbauen (einer pro Frame, während der Kapitelkarte) – sonst stockt der Raumwechsel
-  prewarmStage(s) {
-    const rooms = Levels.STAGES[s].rooms, jobs = [];
+  prewarmStage(s, only) { // only: nur dieser Raum (Abschnittswahl – die übrigen Räume der Region bauen sich beim Betreten)
+    const rooms = only === undefined ? Levels.STAGES[s].rooms : [Levels.STAGES[s].rooms[only]], jobs = [];
     [...new Set(rooms.map(r => r.theme))].forEach(th => jobs.push(() => Tiles.build(th)));
     rooms.forEach(r => r.ents.forEach(e => { if (e.type === 'gears') jobs.push(() => buildGearTrain(e.list)); }));
     if (rooms.some(r => r.arena && r.arena.boss === 'count')) jobs.push(() => COUNT_ART.get());
@@ -1014,7 +1036,7 @@ const Game = {
     if (rooms.some(r => r.ents.some(e => e.type === 'grand'))) jobs.push(...PS2.chandJobs(54, 2)); // XXL-Kronleuchter: alle Drehstellungen vorab
     [...new Set(rooms.map(r => r.theme))].forEach(th => jobs.push(() => FX.drawFog(this.warmCtx(), th, { x: 0, y: 0 }, 0))); // Bodennebel je Thema
     jobs.push(() => this.warmRoom());
-    this.warmJobs = jobs; this.warmTotal = jobs.length; this.warmDoneT = -1;
+    this.warmJobs = jobs; this.warmTotal = jobs.length; this.warmDoneT = -1; this.warmFor = s;
   },
   warming() { return !!(this.warmJobs && this.warmJobs.length); },
   // Vorbau-Schritte: pro gezeichnetem Bild so viele, wie in ~8 ms passen (mindestens einer) – nie mehrere schwere am Stück
@@ -1022,7 +1044,7 @@ const Game = {
     if (!this.warming() || this.state === 'play' || (this.state === 'card' && this.t < 2)) return; // die Karte mit dem Ladebalken erst zeigen
     const t0 = performance.now();
     do { try { this.warmJobs.shift()(); } catch (e) { console.warn(e); } } while (this.warmJobs.length && performance.now() - t0 < 8);
-    if (!this.warmJobs.length) { this.warmDoneT = this.t; (this.warmedStages || (this.warmedStages = new Set())).add(W.stage); }
+    if (!this.warmJobs.length) { this.warmDoneT = this.t; if (this.warmFor !== null) (this.warmedStages || (this.warmedStages = new Set())).add(this.warmFor ?? W.stage); }
   },
   // erster Raum einmal unsichtbar zeichnen: alles, was sonst beim ersten Bild gebaut würde (Wald, Torhaus, Lichter …), ist danach fertig
   warmCtx() { const c = this.warmC && this.warmC.width === View.w ? this.warmC : (this.warmC = Sprites.canvas(View.w, 240)); return c.getContext('2d'); },
@@ -1166,11 +1188,13 @@ const Game = {
     this.drawWarmBar(ctx, cx, 165);
   },
   drawSecLoad(ctx) { // Abschnitt gewählt: Kulisse des Ladebildschirms, Name des Abschnitts, Ladebalken bei 0 – sofort, bevor der Aufbau beginnt
-    const cx = View.cx, e = this.secGo && this.secGo.e;
+    const cx = View.cx, g = this.secGo, e = g && g.e;
     this.menuBg(ctx);
     ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(0, 90, View.w, 56);
     if (e) this.bootText(ctx, e.label, cx, 100, '#fce0a8', '#400008');
-    this.drawLoadBar(ctx, cx, 130, 0.03 + 0.02 * Math.sin(this.t * 0.3));
+    const k = g && g.pre && this.warmTotal ? 0.04 + 0.9 * (1 - (this.warmJobs ? this.warmJobs.length : 0) / this.warmTotal) : 0.03 + 0.02 * Math.sin(this.t * 0.3);
+    this.drawLoadBar(ctx, cx, 130, k);
+    this.secShown = true;
   },
   drawLoadBar(ctx, cx, y, k, flash = false, side = false) { // Ladebalken wie im Ladebildschirm: dunkles Bett, glühende Füllung, goldene Zier, Prozent darüber (side: rechts daneben)
     const bw = Math.min(side ? 130 : 170, View.w - 80), bx = Math.round(cx - bw / 2), fw = Math.round(bw * Math.max(0, Math.min(1, k)));
@@ -1315,6 +1339,13 @@ const Game = {
     });
     return (this.secList = L);
   },
+  // erste sichtbare Zeile der Abschnittsliste: rollt nur, wenn die Auswahl an den Rand kommt – so bleibt die Liste beim Antippen stehen
+  secTop(L) {
+    const idx = L.indexOf(L.filter(e => !e.head)[this.secSel || 0]), max = Math.max(0, L.length - 13);
+    let t = this.secTopV === undefined ? idx - 6 : this.secTopV;
+    if (idx < t + 1) t = idx - 1; else if (idx > t + 11) t = idx - 11;
+    return (this.secTopV = clamp(t, 0, max));
+  },
   updateSections(P, ingame = false) { // ingame: aus dem Pausenmenü – Held, Punkte und Leben bleiben, Enter führt zurück zur Pause
     const L = this.sectionList(), rooms = L.filter(e => !e.head);
     if (this.secSel === undefined) { let v = 0; try { v = parseInt(localStorage.getItem('nachtmahr.sec') || '0', 10) || 0; } catch (e) { /* privat */ } this.secSel = clamp(v, 0, rooms.length - 1); }
@@ -1328,7 +1359,7 @@ const Game = {
       const e = rooms[this.secSel];
       try { localStorage.setItem('nachtmahr.sec', String(this.secSel)); } catch (err) { /* privat */ }
       Audio8.init(); Audio8.sfx('bigItem');
-      this.secGo = { e, ingame }; this.go('secload'); // erst die Ladeanzeige zeigen – der Aufbau des Abschnitts dauert spürbar
+      this.loadSection({ e, ingame, s: e.s, r: e.r }); // erst die Ladeanzeige zeigen – der Aufbau des Abschnitts dauert spürbar
     }
   },
   drawSections(ctx, overlay = false) { // overlay: über dem eingefrorenen Spielbild (aus dem Pausenmenü)
@@ -1336,7 +1367,7 @@ const Game = {
     if (!overlay) this.menuBg(ctx);
     ctx.fillStyle = overlay ? 'rgba(0,0,0,0.82)' : 'rgba(0,0,0,0.72)'; ctx.fillRect(0, 32, View.w, overlay ? 208 : 176);
     this.big(ctx, tr('secTitle'), cx, 38, 2, LOGO, null, '#000');
-    const idx = L.indexOf(sel), rows = 13, top = clamp(idx - 6, 0, Math.max(0, L.length - rows)), lx = Math.max(12, cx - 120);
+    const rows = 13, top = this.secTop(L), lx = Math.max(12, cx - 120);
     for (let k = 0; k < rows && top + k < L.length; k++) {
       const e = L[top + k], y = 58 + k * 11, on = e === sel;
       if (e.head) {

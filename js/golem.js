@@ -34,7 +34,7 @@ class GolemBoss extends Boss {
     const gy = (W.room.h - 2) * T;
     super(ax + 100, gy - 110, 26, 30, 36, 3); // Trefferfläche = Runenherz in der Brust (folgt jedes Bild der Pose)
     this.ax = ax; this.aw = aw; this.gy = gy; this.mini = true; this.score = 8000; this.nameKey = 'bossGolem'; this.music = 'boss';
-    this.bx = ax + 112; this.wall = this.bx + 64; this.face = 1; this.lootY = gy - 40;
+    this.bx = ax + 112; this.wall = this.bx + 70; this.face = 1; this.lootY = gy - 40;
     this.state = 'intro'; this.timer = 0; this.ph2 = false;
     this.kneel = 0; this.dip = 0; this.eye = 0; this.roarK = 0; this.open = 0; // Pose (0 … 1): Knie, Kopf gesenkt, Augenglut, Brüllen, Brust offen
     this.fist = { x: this.bx + 30, y: gy - 22, home: true }; this.beam = null; this.buf = null;
@@ -43,57 +43,85 @@ class GolemBoss extends Boss {
   // lokale Koordinaten: x nach vorn (zum Helden), y hoch ab Boden, z in die Tiefe (0 = Spielebene). Maße in Bildpunkten.
   pose() {
     const k = this.kneel, d = this.dip, bob = Math.sin(this.t * 0.05) * 2 * (1 - k);
-    const hip = 52 - 30 * k + bob, chest = hip + 96, head = { x: 20 + 14 * Math.max(0, d), y: (chest - 4) * (1 - d) + 5 * d, tilt: d }; // gesenkt: Kopf liegt am Boden, Augen in Kopfhöhe des Helden
-    return { hip, chest, head, eyeY: head.y + 23, eyeX: head.x + 27 };
+    const hip = 46 - 26 * k + bob, chest = hip + 86, head = { x: 22 + 12 * Math.max(0, d), y: (chest - 16) * (1 - d) + 5 * d, tilt: d }; // gedrungen, Kopf tief zwischen den Schultern; gesenkt: Kopf am Boden, Augen in Kopfhöhe des Helden
+    return { hip, chest, head, eyeY: head.y + 23, eyeX: head.x + 26 };
+  }
+  // Der Leib steht schräg zum Betrachter (YAW, etwa 45°): von genau der Seite war er nur eine senkrechte Säule. Faust und Unterarm des
+  // Schlagarms bleiben ungedreht – die Faust schlägt in der Spielebene (z 0) auf. rp: gedrehter Modellpunkt → Bildpunkt
+  rot(x, z) { const c = Math.cos(GolemBoss.YAW), s = Math.sin(GolemBoss.YAW); return [x * c - z * s, x * s + z * c]; }
+  rp(x, y, z) { // wie PS2.projLocal, aber mit der fernen Kamera des Golems (CAM_D): kaum Fluchtverzerrung, die nahe Schulter bläht sich nicht auf
+    const [rx, rz] = this.rot(x, z), D = GolemBoss.CAM_D, VX = View.w / 2, k = D / (D + rz), sx = this.bx - W.cam.x, sy = this.gy - W.cam.y;
+    return [VX + (sx + rx - VX) * k, 60 + (sy - y - 60) * k];
   }
   mesh() {
-    const P = PS2, m = P.mesh(), S = this.flashT > 0 ? [240, 240, 240] : [104, 96, 88], S2 = this.flashT > 0 ? [220, 220, 220] : [80, 74, 70], D = [44, 40, 40], MOSS = [62, 98, 52];
-    const RUNE = [255, 150, 70], ps = this.pose(), k = this.kneel;
-    // Beine (im Knien kürzer, die Knie stehen vor)
-    for (const z of [-26, 26]) {
-      P.box(m, -6 + 14 * k, 0, z, 34, Math.max(14, ps.hip - 6), 30, S2);
-      P.box(m, 4 + 18 * k, 0, z, 42, 12, 34, D);                                              // Fuß
-      if (k > 0.2) P.box(m, 22 * k, ps.hip - 20, z, 30, 18, 30, S);                            // Knie
+    const P = PS2, m = P.mesh(), arm = P.mesh(), fl = this.flashT > 0;
+    const S = fl ? [240, 240, 240] : [112, 104, 94], S2 = fl ? [220, 220, 220] : [84, 78, 72], D = fl ? [200, 200, 200] : [46, 42, 42];
+    const WARM = fl ? [230, 230, 230] : [120, 104, 86], LIT = fl ? [250, 250, 250] : [142, 134, 122], MOSS = [62, 98, 52], MOSS2 = [84, 124, 60];
+    const RUNE = [255, 150, 70], ps = this.pose(), k = this.kneel, hip = ps.hip, ch = ps.chest, glowR = 0.3 + 0.25 * Math.sin(this.t * 0.08) + (this.ph2 ? 0.35 : 0);
+    // Beine: kurz und breitbeinig – Schienbein, schräger Oberschenkel, keilförmiger Fuß; zwischen den Beinen eine Lücke
+    for (const z of [-36, 36]) {
+      const lh = Math.max(16, hip - 8);
+      P.box(m, -2 + 16 * k, 0, z, 34, lh * 0.56, 34, S2, { rot: z * 0.004 });
+      P.box(m, 0 + 10 * k, lh * 0.46, z * 1.04, 40, lh * 0.62, 40, S, { rot: -z * 0.005 });
+      P.box(m, 8 + 18 * k, 0, z, 54, 12, 44, D); P.box(m, 31 + 18 * k, 0, z, 10, 8, 38, S2);   // Fuß mit Zehenkante
+      if (k > 0.2) P.box(m, 22 * k, hip - 18, z, 32, 20, 34, LIT, { rot: 0.3 });                // Knie
     }
-    P.box(m, 0, ps.hip - 8, 0, 70, 20, 78, D);                                                 // Becken
-    P.box(m, 0, ps.hip + 10, 0, 70, 40, 72, S2);                                              // Taille
-    P.box(m, 2, ps.hip + 44, 0, 92, ps.chest - ps.hip - 34, 104, S);                          // Brustkorb, breit
-    P.box(m, 6, ps.chest - 28, 0, 90, 26, 96, S2);                                            // Brustpanzer
-    for (const z of [-62, 62]) { // Felsschultern mit Zacken und Moos, die Arme hängen außen
-      P.box(m, -2, ps.chest - 26, z, 54, 46, 42, S); P.box(m, -8, ps.chest + 18, z * 0.92, 34, 8, 26, MOSS);
-      P.cone(m, -10, ps.chest + 18, z * 1.05, 12, 20, 4, D); P.cone(m, 10, ps.chest + 14, z * 0.9, 9, 14, 4, D);
+    P.box(m, 0, hip - 10, 0, 58, 22, 96, D);                                                     // Becken
+    P.box(m, 2, hip + 8, 0, 56, 36, 82, S2);                                                     // Taille, schmal
+    P.box(m, 4, hip + 40, 0, 74, ch - hip - 72, 108, S);                                          // Brust unten
+    P.box(m, 8, ch - 38, 0, 86, 42, 140, WARM, { rot: 0.04 });                                     // Brust oben, breit (V-Form)
+    P.box(m, -32, ch - 46, 0, 44, 54, 104, S2);                                                  // Buckel
+    for (const [y, z, w] of [[hip + 50, -22, 16], [hip + 64, 20, 22], [ch - 28, -40, 18], [ch - 16, 30, 14]]) P.box(m, y > ch - 40 ? 52 : 43, y, z, 3, 3, w, RUNE, { e: glowR, rot: 0.5 }); // Runenrisse
+    for (const s2 of [-1, 1]) { // Felsschultern, höher als der gesenkte Kopf: Brocken, Zacken, Moos
+      const z = s2 * 82;
+      P.box(m, -4, ch - 34, z, 58, 54, 52, S, { rot: s2 * 0.18 });
+      P.box(m, -12, ch + 12, z * 0.96, 40, 14, 36, LIT, { rot: -s2 * 0.3 });
+      P.box(m, 12, ch + 4, z * 1.08, 22, 14, 22, S2, { rot: 0.5 });
+      P.box(m, -14, ch + 24, z * 0.94, 30, 6, 26, MOSS); P.box(m, -2, ch + 16, z * 1.12, 14, 5, 12, MOSS2);
+      P.cone(m, -16, ch + 26, z * 1.02, 9, 18, 4, D); P.cone(m, 8, ch + 18, z * 0.88, 7, 13, 4, D);
     }
-    for (let i = 0; i < 4; i++) P.box(m, 47, ps.hip + 50 + i * 12, -34 + (i % 2) * 60, 2, 3, 14, RUNE, { e: 0.35 + 0.25 * Math.sin(this.t * 0.08 + i) }); // Runen in den Fugen
-    // Runenherz in der Brust: öffnet sich (Platten weichen), glüht stärker beim Laser und im Knien
-    const cy = ps.hip + 12, glow = 0.45 + 0.5 * this.open + 0.15 * Math.sin(this.t * 0.2); // im Bauch: im Stand mit Sprung, kniend vom Boden erreichbar
+    // Runenherz im Bauch: Platten weichen auseinander, glüht stärker beim Laser und im Knien (im Stand mit Sprung, kniend vom Boden)
+    const cy = hip + 12, glow = 0.45 + 0.5 * this.open + 0.15 * Math.sin(this.t * 0.2);
     P.box(m, 44, cy - 14, 0, 6, 28, 28, RUNE, { e: glow });
-    for (const s of [-1, 1]) P.box(m, 46, cy - 16, s * (16 + 12 * this.open), 6, 32, 14, S2); // Brustplatten
-    // hinterer Arm hängt, vorderer Arm reicht bis zur Faust (Welt → lokal)
-    P.beam(m, -4, ps.chest - 10, 70, 8, 30, 72, 28, 28, S2); P.box(m, 10, 6, 72, 42, 36, 40, S);   // hinterer Arm hängt bis zum Boden
-    const f = this.fist, fx = f.x - this.bx, fy = this.gy - f.y, sx = 6, sy = ps.chest - 10, sz = -66; // die Faust kommt in die Spielebene (z 0): dort trifft sie
-    const ex = (sx + fx) / 2 + 10, ey = Math.max(sy, fy) + 26;                                   // Ellbogen
-    P.beam(m, sx, sy, sz, ex, ey, -30, 28, 28, S2); P.beam(m, ex, ey, -22, fx, fy + 16, 0, 24, 24, S);
-    P.box(m, fx, fy - 20, 0, 44, 40, 44, S); P.box(m, fx + 20, fy - 14, 0, 6, 30, 40, D);         // Faust, Knöchel
-    // Kopf: senkt sich beim flachen Laser bis an den Boden; Brauen, Mund, glühende Augen
+    for (const s2 of [-1, 1]) P.box(m, 46, cy - 16, s2 * (16 + 12 * this.open), 6, 32, 14, S2);
+    // linker Arm (zum Betrachter hin) hängt bis zum Boden, die Faust stützt sich auf
+    P.beam(m, -4, ch - 10, -88, 8, ch - 66, -100, 32, 32, S2); P.box(m, 8, ch - 84, -100, 30, 24, 30, LIT);
+    P.beam(m, 8, ch - 72, -100, 16, 26, -102, 30, 30, S); P.box(m, 16, 0, -102, 48, 34, 46, S2); P.box(m, 36, 4, -102, 8, 24, 42, D);
+    // Kopf: tief zwischen den Schultern, senkt sich beim flachen Laser bis an den Boden; Kiefer, Stirnwulst, Mundspalt, glühende Augen
     const hx = ps.head.x, hy = ps.head.y, eye = [255, 70 + 120 * this.eye, 40 + 60 * this.eye];
-    P.beam(m, 0, ps.chest - 8, 0, hx - 6, hy + 8, 0, 34, 30, D);                                // Nacken
-    P.box(m, hx, hy, 0, 56, 46, 56, S);                                                         // Kopf, gebückt zwischen den Schultern
-    P.box(m, hx + 6, hy + 30, 0, 52, 10, 64, D);                                                // Stirnwulst
-    P.box(m, hx + 28, hy + 8, 0, 4, 5, 26, [30, 20, 20]);                                       // Mundspalt
-    for (const z of [-13, 13]) P.box(m, hx + 28, hy + 21, z, 3, 7, 11, eye, { e: 0.25 + this.eye * 0.9 });
-    P.box(m, hx - 6, hy + 46, -8, 24, 8, 22, MOSS); P.cone(m, hx - 10, hy + 46, 14, 8, 14, 4, D);
-    return [m];
+    P.beam(m, 0, ch - 8, 0, hx - 6, hy + 8, 0, 34, 30, D);                                      // Nacken
+    P.box(m, hx, hy, 0, 54, 44, 60, S);                                                         // Schädel
+    P.box(m, hx + 8, hy - 8, 0, 44, 14, 54, S2);                                                // Kiefer
+    P.box(m, hx + 8, hy + 30, 0, 48, 10, 68, D);                                                // Stirnwulst
+    P.box(m, hx + 27, hy + 6, 0, 4, 5, 28, [30, 20, 20]);                                       // Mundspalt
+    for (const z of [-13, 13]) P.box(m, hx + 27, hy + 21, z, 3, 7, 11, eye, { e: 0.25 + this.eye * 0.9 });
+    P.box(m, hx - 8, hy + 44, -8, 26, 8, 26, MOSS); P.cone(m, hx - 12, hy + 44, 14, 8, 16, 4, D);
+    for (let i = 0, V = m.v; i < V.length; i += 3) { const [x, z] = this.rot(V[i], V[i + 2]); V[i] = x; V[i + 2] = z; } // Leib drehen
+    for (const fc of m.f) { const [x, z] = this.rot(fc.n[0], fc.n[2]); fc.n[0] = x; fc.n[2] = z; }
+    // Schlagarm an der Schulter zum Helden hin, Faust in der Spielebene (Welt → lokal)
+    const f = this.fist, fx = f.x - this.bx, fy = this.gy - f.y, [sx, sz] = this.rot(4, 86), sy = ch - 10;
+    const ex = Math.max(sx, fx) + 14, ey = Math.max(sy - 30, fy) + 18, ez = sz * 0.45;          // Ellbogen
+    P.beam(arm, sx, sy, sz, ex, ey, ez, 32, 32, S2); P.box(arm, ex, ey - 14, ez, 30, 26, 30, LIT);
+    P.beam(arm, ex, ey, ez, fx, fy + 16, 0, 28, 28, S);
+    P.box(arm, fx, fy - 20, 0, 46, 40, 46, S); P.box(arm, fx + 21, fy - 14, 0, 6, 30, 42, D); P.box(arm, fx - 4, fy + 14, 0, 30, 8, 36, LIT); // Faust, Knöchel, Handrücken
+    return [m, arm];
   }
   draw() { } // gezeichnet wird nach dem Licht (drawLit): der Felsleib hat seine eigene Fackelbeleuchtung, der Stollennebel liegt dahinter
   drawLit(ctx) {
-    const w = View.w, Wb = Math.ceil(w / 2), Hb = 104, VX = w / 2;
-    if (!this.buf || this.buf.w !== Wb) { const c = document.createElement('canvas'); c.width = Wb; c.height = Hb; this.buf = { c, x: c.getContext('2d', { willReadFrequently: true }), w: Wb }; }
+    const w = View.w, Hb = 208, VX = w / 2, D = GolemBoss.CAM_D; // volle Auflösung (die halbe wurde weich hochskaliert und war unscharf)
+    if (!this.buf || this.buf.w !== w) {
+      const mk = () => { const c = document.createElement('canvas'); c.width = w; c.height = Hb; return c; }, c = mk(), o = mk();
+      this.buf = { c, x: c.getContext('2d', { willReadFrequently: true }), o, ox: o.getContext('2d'), w };
+    }
     const B = this.buf, ox = this.bx - W.cam.x, oy = this.gy - W.cam.y;
-    B.x.clearRect(0, 0, Wb, Hb);
-    PS2.render(B.x, Wb, Hb, this.mesh(), { x: VX - ox, y: oy - 60, z: -200, yaw: 0, pitch: 0, f: 100, near: 30, cx: VX / 2, cy: 30 }, GolemBoss.ENV);
+    B.x.clearRect(0, 0, w, Hb);
+    PS2.render(B.x, w, Hb, this.mesh(), { x: VX - ox, y: oy - 60, z: -D, yaw: 0, pitch: 0, f: D, near: 30, cx: VX, cy: 60 }, GolemBoss.ENV);
+    // dunkle Kontur um den Felsleib: hebt die Silhouette vom Stollen ab
+    const O = B.ox; O.globalCompositeOperation = 'copy'; O.drawImage(B.c, 0, 0); O.globalCompositeOperation = 'source-in'; O.fillStyle = '#0c0a0e'; O.fillRect(0, 0, w, Hb);
     const shake = this.dying ? ((this.t >> 1) & 1) * 3 - 1 : 0;
-    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.drawImage(B.c, 0, 0, Wb, Hb, shake, 0, Wb * 2, 208); ctx.restore();
-    this.lastDraw = { s: { c: B.c, f: B.c, w: Wb, h: Hb }, x: W.cam.x, y: W.cam.y, flip: false };
+    for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ctx.drawImage(B.o, shake + dx, dy);
+    ctx.drawImage(B.c, shake, 0);
+    this.lastDraw = { s: { c: B.c, f: B.c, w, h: Hb }, x: W.cam.x, y: W.cam.y, flip: false };
     // Schatten der Faust am Boden, solange sie über dem Helden schwebt
     if (this.state === 'raise' || this.state === 'hover' || this.state === 'slam') {
       const sx = Math.round(this.fist.x - W.cam.x), k = clamp(1 - (this.gy - this.fist.y) / 180, 0.2, 1);
@@ -107,7 +135,7 @@ class GolemBoss extends Boss {
       ctx.fillStyle = g; ctx.fillRect(e.x - W.cam.x - 40, e.y - W.cam.y - 40, 80, 80); ctx.restore();
     }
   }
-  eyePt() { const ps = this.pose(), q = PS2.projLocal(this.bx - W.cam.x, this.gy - W.cam.y, ps.eyeX + 2, ps.eyeY, -12); return { x: q[0] + W.cam.x, y: q[1] + W.cam.y }; }
+  eyePt() { const ps = this.pose(), q = this.rp(ps.eyeX + 2, ps.eyeY, -13); return { x: q[0] + W.cam.x, y: q[1] + W.cam.y }; }
   drawBeam(ctx) { // Laser: weißer Kern, roter Mantel, Glut am Auftreffpunkt
     const b = this.beam, e = this.eyePt(), x0 = e.x - W.cam.x, y0 = e.y - W.cam.y, x1 = b.x - W.cam.x, y1 = b.y - W.cam.y, fl = (this.t >> 1) & 1;
     ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
@@ -138,7 +166,7 @@ class GolemBoss extends Boss {
       this.say('bossGolemRage', '#fc7460');
     }
     const ps = this.pose(), f = this.fist;
-    const hq = PS2.projLocal(this.bx - W.cam.x, this.gy - W.cam.y, 44, ps.hip + 12, 0); // Runenherz folgt der Pose (wo man es sieht)
+    const hq = this.rp(47, ps.hip + 12, 0); // Runenherz folgt der Pose (wo man es sieht)
     this.w = 26; this.h = 30; this.x = hq[0] + W.cam.x - 13; this.y = hq[1] + W.cam.y - 15;
     if (this.state !== 'slam' && this.state !== 'hover' && this.state !== 'raise') { f.x = ease(f.x, this.bx + 30, 0.08); f.y = ease(f.y, this.gy - 22 - this.kneel * 4, 0.08); }
     if (this.state === 'intro') { // erwacht: Augen glimmen auf, Steine bröckeln ab, Brüllen
@@ -204,11 +232,12 @@ class GolemBoss extends Boss {
   }
   lightUp(L, cx, cy) {
     if (this.dying) return;
-    const ps = this.pose(), q = PS2.projLocal(this.bx - W.cam.x, this.gy - W.cam.y, 46, ps.hip + 12, 0);
+    const ps = this.pose(), q = this.rp(47, ps.hip + 12, 0);
     L.push({ x: this.fist.x - cx, y: this.fist.y - cy, r: 50, c: [220, 200, 170], a: 0.35 });
     L.push({ x: q[0] + W.cam.x - cx, y: q[1] + W.cam.y - cy, r: 30 + this.open * 20, c: [255, 140, 60], a: 0.4 + this.open * 0.3 }); // Runenherz
     if (this.eye > 0.1) { const e = this.eyePt(); L.push({ x: e.x - cx, y: e.y - cy, r: 20 + this.eye * 30, c: [255, 60, 40], a: 0.5 * this.eye }); }
     if (this.beam) L.push({ x: this.beam.x - cx, y: this.beam.y - cy, r: 50, c: [255, 90, 50], a: 0.7 });
   }
 }
-GolemBoss.ENV = (() => { const v = [0.55, 0.65, -0.55], l = Math.hypot(...v); return { sun: v.map(c => c / l), sunC: [0.95, 0.8, 0.62], amb: [0.22, 0.2, 0.28], sky: [0.1, 0.1, 0.14], fog: [0, 0, 0], fogD: 0 }; })(); // Fackellicht von rechts vorn, harte Schatten
+GolemBoss.YAW = -0.78; GolemBoss.CAM_D = 560; // Leib schräg zum Betrachter gedreht (Brust zeigt nach rechts vorn), ferne Kamera
+GolemBoss.ENV = (() => { const v = [0.55, 0.65, -0.55], l = Math.hypot(...v); return { sun: v.map(c => c / l), sunC: [1.05, 0.88, 0.66], amb: [0.16, 0.15, 0.22], sky: [0.14, 0.14, 0.2], fog: [0, 0, 0], fogD: 0 }; })(); // Fackellicht von rechts vorn, harte Schatten

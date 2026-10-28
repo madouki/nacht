@@ -112,7 +112,11 @@ class Player {
   }
 
   tryAttack(wantSub, strict) {
-    if (this.atkT > 0) return;
+    if (this.atkT > 0) { // Schlag läuft noch: in der Luft nahe einem Ring neu ausholen (sonst ginge der Tipp verloren), sonst kurz merken
+      if (wantSub || this.atkSub || this.onGround || this.state !== 'normal') return;
+      if (!this.nearRing()) { this.ringBuf = 14; return; }
+      this.atkT = 0;
+    }
     if (wantSub && this.sub === 'watch') { // Stoppuhr: hält Gegner und Geschosse 3 Sekunden an (5 Herzen)
       if (this.hearts >= 5 && !(W.stopT > 0)) { if (!Options.infHearts) this.hearts -= 5; W.stopT = 180; Audio8.sfx('watch'); W.flash = 4; }
       return;
@@ -129,7 +133,10 @@ class Player {
     const I = Input.held, horiz = I.left || I.right;
     this.atkDir = 'fwd';
     if (!this.atkSub && this.state === 'normal' && !this.crouchAtk) {
-      if (!this.onGround && !I.down && this.ringAssist()) { /* in der Luft nahe einem Ring: Schlag zielt automatisch dorthin */ }
+      if (!this.onGround) this.ringBuf = 14; // Ring noch knapp außer Reichweite: hakt ein, sobald er in Reichweite kommt (ringBuffer)
+      // in der Luft nahe einem Ring: Schlag zielt automatisch dorthin – nur ein glattes ↓ (ohne ←→) schlägt nach unten. Der Touch-Stick
+      // meldet beim schrägen Halten schnell auch ↓, deshalb verhinderte das vorher auf dem Handy jedes Einhaken
+      if (!this.onGround && !(I.down && !horiz) && this.ringAssist()) { /* Ring */ }
       else if (I.up) this.atkDir = horiz ? 'upd' : 'up';
       else if (I.down && !this.onGround) this.atkDir = horiz ? 'downd' : 'down';
     }
@@ -160,6 +167,14 @@ class Player {
     return true;
   }
 
+  // gemerkter Schlag in der Luft: kommt ein Ring in Reichweite, hakt die Peitsche noch ein (großzügig, vor allem für Touch)
+  ringBuffer() {
+    if (!(this.ringBuf > 0)) return;
+    this.ringBuf--;
+    if (this.onGround || this.state !== 'normal' || this.atkSub) { if (this.onGround) this.ringBuf = 0; return; }
+    if (this.atkT > 0 && this.atkT <= 16) return; // der laufende Schlag versucht es selbst
+    if (this.ringAssist() && this.tryLatch()) this.ringBuf = 0;
+  }
   tickAttack() {
     if (this.atkT === 0) return;
     this.atkT++;
@@ -358,7 +373,7 @@ class Player {
     // Angriff
     if (P.sub) this.tryAttack(true, true);
     else if (P.attack && !this.dangle) this.tryAttack(false, false);
-    this.tickAttack();
+    this.tickAttack(); this.ringBuffer();
     if (this.state === 'swing') return;
     this.updateDangle(I);
 
@@ -743,7 +758,7 @@ class Player {
     for (const r of near ? [near] : []) {
       const dx = wrapDx(r.cx - h.x), dy = r.cy - h.y, rel = wrapDx(this.cx - r.cx);
       if (!air && Math.abs(angDiff(Math.atan2(dy, dx), wa)) > 1.15) continue;
-      this.state = 'swing'; this.ring = r; this.atkT = 0; this.dangle = false; this.setCrouch(false); this.ropeT = 0;
+      this.state = 'swing'; this.ring = r; this.atkT = 0; this.ringBuf = 0; this.dangle = false; this.setCrouch(false); this.ropeT = 0;
       if (Math.abs(r.cx - this.cx) > 2) this.face = r.cx > this.cx ? 1 : -1; // zum Ring drehen: die Hand liegt auf seiner Seite
       this.swL = clamp(Math.hypot(rel, this.cy - r.cy), 26, RING_REACH); // langes Seil zieht sich danach sanft ein
       this.swA = Math.atan2(rel, this.cy - r.cy);
