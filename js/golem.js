@@ -57,45 +57,59 @@ class GolemBoss extends Boss {
     const P = PS2, m = P.mesh(), arm = P.mesh(), fl = this.flashT > 0;
     const S = fl ? [240, 240, 240] : [112, 104, 94], S2 = fl ? [220, 220, 220] : [84, 78, 72], D = fl ? [200, 200, 200] : [46, 42, 42];
     const WARM = fl ? [230, 230, 230] : [120, 104, 86], LIT = fl ? [250, 250, 250] : [142, 134, 122], MOSS = [62, 98, 52], MOSS2 = [84, 124, 60];
+    // Quader mit leicht wechselnder Steinfarbe; große bekommen eine hellere, eingerückte Deckplatte (Fase) – selbstleuchtende bleiben, wie sie sind
+    let nb = 0;
+    const B = (mm, cx, y0, cz, w, h, d, col, o = {}) => {
+      if (o.e || fl) return P.box(mm, cx, y0, cz, w, h, d, col, o);
+      const r = Math.sin(++nb * 12.9898) * 43758.5453, kk = 0.86 + 0.26 * (r - Math.floor(r)), c = col.map(v => Math.min(255, v * kk));
+      P.box(mm, cx, y0, cz, w, h, d, c, o);
+      if (w > 16 && d > 16 && h > 8) P.box(mm, cx, y0 + h, cz, w - 5, 2, d - 5, c.map(v => Math.min(255, v * 1.22 + 6)), { rot: o.rot });
+    };
     const RUNE = [255, 150, 70], ps = this.pose(), k = this.kneel, hip = ps.hip, ch = ps.chest, glowR = 0.3 + 0.25 * Math.sin(this.t * 0.08) + (this.ph2 ? 0.35 : 0);
     // Beine: kurz und breitbeinig – Schienbein, schräger Oberschenkel, keilförmiger Fuß; zwischen den Beinen eine Lücke
     for (const z of [-36, 36]) {
       const lh = Math.max(16, hip - 8);
-      P.box(m, -2 + 16 * k, 0, z, 34, lh * 0.56, 34, S2, { rot: z * 0.004 });
-      P.box(m, 0 + 10 * k, lh * 0.46, z * 1.04, 40, lh * 0.62, 40, S, { rot: -z * 0.005 });
-      P.box(m, 8 + 18 * k, 0, z, 54, 12, 44, D); P.box(m, 31 + 18 * k, 0, z, 10, 8, 38, S2);   // Fuß mit Zehenkante
-      if (k > 0.2) P.box(m, 22 * k, hip - 18, z, 32, 20, 34, LIT, { rot: 0.3 });                // Knie
+      B(m, -2 + 16 * k, 0, z, 34, lh * 0.56, 34, S2, { rot: z * 0.004 });
+      B(m, 0 + 10 * k, lh * 0.46, z * 1.04, 40, lh * 0.62, 40, S, { rot: -z * 0.005 });
+      B(m, 8 + 18 * k, 0, z, 54, 12, 44, D); B(m, 31 + 18 * k, 0, z, 10, 8, 38, S2);   // Fuß mit Zehenkante
+      if (k > 0.2) B(m, 22 * k, hip - 18, z, 32, 20, 34, LIT, { rot: 0.3 });                // Knie
     }
-    P.box(m, 0, hip - 10, 0, 58, 22, 96, D);                                                     // Becken
-    P.box(m, 2, hip + 8, 0, 56, 36, 82, S2);                                                     // Taille, schmal
-    P.box(m, 4, hip + 40, 0, 74, ch - hip - 72, 108, S);                                          // Brust unten
-    P.box(m, 8, ch - 38, 0, 86, 42, 140, WARM, { rot: 0.04 });                                     // Brust oben, breit (V-Form)
-    P.box(m, -32, ch - 46, 0, 44, 54, 104, S2);                                                  // Buckel
-    for (const [y, z, w] of [[hip + 50, -22, 16], [hip + 64, 20, 22], [ch - 28, -40, 18], [ch - 16, 30, 14]]) P.box(m, y > ch - 40 ? 52 : 43, y, z, 3, 3, w, RUNE, { e: glowR, rot: 0.5 }); // Runenrisse
+    B(m, 0, hip - 10, 0, 58, 22, 96, D);                                                     // Becken
+    B(m, 2, hip + 8, 0, 56, 36, 82, S2);                                                     // Taille, schmal
+    B(m, 4, hip + 40, 0, 74, ch - hip - 72, 108, S);                                          // Brust unten
+    B(m, 8, ch - 38, 0, 86, 42, 140, WARM, { rot: 0.04 });                                     // Brust oben, breit (V-Form)
+    B(m, -32, ch - 46, 0, 44, 54, 104, S2);                                                  // Buckel
+    for (const [y, z, w] of [[hip + 50, -22, 16], [hip + 64, 20, 22], [ch - 28, -40, 18], [ch - 16, 30, 14]]) B(m, y > ch - 40 ? 52 : 43, y, z, 3, 3, w, RUNE, { e: glowR, rot: 0.5 }); // Runenrisse
     for (const s2 of [-1, 1]) { // Felsschultern, höher als der gesenkte Kopf: Brocken, Zacken, Moos
       const z = s2 * 82;
-      P.box(m, -4, ch - 34, z, 58, 54, 52, S, { rot: s2 * 0.18 });
-      P.box(m, -12, ch + 12, z * 0.96, 40, 14, 36, LIT, { rot: -s2 * 0.3 });
-      P.box(m, 12, ch + 4, z * 1.08, 22, 14, 22, S2, { rot: 0.5 });
-      P.box(m, -14, ch + 24, z * 0.94, 30, 6, 26, MOSS); P.box(m, -2, ch + 16, z * 1.12, 14, 5, 12, MOSS2);
+      B(m, -4, ch - 34, z, 58, 54, 52, S, { rot: s2 * 0.18 });
+      B(m, -12, ch + 12, z * 0.96, 40, 14, 36, LIT, { rot: -s2 * 0.3 });
+      B(m, 12, ch + 4, z * 1.08, 22, 14, 22, S2, { rot: 0.5 });
+      B(m, -14, ch + 24, z * 0.94, 30, 6, 26, MOSS); B(m, -2, ch + 16, z * 1.12, 14, 5, 12, MOSS2);
       P.cone(m, -16, ch + 26, z * 1.02, 9, 18, 4, D); P.cone(m, 8, ch + 18, z * 0.88, 7, 13, 4, D);
     }
     // Runenherz im Bauch: Platten weichen auseinander, glüht stärker beim Laser und im Knien (im Stand mit Sprung, kniend vom Boden)
     const cy = hip + 12, glow = 0.45 + 0.5 * this.open + 0.15 * Math.sin(this.t * 0.2);
-    P.box(m, 44, cy - 14, 0, 6, 28, 28, RUNE, { e: glow });
-    for (const s2 of [-1, 1]) P.box(m, 46, cy - 16, s2 * (16 + 12 * this.open), 6, 32, 14, S2);
+    B(m, 44, cy - 14, 0, 6, 28, 28, RUNE, { e: glow });
+    for (const s2 of [-1, 1]) B(m, 46, cy - 16, s2 * (16 + 12 * this.open), 6, 32, 14, S2);
     // linker Arm (zum Betrachter hin) hängt bis zum Boden, die Faust stützt sich auf
-    P.beam(m, -4, ch - 10, -88, 8, ch - 66, -100, 32, 32, S2); P.box(m, 8, ch - 84, -100, 30, 24, 30, LIT);
-    P.beam(m, 8, ch - 72, -100, 16, 26, -102, 30, 30, S); P.box(m, 16, 0, -102, 48, 34, 46, S2); P.box(m, 36, 4, -102, 8, 24, 42, D);
+    P.beam(m, -4, ch - 10, -88, 8, ch - 66, -100, 32, 32, S2); B(m, 8, ch - 84, -100, 30, 24, 30, LIT);
+    P.beam(m, 8, ch - 72, -100, 16, 26, -102, 30, 30, S); B(m, 16, 0, -102, 48, 34, 46, S2); B(m, 36, 4, -102, 8, 24, 42, D);
     // Kopf: tief zwischen den Schultern, senkt sich beim flachen Laser bis an den Boden; Kiefer, Stirnwulst, Mundspalt, glühende Augen
     const hx = ps.head.x, hy = ps.head.y, eye = [255, 70 + 120 * this.eye, 40 + 60 * this.eye];
     P.beam(m, 0, ch - 8, 0, hx - 6, hy + 8, 0, 34, 30, D);                                      // Nacken
-    P.box(m, hx, hy, 0, 54, 44, 60, S);                                                         // Schädel
-    P.box(m, hx + 8, hy - 8, 0, 44, 14, 54, S2);                                                // Kiefer
-    P.box(m, hx + 8, hy + 30, 0, 48, 10, 68, D);                                                // Stirnwulst
-    P.box(m, hx + 27, hy + 6, 0, 4, 5, 28, [30, 20, 20]);                                       // Mundspalt
-    for (const z of [-13, 13]) P.box(m, hx + 27, hy + 21, z, 3, 7, 11, eye, { e: 0.25 + this.eye * 0.9 });
-    P.box(m, hx - 8, hy + 44, -8, 26, 8, 26, MOSS); P.cone(m, hx - 12, hy + 44, 14, 8, 16, 4, D);
+    B(m, hx, hy, 0, 54, 44, 60, S);                                                         // Schädel
+    B(m, hx + 8, hy - 8, 0, 44, 14, 54, S2);                                                // Kiefer
+    B(m, hx + 8, hy + 30, 0, 48, 10, 68, D);                                                // Stirnwulst
+    B(m, hx + 27, hy + 6, 0, 4, 5, 28, [30, 20, 20]);                                       // Mundspalt
+    for (const z of [-13, 13]) B(m, hx + 27, hy + 21, z, 3, 7, 11, eye, { e: 0.25 + this.eye * 0.9 });
+    B(m, hx - 8, hy + 44, -8, 26, 8, 26, MOSS); P.cone(m, hx - 12, hy + 44, 14, 8, 16, 4, D);
+    // Kristallbüschel aus der Höhle wachsen aus Schultern und Buckel (selbstleuchtend, pulsierend)
+    const cg = 0.1 + 0.07 * Math.sin(this.t * 0.06), CR = [[150, 80, 255], [60, 190, 255]];
+    for (const [x0, y0, z0, n] of [[-30, ch + 8, -26, 3], [-28, ch + 8, 24, 2], [-10, ch + 26, -74, 3], [-12, ch + 26, 76, 3], [-40, ch - 6, 0, 2]])
+      for (let i = 0; i < n; i++) P.cone(m, x0 + (i - 1) * 7, y0 - 2, z0 + (i % 2 ? 6 : -5), 5 + (i % 2) * 2, 16 + ((i * 7) % 3) * 8, 5, CR[(i + n) % 2], { e: cg + i * 0.03 });
+    for (const [x, y, z, w, rr] of [[30, hip * 0.5, -36, 14, 0.9], [30, hip * 0.7, 36, 12, -0.7], [-2, ch - 54, -100, 16, 0.6], [16, ch - 64, 92, 14, -0.5], [10, ch - 6, 60, 18, 0.3]]) // Runenrisse an Beinen und Armen
+      P.box(m, x, y, z, 3, 3, w, RUNE, { e: glowR * 0.9, rot: rr });
     for (let i = 0, V = m.v; i < V.length; i += 3) { const [x, z] = this.rot(V[i], V[i + 2]); V[i] = x; V[i + 2] = z; } // Leib drehen
     for (const fc of m.f) { const [x, z] = this.rot(fc.n[0], fc.n[2]); fc.n[0] = x; fc.n[2] = z; }
     // Schlagarm an der Schulter zum Helden hin, Faust in der Spielebene (Welt → lokal)
@@ -165,6 +179,7 @@ class GolemBoss extends Boss {
       this.ph2 = true; W.flash = 8; W.shake = Math.max(W.shake, 16); Audio8.sfx('roar'); Audio8.tempo(1.1); Input.rumble(0.7, 0.6, 500);
       this.say('bossGolemRage', '#fc7460');
     }
+    if (!this.dying && this.t % 7 === 0 && this.state !== 'intro') W.spawn(new Particle(this.bx + rnd(-50, 46), this.gy - rnd(60, 170), rnd(-0.3, 0.3), rnd(0, 0.6), Math.random() < 0.5 ? '#6c6458' : '#8c8478', 70, 1, 0.12)); // Steinchen rieseln vom Felsleib
     const ps = this.pose(), f = this.fist;
     const hq = this.rp(47, ps.hip + 12, 0); // Runenherz folgt der Pose (wo man es sieht)
     this.w = 26; this.h = 30; this.x = hq[0] + W.cam.x - 13; this.y = hq[1] + W.cam.y - 15;
@@ -240,4 +255,4 @@ class GolemBoss extends Boss {
   }
 }
 GolemBoss.YAW = -0.78; GolemBoss.CAM_D = 560; // Leib schräg zum Betrachter gedreht (Brust zeigt nach rechts vorn), ferne Kamera
-GolemBoss.ENV = (() => { const v = [0.55, 0.65, -0.55], l = Math.hypot(...v); return { sun: v.map(c => c / l), sunC: [1.05, 0.88, 0.66], amb: [0.16, 0.15, 0.22], sky: [0.14, 0.14, 0.2], fog: [0, 0, 0], fogD: 0 }; })(); // Fackellicht von rechts vorn, harte Schatten
+GolemBoss.ENV = (() => { const v = [0.55, 0.65, -0.55], l = Math.hypot(...v); return { sun: v.map(c => c / l), sunC: [1.05, 0.88, 0.66], amb: [0.15, 0.14, 0.22], sky: [0.22, 0.24, 0.34], fog: [0, 0, 0], fogD: 0 }; })(); // Fackellicht von rechts vorn, harte Schatten

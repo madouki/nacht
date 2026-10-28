@@ -25,23 +25,57 @@ class BigPendulum extends Ent { // d: { x, y (Drehpunkt, Kacheln), len (px), amp
   surfaceAt(x) { const d = x - this.bx; return Math.abs(d) > this.R * 0.8 ? null : this.by - Math.sqrt(this.R * this.R - d * d); } // Wölbung der Scheibe
   carryAt() { return [this.dx, this.dy]; }
   draw(ctx) {
-    const cx = W.cam.x, cy = W.cam.y, px = this.px - cx, py = this.py - cy, bx = this.bx - cx, by = this.by - cy, a = this.ang, R = this.R;
-    const nx = Math.cos(a), ny = -Math.sin(a); // quer zur Stange
-    ctx.save();
-    for (const [o, col, lw] of [[0, '#3c2c10', 7], [0, '#a87c2c', 5], [-1.5, '#f8d070', 1]]) { // Stange: zwei Messingschienen mit Glanzkante
-      for (const s of [-1, 1]) { ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.beginPath(); ctx.moveTo(px + nx * (s * 4 + o), py + ny * (s * 4 + o)); ctx.lineTo(bx + nx * (s * 4 + o), by + ny * (s * 4 + o)); ctx.stroke(); }
+    const cx = W.cam.x, cy = W.cam.y, px = this.px - cx, py = this.py - cy, bx = this.bx - cx, by = this.by - cy, a = this.ang, R = this.R, t = this.t;
+    if (Math.max(px, bx) < -60 || Math.min(px, bx) > View.w + 60) return;
+    const nx = Math.cos(a), ny = -Math.sin(a), L = Math.hypot(bx - px, by - py) - R + 2, ux = (bx - px) / (L + R - 2), uy = (by - py) / (L + R - 2); // quer und längs zur Stange
+    const P = (o, d) => [px + nx * o + ux * d, py + ny * o + uy * d];
+    ctx.save(); ctx.lineCap = 'butt';
+    // Rostpendel: fünf Stäbe, Messing und Stahl im Wechsel, mit Querjochen; dunkle Kontur zuerst
+    const rods = [[-6, '#a87c2c', '#f8d070'], [-3, '#8c949c', '#e0e8f0'], [0, '#a87c2c', '#f8d070'], [3, '#8c949c', '#e0e8f0'], [6, '#a87c2c', '#f8d070']];
+    ctx.strokeStyle = '#1c140c'; ctx.lineWidth = 16; ctx.beginPath(); ctx.moveTo(...P(0, 0)); ctx.lineTo(...P(0, L)); ctx.stroke();
+    for (const [o, col, hi] of rods) {
+      ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(...P(o, 0)); ctx.lineTo(...P(o, L)); ctx.stroke();
+      ctx.strokeStyle = hi; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(...P(o - 0.6, 0)); ctx.lineTo(...P(o - 0.6, L)); ctx.stroke();
     }
-    for (let k = 1; k < 8; k++) { const u = k / 8, x = px + (bx - px) * u, y = py + (by - py) * u; ctx.fillStyle = '#c89838'; ctx.fillRect(Math.round(x - 4), Math.round(y - 1), 8, 2); } // Querstreben
-    ctx.save(); ctx.translate(px, py); ctx.rotate(this.ang * 3); // Zahnrad am Drehpunkt dreht mit dem Pendel
-    ctx.fillStyle = '#5c4418'; for (let k = 0; k < 10; k++) { ctx.rotate(Math.PI / 5); ctx.fillRect(-2, -15, 4, 5); }
-    ctx.beginPath(); ctx.arc(0, 0, 11, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#c89838'; ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
+    for (const d of [0.12, 0.3, 0.7, 0.88]) { // Querjoche mit Nieten
+      const [x0, y0] = P(-8, L * d), [x1, y1] = P(8, L * d);
+      ctx.strokeStyle = '#5c4418'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+      ctx.strokeStyle = '#e8c060'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+    }
+    { // Lyra in der Mitte: zwei geschwungene Arme, oben eine Rosette
+      const d0 = L * 0.4, d1 = L * 0.62;
+      ctx.strokeStyle = '#3c2c10'; ctx.lineWidth = 4;
+      for (const s2 of [-1, 1]) { ctx.beginPath(); ctx.moveTo(...P(0, d1)); ctx.quadraticCurveTo(...P(s2 * 22, (d0 + d1) / 2), ...P(s2 * 9, d0)); ctx.stroke(); }
+      ctx.strokeStyle = '#e8b848'; ctx.lineWidth = 2;
+      for (const s2 of [-1, 1]) { ctx.beginPath(); ctx.moveTo(...P(0, d1)); ctx.quadraticCurveTo(...P(s2 * 22, (d0 + d1) / 2), ...P(s2 * 9, d0)); ctx.stroke(); }
+      const [rx, ry] = P(0, d0 - 3); ctx.fillStyle = '#c89838'; ctx.beginPath(); ctx.arc(rx, ry, 5, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#fce8a0'; ctx.beginPath(); ctx.arc(rx - 1, ry - 1, 2, 0, Math.PI * 2); ctx.fill();
+    }
+    // Zahnrad am Drehpunkt dreht mit dem Pendel
+    ctx.save(); ctx.translate(px, py); ctx.rotate(a * 3);
+    ctx.fillStyle = '#3c2c10'; for (let k = 0; k < 12; k++) { ctx.rotate(Math.PI / 6); ctx.fillRect(-2.5, -17, 5, 6); }
+    ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#a87c2c'; ctx.beginPath(); ctx.arc(0, 0, 11, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#3c2c10'; for (let k = 0; k < 5; k++) { ctx.rotate(Math.PI * 2 / 5); ctx.beginPath(); ctx.arc(0, -6.5, 2.5, 0, Math.PI * 2); ctx.fill(); }
+    ctx.fillStyle = '#fce8a0'; ctx.beginPath(); ctx.arc(0, 0, 3, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
-    const g = ctx.createRadialGradient(bx - 8, by - 10, 3, bx, by, R); // Scheibengewicht: Messing, Sonnenrad graviert
-    g.addColorStop(0, '#fce8a0'); g.addColorStop(0.45, '#d8a440'); g.addColorStop(0.85, '#8c5c18'); g.addColorStop(1, '#3c2808');
+    // Scheibengewicht: polierte Messinglinse, Perlrand, graviertes Sonnengesicht (blinzelt ab und zu), Glanz wandert mit dem Schwung
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'; // warmer Schein ums Gewicht
+    const hg = ctx.createRadialGradient(bx, by, R * 0.6, bx, by, R * 1.8); hg.addColorStop(0, 'rgba(252,200,110,0.18)'); hg.addColorStop(1, 'rgba(252,200,110,0)'); ctx.fillStyle = hg; ctx.fillRect(bx - R * 2, by - R * 2, R * 4, R * 4);
+    ctx.restore();
+    ctx.fillStyle = '#2c1c08'; ctx.beginPath(); ctx.arc(bx, by, R + 2, 0, Math.PI * 2); ctx.fill();
+    const gx = bx - 9 - a * 18, g = ctx.createRadialGradient(gx, by - 10, 2, bx, by, R);
+    g.addColorStop(0, '#fff4c8'); g.addColorStop(0.25, '#f0c860'); g.addColorStop(0.7, '#b07c24'); g.addColorStop(1, '#5c3c10');
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(bx, by, R, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = 'rgba(60,36,8,0.8)'; ctx.lineWidth = 1;
-    for (const r of [R - 4, 13]) { ctx.beginPath(); ctx.arc(bx, by, r, 0, Math.PI * 2); ctx.stroke(); }
-    for (let k = 0; k < 12; k++) { const t = a + k * Math.PI / 6; ctx.beginPath(); ctx.moveTo(bx + Math.cos(t) * 6, by + Math.sin(t) * 6); ctx.lineTo(bx + Math.cos(t) * 12, by + Math.sin(t) * 12); ctx.stroke(); }
+    for (let k = 0; k < 24; k++) { const q = k / 24 * Math.PI * 2 + a; ctx.fillStyle = k % 2 ? '#fce8a0' : '#8c5c18'; ctx.beginPath(); ctx.arc(bx + Math.cos(q) * (R - 3), by + Math.sin(q) * (R - 3), 1.4, 0, Math.PI * 2); ctx.fill(); } // Perlrand
+    ctx.strokeStyle = 'rgba(70,40,8,0.85)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(bx, by, R - 6, 0, Math.PI * 2); ctx.stroke();
+    for (let k = 0; k < 16; k++) { const q = a + k * Math.PI / 8; ctx.beginPath(); ctx.moveTo(bx + Math.cos(q) * 11, by + Math.sin(q) * 11); ctx.lineTo(bx + Math.cos(q) * (k % 2 ? 15 : 18), by + Math.sin(q) * (k % 2 ? 15 : 18)); ctx.stroke(); } // Sonnenstrahlen
+    ctx.beginPath(); ctx.arc(bx, by, 10, 0, Math.PI * 2); ctx.stroke();
+    const blink = (t + (this.d.x * 37)) % 220 < 7; // Sonnengesicht: Augen, Lächeln
+    ctx.fillStyle = 'rgba(70,40,8,0.9)';
+    if (blink) { ctx.fillRect(Math.round(bx - 5), Math.round(by - 3), 3, 1); ctx.fillRect(Math.round(bx + 2), Math.round(by - 3), 3, 1); }
+    else { ctx.fillRect(Math.round(bx - 4), Math.round(by - 4), 2, 2); ctx.fillRect(Math.round(bx + 2), Math.round(by - 4), 2, 2); }
+    ctx.beginPath(); ctx.arc(bx, by + 1, 4, 0.2, Math.PI - 0.2); ctx.stroke();
+    ctx.fillStyle = '#ffffff'; ctx.globalAlpha = 0.85; ctx.beginPath(); ctx.ellipse(gx, by - 13, 5, 2, -0.4, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; // Glanzlicht
     ctx.fillStyle = '#fcf0c0'; ctx.fillRect(Math.round(bx - 10), Math.round(by - R + 1), 20, 1); // Glanz oben (dort steht man)
     ctx.restore();
   }
@@ -52,7 +86,24 @@ class ClockFace extends Ent { // Zifferblatt von innen, hinter allem (drawBack):
   constructor(d) { super(d.x * T, d.y * T, 1, 1); this.kind = 'prop'; this.r = d.r || 150; this.noWrap = true; }
   update() { this.t++; }
   draw() { }
+  gears(ctx, t) { // Riesenzahnräder des Uhrwerks weit hinten (Parallaxe 0.35), dunkle Bronze mit Lichtkante
+    const G = [[-220, 40, 70, 20, 1], [-120, 150, 46, 14, -1.53], [150, 30, 90, 26, -0.78], [270, 160, 54, 16, 1.44], [40, 200, 40, 12, -1.75], [380, 60, 60, 18, 1.0]];
+    for (const [ox, oy, r, n, sp] of G) {
+      const x = Math.round(View.w / 2 + (this.x + ox - View.w / 2 - W.cam.x) * 0.35), y = Math.round(80 + oy - (W.cam.y - 112) * 0.35);
+      if (x + r + 10 < 0 || x - r - 10 > View.w) continue;
+      const rot = t * 0.004 * sp;
+      ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+      ctx.fillStyle = '#1c140c'; ctx.beginPath();
+      for (let k = 0; k < n; k++) { const q0 = k / n * Math.PI * 2, q1 = q0 + Math.PI / n * 0.9; ctx.lineTo(Math.cos(q0) * r, Math.sin(q0) * r); ctx.lineTo(Math.cos(q0) * (r + 7), Math.sin(q0) * (r + 7)); ctx.lineTo(Math.cos(q1) * (r + 7), Math.sin(q1) * (r + 7)); ctx.lineTo(Math.cos(q1) * r, Math.sin(q1) * r); }
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = 'rgba(200,150,70,0.35)'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.fillStyle = '#2c2014'; for (let k = 0; k < 6; k++) { ctx.rotate(Math.PI / 3); ctx.beginPath(); ctx.arc(0, -r * 0.55, r * 0.22, 0, Math.PI * 2); ctx.fill(); } // Speichenlöcher
+      ctx.fillStyle = '#4c3818'; ctx.beginPath(); ctx.arc(0, 0, r * 0.18, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+  }
   drawBack(ctx) {
+    this.gears(ctx, W.frame);
     const x = Math.round(View.w / 2 + (this.x - View.w / 2 - W.cam.x) * 0.6), y = Math.round(104 + (this.y - 104 - W.cam.y) * 0.8), r = this.r, t = W.frame; // Parallaxe: liegt weiter hinten
     if (x + r < -20 || x - r > View.w + 20) return;
     ctx.save();
@@ -72,6 +123,12 @@ class ClockFace extends Ent { // Zifferblatt von innen, hinter allem (drawBack):
     hand(r * 0.5, 7, -Math.PI / 2 - t * 0.00045); hand(r * 0.78, 4, -Math.PI / 2 - Math.floor(t / 90) * 0.0105); // Stunden gleitend, Minuten springen im Takt
     ctx.fillStyle = '#141018'; ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.fill();
     ctx.globalCompositeOperation = 'lighter'; // Mondschein fällt durch das Glas in die Halle
+    for (let k = 0; k < 4; k++) { // einzelne Lichtschächte zwischen den Sprossen, Staub darin
+      const ang = -0.9 + k * 0.6, sx = x + Math.cos(ang) * r * 0.5, sy = y + Math.sin(ang) * r * 0.5, g2 = ctx.createLinearGradient(sx, sy, sx + 90, sy + 260);
+      g2.addColorStop(0, 'rgba(180,190,255,0.09)'); g2.addColorStop(1, 'rgba(180,190,255,0)'); ctx.fillStyle = g2;
+      ctx.beginPath(); ctx.moveTo(sx - 10, sy); ctx.lineTo(sx + 10, sy); ctx.lineTo(sx + 130, sy + 280); ctx.lineTo(sx + 70, sy + 280); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = 'rgba(220,225,255,0.5)'; for (let m = 0; m < 6; m++) { const u = ((t * 0.002 + m * 0.17 + k * 0.31) % 1); ctx.fillRect(Math.round(sx + u * 100 + Math.sin(m + t * 0.01) * 6), Math.round(sy + u * 280), 1, 1); }
+    }
     const sh = ctx.createLinearGradient(x, y, x + r * 0.6, y + r * 2.2); sh.addColorStop(0, 'rgba(170,180,255,0.12)'); sh.addColorStop(1, 'rgba(170,180,255,0)');
     ctx.fillStyle = sh; ctx.beginPath(); ctx.moveTo(x - r * 0.6, y); ctx.lineTo(x + r * 0.6, y); ctx.lineTo(x + r * 1.4, y + r * 2.4); ctx.lineTo(x - r * 0.2, y + r * 2.4); ctx.closePath(); ctx.fill();
     ctx.restore();

@@ -304,11 +304,14 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   Felsenkammer/Grottenportal (Brunnenschacht), Lesezimmer/Turmstube (Bibliothek), Sakristei/Kreuzgang (Kathedrale),
   Orangerie/Treibhaus (Palmenhaus), Vorzimmer/Seelenportal (über dem Seelenstrudel). Sie behalten den alten Schlüssel
   (`CHAMBERS`, 5. Feld) – Spielstände und freigeschaltete Portale bleiben gültig. Das Hotel behält Sternlampe und Aufzug.
-  Jede Kammer ist eine kleine Kapelle (`js/kammer.js`, `def.hall`): zwei Joche unter einem Kreuzrippengewölbe mit Sternenhimmel
-  in den Kappen, Rippen mit Goldfilet, Nasenbesatz am Schildbogen, goldene Schlusssteine, Dienstbündel mit Blattkapitellen,
-  Rosenfenster mit Mondlichtschacht, Blendarkade im Sockel; Steinfarben nach Region. Im einen Joch die Nische (Sarg/Portal,
-  im hinteren Joch der Sackgasse), im anderen ein Brunnen mit Schale, Fontäne, Wasserschleier und Lichtspiel – und ein
-  Bronzefrosch auf dem Beckenrand, der blinzelt und ab und zu ins Becken spuckt.
+  Jede Kammer ist eine kleine Kapelle (`js/kammer.js`, `def.hall`): ein großes Joch unter einem Kreuzrippengewölbe mit
+  Sternenhimmel in den Kappen, Rippen mit Goldfilet, Nasenbesatz am Schildbogen, goldener Schlussstein, Dienstbündel mit
+  Blattkapitellen, Blendarkade im Sockel, ein großes Rosenfenster, dessen Mondlichtschacht senkrecht auf die Mitte fällt;
+  Steinfarben nach Region. In der **Speicherkammer** steht dort der Brunnen als Ort der Rast (kein Sarg mehr): Plattform,
+  achteckiges Becken, drei Schalen mit Kaskaden, leuchtendes Wasser, aufsteigende Lichter, zwei Kerzenständer – wer ihn
+  erreicht, speichert, und das Wasser flammt auf; ein Bronzefrosch spuckt aus Prinzip ins Becken. In der **Warpkammer**
+  schwebt das Portal: eine wabernde Ikosaederkugel in PS2-3D (`ChamberPortal`) über einem Runenkreis, von zwei Ringen umkreist,
+  gesperrt matt und träge; ↑ öffnet die Schnellreise.
 - **Lichterpassage** (`js/passage.js`, links am Bahnhof Krat, Bahnsteig links ↔ rechter Rand, Seitenraum 0:16): Einkaufspassage
   der Belle Époque unter einem Glastonnendach im Regen (Mond hinter nassem Glas, Blitze), Galeriegeschoss mit Rundbogenfenstern,
   Ladenzeile mit vergoldeten Schildern in sechs Sprachen (Hutmacher, Konditorei, Parfümerie, Puppenklinik), Café. Unten die
@@ -332,7 +335,11 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   die TEST-WERKZEUGE (unverwundbar, alle Relikte, **alle Ausrüstung**, Stufe +5, Gold …).
 - **Steingolem überarbeitet:** volle Auflösung (scharf), schräg zum Betrachter (etwa 45°, ferne Kamera ohne Fluchtverzerrung),
   gedrungen und breitschultrig, der linke Arm stützt sich auf, der Schlagarm kommt von der Schulter zum Helden hin; dunkle
-  Kontur um den Felsleib, glühende Runenrisse.
+  Kontur um den Felsleib, glühende Runenrisse; Steinquader in wechselnden Tönen mit heller Fase, leuchtende Kristallbüschel
+  auf Schultern und Buckel, rieselnde Steinchen.
+- **Pendelhalle überarbeitet:** Rostpendel (Messing- und Stahlstäbe mit Querjochen) mit Lyra, Messinglinse mit Perlrand und
+  graviertem Sonnengesicht (blinzelt), wanderndes Glanzlicht, warmer Schein; dahinter Riesenzahnräder des Uhrwerks und
+  Mondlichtschächte mit Staub aus dem Zifferblatt.
 - **Karte:** Pause → **KARTE** zeigt das ganze Schloss (Regionen um die Eingangshalle: Prolog links, Katakomben unten,
   Bergfried oben, Sonnenkathedrale oben rechts, Wintergarten rechts, Thron ganz oben). Angriff zoomt, im Zoom scrollen
   die Pfeile, Sprung/Start schließt. Unten: Erkundungsgrad der Region und des Schlosses, Siegel n/5.

@@ -521,12 +521,12 @@ const Castle = (() => {
     // Kasematte zwischen Kolosseum und Katakomben: ruhige Speicherkammer mit Sarg und Kerzen (die der Eingangshalle ist hierher gezogen)
     const hall = (def) => { def.hall = true; return def; }; // Kammer mit Gewölbe und Brunnen (js/kammer.js)
     add('kasematte', 0, 1, null, hall(R(16, 'crypt')
-      .ground(0, 15).candle(1, 9).candle(14, 9).prop('kammerhall', {}).prop('fountain', { x: 4 })
+      .ground(0, 15).candle(1, 9).candle(14, 9).prop('kammerhall', { bays: 1 }).prop('fountain', { x: 8, big: true })
       .music('stage1').label('KASEMATTE').start(2, 10).done()));
     // Torstube im rechten Torturm über dem Burgtor: Warpkammer; die Luke im Boden führt hinab auf den Absatz im Burghof, links der Zwinger
     add('torstube', 0, 1, null, hall(R(16, 'hall')
       .ground(0, 15).fill(10, 11, 11, 12, '.').fill(15, 0, 15, 10, '#')
-      .candle(1, 9).candle(14, 9).prop('kammerhall', {}).prop('fountain', { x: 4 })
+      .candle(1, 9).candle(14, 9).prop('kammerhall', { bays: 1 })
       .music('stage1').label('TORSTUBE').start(2, 10).done()));
     // Zwinger: Gang zwischen den Ringmauern unter dem Wehrgang, vom Torturm nach links bis zur Fassade des Hotels Krat (Hotelaufzug)
     add('zwinger', 0, 2, null, R(64, 'courtyard')
@@ -603,20 +603,21 @@ const Castle = (() => {
     // Speicherkammer: ruhig, Kerzen, die Sargnische; Warpkammer daneben als Sackgasse mit dem leuchtenden Portal. Beide als kleine
     // Kapelle mit zwei Jochen unter einem Kreuzrippengewölbe (js/kammer.js): die Nische im hinteren Joch, im anderen ein Brunnen.
     // Die Kammern nehmen den alten Schlüssel mit (CHAMBERS), Spielstände und freigeschaltete Portale bleiben gültig
-    const kammer = (key, id, theme, music, label, walls, fx) => {
-      const k = R(16, theme).ground(0, 15).candle(1, 9).candle(14, 9).prop('kammerhall', {}).prop('fountain', { x: fx ?? (walls === 'L' ? 12 : 4) });
+    const kammer = (key, id, theme, music, label, walls, save) => { // save: Speicherkammer mit dem Brunnen der Rast (sonst Warpkammer mit dem Kugelportal)
+      const k = R(16, theme).ground(0, 15).candle(1, 9).candle(14, 9).prop('kammerhall', { bays: 1 });
+      if (save) k.prop('fountain', { x: 8, big: true });
       if (walls === 'L') k.fill(0, 0, 0, 10, '#'); else if (walls === 'R') k.fill(15, 0, 15, 10, '#');
       add(key, id, 1, null, hall(k.music(music).label(label).start(2, 10).done()));
     };
-    kammer('felsenkammer', 1, 'cave', 'stage2', 'FELSENKAMMER');                 // Katakomben: rechts am Brunnenschacht
+    kammer('felsenkammer', 1, 'cave', 'stage2', 'FELSENKAMMER', null, true);                 // Katakomben: rechts am Brunnenschacht
     kammer('grottenportal', 1, 'cave', 'stage2', 'GROTTENPORTAL', 'R');
-    kammer('lesezimmer', 2, 'library', 'library', 'LESEZIMMER');                 // Bergfried: links unten an der Bibliothek
+    kammer('lesezimmer', 2, 'library', 'library', 'LESEZIMMER', null, true);                 // Bergfried: links unten an der Bibliothek
     kammer('turmstube', 2, 'tower', 'library', 'TURMSTUBE', 'L');
-    kammer('sakristei', 'sun', 'cathedral', 'sun', 'SAKRISTEI');                 // Kathedrale: links oben am Vorplatz
+    kammer('sakristei', 'sun', 'cathedral', 'sun', 'SAKRISTEI', null, true);                 // Kathedrale: links oben am Vorplatz
     kammer('kreuzgang', 'sun', 'cathedral', 'sun', 'KREUZGANG', 'L');
-    kammer('orangerie', 'expo', 'expo', 'expo', 'ORANGERIE');                    // Wintergarten: links am Sims über dem Eingang
+    kammer('orangerie', 'expo', 'expo', 'expo', 'ORANGERIE', null, true);                    // Wintergarten: links am Sims über dem Eingang
     kammer('treibhaus', 'expo', 'expo', 'expo', 'TREIBHAUS', 'L');
-    kammer('vorzimmer', 3, 'throne', 'chapel', 'VORZIMMER', 'R', 6.5);            // Brunnen neben der Luke hinab in den Strudel               // Thron: über dem Ende des Seelenstrudels
+    kammer('vorzimmer', 3, 'throne', 'chapel', 'VORZIMMER', 'R', true);               // Thron: über dem Ende des Seelenstrudels
     kammer('seelenportal', 3, 'throne', 'chapel', 'SEELENPORTAL', 'L');
     { const v = S()[SIDE.vorzimmer.s].rooms[SIDE.vorzimmer.r]; for (let y = 11; y <= 12; y++) for (let x = 2; x <= 3; x++) v.grid[y][x] = '.'; } // Luke hinab in den Strudel
     LINKS.push(
@@ -758,7 +759,7 @@ const Castle = (() => {
       .prop('shopwin', { x: 7, y: 17, ware: 'dolls', col: '#1c1c24', doll: true }).prop('shopwin', { x: 38, y: 17, ware: 'hats', col: '#1c3c2c' })
       .prop('shopwin', { x: 58, y: 17, ware: 'bottles', col: '#2c1c48' }).prop('shopwin', { x: 74, y: 17, ware: 'cakes', col: '#5c1420', doll: true })
       .prop('shopwin', { x: 96, y: 17, ware: 'cakes', col: '#5c1420' }).prop('cafe', { x: 100, y: 17, n: 2 })
-      .prop('luster', { x: 34, y: 1, len: 72 }).prop('luster', { x: 52, y: 1, len: 44 }).prop('luster', { x: 66, y: 1, len: 44 }).prop('luster', { x: 84, y: 1, len: 88 })
+      .prop('luster', { x: 34, y: 1, len: 118 }).prop('luster', { x: 52, y: 1, len: 44 }).prop('luster', { x: 66, y: 1, len: 44 }).prop('luster', { x: 84, y: 1, len: 118 }) // über dem Boden tief genug, dass man sie von unten sieht
       .enemy('mannequin', 13, 17).enemy('mannequin', 31, 17, { pose: 'point' }).enemy('mannequin', 49, 17).enemy('mannequin', 68, 17, { pose: 'wave' })
       .enemy('mannequin', 12, 9, { pose: 'shy' }).enemy('mannequin', 56, 9).enemy('mannequin', 72, 9, { pose: 'hip' }).enemy('mannequin', 104, 17, { pose: 'show' })
       .candle(4, 15, 'H').candle(24, 15).candle(46, 7, '$').candle(62, 7, 'H').candle(80, 7).candle(86, 15, 'W').candle(108, 15)
@@ -1103,12 +1104,12 @@ const Castle = (() => {
   // Passt ein Platz nach einem Umbau nicht mehr, sucht findSpot die nächste freie Bodenstelle rechts vom Start.
   const CHAMBERS = [
     [['arrival', -1], 'save', 7, 10],                              // Wald: gleich nach der Landung
-    [['side', 'kasematte'], 'save', 11, 10, '0:1:save'], [['side', 'torstube'], 'warp', 12, 10, '0:1:warp'], // Eingangshalle → eigene Räume: Kasematte, Torstube
-    [['side', 'felsenkammer'], 'save', 11, 10, '1:0:save'], [['side', 'grottenportal'], 'warp', 11, 10, '1:0:warp'], // Katakomben: am Brunnenschacht
-    [['side', 'lesezimmer'], 'save', 11, 10, '2:0:save'], [['side', 'turmstube'], 'warp', 3, 10, '2:0:warp'],       // Bergfried: an der Bibliothek
-    [['side', 'sakristei'], 'save', 11, 10, 'sun:0:save'], [['side', 'kreuzgang'], 'warp', 3, 10, 'sun:0:warp'],     // Kathedrale: am Vorplatz
-    [['side', 'orangerie'], 'save', 11, 10, 'expo:0:save'], [['side', 'treibhaus'], 'warp', 3, 10, 'expo:0:warp'],   // Wintergarten: am Palmenhaus
-    [['side', 'vorzimmer'], 'save', 11, 10, '3:0:save'], [['side', 'seelenportal'], 'warp', 3, 10, '3:2:warp'],      // Thron: über dem Seelenstrudel
+    [['side', 'kasematte'], 'save', 7, 10, '0:1:save'], [['side', 'torstube'], 'warp', 7, 10, '0:1:warp'], // Eingangshalle → eigene Räume: Kasematte, Torstube
+    [['side', 'felsenkammer'], 'save', 7, 10, '1:0:save'], [['side', 'grottenportal'], 'warp', 7, 10, '1:0:warp'], // Katakomben: am Brunnenschacht
+    [['side', 'lesezimmer'], 'save', 7, 10, '2:0:save'], [['side', 'turmstube'], 'warp', 7, 10, '2:0:warp'],       // Bergfried: an der Bibliothek
+    [['side', 'sakristei'], 'save', 7, 10, 'sun:0:save'], [['side', 'kreuzgang'], 'warp', 7, 10, 'sun:0:warp'],     // Kathedrale: am Vorplatz
+    [['side', 'orangerie'], 'save', 7, 10, 'expo:0:save'], [['side', 'treibhaus'], 'warp', 7, 10, 'expo:0:warp'],   // Wintergarten: am Palmenhaus
+    [['side', 'vorzimmer'], 'save', 7, 10, '3:0:save'], [['side', 'seelenportal'], 'warp', 7, 10, '3:2:warp'],      // Thron: über dem Seelenstrudel
     [['side', 'hotel'], 'save', 9, 17], [['side', 'hotel'], 'warp', 44, 17], // Hotel Krat: Sternlampe und Aufzug
   ];
   function spotOk(def, x, y) { // ebener Boden unter beiden Kacheln, darüber drei Reihen frei
@@ -1170,6 +1171,13 @@ const Castle = (() => {
     draw(ctx) {
       if (S()[this.c.s].rooms[this.c.r].side === 'hotel' && drawHotelChamber(this, ctx)) return; // Hotel: Sternlampe und Aufzug
       const x = Math.round(this.x - W.cam.x), y = Math.round(this.y - W.cam.y), cx = x + 20, bot = y + 52, save = this.c.kind === 'save', t = this.t;
+      if (W.room.hall && typeof ChamberPortal !== 'undefined') { // Gewölbekammer: Speichern am Brunnen (eigener Prop), Warp an der schwebenden Kugel
+        if (save) return;
+        const on = !!warp[this.c.key], p = W.player;
+        ChamberPortal.floor(ctx, cx, bot, on, t); ChamberPortal.draw(ctx, cx, bot - 50 + Math.round(Math.sin(t * 0.03) * 2), on, t, this.pulse); // schwebt über dem Runenkreis
+        if (Math.abs(p.cx - this.cx) < 14 && Math.abs(p.feet - bot - W.cam.y) < 8 && on) Font.draw(ctx, '↑', cx - 2, bot - 90 + Math.round(Math.sin(t * 0.12) * 2), '#fcfcfc', { shadow: '#000' });
+        return;
+      }
       const hallRoom = W.room.hall && typeof ChamberHall !== 'undefined'; // Gewölbekammer: die Nische sitzt in der gemalten Schildwand
       if (hallRoom) { ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(cx, bot, 30, 4, 0, 0, Math.PI * 2); ctx.fill(); }
       const pc = hallRoom ? ChamberHall.pc(W.room.theme) : doorBlock(ctx, cx, bot, 4, 4); // sonst Nische in einem Mauerblock aus den Kacheln des Raums
