@@ -147,6 +147,16 @@ const Castle = (() => {
     for (let i = 0; i < 8; i++) yard.grid[10 - i][40 - i] = '\\';              // Treppe von (40, 10) hinauf nach links bis (33, 3)
     for (let x = 30; x <= 32; x++) yard.grid[3][x] = '=';                    // Absatz unter der Luke
   }
+  // Bergfried und Thron Rand an Rand (Schloss-Modus): Bibliothek rechts zur Schatzkammer, Loch in der Marmorgalerie hinab ins
+  // Spiegelkabinett, im Glasturm ein Steg rechts zum Verlies, im Ballsaal ein Aufzug hinauf zur Luke ins Theaterfoyer
+  function edgeKeep() {
+    const room = (id, i) => { const s = sIdx(id); return s >= 0 ? S()[s].rooms[i] : null; };
+    const lib = room(2, 1), gal = room(2, 3), glass = room(3, 1), ball = room(3, 3);
+    if (lib) { for (let x = 29; x <= 34; x++) lib.grid[17][x] = '='; lib.grid[15][35] = lib.grid[16][35] = '.'; } // Bibliothek: Steg zur Öffnung rechts
+    if (gal) for (let y = gal.h - 2; y < gal.h; y++) for (let x = 22; x <= 23; x++) gal.grid[y][x] = '.';      // Marmorgalerie: Loch ins Kabinett
+    if (glass) glass.grid[14][26] = glass.grid[14][27] = '=';                                                 // Glasturm: Steg zur Öffnung rechts
+    if (ball) ball.ents.push({ type: 'elevator', x: 100, y: 10, y1: 0 });                                     // Ballsaal: Aufzug zur Luke
+  }
   function buildSide() {
     const R = Levels.room;
     const add = (key, id, tier, at, def) => {
@@ -157,6 +167,7 @@ const Castle = (() => {
     };
     edgeHub();
     edgeBurg();
+    edgeKeep();
     // Kolosseum (unter dem Burghof): Kampfbahn mit Rittern und Skeletten, Zombies und Schädel kommen immer nach – zum Aufleveln.
     // Hinein fällt man durch den Schacht im Burghof, hinauf fährt ein Aufzug wie im Hypogäum (x 36); ein Loch in der Arena führt
     // hinab in den Kerker, rechts geht es durch die Kasematte in die Katakomben
@@ -181,16 +192,16 @@ const Castle = (() => {
       .zone('fish', 15, 34, { interval: 180, max: 2 }).zone('fish', 53, 70, { interval: 180, max: 2 })
       .statue(37, 10).statue(73, 10).chest(95, 6, 'big').prop('vessel', { x: 98, y: 6 })
       .label('UNTERIRDISCHER KANAL').start(2, 10).done());
-    // Schatzkammer (neben der Bibliothek): Empore mit dem Lebensgefäß, fliegende Bücher und ein Zauberbuch
-    add('schatz', 2, 3, [3, -4], R(40, 'library')
+    // Schatzkammer (rechts neben der Bibliothek, hinter rissigem Gestein): Empore mit dem Lebensgefäß, fliegende Bücher und ein Zauberbuch
+    add('schatz', 2, 3, null, R(40, 'library')
       .ground(0, 39).stair(14, 10, 4, 1).fill(18, 7, 27, 7, '=').stair(31, 10, 4, -1)
       .prop('lectern', { x: 8, y: 10 }).prop('globe', { x: 35, y: 10 })
       .enemy('tome', 22, 4).enemy('book', 10, 9).enemy('book', 30, 9).enemy('book', 24, 6)
       .candle(5, 9, 'H').candle(12, 9).candle(20, 5, '$').candle(26, 5, 'H').candle(37, 9)
       .chest(37, 10, 'big').prop('vessel', { x: 22, y: 6 })
       .label('SCHATZKAMMER').start(2, 10).done());
-    // Verlies (unter dem Glasturm): Ritter, Feuersäule, Geister – Stufe 7, für das Endspiel
-    add('verlies', 3, 7, [13, -7], R(96, 'crypt')
+    // Verlies (rechts am Glasturm, hinter rissigem Gestein): Ritter, Feuersäule, Geister – Stufe 7, für das Endspiel
+    add('verlies', 3, 7, null, R(96, 'crypt')
       .ground(0, 95)
       .fill(12, 8, 16, 8, '=').fill(26, 7, 31, 7, '=').fill(42, 8, 46, 8, '=').fill(58, 7, 63, 7, '=').fill(74, 8, 78, 8, '=')
       .set(36, 10, 'X').set(36, 9, 'X')
@@ -296,26 +307,32 @@ const Castle = (() => {
       .music('hotel').label('ZIMMER 13').start(2, 10).done();
     room13.decor = [D('bed', 15.5, 10), D('chair', 10, 10), D('cart', 25, 10, true)];
     add('zimmer13', 0, 1, null, room13);
-    // Spiegelkabinett (unter der Marmorgalerie, Tür x 34): Galerie der Spiegel wie in Versailles. Aus der Spiegelwand rechts tritt
-    // der Doppelgänger. Danach liegt sein Schatten als Begleiterkarte im Saal; hinten eine brüchige Wand mit Mauerbraten.
+    // Spiegelkabinett (unter der Marmorgalerie: durch das Loch im Boden hinein, mit dem Aufzug links wieder hinauf): Galerie der
+    // Spiegel wie in Versailles. Aus der Spiegelwand rechts tritt der Doppelgänger. Danach liegt sein Schatten als Begleiterkarte
+    // im Saal; hinten eine brüchige Wand mit Mauerbraten, dahinter oben in den Spiegelschacht.
     const mirrors = R(40, 'mirror')
       .ground(0, 39)
       .fill(33, 7, 36, 7, '=')                                    // Empore mit dem Lebensgefäß
       .fill(36, 5, 39, 10, '#').fill(37, 8, 39, 10, '.').set(36, 10, 'X').set(36, 9, 'Y') // brüchige Wand: Braten, Goldsack – dahinter die Tür zum Spiegeltunnel
-      .candle(4, 6, 'H').candle(31, 6).candle(36, 4, '$')
+      .elevator(4, 10, 0)                                         // hinauf zum Loch in der Galerie
+      .candle(7, 6, 'H').candle(31, 6).candle(36, 4, '$')
       .prop('vessel', { x: 34, y: 6 })
       .mini('doppel', 9, 29, 11, 0)
       .music('stage3').label('SPIEGELKABINETT').start(2, 10).done();
     mirrors.mhall = true; // Galerie der Spiegel wie in Versailles: Rückwand aus echten Spiegeln (tiles.js drawMirrorHall)
-    add('spiegel', 2, 4, [10, -9], mirrors);
-    LINKS.push([[2, -1], { x: 34, y: 10, door: 'side' }, ['side', 'spiegel'], 'start', {}]); // Marmorgalerie → Spiegelkabinett
+    add('spiegel', 2, 4, null, mirrors);
+    LINKS.push([[2, -1], { e: 'B', x: 22 }, ['side', 'spiegel'], { e: 'T', x: 4 }, {}]); // Marmorgalerie: Loch im Boden → Spiegelkabinett
     // Spiegeltunnel: eine Spiegelgalerie wie in Versailles als Röhre, die sich um ihre Längsachse dreht (wie der Seelenstrudel) –
     // riesige Arkadenspiegel aus vielen Scheiben, Pilaster aus rotem Marmor, Gold; die Spiegel spiegeln wirklich (js/mirror.js),
-    // der Parkettboden auch. Danach der Spiegelschacht: gebaut wie der Glasturm – senkrechter Aufstieg im Zickzack über Treppen
-    // und zwei Aufzüge, ringsum eine stehende Spiegelröhre, die sich auf den Treppen mitdreht; oben führt eine Tür auf die Empore
-    // der Marmorgalerie zurück (Schleife).
-    const tunnel = R(96, 'mirror')
-      .ground(0, 95)
+    // der Parkettboden auch. Davor der Spiegelschacht: gebaut wie der Glasturm – im Zickzack über Treppen und zwei Aufzüge vom
+    // Kabinett oben hinab zum Tunnel, ringsum eine stehende Spiegelröhre, die sich auf den Treppen mitdreht. Der Tunnel endet am
+    // Foyer des Hoftheaters: hinüber erst mit allen Siegeln, von dort zurück immer (Schleife zwischen Bergfried und Thron).
+    const tunnel = R(128, 'mirror')
+      .ground(0, 127)
+      .fill(100, 9, 101, 10, '#').fill(110, 7, 115, 7, '=')                          // Verlängerung: Sockel, Konsole
+      .candle(106, 8, 'H').candle(113, 5, '$').candle(122, 8)
+      .enemy('ghost', 104, 4).enemy('knight', 118, 10)
+      .prop('candelabra', { x: 108, y: 10 }).prop('candelabra', { x: 124, y: 10 })
       .fill(20, 9, 21, 10, '#').fill(44, 8, 45, 10, '#').fill(70, 9, 71, 10, '#')     // Marmorsockel zum Überspringen
       .fill(30, 7, 35, 7, '=').fill(56, 7, 61, 7, '=').fill(80, 8, 84, 8, '=')         // vergoldete Konsolen
       .candle(10, 8, 'H').candle(32, 5).candle(50, 8, '$').candle(58, 5, 'H').candle(76, 8).candle(90, 8, 'H')
@@ -324,7 +341,7 @@ const Castle = (() => {
       .prop('candelabra', { x: 6, y: 10 }).prop('candelabra', { x: 16, y: 10 }).prop('candelabra', { x: 38, y: 10 })
       .prop('candelabra', { x: 64, y: 10 }).prop('candelabra', { x: 76, y: 10 }).prop('candelabra', { x: 93, y: 10 })
       .music('stage3').label('SPIEGELTUNNEL').start(2, 10).done();
-    add('spiegeltunnel', 2, 5, [21, -9], tunnel);
+    add('spiegeltunnel', 2, 5, null, tunnel);
     const shaft = R(28, 'mirror', 44)
       .ground(0, 27)
       .stair(6, 41, 5, 1).fill(11, 37, 18, 37, '=')
@@ -333,14 +350,15 @@ const Castle = (() => {
       .elevator(8, 27, 19).fill(10, 19, 15, 19, '=')
       .stair(12, 18, 5, 1).fill(17, 14, 25, 14, '=')
       .stair(24, 13, 5, -1).fill(10, 9, 19, 9, '=')
-      .elevator(8, 9, 3).fill(10, 3, 18, 3, '=')                                        // oben: Ausstieg zur Galerie
+      .elevator(8, 9, 3).fill(10, 3, 18, 3, '=').fill(0, 3, 7, 3, '=')                 // oben: Steg vom Kabinett herein
       .candle(12, 35).candle(17, 35, 'H').candle(21, 30).candle(25, 30, '$').candle(11, 25, 'H').candle(18, 25)
       .candle(11, 17, 'H').candle(19, 12, 'W').candle(24, 12).candle(12, 7, 'H').candle(17, 7)
       .enemy('knight', 14, 26).enemy('ghost', 16, 34).enemy('ghost', 20, 6).enemy('bat', 22, 24).enemy('bat', 6, 15)
       .chest(17, 2).prop('vessel', { x: 11, y: 2, id: 46 }) // id: Speicherschlüssel des alten Schachts (Gefäß stand bei x 46)
       .music('stage3').label('SPIEGELSCHACHT').start(2, 41).done();
     shaft.mtower = true; // Spiegelröhre wie der Glasturm (tiles.js drawMirrorTower)
-    add('spiegelschacht', 2, 5, [27, -12], shaft);
+    shaft.mapH = 3; // 44 Reihen: auf der Karte drei Zellen hoch (passt zwischen Galerie und Ballsaal)
+    add('spiegelschacht', 2, 5, null, shaft);
     // Versunkene Kapelle (unter dem Kanal, Tür am Kanalanfang): oben eine Luftblase mit Steg, darunter alles unter Wasser – nur
     // mit dem Taucherhelm zu erkunden. Säulenstümpfe, Simse, eine versunkene Glocke (Blender), Quallen, Altar mit Lebensgefäß.
     const chapel = R(64, 'crypt', 26)
@@ -415,11 +433,11 @@ const Castle = (() => {
       .wrap().ice().iceRamps().music('stage2').label('EISRUTSCHE').start(2, 5).done();
     slide.towerTex = 'cave'; // eigener Turmmantel (ps2.js caveTex)
     add('eisrutsche', 1, 3, [17, 1], slide);
-    // Hoftheater (Tür im Ballsaal hinter dem verfluchten Parkett, x 101): ein barockes Theater aus weißem Marmor und Gold, ein
+    // Hoftheater (über dem Ballsaal: der Aufzug am Ende des Parketts fährt hinauf durch die Luke im Foyerboden): ein barockes Theater aus weißem Marmor und Gold, ein
     // wenig wie ein Wiener Hoftheater. Foyer mit riesigen Rundbogenfenstern (Mondlicht, Lichtstrahlen) und Prunkstiege mit rotem
     // Läufer hinauf zur Galerie, dort die Tür in den Zuschauerraum.
     const thFoyer = R(64, 'theater', 26)
-      .ground(0, 63)                                                         // Marmorboden (Oberkante Reihe 24)
+      .ground(0, 63).fill(56, 24, 57, 25, '.')                               // Marmorboden (Oberkante Reihe 24), Luke hinab in den Ballsaal
       .stair(24, 23, 10, 1).fill(34, 14, 63, 14, '=')                        // Prunkstiege hinauf zur Galerie
       .fill(6, 20, 12, 20, '=').fill(12, 16, 18, 16, '=')                    // Balkone links (Doppelsprung)
       .candle(4, 21, 'H').candle(17, 21).candle(9, 18, '$').candle(15, 14, 'H').candle(40, 12).candle(47, 12, 'W').candle(54, 12)
@@ -428,7 +446,7 @@ const Castle = (() => {
       .statue(10, 23)
       .music('hotel').label('FOYER DES HOFTHEATERS').start(5, 23).done();
     thFoyer.puppets = [[38, 23], [52, 23]];
-    add('theaterfoyer', 3, 6, [23, -8], thFoyer);
+    add('theaterfoyer', 3, 6, null, thFoyer);
     // Zuschauerraum: man steht mitten im Rund – vier Logenränge, Kaiserloge, Geisterpublikum; das Rund dreht sich beim Durchlaufen
     // perspektivisch mit (tiles.js drawTheaterRound). Im Parkett Marionetten, Logenbalkone als Kletterweg, zwei Kronleuchter über
     // dem Orchestergraben, dahinter die Bühne: oben hebt sich der Vorhang und gibt Truhe und Lebensgefäß frei.
@@ -449,19 +467,19 @@ const Castle = (() => {
       .music('expo').label('ZUSCHAUERRAUM').start(2, 23).done();
     aud.round = true;
     aud.puppets = [[18, 23], [34, 23], [50, 23], [70, 23]];
-    add('theater', 3, 6, [27, -8], aud);
+    add('theater', 3, 6, null, aud);
     LINKS.push(
-      [[3, 3], { x: 101, y: 10, door: 'side' }, ['side', 'theaterfoyer'], 'start', {}],                       // Ballsaal → Foyer
-      [['side', 'theaterfoyer'], { x: 58, y: 13, door: 'side' }, ['side', 'theater'], 'start', {}],         // Galerie → Zuschauerraum
+      [[3, 3], { e: 'T', x: 100 }, ['side', 'theaterfoyer'], { e: 'B', x: 56 }, {}],                        // Ballsaal: Aufzug → Luke im Foyer
+      [['side', 'theaterfoyer'], { e: 'R', y: 13 }, ['side', 'theater'], 'start', {}],                     // Galerie → Zuschauerraum
     );
     LINKS.push(
       [[1, 2], { x: 80, y: 10, door: 'side' }, ['side', 'eisrutsche'], 'start', { relics: ['dash', 'ring'] }], // Eishöhle → Eisrutsche (oben)
       [['side', 'eisrutsche'], { x: 57, y: 85, door: 'side' }, [1, 2], { x: 24, y: 10, door: 'side' }, { oneway: true }], // Turmfuß → zurück in die Eishöhle
     );
     LINKS.push(
-      [['side', 'spiegel'], { x: 37, y: 10, door: 'side' }, ['side', 'spiegeltunnel'], 'start', {}],   // Kabinett (hinter der Wand) → Tunnel
-      [['side', 'spiegeltunnel'], 'right', ['side', 'spiegelschacht'], 'start', {}],                  // Tunnel → Schacht
-      [['side', 'spiegelschacht'], { x: 13, y: 2, door: 'side' }, [2, -1], { x: 34, y: 6, door: 'side' }, {}], // Schacht oben → Empore der Galerie
+      [['side', 'spiegel'], { e: 'R', y: 10 }, ['side', 'spiegelschacht'], { e: 'L', y: 2 }, {}],       // Kabinett (hinter der Wand) → oben in den Schacht
+      [['side', 'spiegelschacht'], { e: 'R', y: 41 }, ['side', 'spiegeltunnel'], 'start', {}],          // Schachtfuß → Tunnel
+      [['side', 'spiegeltunnel'], 'right', ['side', 'theaterfoyer'], { e: 'L', y: 23 }, { seals: true }], // Tunnel → Foyer (erst mit allen Siegeln, zurück immer)
     );
     LINKS.push(
       [['side', 'bahnhof'], { e: 'T', x: 9 }, ['side', 'schuppen'], { e: 'B', x: 1 }, {}],                                     // Bahnsteig: Lastenaufzug → Lokschuppen
@@ -481,8 +499,8 @@ const Castle = (() => {
     LINKS.push( // crack: Tür mit rissigem Gestein verschlossen – erst der Steinbrecher (Medusas Relikt) zerschlägt es
       [[1, 4], { x: 5, y: 10, door: 'side' }, ['side', 'kanal'], 'start', { crack: 'kanal' }],       // Gruft → Kanal
       [['side', 'kanal'], 'right', ['expo', 0], { x: 14, y: 27, door: 'side' }, {}],                  // Kanal → Palmenhaus (Schleife, von dort offen)
-      [[2, 1], { x: 1, y: 17, door: 'side' }, ['side', 'schatz'], 'start', { crack: 'schatz' }],     // Bibliothek → Schatzkammer
-      [[3, 1], { x: 4, y: 41, door: 'side' }, ['side', 'verlies'], 'start', { crack: 'verlies' }],   // Glasturm → Verlies
+      [[2, 1], { e: 'R', y: 16 }, ['side', 'schatz'], 'start', { crack: 'schatz' }],                 // Bibliothek (rechts) → Schatzkammer
+      [[3, 1], { e: 'R', y: 13 }, ['side', 'verlies'], 'start', { crack: 'verlies' }],               // Glasturm (Steg rechts) → Verlies
     );
     // ---- Burghof und Stadt Rand an Rand: Kasematte, Torstube, Zwinger, Hotelaufzug (Plätze auf der Karte von selbst) ----
     // Kasematte zwischen Kolosseum und Katakomben: ruhige Speicherkammer mit Sarg und Kerzen (die der Eingangshalle ist hierher gezogen)
@@ -692,6 +710,9 @@ const Castle = (() => {
     if (place === 'right') return 'edgeR';
     if (place === 'start') return !def.wrap && def.start.x <= 3 ? 'edgeL' : 'up';
     return 'up';
+  }
+  function edgeSpot(def, place) { // Seitenausgang: Mitte (px) und Standhöhe (Füße, px) knapp innerhalb des Rands (rissiges Gestein)
+    return { cx: kindOf(def, place) === 'edgeL' ? 14 : def.w * T - 14, feet: (edgeRow(def, place) + 1) * T };
   }
   function upSpot(def, place) { // ↑-Tür: Mitte (px) und Standhöhe (Füße, px)
     const p = place === 'start' ? def.start : place;
@@ -1510,10 +1531,10 @@ const Castle = (() => {
     for (const d of doorsOf(s, r)) {
       if (!d.gate || !d.gate.crack || crack[d.gate.crack]) continue;
       const p = arrive && arrive.place;
-      if (p && typeof p === 'object' && p.x === d.place.x && p.y === d.place.y) { // von der anderen Seite her: das Gestein bricht von innen
+      if (p && typeof p === 'object' && p.x === d.place.x && p.y === d.place.y && p.e === d.place.e) { // von der anderen Seite her: das Gestein bricht von innen
         crack[d.gate.crack] = 1; save(); Audio8.sfx('crumble'); W.shake = Math.max(W.shake, 8); continue;
       }
-      const u = upSpot(def, d.place); W.spawn(new CrackedSeal(d.gate.crack, u.cx, u.feet));
+      const u = isEdge(d.place) ? edgeSpot(def, d.place) : upSpot(def, d.place); W.spawn(new CrackedSeal(d.gate.crack, u.cx, u.feet));
     }
   }
   const atChamber = (c, p) => p.onGround && Math.abs(p.cx - (c.x + 1) * T) < 14 && Math.abs(p.feet - (c.y + 1) * T) < 8;
