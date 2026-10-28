@@ -781,7 +781,8 @@ class Player {
     this.vx = clamp(Math.cos(A) * w * L, -3.6, 3.6);
     this.vy = clamp(-Math.sin(A) * w * L, -5, 4) - (jump ? 2.6 : 0);
     this.state = 'normal'; this.ring = null; this.onGround = false; this.jumping = true; this.canDouble = true; this.flingT = 50;
-    if (jump) { this.flipT = FLIP_LEN; Audio8.sfx('djump'); W.puff(this.cx, this.feet); }
+    if (Math.abs(this.vx) > 0.3) this.face = Math.sign(this.vx); // Salto in Flugrichtung
+    this.flipT = FLIP_LEN; Audio8.sfx('djump'); W.puff(this.cx, this.feet); // jeder Absprung vom Ring endet mit einem Salto (auch mit Angriff losgelassen)
   }
 
   // ---------- Seilrutsche: am Seil schräg hinab, immer schneller; Sprung = abspringen ----------
