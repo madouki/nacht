@@ -9,7 +9,7 @@
 'use strict';
 
 const Kaleido = (() => {
-  const TW = 512, TH = 936;                     // Textur: entlang der Achse × um den Umfang (ein Umlauf = drei Fenster- und drei Gewölbereihen)
+  const TW = 512, TH = 1104;                    // Textur: entlang der Achse × um den Umfang (ein Umlauf = drei Fenster- und drei Gewölbereihen)
   const SEC0 = 8, SEC = 20, PIT = 17, N = 5;      // Trommeln ab Kachel 8, je 20 Kacheln: 17 Abgrund + 3 Steinring; fünf Trommeln
   const SPIN = 0.011;                            // Drehung je Bild (rad)
   let T3 = null, tab = null, out = null, rayC = null, rayX = null;
@@ -24,7 +24,7 @@ const Kaleido = (() => {
   // goldenem Scheitelstein; dazwischen Dienste mit Goldkapitell. Die Gewölbereihen sind Kreuzgratjoche: vier Kappen (Nachtblau mit
   // Goldsternen) senken sich zum Schlussstein, auf den Graten Diagonalrippen, unter jedem Joch der Scheitel des nächsten Fensters.
   // Fast orthogonal gerendert, Licht von links oben – eingebrannt wie PS2-Vertexlicht, es kreist mit der Trommel.
-  const CW = 128, WR = 228, RH = WR + 84;
+  const CW = 128, WR = 228, VR = 140, RH = WR + VR; // Zelle: Breite, Fensterreihe, Gewölbereihe
   function arch(x0, y0, Wd, Hd) { // gleichseitiger Spitzbogen als Umriss: links hoch, zwei Bögen, rechts hinunter, Sohlbank (26 Punkte)
     const A = Wd * 0.866, P = [];
     for (let i = 0; i <= 4; i++) P.push([x0, y0 + Hd - (Hd - A) * i / 4]);
@@ -58,13 +58,23 @@ const Kaleido = (() => {
       for (const rv of [80, 150]) ridge([ox - 4, oy + rv, -4], [ox + 4, oy + rv, -4], 2.4, GOLD, false);
       face([[ox - 7, oy + 13, -5], [ox + 7, oy + 13, -5], [ox + 4, oy + 22, -5], [ox - 4, oy + 22, -5]], GOLD);
       face([[ox - 4, oy + 210, -4], [ox + 4, oy + 210, -4], [ox + 7, oy + 218, -4], [ox - 7, oy + 218, -4]], COL);
-      const vy = oy + WR, C = [ox + 64, vy + 42, 18], TL = [ox, vy, 0], TR = [ox + CW, vy, 0], BL = [ox, vy + 84, 0], BR = [ox + CW, vy + 84, 0]; // Kreuzgratjoch
-      const Mt = [ox + 64, vy, 7], Mb = [ox + 64, vy + 84, 7], Ml = [ox, vy + 42, 5], Mr = [ox + CW, vy + 42, 5], WEB = [[26, 34, 96], [32, 42, 112]];
-      [[TL, Mt], [Mt, TR], [TR, Mr], [Mr, BR], [BR, Mb], [Mb, BL], [BL, Ml], [Ml, TL]].forEach(([a, b], k) => face([a, b, C], WEB[k % 2]));
-      for (const c of [TL, TR, BR, BL]) ridge([c[0], c[1], -0.5], [C[0], C[1], C[2] - 0.5], 5, RIB); // Diagonalrippen auf den Graten
-      dome(C[0], C[1], C[2] - 3, 7, GOLD, (i + band) & 1 ? [200, 34, 64] : [40, 120, 220]);
-      ridge([ox, vy, -1], [ox + CW, vy, -1], 6, RIB); ridge([ox, vy + 84, -1], [ox + CW, vy + 84, -1], 6, RIB); // Gurte zu den Fensterreihen
-      ridge([ox, vy + 4, -0.5], [ox, vy + 80, -0.5], 5, RIB, false); // Schildrippe zwischen den Jochen
+      const vy = oy + WR, H2 = VR / 2, C = [ox + 64, vy + H2, 46], TL = [ox, vy, 0], TR = [ox + CW, vy, 0], BL = [ox, vy + VR, 0], BR = [ox + CW, vy + VR, 0]; // Kreuzgratjoch, tief gewölbt
+      const Mt = [ox + 64, vy, 20], Mb = [ox + 64, vy + VR, 20], Ml = [ox, vy + H2, 16], Mr = [ox + CW, vy + H2, 16], WEB = [[30, 38, 104], [38, 50, 124]];
+      const Qt = [ox + 64, vy + H2 * 0.45, 38], Qb = [ox + 64, vy + VR - H2 * 0.45, 38], Ql = [ox + 30, vy + H2, 34], Qr = [ox + CW - 30, vy + H2, 34]; // Kappen gebaucht (zweite Stufe)
+      // vier Kappen, jede aus zwei Stufen (Rand → Bauch → Scheitel), damit sie sich rund in die Tiefe wölben
+      for (const [a, b, q, k] of [[TL, Mt, Qt, 0], [Mt, TR, Qt, 1], [TR, Mr, Qr, 2], [Mr, BR, Qr, 3], [BR, Mb, Qb, 4], [Mb, BL, Qb, 5], [BL, Ml, Ql, 6], [Ml, TL, Ql, 7]]) {
+        const c = WEB[k % 2], md = [(a[0] + C[0]) / 2, (a[1] + C[1]) / 2, (a[2] + C[2]) / 2 - 4];
+        face([a, b, q], c); face([a, q, md], c); face([md, q, C], c);
+      }
+      for (const c of [TL, TR, BR, BL]) { // Diagonalrippen auf den Graten, leicht durchhängend wie echte Gewölberippen
+        const md = [(c[0] + C[0]) / 2, (c[1] + C[1]) / 2, (c[2] + C[2]) / 2 - 4];
+        ridge([c[0], c[1], -1], [md[0], md[1], md[2] - 1], 8, RIB); ridge([md[0], md[1], md[2] - 1], [C[0], C[1], C[2] - 1], 8, RIB);
+      }
+      ridge([ox + 64, vy + 4, 19], [ox + 64, vy + H2 - 10, 44], 4, RIB, false); ridge([ox + 64, vy + VR - 4, 19], [ox + 64, vy + H2 + 10, 44], 4, RIB, false); // Scheitelrippe
+      dome(C[0], C[1], C[2] - 6, 13, GOLD, (i + band) & 1 ? [200, 34, 64] : [40, 120, 220]);
+      ridge([ox, vy, -2], [ox + CW, vy, -2], 9, RIB); ridge([ox, vy + VR, -2], [ox + CW, vy + VR, -2], 9, RIB); // Gurte zu den Fensterreihen
+      ridge([ox, vy + 2, -3], [ox, vy + VR - 2, -3], 12, RIB); // Gurtbogen zwischen den Jochen (kräftig, mit Goldfilet)
+      for (const gy of [vy, vy + VR]) dome(ox, gy, -4, 7, GOLD, [230, 200, 120]); // Knaufe, wo Gurte und Bögen sich kreuzen
     }
     return m;
   }
@@ -79,8 +89,8 @@ const Kaleido = (() => {
     PS2.render(x, TW, TH, [vaultMesh()], { x: TW / 2, y: -TH / 2, z: -20000, yaw: 0, pitch: 0, f: 20000, near: 1, cx: TW / 2, cy: TH / 2 }, env);
     const img = x.getImageData(0, 0, TW, TH), d = img.data, gd = new Uint8ClampedArray(d.length);
     const hsh = (n) => { const h = Math.sin(n * 91.7) * 43758.5453; return h - Math.floor(h); };
-    for (let band = 0; band < 3; band++) for (let i = 0; i < 4; i++) for (let s = 0; s < 22; s++) { // Goldsterne auf den Kappen
-      const n = band * 97 + i * 31 + s, X = Math.floor(i * CW + 6 + hsh(n) * (CW - 12)), Y = Math.floor(band * RH + WR + 6 + hsh(n + 0.5) * 72), j = (Y * TW + X) * 4;
+    for (let band = 0; band < 3; band++) for (let i = 0; i < 4; i++) for (let s = 0; s < 34; s++) { // Goldsterne auf den Kappen
+      const n = band * 97 + i * 31 + s, X = Math.floor(i * CW + 8 + hsh(n) * (CW - 16)), Y = Math.floor(band * RH + WR + 8 + hsh(n + 0.5) * (VR - 16)), j = (Y * TW + X) * 4;
       if (d[j + 2] > d[j] + 30 && d[j + 2] > 60) { d[j] = 236; d[j + 1] = 200; d[j + 2] = 112; if (s % 4 === 0 && X + 1 < TW) { d[j + 4] = 150; d[j + 5] = 122; d[j + 6] = 70; } }
     }
     const W0 = 84, H0 = 196, A0 = Math.round(W0 * 0.866);
@@ -124,13 +134,16 @@ const Kaleido = (() => {
   // der Röhrenwand perspektivisch krümmt (kein flaches Band mehr im Bild)
   const A = (tile) => tile * T * 0.5;
   const span = (k) => k < 0 ? [-1e9, A(SEC0 - 3)] : k >= N ? [A(SEC0 + N * SEC), 1e9] : [A(SEC0 + k * SEC), A(SEC0 + k * SEC + PIT)];
+  // Jede Trommel zeigt genau eine Fensterspalte (Zelle der Textur, Dienst bis Dienst), auf ihre Länge gestreckt – so schneidet kein
+  // Steinring ein Fenster durch; Anfang und Ende setzen am Ring mit einem Dienst an. SC: Texturpixel je Achseneinheit
+  const SC = CW / A(PIT), origin = (k) => k < 0 ? [A(SEC0 - 3), 0] : k >= N ? [A(SEC0 + N * SEC), 0] : [A(SEC0 + k * SEC), (k & 3) * CW];
   let RING = null;
   function ringTex() { // Steinring: Keilsteine rund um die Röhre, Goldkanten, Nieten; vier Leuchtstufen wie die Fenster
     const RW = 24, o = [0.42, 0.66, 0.92, 1.12].map(() => new Int32Array(RW * TH)), M = [0.42, 0.66, 0.92, 1.12];
     for (let v = 0; v < TH; v++) for (let u = 0; u < RW; u++) {
-      const e = Math.min(u, RW - 1 - u), joint = v % 26 === 0, st = ((v / 26) | 0) % 2;
+      const e = Math.min(u, RW - 1 - u), joint = v % 24 === 0, st = ((v / 24) | 0) % 2;
       let c = e < 1 ? [18, 12, 20] : e < 3 ? [200, 152, 56] : e < 4 ? [70, 54, 40] : joint ? [24, 18, 28] : st ? [92, 78, 84] : [106, 90, 96];
-      if (e >= 4 && !joint && v % 26 === 1) c = [140, 124, 128];
+      if (e >= 4 && !joint && v % 24 === 1) c = [140, 124, 128];
       if ((u === 6 || u === RW - 7) && v % 18 === 9) c = [220, 180, 90];
       if (e >= 4 && e < 6) c = c.map(x => x * 0.7);
       M.forEach((m, i) => { o[i][v * RW + u] = (255 << 24) | (Math.min(255, c[2] * m) << 16) | (Math.min(255, c[1] * m) << 8) | Math.min(255, c[0] * m); });
@@ -150,12 +163,12 @@ const Kaleido = (() => {
       const dx = x - w / 2;
       for (let y = 0, o = x; y < H; y++, o += w) {
         const a = u0 + dx * tb.s[y], L = tb.light[y], lo = L | 0, hi = BAY4[((y & 3) << 2) | (x & 3)] < (L - lo) * 16;
-        let k, ring = -1;
-        if (a < a0) { if (a >= a0 - ringW) ring = (a - a0 + ringW) / ringW; k = -1; }
-        else if (a >= aEnd) k = N;
-        else { k = ((a - a0) / sec) | 0; const loc = a - a0 - k * sec; if (loc >= pit) ring = (loc - pit) / ringW; }
+        let k, ring = -1, ua;
+        if (a < a0) { if (a >= a0 - ringW) ring = (a - a0 + ringW) / ringW; k = -1; ua = (a - a0 + ringW) * SC; }
+        else if (a >= aEnd) { k = N; ua = (a - aEnd) * SC; }
+        else { k = ((a - a0) / sec) | 0; const loc = a - a0 - k * sec; if (loc >= pit) ring = (loc - pit) / ringW; ua = loc * SC + (k & 3) * CW; }
         if (ring >= 0) { const v = ((Math.floor(tb.v[y]) % TH) + TH) % TH; buf[o] = RL[hi ? Math.min(3, lo + 1) : lo][v * RW + Math.min(RW - 1, (ring * RW) | 0)]; continue; }
-        const u = ((Math.floor(a) % TW) + TW) % TW, v = ((Math.floor(tb.v[y] + rots[k + 1]) % TH) + TH) % TH;
+        const u = ((Math.floor(ua) % TW) + TW) % TW, v = ((Math.floor(tb.v[y] + rots[k + 1]) % TH) + TH) % TH;
         buf[o] = (hi ? LV[lo + 1] : LV[lo])[v * TW + u];
       }
     }
@@ -173,15 +186,16 @@ const Kaleido = (() => {
     const out = [], w = View.w, tb = table(), H = 208, u0 = cam.x * 0.5, v0 = tb.v[0], v1 = tb.v[H - 1];
     const rowOf = (v) => { let lo = 0, hi = H - 1; while (lo < hi) { const m = (lo + hi) >> 1; if (tb.v[m] < v) lo = m + 1; else hi = m; } return lo; };
     for (let k = -1; k <= N; k++) {
-      const [A0, A1] = span(k), rot = angle(k, frame) / (Math.PI * 2) * TH;
+      const [A0, A1] = span(k), [aO, uO] = origin(k), rot = angle(k, frame) / (Math.PI * 2) * TH;
       T3.wins.forEach((win, wi) => {
         const vc = ((((win.v0 + win.v1) / 2 - rot - v0) % TH) + TH) % TH + v0; // Fenstermitte relativ zur sichtbaren Wand
         if (vc > v1) return;
         const y = rowOf(vc), L = tb.light[y]; if (L < 0.9) return;     // unten im Schatten: kein Schacht
-        const s = tb.s[y], hw = win.hw / s, xs = w / 2 + (Math.max(A0, u0 - 4000) - u0) / s, xe = w / 2 + (Math.min(A1, u0 + 4000) - u0) / s;
+        const s = tb.s[y], hw = win.hw / SC / s, xs = w / 2 + (Math.max(A0, u0 - 4000) - u0) / s, xe = w / 2 + (Math.min(A1, u0 + 4000) - u0) / s;
         if (xs > w + 40 || xe < -40) return;
-        for (let n = Math.floor((u0 - 600) / TW); n <= Math.ceil((u0 + 600) / TW); n++) {
-          const a = win.u + n * TW; if (a < A0 || a > A1) continue;
+        const uLo = (Math.max(A0, u0 - 600) - aO) * SC + uO, uHi = (Math.min(A1, u0 + 600) - aO) * SC + uO;
+        for (let n = Math.floor((uLo - win.u) / TW); n <= Math.ceil((uHi - win.u) / TW); n++) {
+          const a = aO + (win.u + n * TW - uO) / SC; if (a < A0 || a > A1) continue;
           const x = w / 2 + (a - u0) / s;
           if (x + hw < -20 || x - hw > w + 20) continue;
           const yT = rowOf(Math.min(v1, Math.max(v0, vc - (win.v1 - win.v0) / 2))), yB = rowOf(Math.min(v1, Math.max(v0, vc + (win.v1 - win.v0) / 2)));

@@ -31,6 +31,7 @@ const Lab = (() => {
   const coilTop = (c) => ({ x: c[0], y: 218 * c[2], z: c[1] });
   const GX = 1560, GZ = 300; // Galgen mit Elektrodenarmen über dem Operationstisch
   const GTIP = [[GX - 30, 96, GZ - 64], [GX + 30, 96, GZ - 64]];
+  const LADDERS = [[420, 500], [1880, 500]], WIM = { x: 1080, y: 130, z: 470, r: 66 }; // Jakobsleitern, Wimshurst-Maschine (Scheibenmitte)
   const ZW = 640, PW = 200 / ZW, XW0 = -900, XW1 = 2700, YW = 470; // gemalte Rückwand (Ebene z = ZW, Maßstab PW)
   const X0 = -900, X1 = 2700, CHK = 240, NC = Math.ceil((X1 - X0) / CHK);
 
@@ -240,6 +241,17 @@ const Lab = (() => {
       beam(m, rx - 70, y + 57, z, rx + 70, y + 57, z, 2, 2, BRASS2, { open: true });
     }
     box(M(2030), 2030, 124, 470, 172, 6, 40, WOOD, { top: [124, 78, 46] });
+    for (const [lx, lz] of LADDERS) { // Jakobsleitern: Holzsockel, Isolatoren, zwei Kupferstäbe im V
+      const m = M(lx); box(m, lx, 0, lz, 44, 22, 30, WOOD, { top: WOOD2 }); for (const k of [-1, 1]) prism(m, lx + k * 7, 22, lz, 4, 12, 6, PORC, { top: PORC2 });
+      for (const k of [-1, 1]) { beam(m, lx + k * 7, 34, lz, lx + k * 7, 48, lz, 2.4, 2.4, COP, {}); beam(m, lx + k * 7, 48, lz, lx + k * 22, 170, lz, 2.4, 2.4, COP, {}); }
+    }
+    { const m = M(WIM.x), x = WIM.x, z = WIM.z; // Wimshurst-Maschine: Sockel, Messingpfosten, Achse, Kämme, Funkenstrecke mit Kugeln, zwei Flaschen
+      box(m, x, 0, z, 190, 26, 60, WOOD, { top: WOOD2 }); box(m, x, 26, z, 196, 4, 64, BRASS2, { top: BRASS });
+      for (const k of [-1, 1]) { box(m, x + k * 20, 30, z, 10, WIM.y - 30, 10, BRASS2); prism(m, x + k * 70, 30, z - 14, 13, 40, 8, COP, { top: COP2 }); prism(m, x + k * 70, 70, z - 14, 13, 14, 8, GLASS, { cap: false, a: 0.35 }); }
+      beam(m, x, WIM.y, z - 14, x, WIM.y, z + 14, 6, 6, IRON2, {});
+      for (const k of [-1, 1]) { beam(m, x + k * 70, 84, z - 14, x + k * 70, WIM.y + 40, z - 14, 3, 3, BRASS, {}); beam(m, x + k * 70, WIM.y + 40, z - 14, x + k * 14, WIM.y + 88, z - 22, 3, 3, BRASS, {}); ball(m, x + k * 12, WIM.y + 90, z - 22, 6, BRASS, 6, 4);
+        beam(m, x + k * (WIM.r + 8), WIM.y - 10, z - 14, x + k * (WIM.r + 8), WIM.y + 10, z + 14, 3, 3, BRASS2, {}); } // Kämme
+    }
     // Galgen über dem Operationstisch: zwei Pfosten mit Kupferwicklung, Querträger, Isolatoren, Elektrodenarme, Kupferring
     { const m = M(GX);
       for (const k of [-1, 1]) { box(m, GX + k * 124, 0, GZ, 18, 214, 18, IRON, { top: IRON2 }); for (let y = 30; y < 200; y += 34) box(m, GX + k * 124, y, GZ, 21, 14, 21, COP); box(m, GX + k * 124, 0, GZ, 30, 12, 30, STONE, { top: [96, 90, 92] }); }
@@ -343,8 +355,27 @@ const Lab = (() => {
       buf.x.restore();
     }
     ctx.save(); ctx.imageSmoothingEnabled = true; ctx.drawImage(buf.c, 0, 0, Wb, Hb, 0, 0, w, 208); ctx.restore();
+    drawWims(ctx, frame, dv, Wb, Hb, fl);
     drawTankLife(ctx, frame);
     drawArcs(ctx, frame);
+  }
+  // Wimshurst-Scheiben: zwei Glasscheiben mit Messingsektoren drehen sich gegenläufig (jedes Bild, nur ihr Ausschnitt wird gerastert)
+  let wimB = null;
+  function drawWims(ctx, frame, dv, Wb, Hb, fl) {
+    const c3 = { ...cF, f: 200 / dv }, p = project(c3, Wb, Hb, WIM.x, WIM.y, WIM.z), rr = Math.ceil((WIM.r + 8) * c3.f / Math.max(20, p[2])) + 2;
+    if (p[2] < 20 || p[0] + rr < 0 || p[0] - rr > Wb || p[1] + rr < 0 || p[1] - rr > Hb) return;
+    if (!wimB || wimB.c.width !== Wb || wimB.c.height !== Hb) { const c = cv(Wb, Hb); wimB = { c, x: c.getContext('2d', CPU) }; }
+    const x = wimB.x, m = mesh(), bx = Math.max(0, Math.floor(p[0] - rr)), by = Math.max(0, Math.floor(p[1] - rr)), bw = Math.min(Wb, Math.ceil(p[0] + rr)) - bx, bh = Math.min(Hb, Math.ceil(p[1] + rr)) - by;
+    if (bw <= 0 || bh <= 0) return;
+    x.clearRect(bx, by, bw, bh);
+    for (const [dz, dir] of [[-6, 1], [6, -1]]) {
+      const z = WIM.z + dz, a0 = frame * 0.035 * dir;
+      face(m, Array.from({ length: 20 }, (_, i) => { const a = i / 20 * Math.PI * 2; return vtx(m, WIM.x + Math.cos(a) * WIM.r, WIM.y + Math.sin(a) * WIM.r, z); }), [176, 226, 214], null, { two: true, a: 0.42, e: 0.12 });
+      for (let k = 0; k < 16; k++) { const a = a0 + k / 16 * Math.PI * 2, q = (r, da) => vtx(m, WIM.x + Math.cos(a + da) * r, WIM.y + Math.sin(a + da) * r, z - 1); face(m, [q(40, -0.08), q(40, 0.08), q(60, 0.06), q(60, -0.06)], BRASS, null, { two: true, e: 0.3 }); }
+    }
+    prism(m, WIM.x, WIM.y - 6, WIM.z - 12, 6, 12, 8, BRASS2, { top: BRASS }); // Nabe
+    render(x, Wb, Hb, [m], c3, fl ? ENVF : ENV);
+    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.drawImage(wimB.c, bx, by, bw, bh, bx * dv, by * dv, bw * dv, bh * dv); ctx.restore();
   }
   // Leben im Tank: grünes Leuchten, Gestalt, Blasen, Glanzstreifen auf dem Glas
   function drawTankLife(ctx, frame) {
@@ -385,6 +416,13 @@ const Lab = (() => {
       if (k > 0 && i < 2) zap(ctx, p[0], p[1], sp[0], sp[1] + 8, i * 31 + (frame >> 1), 12, k);
       else if (k > 0) { const gt = P(...GTIP[i - 2]); zap(ctx, p[0], p[1], gt[0], gt[1], i * 17 + (frame >> 1), 10, k); }
     });
+    LADDERS.forEach(([lx, lz], i) => { // Jakobsleiter: der Bogen steigt zwischen den Stäben auf, reißt oben ab, setzt unten neu an
+      const ph = ((frame + i * 37) % 80) / 80, y = 52 + ph * 112, gap = 8 + ph * 15, a = P(lx - gap, y, lz), b = P(lx + gap, y, lz);
+      if (a[0] < -40 || b[0] > View.w + 40 || a[1] < -20 || a[1] > 230) return;
+      zap(ctx, a[0], a[1], b[0], b[1], frame + i * 11, 4 + ph * 6, 0.8 + 0.2 * (1 - ph), '200,170,255');
+      const g = ctx.createRadialGradient((a[0] + b[0]) / 2, a[1], 0, (a[0] + b[0]) / 2, a[1], 26); g.addColorStop(0, 'rgba(200,170,255,0.42)'); g.addColorStop(1, 'rgba(160,120,255,0)'); ctx.fillStyle = g; ctx.fillRect((a[0] + b[0]) / 2 - 26, a[1] - 26, 52, 52);
+    });
+    { const l = P(WIM.x - 12, WIM.y + 90, WIM.z - 22), r = P(WIM.x + 12, WIM.y + 90, WIM.z - 22); if ((frame % 50) < 6 && l[0] > -40 && r[0] < View.w + 40) zap(ctx, l[0], l[1], r[0], r[1], frame, 3, 0.9); } // Funkenstrecke der Wimshurst-Maschine
     if (k > 0) { // Ableiter: Überschlag von der Kugel auf die Tankspitze, Glut entlang der Stange
       zap(ctx, rd[0], rd[1], sp[0], sp[1], frame >> 1, 4, k);
       const tp = P(ROD.x, 900, ROD.z); ctx.strokeStyle = `rgba(200,220,255,${(0.6 * k).toFixed(3)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(rd[0], rd[1]); ctx.lineTo(tp[0], tp[1]); ctx.stroke();
@@ -631,8 +669,9 @@ Lab.mk = (d) => d.k === 'arc' ? new LabArc(d) : d.k === 'plate' ? new LabPlate(d
 const AwakenedModel = (() => {
   const { mesh, vtx, face } = PS2;
   // aus vielen Leibern genäht: jede Partie hat eine andere Hautfarbe, dazwischen die glimmenden Nähte
-  const TORSO = [176, 168, 160], HEADC = [186, 178, 166], NECK = [148, 140, 136], ARMN = [164, 132, 112], FOREN = [178, 170, 160], ARMF = [150, 160, 172], FOREF = [140, 128, 120], HANDC = [166, 150, 136],
-    PANTS = [58, 48, 64], PANTS2 = [46, 38, 52], BOOT = [44, 36, 32], LEATH = [96, 58, 32], CU = [208, 120, 60], IRONC = [76, 78, 92];
+  const TORSO = [176, 168, 160], HEADC = [164, 180, 150], NECK = [148, 140, 136], ARMN = [164, 132, 112], FOREN = [178, 170, 160], ARMF = [150, 160, 172], FOREF = [140, 128, 120], HANDC = [166, 150, 136],
+    PANTS = [58, 48, 64], PANTS2 = [46, 38, 52], BOOT = [44, 36, 32], LEATH = [96, 58, 32], CU = [208, 120, 60], IRONC = [76, 78, 92],
+    COAT = [112, 90, 68], COAT2 = [94, 74, 56], HAIR = [26, 22, 28], HAIR2 = [48, 42, 50];
   const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]], mul = (a, k) => [a[0] * k, a[1] * k, a[2] * k];
   const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2], len = (a) => Math.hypot(a[0], a[1], a[2]) || 1, nrm = (a) => mul(a, 1 / len(a));
   const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
@@ -664,13 +703,12 @@ const AwakenedModel = (() => {
     const cl = Math.cos(P.lie || 0), sl = Math.sin(P.lie || 0), ox = P.ox || 0, oy = P.oy || 0;
     const W3 = (p) => { const x = p[0] * cl - p[1] * sl, y = p[0] * sl + p[1] * cl; return [ox + f * ca * x + f * sa * p[2], oy + y, -sa * x + ca * p[2]]; };
     const V = (p) => { const q = W3(p); return vtx(m, q[0], q[1], q[2]); };
-    function seg(a, b, wa, da, wb, db, col, o = {}) {
+    function seg(a, b, wa, da, wb, db, col, o = {}) { // achteckiger Strang mit elliptischem Querschnitt (rund statt kantig)
       const d = nrm(sub(b, a)); let s = Math.abs(d[2]) > 0.9 ? [1, 0, 0] : [0, 0, 1]; s = nrm(sub(s, mul(d, dot(s, d)))); const q = cross(d, s);
-      const C = (base, w, dd, i, j) => V(add(base, add(mul(s, w * i), mul(q, dd * j))));
-      const v = [C(a, wa, da, -1, -1), C(a, wa, da, 1, -1), C(a, wa, da, 1, 1), C(a, wa, da, -1, 1), C(b, wb, db, -1, -1), C(b, wb, db, 1, -1), C(b, wb, db, 1, 1), C(b, wb, db, -1, 1)];
-      const c = W3(mul(add(a, b), 0.5));
-      face(m, [v[0], v[1], v[5], v[4]], col, c, o); face(m, [v[1], v[2], v[6], v[5]], col, c, o); face(m, [v[2], v[3], v[7], v[6]], col, c, o); face(m, [v[3], v[0], v[4], v[7]], col, c, o);
-      face(m, [v[0], v[3], v[2], v[1]], o.cap || col, c, o); face(m, [v[4], v[5], v[6], v[7]], o.cap || col, c, o);
+      const R = (base, w, dd) => Array.from({ length: 8 }, (_, i) => { const u = (i + 0.5) / 8 * Math.PI * 2; return V(add(base, add(mul(s, w * 1.08 * Math.cos(u)), mul(q, dd * 1.08 * Math.sin(u))))); });
+      const A = R(a, wa, da), B = R(b, wb, db), c = W3(mul(add(a, b), 0.5));
+      for (let i = 0; i < 8; i++) { const j = (i + 1) % 8; face(m, [A[i], A[j], B[j], B[i]], col, c, o); }
+      face(m, A.slice().reverse(), o.cap || col, c, o); face(m, B, o.cap || col, c, o);
     }
     function blob(c0, rx, ry, rz, col, seg2 = 8, rings = 6) {
       const rows = [], c = W3(c0);
@@ -685,18 +723,26 @@ const AwakenedModel = (() => {
     seg(add(hip, [0, -7, 0]), add(hip, mul(up, 3)), 12.5, 9, 13, 9.4, PANTS); seg(add(hip, mul(up, 2)), add(hip, mul(up, 5)), 13.6, 10, 13.6, 10, LEATH); // Becken, Gürtel
     seg(add(hip, mul(up, 4)), add(chest, mul(up, -2)), 12, 8.6, 16.5, 10.6, TORSO); // Rumpf: schmale Hüfte, breiter Brustkorb
     seg(add(sN, [0, 2, 3]), add(sF, [0, 2, -3]), 7, 7.4, 7, 7.4, TORSO); // Schulterjoch (Nackenmuskeln)
-    for (const A of J.arms) blob(add(A.s, [0, 1, 0]), 7.4, 7.6, 7, A.k < 0 ? ARMN : ARMF, 7, 4); // Schultern
+    for (const A of J.arms) blob(add(A.s, [0, 1, 0]), 7.8, 8, 7.4, COAT, 7, 4); // Schultern im Gehrock
+    for (const k of [-1, 1]) { // offener, zerlumpter Gehrock: Seitenteile über dem Rumpf, Schöße bis über die Knie
+      seg(add(add(hip, mul(up, 4)), [0, 0, k * 9]), add(add(chest, mul(up, -1)), [-0.5, 0, k * 11]), 7, 9.8, 8.6, 11.4, COAT);
+      seg(add(add(hip, mul(up, 5)), [-1, 0, k * 8]), add(add(hip, mul(up, -16)), [-3, 0, k * 9.5]), 8, 8.8, 9.4, 7.6, COAT2);
+    }
     seg(add(chest, mul(up, -1)), neck, 7.4, 6.4, 5.8, 5.4, NECK); // Stiernacken
     const pc = add(add(chest, mul(up, -10)), mul(fp, 10.2)); // Kupferplatte mit Glasherz
     seg(add(pc, mul(up, -6)), add(pc, mul(up, 6)), 7.5, 1.3, 8.5, 1.3, CU); seg(add(add(pc, mul(up, -3.5)), mul(fp, 1.6)), add(add(pc, mul(up, 3.5)), mul(fp, 1.6)), 2.4, 2.2, 2.4, 2.2, pal.heart);
     for (const k of [-1, 1]) seg(add(chest, [-2, 2, k * 11]), add(pc, [0, 5, k * 6]), 1.6, 1.2, 1.6, 1.2, LEATH); // Riemen über die Schultern
     const hu = [Math.sin(J.ht), Math.cos(J.ht), 0], hw = [Math.cos(J.ht), -Math.sin(J.ht), 0], H = (f2, u2, z2 = 0) => add(head, add(add(mul(hw, f2), mul(hu, u2)), [0, 0, z2])); // Kopf: vorwärts, hoch
-    blob(head, 8, 9, 7.6, HEADC); // kahler, gewölbter Schädel
+    blob(head, 8, 9, 7.6, HEADC); // Schädel
+    seg(H(-0.6, 3.6), H(-0.6, 10.8), 8.6, 7.8, 8.3, 7.4, HAIR, { cap: HAIR2 }); // flacher Haarschopf, oben platt abgeschnitten
+    for (let i = -2; i <= 2; i++) seg(H(6.3, 7.4, i * 2.7), H(7.6, 3.4 + (i & 1) * 1.4, i * 2.7), 1.5, 1.2, 0.5, 0.5, HAIR); // Ponyfransen
+    for (const k of [-1, 1]) seg(add(neck, [1, -1, k * 5]), add(neck, [1, -1, k * 9.6]), 1.5, 1.5, 2.2, 2.2, IRONC, { cap: [150, 150, 164] }); // Halsbolzen
     seg(H(6.4, 2.4, -5.6), H(6.4, 2.4, 5.6), 1.8, 2, 1.8, 2, NECK); // Brauenwulst
     seg(H(1.5, -6), H(7.2, -6.6), 5.8, 2.6, 5, 2.2, NECK); // schwerer Unterkiefer
     for (const k of [-1, 1]) { seg(H(0.5, 0.5, k * 6.6), H(0.5, 0.5, k * 11), 1.6, 1.6, 1.3, 1.3, CU); seg(H(0.5, 0.5, k * 11), H(0.5, 0.5, k * 12.8), 2, 2, 2, 2, pal.tip); } // Kupferelektroden an den Schläfen
     for (const A of J.arms) { // Arme: lang, Unterarme wie Keulen, Eisenmanschetten, schwere Fäuste
-      seg(add(A.s, [0, 2, 0]), A.el, 6.6, 6.2, 5.2, 5.2, A.k < 0 ? ARMN : ARMF); seg(A.el, A.hand, 5, 4.8, 5.6, 5.2, A.k < 0 ? FOREN : FOREF);
+      seg(add(A.s, [0, 2, 0]), A.el, 7, 6.6, 5.8, 5.8, A.k < 0 ? COAT : COAT2); seg(add(A.el, mul(sub(A.hand, A.el), 0.15)), A.hand, 5, 4.8, 5.6, 5.2, A.k < 0 ? FOREN : FOREF); // Ärmel zu kurz
+      seg(add(A.el, mul(sub(A.hand, A.el), -0.05)), add(A.el, mul(sub(A.hand, A.el), 0.22)), 6.2, 6, 6, 5.8, COAT2); // ausgefranster Ärmelsaum
       seg(add(A.hand, mul(A.d2, -6)), add(A.hand, mul(A.d2, -1)), 6.2, 5.8, 6.2, 5.8, IRONC);
       seg(A.hand, add(A.hand, mul(A.d2, 7)), 5.2, 5.4, 4.6, 4.8, HANDC);
     }
@@ -706,7 +752,7 @@ const AwakenedModel = (() => {
       heart: W3(add(pc, mul(fp, 3))), tips: [W3(H(0.5, 0.5, -12.8)), W3(H(0.5, 0.5, 12.8))], eyes: [W3(H(7.4, 0.2, -3)), W3(H(7.4, 0.2, 3))], fist: W3(add(near.hand, mul(near.d2, 4))),
       seams: [
         [add(add(chest, mul(fp, 10.8)), [0, -2, -11]), add(add(chest, mul(fp, 11.2)), mul(up, -8)), add(add(hip, mul(fp, 9.4)), add(mul(up, 9), [0, 0, 5]))],
-        [H(5.5, 6, -3), H(0, 9.4, -2.5), H(-6, 6.5, -3)], // über den Schädel
+        [H(7.7, 2.2, -4.4), H(8.3, 3.2, 0), H(7.7, 2.4, 4.4)], // quer über die Stirn
         [H(4, -2, -7.2), H(7, -5, -5.8)], // Wange
         [add(near.el, [0, 0, -5.4]), add(near.hand, mul(near.d2, -7)).map((v, i) => (i === 2 ? v - 5.4 : v))],
         [add(sN, [3, 2, -7.6]), add(sN, [-4, -4, -7.4])], // Schulternaht

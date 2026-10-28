@@ -361,6 +361,17 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   Tiefenparallaxe und Kolossalpfeilern vorn: Lichthof des Hotels Krat (Galerien, Messinggeländer, Kugellampen), Eisdom (Eissäulen,
   Eiszapfen, Kristalle, leuchtende Adern), Pumpwerk (Glaswand, Nietträger, Rohre, Schwungräder mit Kolben), Himmelsaufzug außen an
   der Sonnenkathedrale (Stadt der Kathedralen). Bot-Test: alle Haltestellen und Ausgänge, während der Fahrt bleibt der Held im Gitter.
+- **Kaleidoskop gestreckt statt zerschnitten:** jede Trommel zeigt genau eine Fensterspalte (Dienst bis Dienst), auf ihre Länge
+  gestreckt – kein Steinring schneidet mehr ein Fenster durch. Die Kreuzgratjoche höher (140) und tief gewölbt: Kappen in zwei
+  Stufen, dicke Diagonalrippen, Scheitelrippe, Gurtbögen mit Goldfilet, große Schlusssteine und Knaufe.
+- **Steingolem aus Felsbrocken:** jeder Block gefast (26 Flächen) und leicht verschoben, Gliedmaßen als achteckige Felsstränge.
+- **Der Erweckte:** runde Glieder (Achtkant), flacher Haarschopf mit Pony, Halsbolzen, zerlumpter brauner Gehrock mit zu
+  kurzen Ärmeln, Stirnnaht. **Labor:** Wimshurst-Maschine mit gegenläufigen Glasscheiben (Messingsektoren, Funkenstrecke) und
+  zwei Jakobsleitern, an denen der Lichtbogen aufsteigt.
+- **Riesenpendel in PS2-3D** (`Pend3D`): Rostpendel aus fünf Stäben in der Tiefe versetzt, Querjoche, Lyra mit Rosette,
+  extrudiertes Zahnrad am Drehpunkt, Messinglinse als Drehkörper mit Perlrand und graviertem Sonnengesicht; Linse jetzt 64 px
+  (Bot-Test: alle Sprünge). Unter dem Gewölbe der oberen Etage drehen sich Räderwerke wie im Uhrturm; im Uhrturm schwingt
+  dafür ein Riesenpendel tief hinten als Kulisse (`PendulumDeco`).
 - **Karte:** Pause → **KARTE** zeigt das ganze Schloss (Regionen um die Eingangshalle: Prolog links, Katakomben unten,
   Bergfried oben, Sonnenkathedrale oben rechts, Wintergarten rechts, Thron ganz oben). Angriff zoomt, im Zoom scrollen
   die Pfeile, Sprung/Start schließt. Unten: Erkundungsgrad der Region und des Schlosses, Siegel n/5.

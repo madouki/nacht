@@ -160,6 +160,7 @@ const Castle = (() => {
       for (let i = 0; i < 5; i++) ball.grid[4 - i][97 + i] = '/';
     }
     if (gear) gear.grid[16][0] = gear.grid[17][0] = '.';                                                      // Uhrturm: Öffnung links zur Pendelhalle
+    if (gear) gear.ents.unshift({ type: 'pendeco', x: 16, y: -4, z: 230, len: 600, R: 84, amp: 0.24, speed: 0.009 }); // Uhrturm: Riesenpendel tief hinten im Turm (Kulisse)
   }
   // Tiefe und Kammern Rand an Rand (Schloss-Modus): Löcher in der Eishöhle (Lücke in der Stachelgrube → Eisrutsche, vor dem Eisturm
   // → Eisaufzug) und in der Gruft (unter der Brücke → Gruftgang); Simse zu den Speicher-/Warpkammern an Brunnenschacht, Bibliothek,
@@ -662,6 +663,12 @@ const Castle = (() => {
       .fill(19, 18, 38, 19, '#').fill(49, 18, 58, 19, '#').fill(71, 18, 93, 19, '#').fill(102, 18, 127, 19, '#') // obere Etage (Träger der Pendel)
       .cog(702 / 16, 283 / 16, 64, 4, 0.011).cog(1040 / 16, 283 / 16, 82, 4, 0.011).cog(1568 / 16, 283 / 16, 50, 4, 0.011) // Zahnrad-Riesenräder über den Lücken
       .prop('gearworks', {}).prop('clockface', { x: 64, y: 26, r: 150 })
+      .prop('gears', { list: [ // Räderwerk wie im Uhrturm unter dem Gewölbe der oberen Etage (dreht mit, nicht begehbar)
+        { type: 'wheel', ax: 30 * 16, ay: 4 * 16, r: 48, v: 0.4, walk: false, post: false }, { type: 'wheel', mesh: 0, ang: 20, r: 32, walk: false, post: false },
+        { type: 'wheel', mesh: 1, ang: -30, r: 40, walk: false, post: false },
+        { type: 'wheel', ax: 84 * 16, ay: 4 * 16, r: 56, v: -0.4, walk: false, post: false }, { type: 'wheel', mesh: 3, ang: 160, r: 36, walk: false, post: false },
+        { type: 'wheel', mesh: 3, ang: 15, r: 30, walk: false, post: false },
+        { type: 'wheel', ax: 112 * 16, ay: 5 * 16, r: 40, v: 0.4, walk: false, post: false }] })
       .candle(4, 33, 'H').candle(12, 33).candle(63, 33, '$').candle(118, 33, 'H').candle(124, 33)
       .candle(24, 15).candle(52, 15, 'H').candle(80, 15, '$').candle(110, 15, 'H')
       .enemy('bat', 46, 26).enemy('bat', 84, 24).enemy('bat', 60, 8).enemy('bat', 96, 10)

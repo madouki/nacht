@@ -118,6 +118,7 @@ const W = {
         case 'bigpend': this.platforms.push(this.spawn(new BigPendulum(d))); break; // Riesenpendel (js/pendel.js)
         case 'clockface': this.spawn(new ClockFace(d)); break;
         case 'gearworks': this.spawn(new GearWorks(d)); break; // Zahnwerk in PS2-3D hinter der Pendelhalle
+        case 'pendeco': this.spawn(new PendulumDeco(d)); break; // Kulissenpendel in PS2-3D (Uhrturm)
         case 'liftshaft': this.spawn(new LiftShaft(d)); break; // offener Aufzugsschacht mit Riesenhalle in PS2-3D (js/shaft.js)
         case 'kammerhall': this.spawn(new ChamberHall(d)); break; // Speicher-/Warpkammer: Gewölbe (js/kammer.js)
         case 'fountain': this.spawn(new ChamberFountain(d)); break;

@@ -57,13 +57,39 @@ class GolemBoss extends Boss {
     const P = PS2, m = P.mesh(), arm = P.mesh(), fl = this.flashT > 0;
     const S = fl ? [240, 240, 240] : [112, 104, 94], S2 = fl ? [220, 220, 220] : [84, 78, 72], D = fl ? [200, 200, 200] : [46, 42, 42];
     const WARM = fl ? [230, 230, 230] : [120, 104, 86], LIT = fl ? [250, 250, 250] : [142, 134, 122], MOSS = [62, 98, 52], MOSS2 = [84, 124, 60];
-    // Quader mit leicht wechselnder Steinfarbe; große bekommen eine hellere, eingerückte Deckplatte (Fase) – selbstleuchtende bleiben, wie sie sind
+    // Felsbrocken statt glatter Quader: jede Kante gefast (26 Flächen), die Ecken leicht verschoben – so fängt jeder Brocken an
+    // Kanten und Ecken Licht wie behauener Stein; Steinfarbe wechselt leicht, Oberseiten heller. Selbstleuchtende bleiben Quader
     let nb = 0;
     const B = (mm, cx, y0, cz, w, h, d, col, o = {}) => {
-      if (o.e || fl) return P.box(mm, cx, y0, cz, w, h, d, col, o);
-      const r = Math.sin(++nb * 12.9898) * 43758.5453, kk = 0.86 + 0.26 * (r - Math.floor(r)), c = col.map(v => Math.min(255, v * kk));
-      P.box(mm, cx, y0, cz, w, h, d, c, o);
-      if (w > 16 && d > 16 && h > 8) P.box(mm, cx, y0 + h, cz, w - 5, 2, d - 5, c.map(v => Math.min(255, v * 1.22 + 6)), { rot: o.rot });
+      if (o.e) return P.box(mm, cx, y0, cz, w, h, d, col, o);
+      const id = ++nb, r0 = Math.sin(id * 12.9898) * 43758.5453, kk = 0.86 + 0.26 * (r0 - Math.floor(r0));
+      const hw = w / 2, hh = h / 2, hd = d / 2, b = Math.min(w, h, d) * 0.26, rot = o.rot || 0, cs = Math.cos(rot), sn = Math.sin(rot), yc = y0 + hh;
+      const jit = (i) => { const r = Math.sin((id * 37 + i) * 78.233) * 43758.5453; return (r - Math.floor(r) - 0.5) * b * 0.55; };
+      let n = 0; const V = {};
+      const vx = (x, y, z) => { x += jit(n++); y += jit(n++); z += jit(n++); return P.vtx(mm, cx + x * cs - z * sn, yc + y, cz + x * sn + z * cs); };
+      for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1])
+        V[sx + ',' + sy + ',' + sz] = { x: vx(sx * hw, sy * (hh - b), sz * (hd - b)), y: vx(sx * (hw - b), sy * hh, sz * (hd - b)), z: vx(sx * (hw - b), sy * (hh - b), sz * hd) };
+      const v = (sx, sy, sz) => V[sx + ',' + sy + ',' + sz], C = [cx, yc, cz], F = (idx, t) => P.face(mm, idx, col.map(c => Math.min(255, c * kk * t)), C, o);
+      for (const sx of [-1, 1]) F([v(sx, -1, -1).x, v(sx, 1, -1).x, v(sx, 1, 1).x, v(sx, -1, 1).x], 1);               // Seiten
+      for (const sy of [-1, 1]) F([v(-1, sy, -1).y, v(1, sy, -1).y, v(1, sy, 1).y, v(-1, sy, 1).y], sy > 0 ? 1.14 : 0.9); // oben, unten
+      for (const sz of [-1, 1]) F([v(-1, -1, sz).z, v(1, -1, sz).z, v(1, 1, sz).z, v(-1, 1, sz).z], 1);               // vorn, hinten
+      for (const sx of [-1, 1]) for (const sy of [-1, 1]) F([v(sx, sy, -1).x, v(sx, sy, -1).y, v(sx, sy, 1).y, v(sx, sy, 1).x], sy > 0 ? 1.1 : 0.94); // Fasen
+      for (const sx of [-1, 1]) for (const sz of [-1, 1]) F([v(sx, -1, sz).x, v(sx, -1, sz).z, v(sx, 1, sz).z, v(sx, 1, sz).x], 1.02);
+      for (const sy of [-1, 1]) for (const sz of [-1, 1]) F([v(-1, sy, sz).y, v(-1, sy, sz).z, v(1, sy, sz).z, v(1, sy, sz).y], sy > 0 ? 1.1 : 0.94);
+      for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1]) F([v(sx, sy, sz).x, v(sx, sy, sz).y, v(sx, sy, sz).z], 1.06); // Ecken
+    };
+    const L = (mm, x0, y0, z0, x1, y1, z1, w, h, col) => { // Gliedmaße als achteckiger Felsstrang, zum Ende hin etwas schlanker
+      let dx = x1 - x0, dy = y1 - y0, dz = z1 - z0; const l = Math.hypot(dx, dy, dz) || 1; dx /= l; dy /= l; dz /= l;
+      let sx = dz, sz = -dx; const sl = Math.hypot(sx, sz); if (sl < 1e-6) { sx = 1; sz = 0; } else { sx /= sl; sz /= sl; }
+      const ux = -sz * dy, uy = sz * dx - sx * dz, uz = sx * dy, id = ++nb;
+      const ring = (px, py, pz, k) => Array.from({ length: 8 }, (_, i) => {
+        const a = (i + 0.5) / 8 * Math.PI * 2, r = Math.sin((id * 13 + i) * 91.7) * 43758.5453, jj = 1 + (r - Math.floor(r) - 0.5) * 0.16;
+        const ca = Math.cos(a) * w / 2 * k * jj, sa = Math.sin(a) * h / 2 * k * jj;
+        return P.vtx(mm, px + sx * ca + ux * sa, py + uy * sa, pz + sz * ca + uz * sa);
+      });
+      const A = ring(x0, y0, z0, 1), E = ring(x1, y1, z1, 0.86), C = [(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2];
+      for (let i = 0; i < 8; i++) { const j = (i + 1) % 8; P.face(mm, [A[i], A[j], E[j], E[i]], col.map(c => c * (i % 2 ? 1 : 0.92)), C); }
+      P.face(mm, A, col, C); P.face(mm, E, col, C);
     };
     const RUNE = [255, 150, 70], ps = this.pose(), k = this.kneel, hip = ps.hip, ch = ps.chest, glowR = 0.3 + 0.25 * Math.sin(this.t * 0.08) + (this.ph2 ? 0.35 : 0);
     // Beine: kurz und breitbeinig – Schienbein, schräger Oberschenkel, keilförmiger Fuß; zwischen den Beinen eine Lücke
@@ -93,11 +119,11 @@ class GolemBoss extends Boss {
     B(m, 44, cy - 14, 0, 6, 28, 28, RUNE, { e: glow });
     for (const s2 of [-1, 1]) B(m, 46, cy - 16, s2 * (16 + 12 * this.open), 6, 32, 14, S2);
     // linker Arm (zum Betrachter hin) hängt bis zum Boden, die Faust stützt sich auf
-    P.beam(m, -4, ch - 10, -88, 8, ch - 66, -100, 32, 32, S2); B(m, 8, ch - 84, -100, 30, 24, 30, LIT);
-    P.beam(m, 8, ch - 72, -100, 16, 26, -102, 30, 30, S); B(m, 16, 0, -102, 48, 34, 46, S2); B(m, 36, 4, -102, 8, 24, 42, D);
+    L(m, -4, ch - 10, -88, 8, ch - 66, -100, 34, 34, S2); B(m, 8, ch - 84, -100, 32, 26, 32, LIT);
+    L(m, 8, ch - 72, -100, 16, 26, -102, 32, 32, S); B(m, 16, 0, -102, 48, 34, 46, S2); B(m, 36, 4, -102, 8, 24, 42, D);
     // Kopf: tief zwischen den Schultern, senkt sich beim flachen Laser bis an den Boden; Kiefer, Stirnwulst, Mundspalt, glühende Augen
     const hx = ps.head.x, hy = ps.head.y, eye = [255, 70 + 120 * this.eye, 40 + 60 * this.eye];
-    P.beam(m, 0, ch - 8, 0, hx - 6, hy + 8, 0, 34, 30, D);                                      // Nacken
+    L(m, 0, ch - 8, 0, hx - 6, hy + 8, 0, 36, 32, D);                                          // Nacken
     B(m, hx, hy, 0, 54, 44, 60, S);                                                         // Schädel
     B(m, hx + 8, hy - 8, 0, 44, 14, 54, S2);                                                // Kiefer
     B(m, hx + 8, hy + 30, 0, 48, 10, 68, D);                                                // Stirnwulst
@@ -115,9 +141,9 @@ class GolemBoss extends Boss {
     // Schlagarm an der Schulter zum Helden hin, Faust in der Spielebene (Welt → lokal)
     const f = this.fist, fx = f.x - this.bx, fy = this.gy - f.y, [sx, sz] = this.rot(4, 86), sy = ch - 10;
     const ex = Math.max(sx, fx) + 14, ey = Math.max(sy - 30, fy) + 18, ez = sz * 0.45;          // Ellbogen
-    P.beam(arm, sx, sy, sz, ex, ey, ez, 32, 32, S2); P.box(arm, ex, ey - 14, ez, 30, 26, 30, LIT);
-    P.beam(arm, ex, ey, ez, fx, fy + 16, 0, 28, 28, S);
-    P.box(arm, fx, fy - 20, 0, 46, 40, 46, S); P.box(arm, fx + 21, fy - 14, 0, 6, 30, 42, D); P.box(arm, fx - 4, fy + 14, 0, 30, 8, 36, LIT); // Faust, Knöchel, Handrücken
+    L(arm, sx, sy, sz, ex, ey, ez, 34, 34, S2); B(arm, ex, ey - 15, ez, 32, 28, 32, LIT);
+    L(arm, ex, ey, ez, fx, fy + 16, 0, 30, 30, S);
+    B(arm, fx, fy - 20, 0, 48, 40, 48, S); for (const kz of [-14, 0, 14]) B(arm, fx + 22, fy - 14, kz, 10, 26, 13, D); B(arm, fx - 4, fy + 14, 0, 32, 10, 38, LIT); // Faust, Knöchel, Handrücken
     return [m, arm];
   }
   draw() { } // gezeichnet wird nach dem Licht (drawLit): der Felsleib hat seine eigene Fackelbeleuchtung, der Stollennebel liegt dahinter
