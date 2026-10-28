@@ -284,6 +284,9 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   gut 10 Kacheln weit, mit den Ringen klappt jede Trommel); Fledermaus, Nebel und Wolf reißt der Wirbel zurück. Am Ende Truhe,
   Lebensgefäß und die **Prismenklinge** (ATT +6), dann durch die Luke hinab auf den Pfeiler der Kathedrale (Einbahn).
 - **Ring-Schwung:** jeder Absprung vom Ankerring endet mit einem Salto in Flugrichtung.
+- **Sonnenturm bröckelt** (Schloss-Modus, `crumbleTick`): wer auf einem Steinsims steht, löst nach gut einer halben Sekunde
+  (Knirschen, rieselnder Staub) die Steine darunter samt Nachbarn; sie stürzen in Brocken ab und wachsen nach 5 Sekunden
+  nach. Turmfuß, Pfeiler und die Simse unter den Engeln halten. Im Arcade-Modus bleibt der Turm wie er war.
 - **Pendelhalle des Uhrturms** (`js/pendel.js`, links am Zahnradwerk über dem Mauervorsprung): sechs riesige Uhrpendel mit
   Scheibengewicht (stehen auf der Wölbung, `surfaceAt`/`carryAt`), Nachbarn gegenläufig – am Umkehrpunkt nur gut 3 Kacheln
   auseinander, dann hinüberspringen; in der Mitte ein Steinpfeiler. Dahinter das Zifferblatt von innen (Milchglas im Mondlicht,

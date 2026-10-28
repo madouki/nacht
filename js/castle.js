@@ -163,7 +163,7 @@ const Castle = (() => {
     const room = (id, i) => { const s = sIdx(id); return s >= 0 ? S()[s].rooms[i] : null; };
     const open = (def, x0, y0, x1, y1) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) def.grid[y][x] = '.'; };
     const ledge = (def, x0, x1, y) => { for (let x = x0; x <= x1; x++) def.grid[y][x] = '='; };
-    const ice = room(1, 2), crypt = room(1, 4), well = room(1, 1), lib = room(2, 1), cath = room('sun', 0), palm = room('expo', 0), trap = room('expo', 3), vortex = room(3, 0);
+    const ice = room(1, 2), crypt = room(1, 4), well = room(1, 1), lib = room(2, 1), cath = room('sun', 0), palm = room('expo', 0), trap = room('expo', 3), vortex = room(3, 0), spire = room('sun', 1);
     if (ice) { open(ice, 40, 11, 41, 12); open(ice, 96, 11, 97, 12); }          // Eishöhle: Lücke in der Stachelgrube, Loch vor dem Eisturm
     if (crypt) open(crypt, 13, 11, 14, 12);                                       // Gruft: Loch unter der Brücke
     if (well) ledge(well, 27, 27, 22);                                            // Brunnenschacht: Steg bis zum rechten Rand
@@ -172,6 +172,7 @@ const Castle = (() => {
     if (palm) ledge(palm, 0, 11, 23);                                             // Palmenhaus: Sims links über dem Eingang
     if (trap) trap.ents.push({ type: 'elevator', x: 20, y: 10, y1: 0 });          // Menschenfalle: Aufzug hinauf zur Luke
     if (vortex) vortex.ents.push({ type: 'elevator', x: 58, y: 10, y1: 0 });      // Seelenstrudel: Aufzug hinauf ins Vorzimmer
+    if (spire) spire.crumbleLedges = true;                                        // Sonnenturm: die Simse bröckeln unter den Füßen weg
   }
   function buildSide() {
     const R = Levels.room;
@@ -1694,6 +1695,7 @@ const Castle = (() => {
   function settle(arrive) {
     const s = W.stage, r = W.roomIdx, def = S()[s].rooms[r], key = roomKey(s, r);
     if (W.player) W.player.superT = 0;
+    crumbling.clear(); // neuer Raum: bröckelnde Simse vergessen (das Raster ist ohnehin frisch)
     if (S()[s].id === 1 && r === 2 && !(rel('dash') && rel('ring'))) for (let x = 40; x <= 41; x++) W.room.grid[12][x] = '^'; // Eishöhle: Lücke zur Eisrutsche erst mit Dash und Enterhaken
     if (W.player && (W.player.batForm || W.player.mistForm || W.player.wolfForm)) { W.player.batForm = false; W.player.mistForm = false; W.player.wolfForm = false; W.player.h = HERO_H; } // Raumwechsel: wieder in Menschengestalt (reset hat Ort und Größe gesetzt)
     if (boss[key] && s < S().length - 1) W.room.arena = null; // Bossarena: Boss besiegt, der Raum ist frei
@@ -1745,6 +1747,38 @@ const Castle = (() => {
     if (inExit()) W.exiting = true; // in der Ausgangszone angekommen: erst hinaus, dann gilt sie wieder
     if (arrive) writeResume(); // jeder Raumwechsel ist ein Fortsetzungspunkt
   }
+  // Sonnenturm (Schloss-Modus): die Steinsimse bröckeln unter den Füßen weg – wer auf einem Sims steht, löst nach kurzem Wackeln
+  // (Staub, Knirschen) die Steine darunter; sie stürzen in Brocken in die Tiefe und wachsen nach ein paar Sekunden wieder nach,
+  // damit der Aufstieg nach einem Sturz möglich bleibt. Der Turmfuß, die Pfeiler und die Simse unter den Engeln halten.
+  const crumbling = new Map();
+  function crumbleTick(p, def) {
+    const g = W.room.grid, w = W.room.w;
+    if (p.alive && p.onGround && !p.ridePlat && p.state === 'normal') {
+      const row = Math.floor((p.feet + 1) / T);
+      for (const px of [p.x + 2, p.x + p.w - 2]) {
+        const x = ((Math.floor(px / T) % w) + w) % w, k = x + ',' + row;
+        if (g[row] && g[row][x] === '=' && !crumbling.has(k) && !def.ents.some(e => e.type === 'statue' && e.y === row - 1 && Math.abs(e.x - x) <= 1)) {
+          crumbling.set(k, { x, y: row, t: 0, gone: false }); Audio8.sfx('creak', px);
+          for (const d of [-1, 1]) { const nx = (x + d + w) % w, nk = nx + ',' + row; if (g[row][nx] === '=' && !crumbling.has(nk)) crumbling.set(nk, { x: nx, y: row, t: -10, gone: false }); } // die Nachbarsteine reißt es mit
+        }
+      }
+    }
+    for (const [k, c] of crumbling) {
+      c.t++;
+      const wx = c.x * T + 8, wy = c.y * T;
+      if (!c.gone) {
+        if (c.t > 0 && c.t % 3 === 0) W.spawn(new Particle(wx + rnd(-7, 7), wy + rnd(10, 15), rnd(-0.3, 0.3), rnd(0.4, 1.2), c.t % 2 ? '#e0cca4' : '#a89470', 34, c.t > 24 ? 2 : 1, 0.08)); // Staub rieselt, immer dichter
+        if (c.t >= 38) {
+          g[c.y][c.x] = '.'; c.gone = true; c.t = 0; Audio8.sfx('crumble', wx); W.shake = Math.max(W.shake, 3); Input.rumble(0.25, 0.2, 120);
+          for (let i = 0; i < 12; i++) W.spawn(new Particle(wx + rnd(-8, 8), wy + rnd(0, 14), rnd(-0.9, 0.9), rnd(-1.4, 0.6), i % 3 ? '#d8c49c' : '#7c6848', 80, i % 3 ? 3 : 4, 0.24)); // Brocken stürzen in die Tiefe
+          for (let i = 0; i < 6; i++) W.spawn(new Particle(wx + rnd(-10, 10), wy + rnd(4, 12), rnd(-0.5, 0.5), rnd(-0.6, -0.1), 'rgba(220,200,160,0.6)', 40, 4, -0.01)); // Staubwolke
+        }
+      } else if (c.t >= 300 && !(Math.abs(p.cx - wx) < 14 && Math.abs(p.feet - wy) < 20)) { // nachgewachsen (nicht unter dem Helden)
+        g[c.y][c.x] = '='; crumbling.delete(k);
+        for (let i = 0; i < 4; i++) W.spawn(new Particle(wx + rnd(-6, 6), wy + rnd(0, 8), 0, -0.3, '#fce0a8', 24, 1, 0));
+      }
+    }
+  }
   function inExit() {
     const ex = W.room && W.room.exit, p = W.player;
     return !!ex && p.cx >= ex.x0 * T && p.cx < (ex.x1 + 1) * T && p.feet > ex.y0 * T && p.feet <= (ex.y1 + 1) * T + 0.5;
@@ -1785,6 +1819,7 @@ const Castle = (() => {
     roomT++;
     const p = W.player, def = S()[s].rooms[r];
     if (def.grates) grateBlock(p); // Gitter: nur Nebel kommt durch
+    if (def.crumbleLedges) crumbleTick(p, def);
     if (def.side === 'kaleido' && (p.batForm || p.mistForm || p.wolfForm) && Kaleido.drum(p.cx) >= 0) { // der Wirbel der Trommeln: nur die Peitsche bringt hinüber
       if (p.wolfForm) fromWolf(p, true); else fromBat(p, true);
       Game.note('kaleidoForm'); Audio8.sfx('whoosh'); W.puff(p.cx, p.feet);
