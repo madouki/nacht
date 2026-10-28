@@ -148,12 +148,14 @@ class Player {
   get H() { return this._H || (this._H = HEROES.get(this.heroId)); }
   set H(v) { this._H = v; }
   get wlen() { return (this.pole ? POLE_LEN : this.sword ? SWORD_LEN : WHIP_LEN)[this.whip]; }
-  // nächster Ankerring in Reichweite (vom Oberkörper aus), höchstens knapp unter dem Helden
+  // nächster Ankerring in Reichweite (vom Oberkörper aus), höchstens knapp unter dem Helden – und nur vor ihm oder direkt über
+  // ihm: ein Ring im Rücken hakt nicht ein (man peitscht mit dem Gesicht zum Ring)
   nearRing(reach = Math.max(RING_REACH, this.wlen + 60)) {
     if (!W.rings || !W.rings.length) return null;
     let best = null, bd = 1e9;
     for (const r of W.rings) {
       const dx = wrapDx(r.cx - this.cx), dy = r.cy - (this.y + 8), d = Math.hypot(dx, dy);
+      if (dx * this.face < -10) continue; // hinter dem Helden
       if (dy < 16 && d < reach && d < bd) { best = r; bd = d; }
     }
     return best;
@@ -163,7 +165,7 @@ class Player {
     const r = this.nearRing(); if (!r) return false;
     const dx = wrapDx(r.cx - this.cx);
     if (Math.abs(dx) < 14) this.atkDir = 'up';
-    else { this.atkDir = 'upd'; this.face = Math.sign(dx); }
+    else this.atkDir = 'upd'; // der Ring liegt vor dem Helden (nearRing): keine Kehrtwende
     return true;
   }
 
