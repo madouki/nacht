@@ -193,6 +193,7 @@ const Audio8 = (() => {
     laser: () => { tone('sawtooth', 1900, 260, 0.55, 0.09); tone('square', 960, 140, 0.55, 0.05, 0.25); noise(0.55, 0.12, 'bandpass', 3200, 700); }, // Augenlaser des Golems
     charge: () => { tone('triangle', 160, 1300, 0.7, 0.08); tone('sine', 80, 640, 0.7, 0.06); noise(0.7, 0.05, 'highpass', 5000); }, // Laser lädt auf
     tink: () => { tone('square', 2600, 2100, 0.05, 0.07); tone('pulse', 3400, 3000, 0.07, 0.05, 0.125); noise(0.05, 0.12, 'highpass', 6000); }, // abgeprallt
+    zap: () => { noise(0.18, 0.3, 'highpass', 4200, 1800); tone('sawtooth', 120, 90, 0.16, 0.08); tone('square', 2400, 600, 0.06, 0.05); }, // Lichtbogen knistert
     stepWet: () => { noise(0.07, 0.06, 'bandpass', 2600, 900); noise(0.04, 0.05, 'lowpass', 900, 250); },
   };
   // x (optional): Weltposition der Quelle → Stereo-Position relativ zur Bildmitte
@@ -779,7 +780,7 @@ const Audio8 = (() => {
       hp.disconnect(); lp.type = 'lowpass'; lp.frequency.value = 4200; hp.connect(lp); lp.connect(out);
       const bp = ambNoise(nodes, out, 'bandpass', 480, 6); ambLfo(nodes, bp.frequency, 0.06, 220);
       ambLfo(nodes, out.gain, 0.1, 0.01); level = 0.028;
-    } else if (theme === 'library' || theme === 'hotel' || theme === 'station' || theme === 'theater') { // Bibliothek, Hotel-Lobby, Bahnhofshalle: gedämpfter Regen an den hohen Fenstern, tiefer Raumklang
+    } else if (theme === 'library' || theme === 'hotel' || theme === 'station' || theme === 'theater' || theme === 'lab') { // Bibliothek, Hotel-Lobby, Bahnhofshalle: gedämpfter Regen an den hohen Fenstern, tiefer Raumklang
       const hp = ambNoise(nodes, out, 'highpass', 1200), lp = ac.createBiquadFilter();
       hp.disconnect(); lp.type = 'lowpass'; lp.frequency.value = 3000; hp.connect(lp); lp.connect(out);
       ambDrone(nodes, out, 'sine', 65.4, 0.25);
