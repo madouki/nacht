@@ -107,6 +107,8 @@ const W = {
         case 'grand': this.platforms.push(this.spawn(new GrandChandelier(d))); break;
         case 'cog': { const c = new CogWheel(d); this.platforms.push(this.spawn(c)); c.ledges.forEach(l => this.platforms.push(this.spawn(l))); break; }
         case 'elevator': this.platforms.push(this.spawn(new Elevator(d))); break;
+        case 'bigpend': this.platforms.push(this.spawn(new BigPendulum(d))); break; // Riesenpendel (js/pendel.js)
+        case 'clockface': this.spawn(new ClockFace(d)); break;
         case 'lift': this.platforms.push(this.spawn(new ShortcutLift(d))); break;
         case 'crumble': this.platforms.push(this.spawn(new Crumble(d))); break;
       }

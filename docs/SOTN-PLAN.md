@@ -284,6 +284,11 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   gut 10 Kacheln weit, mit den Ringen klappt jede Trommel); Fledermaus, Nebel und Wolf reißt der Wirbel zurück. Am Ende Truhe,
   Lebensgefäß und die **Prismenklinge** (ATT +6), dann durch die Luke hinab auf den Pfeiler der Kathedrale (Einbahn).
 - **Ring-Schwung:** jeder Absprung vom Ankerring endet mit einem Salto in Flugrichtung.
+- **Pendelhalle des Uhrturms** (`js/pendel.js`, links am Zahnradwerk über dem Mauervorsprung): sechs riesige Uhrpendel mit
+  Scheibengewicht (stehen auf der Wölbung, `surfaceAt`/`carryAt`), Nachbarn gegenläufig – am Umkehrpunkt nur gut 3 Kacheln
+  auseinander, dann hinüberspringen; in der Mitte ein Steinpfeiler. Dahinter das Zifferblatt von innen (Milchglas im Mondlicht,
+  Spiegelziffern, die Zeiger laufen rückwärts). Am Ende Truhe, Lebensgefäß, **Taschenuhr des Grafen** (Amulett). Bot-Test:
+  von Gewicht zu Gewicht bis ans Ende.
 - **Steingolem im Golemstollen** (`js/golem.js`, links vom Eiskeller, Zwischengegner): bildschirmfüllendes PS2-Low-Poly-Modell,
   jedes Bild aus Felsquadern neu gebaut und mit der Software-3D gerastert, gezeichnet nach dem Licht (`drawLit`, eigene
   Fackelbeleuchtung). Augenlaser fegt über den Boden zum Helden und zurück (drüberspringen), flacher Laser mit dem Kopf am

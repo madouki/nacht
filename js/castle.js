@@ -149,11 +149,12 @@ const Castle = (() => {
   // Spiegelkabinett, im Glasturm ein Steg rechts zum Verlies, im Ballsaal ein Aufzug hinauf zur Luke ins Theaterfoyer
   function edgeKeep() {
     const room = (id, i) => { const s = sIdx(id); return s >= 0 ? S()[s].rooms[i] : null; };
-    const lib = room(2, 1), gal = room(2, 3), glass = room(3, 1), ball = room(3, 3);
+    const lib = room(2, 1), gal = room(2, 3), glass = room(3, 1), ball = room(3, 3), gear = room(2, 2);
     if (lib) { for (let x = 29; x <= 34; x++) lib.grid[17][x] = '='; lib.grid[15][35] = lib.grid[16][35] = '.'; } // Bibliothek: Steg zur Öffnung rechts
     if (gal) for (let y = gal.h - 2; y < gal.h; y++) for (let x = 22; x <= 23; x++) gal.grid[y][x] = '.';      // Marmorgalerie: Loch ins Kabinett
     if (glass) glass.grid[14][26] = glass.grid[14][27] = '=';                                                 // Glasturm: Steg zur Öffnung rechts
     if (ball) ball.ents.push({ type: 'elevator', x: 100, y: 10, y1: 0 });                                     // Ballsaal: Aufzug zur Luke
+    if (gear) gear.grid[16][0] = gear.grid[17][0] = '.';                                                      // Uhrturm: Öffnung links zur Pendelhalle
   }
   // Tiefe und Kammern Rand an Rand (Schloss-Modus): Löcher in der Eishöhle (Lücke in der Stachelgrube → Eisrutsche, vor dem Eisturm
   // → Eisaufzug) und in der Gruft (unter der Brücke → Gruftgang); Simse zu den Speicher-/Warpkammern an Brunnenschacht, Bibliothek,
@@ -634,6 +635,19 @@ const Castle = (() => {
       [[3, 0], { e: 'T', x: 58 }, ['side', 'vorzimmer'], { e: 'B', x: 2 }, {}],                     // Seelenstrudel: Aufzug → Vorzimmer → Seelenportal
       [['side', 'vorzimmer'], { e: 'L', y: 10 }, ['side', 'seelenportal'], { e: 'R', y: 10 }, {}],
     );
+    // Pendelhalle des Uhrturms (links am Zahnradwerk, Öffnung über dem Mauervorsprung; js/pendel.js): sechs riesige Uhrpendel mit
+    // Scheibengewicht schwingen über dem Abgrund, Nachbarn gegenläufig – am Umkehrpunkt kommen sich zwei Gewichte nahe, dann
+    // hinüberspringen. In der Mitte ein Steinpfeiler zum Verschnaufen, dahinter das Zifferblatt von innen. Am Ende die Taschenuhr
+    const ph = R(128, 'tower', 26)
+      .fill(0, 0, 127, 1, '#')                                                         // Gewölbe
+      .fill(0, 18, 12, 25, '#').fill(60, 18, 66, 25, '#').fill(114, 18, 127, 25, '#')  // Absätze: links, Pfeiler, rechts (Eingang)
+      .prop('clockface', { x: 64, y: 9, r: 150 })
+      .candle(4, 15, 'H').candle(12, 15).candle(63, 15, '$').candle(118, 15, 'H').candle(124, 15)
+      .enemy('bat', 46, 8).enemy('bat', 84, 6)
+      .chest(3, 17, 'big').prop('vessel', { x: 8, y: 16 });
+    for (const [x, phase] of [[105, 0], [90, Math.PI], [75, 0], [51, 0], [36, Math.PI], [21, 0]]) ph.prop('bigpend', { x, y: 2, len: 274, amp: 0.36, speed: 0.021, phase }); // am Umkehrpunkt je ~3 Kacheln Sprung
+    add('pendelhalle', 2, 4, null, ph.music('stage3').label('PENDELHALLE').start(120, 17).done());
+    LINKS.push([[2, 2], { e: 'L', y: 17 }, ['side', 'pendelhalle'], { e: 'R', y: 17 }, {}]); // Uhrturm: Öffnung über dem Mauervorsprung → Pendelhalle
     // Kaleidoskop (über der Sonnenkathedrale: Aufzug links im Vorplatz hinauf durch die Luke; js/kaleido.js): eine liegende Röhre
     // aus Buntglas in fünf Trommeln, die sich abwechselnd vorwärts und rückwärts um die Längsachse drehen. Unter den Trommeln nur
     // Abgrund – hinüber nur am Ankerring mit der Peitsche (je Trommel zwei Ringe), zwischen den Trommeln Steinringe zum
@@ -1944,6 +1958,7 @@ const Castle = (() => {
     trident: { slot: 'weapon', atk: 5, col: '#58c8d8' },                     // Dreizack des Wassermanns (versunkene Kapelle)
     prisma: { slot: 'weapon', atk: 6, col: '#fc7cf8' },                      // Prismenklinge (Ende des Kaleidoskops)
     steinhaut: { slot: 'armor', def: 6, col: '#8c8478' },                    // Steinhaut (Lohn des Steingolems)
+    taschenuhr: { slot: 'acc', atk: 1, def: 2, luck: 1, col: '#e8c060' },   // Taschenuhr des Grafen (Ende der Pendelhalle)
     rec_kraken: { rec: 'kraken', col: '#7c4cc8' },     // Hotelbademantel (Portier): weich, heilt langsam
     // Schallplatten fürs Grammophon im Hotel (spielen ein Stück des Schlosses): gefunden, gekauft, eine liegt schon auf dem Teller
     rec_hotel: { rec: 'hotel', col: '#c89020' }, rec_title: { rec: 'title', col: '#9c6cfc' }, rec_stage1: { rec: 'stage1', price: 1500, col: '#fc7460' },
@@ -1969,7 +1984,7 @@ const Castle = (() => {
     [['side', 'kolosseum'], 'qcase1', 57, 6], [['side', 'attic'], 'qcase2', 30, 10], [['side', 'kanal'], 'qcase3', 100, 10],
     [['side', 'zimmer13'], 'saucer', 7, 10],
     [['side', 'kapelle'], 'trident', 10, 17], [['side', 'kapelle'], 'rec_kraken', 39, 18],
-    [['side', 'kaleido'], 'prisma', 108, 8],
+    [['side', 'kaleido'], 'prisma', 108, 8], [['side', 'pendelhalle'], 'taschenuhr', 12, 17],
   ];
   // Nebenaufträge (Status, vierte Seite): Auftraggeber, Stücke, Szene zum Annehmen und zum Abgeben
   const QUESTS = [
