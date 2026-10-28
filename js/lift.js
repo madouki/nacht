@@ -9,7 +9,7 @@
 class ShortcutLift extends Ent {
   constructor(d) {
     const stops = d.stops.map(r => (r + 1) * T); // Kabinenboden je Haltestelle (px) = Füße des Helden
-    const i0 = clamp(d.start ?? (d.lock === 'bottom' ? 0 : stops.length - 1), 0, stops.length - 1);
+    const i0 = clamp(ShortcutLift.mem[d.id] ?? d.start ?? (d.lock === 'bottom' ? 0 : stops.length - 1), 0, stops.length - 1); // die Kabine bleibt, wo sie zuletzt hielt
     super(d.x * T, stops[i0], 48, 8);
     this.kind = 'platform'; this.d = d; this.stops = stops; this.at = i0; this.to = i0; this.dx = 0; this.dy = 0; this.v = 0; this.hum = 0; this.lockT = 0;
   }
@@ -42,7 +42,7 @@ class ShortcutLift extends Ent {
     const ny = Math.abs(dist) <= this.v ? goal : this.y + dir * this.v;
     this.dy = ny - this.y; this.y = ny; this.hum++;
     if (this.hum % 24 === 0) Audio8.sfx('cog');
-    if (ny === goal) { this.at = this.to; this.v = 0; Audio8.sfx('latch'); W.shake = Math.max(W.shake, 2); }
+    if (ny === goal) { this.at = this.to; this.v = 0; ShortcutLift.mem[this.d.id] = this.at; Audio8.sfx('latch'); W.shake = Math.max(W.shake, 2); }
   }
   lightUp(L, cx, cy) { L.push({ x: this.x + this.w / 2 - cx, y: this.y - 34 - cy, r: 40, c: [252, 200, 120], a: 0.42 }); }
   draw(ctx) {
@@ -86,3 +86,4 @@ class ShortcutLift extends Ent {
     });
   }
 }
+ShortcutLift.mem = {}; // Haltestelle je Aufzug-id, an der die Kabine zuletzt hielt (gilt für diese Sitzung, wie in SotN bleibt sie dort stehen)
