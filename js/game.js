@@ -919,7 +919,7 @@ const Game = {
   },
   drawPause(ctx) {
     const ids = this.pauseItems(), extra = (ids.length - 4) * 12;
-    const LABEL = { resume: tr('resume'), map: tr('mapTitle'), status: tr('castleStatus'), equip: tr('equipTitle'), tools: tr('testTools'), skip: tr('castleSkipPrologue'), easy: tr('optEasy') + ': ' + tr(Options.easy ? 'on' : 'off'), sec: tr('secTitle'), title: tr('toTitle') };
+    const LABEL = { resume: tr('resume'), map: tr('mapTitle') + (Input.device === 'pad' ? ' (SELECT)' : Input.device === 'touch' ? '' : ' (TAB/Q)'), status: tr('castleStatus'), equip: tr('equipTitle'), tools: tr('testTools'), skip: tr('castleSkipPrologue'), easy: tr('optEasy') + ': ' + tr(Options.easy ? 'on' : 'off'), sec: tr('secTitle'), title: tr('toTitle') };
     const cx = View.cx, items = ids.map(id => LABEL[id]);
     const hint = tr(Input.device === 'pad' ? 'pausePad' : Input.device === 'touch' ? 'pauseTouch' : 'pauseKey');
     const pw = Math.min(View.w - 8, Math.max(150, Font.width(hint) + 16, ...items.map(s => Font.width(s) + 96)));

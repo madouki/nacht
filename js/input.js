@@ -10,7 +10,7 @@ const Input = (() => {
     KeyC: 'sub', KeyL: 'sub',
     ShiftLeft: 'dash', ShiftRight: 'dash', KeyE: 'dash', KeyI: 'dash',
     Enter: 'start', Escape: 'start', KeyP: 'start',
-    Tab: 'map', // Schloss-Modus: Karte als Overlay
+    Tab: 'map', KeyQ: 'map', // Schloss-Modus: Karte als Overlay (Q liegt beim Spielen mit WASD unter dem Finger)
   };
   const ACTIONS = ['left', 'right', 'up', 'down', 'jump', 'attack', 'sub', 'start', 'dash', 'map'];
   const kb = {}, touch = {}, held = {}, prev = {}, pressed = {}, latch = {}, prevReal = {};
@@ -22,7 +22,7 @@ const Input = (() => {
   const inMenu = () => typeof Game !== 'undefined' && Game.state !== 'play';
   let demoFn = null, realHit = false, tapHit = false; // Demo-Modus: Eingaben kommen aus einer Funktion, echte Tasten beenden ihn
   let anyListener = null, lastDevice = 'keys', padName = null, padIndex = -1, prevPadBack = false;
-  let toast = null;
+  let toast = null, castleCls = null; // body.castle: Karten-Knopf auf dem Touchscreen nur im Schloss-Modus
 
   window.addEventListener('keydown', e => {
     lastDevice = 'keys';
@@ -212,6 +212,8 @@ const Input = (() => {
       latch[a] = false;
     });
     if (toast && --toast.t <= 0) toast = null;
+    const cm = typeof Castle !== 'undefined' && !!Castle.on;
+    if (cm !== castleCls) { castleCls = cm; document.body.classList.toggle('castle', cm); }
   }
 
   function onAny(fn) { anyListener = fn; }

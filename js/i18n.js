@@ -424,7 +424,8 @@ const I18N = (() => {
     itemD_book_hellfire: { de: 'DREI FEUERBÄLLE. VORSICHT, VORHÄNGE!', en: 'THREE FIREBALLS. MIND THE CURTAINS.', fr: 'TROIS BOULES DE FEU. GARE AUX RIDEAUX.', es: 'TRES BOLAS DE FUEGO. OJO, CORTINAS.', ja: '火の玉三つ。カーテンに注意。', zh: '三颗火球。小心窗帘。' },
     itemD_book_soulsteal: { de: 'TRIFFT ALLE. HEILT. MORALISCH FRAGWÜRDIG.', en: 'HITS EVERYONE AND HEALS. MORALLY DUBIOUS.', fr: 'TOUCHE TOUT ET SOIGNE. MORALEMENT DOUTEUX.', es: 'GOLPEA A TODOS Y CURA. MORALMENTE DUDOSO.', ja: '全体攻撃で回復。道徳的に微妙。', zh: '攻击全体并回复。道德上有问题。' },
     // Schloss-Modus: Karten-Overlay, Testmodus und Werkzeugkasten
-    mapOverlayHelp: { de: 'SELECT/TAB: ZU', en: 'SELECT/TAB: CLOSE', fr: 'SELECT/TAB : FERMER', es: 'SELECT/TAB: CERRAR', ja: 'SELECT/TAB:閉じる', zh: 'SELECT/TAB:关闭' },
+    mapOverlayHelp: { de: 'TAB/Q/SELECT: ZU', en: 'TAB/Q/SELECT: CLOSE', fr: 'TAB/Q/SELECT : FERMER', es: 'TAB/Q/SELECT: CERRAR', ja: 'TAB/Q/SELECT:閉じる', zh: 'TAB/Q/SELECT:关闭' },
+    mapOverlayHelpT: { de: 'KARTEN-KNOPF: ZU', en: 'MAP BUTTON: CLOSE', fr: 'BOUTON CARTE : FERMER', es: 'BOTÓN MAPA: CERRAR', ja: 'マップボタン:閉じる', zh: '地图按钮:关闭' },
     testMode: { de: 'TESTMODUS', en: 'TEST MODE', fr: 'MODE TEST', es: 'MODO PRUEBA', ja: 'テストモード', zh: '测试模式' },
     testEnd: { de: 'TESTMODUS BEENDEN', en: 'LEAVE TEST MODE', fr: 'QUITTER LE MODE TEST', es: 'SALIR DEL MODO PRUEBA', ja: 'テストモード終了', zh: '退出测试模式' },
     testNoSave: { de: 'EIGENE TEST-SPIELSTÄNDE - DEINER BLEIBT UNBERÜHRT', en: 'SEPARATE TEST SAVES - YOURS STAYS UNTOUCHED', fr: 'SAUVEGARDES DE TEST À PART - LA TIENNE RESTE', es: 'PARTIDAS DE PRUEBA APARTE - LA TUYA NO CAMBIA', ja: 'テスト専用セーブ ― 本来のセーブはそのまま', zh: '独立测试存档 ― 你的存档不受影响' },

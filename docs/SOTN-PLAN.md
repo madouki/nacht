@@ -341,6 +341,20 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
 - **Pendelhalle überarbeitet:** Rostpendel (Messing- und Stahlstäbe mit Querjochen) mit Lyra, Messinglinse mit Perlrand und
   graviertem Sonnengesicht (blinzelt), wanderndes Glanzlicht, warmer Schein; dahinter Riesenzahnräder des Uhrwerks und
   Mondlichtschächte mit Staub aus dem Zifferblatt.
+- **Pendelhalle zweistöckig** (40 Kacheln hoch, auf der Karte drei Zellen): Eingang rechts unten, unten über die sechs Pendel
+  nach links, am linken Absatz eine Treppe hinauf, oben über drei Zahnrad-Riesenräder (Gondeln an den Speichen, oben rechts
+  abspringen) zurück nach rechts zur Taschenuhr. Dahinter ein gigantisches Zahnwerk in PS2-3D (`GearWorks`: neun extrudierte
+  Räder in drei Ketten und Tiefen, gegenläufig im Verhältnis der Zähne, Tiefendunst). Bot-Tests: Pendel unten, Treppe, Räder oben.
+- **Brunnen der Rast in PS2-3D** (`ChamberFountain.mesh3d`): Marmorstufen, achteckiges Becken mit vertieften Feldern und
+  Goldrosetten, Delfinspeier, gedrechselte Schalen, Goldknospe, Kerzenständer; eigene Kamera in der Bildmitte – im Vorbeigehen
+  sieht man ihn schräg. Wasser als Ringflächen um den Schaft; Fontäne, Kaskaden, Wellen, Lichter als 2D-Schicht perspektivisch darüber.
+- **Kaleidoskop im Kreuzgratgewölbe:** die Röhrenwand ist eine einmal in PS2-3D gerenderte Textur – die Figurenfenster des
+  Glasturms (Pixel für Pixel) tief in schrägen Laibungen mit Wulstrippe, Goldfilet und Scheitelstein, dazwischen Dienste; zwischen
+  den Fensterreihen Kreuzgratjoche mit Sternenkappen, Diagonalrippen und Schlussstein. Anfang und Ende der Röhre drehen sich mit.
+- **Fundbüro** (`js/puzzle.js`, links an der Lichterpassage): Schalterrätsel – Hebel per Peitsche (Gepäckaufzug),
+  Schrankkoffer auf die Gepäckwaage schieben, Stempel nach dem Dienstweg; Gelöstes bleibt gelöst (`Castle.setFlag`).
+- **Karten-Schnelltaste:** Tab oder Q, Ansicht-Taste, auf dem Handy ein Karten-Knopf oben rechts (nur im Schloss-Modus):
+  im Spiel die durchscheinende Karte, in der Pause die große Karte.
 - **Karte:** Pause → **KARTE** zeigt das ganze Schloss (Regionen um die Eingangshalle: Prolog links, Katakomben unten,
   Bergfried oben, Sonnenkathedrale oben rechts, Wintergarten rechts, Thron ganz oben). Angriff zoomt, im Zoom scrollen
   die Pfeile, Sprung/Start schließt. Unten: Erkundungsgrad der Region und des Schlosses, Siegel n/5.

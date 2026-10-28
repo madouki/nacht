@@ -160,7 +160,7 @@ class ChamberFountain extends Ent { // d: { x (Mitte, Kacheln, auch halbe), big:
   flare() { const c = W.ents.find(e => e.c && e.c.kind === 'save' && e.pulse !== undefined); return c ? c.pulse : 0; } // gerade gespeichert: das Wasser flammt auf
   lightUp(L, cx, cy) {
     const F = (W.room.h - 2) * T;
-    if (this.big) { const f = this.flare(); L.push({ x: this.fx - cx, y: F - 46 - cy, r: 84 + f, c: [140, 220, 255], a: 0.42 + f / 80 }); for (const s of [-1, 1]) L.push({ x: this.fx + s * 66 - cx, y: F - 58 - cy, r: 34, c: [252, 200, 130], a: 0.4 }); return; }
+    if (this.big) { const f = this.flare(); L.push({ x: this.fx - cx, y: F - 46 - cy, r: 84 + f, c: [140, 220, 255], a: 0.42 + f / 80 }); for (const s of [-1, 1]) L.push({ x: this.fx + s * 74 - cx, y: F - 64 - cy, r: 36, c: [252, 200, 130], a: 0.4 }); return; }
     L.push({ x: this.fx - cx, y: F - 40 - cy, r: 58, c: [120, 200, 255], a: 0.3 });
   }
   draw() { }
@@ -230,79 +230,113 @@ class ChamberFountain extends Ent { // d: { x (Mitte, Kacheln, auch halbe), big:
     }
   }
 
-  // Ort der Rast: Plattform aus Marmor mit Goldring, achteckiges Becken mit Maßwerkfeldern, drei Schalen mit Kaskaden, vergoldeter
-  // Zapfen mit Fontäne; das Wasser leuchtet und lässt Lichter aufsteigen, zwei Kerzenständer flankieren; nach dem Speichern flammt es auf
-  drawBig(ctx) {
-    const P = ChamberHall.pal(W.room.theme), S = P.s, G = P.gold, t = this.t, f = this.flare();
-    const cx = this.fx - Math.round(W.cam.x), F = (W.room.h - 2) * T - Math.round(W.cam.y);
-    if (cx < -90 || cx > View.w + 90) return;
-    const glowA = 0.16 + 0.05 * Math.sin(t * 0.04) + f / 90;
-    ctx.save(); ctx.globalCompositeOperation = 'lighter'; // Lichtspiel des Wassers auf der Wand
-    for (let i = 0; i < 9; i++) {
-      const wx = cx + Math.sin(t * 0.015 + i * 1.7) * 52, wy = F - 86 + Math.sin(t * 0.021 + i * 2.3) * 30, r = 8 + (i % 3) * 4;
-      const g = ctx.createRadialGradient(wx, wy, 0, wx, wy, r); g.addColorStop(0, 'rgba(120,220,255,0.11)'); g.addColorStop(1, 'rgba(120,220,255,0)'); ctx.fillStyle = g; ctx.fillRect(wx - r, wy - r, r * 2, r * 2);
-    }
-    const halo = ctx.createRadialGradient(cx, F - 30, 4, cx, F - 30, 70 + f); halo.addColorStop(0, `rgba(150,230,255,${glowA.toFixed(3)})`); halo.addColorStop(1, 'rgba(150,230,255,0)');
-    ctx.fillStyle = halo; ctx.fillRect(cx - 80 - f, F - 110 - f, 160 + f * 2, 110 + f);
-    ctx.restore();
-    // Plattform
-    ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(cx, F - 1, 66, 4, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = S[2]; ctx.fillRect(cx - 62, F - 4, 124, 4); ctx.fillStyle = S[3]; ctx.fillRect(cx - 62, F - 4, 124, 1); ctx.fillStyle = G[1]; ctx.fillRect(cx - 58, F - 2, 116, 1);
-    // Kerzenständer links und rechts (fünf Kerzen)
-    for (const s of [-1, 1]) {
-      const kx = cx + s * 66;
-      ctx.fillStyle = G[0]; ctx.fillRect(kx - 1, F - 54, 2, 50); ctx.fillRect(kx - 5, F - 6, 10, 2); ctx.fillRect(kx - 3, F - 8, 6, 2);
-      ctx.fillStyle = G[1]; ctx.fillRect(kx - 9, F - 56, 18, 2); ctx.fillRect(kx - 9, F - 60, 1, 4); ctx.fillRect(kx + 8, F - 60, 1, 4); ctx.fillRect(kx - 5, F - 62, 1, 6); ctx.fillRect(kx + 4, F - 62, 1, 6);
-      for (const [ox, oy] of [[-9, -4], [-5, -6], [0, -8], [4, -6], [8, -4]]) {
-        ctx.fillStyle = '#f0e8d8'; ctx.fillRect(kx + ox, F - 60 + oy, 2, 5); const fl = ((t >> 2) + ox) & 1;
-        ctx.fillStyle = fl ? '#fce0a8' : '#fcc860'; ctx.fillRect(kx + ox, F - 63 + oy - fl, 2, 3);
+  // Ort der Rast in PS2-3D: Marmorplattform in zwei Stufen, achteckiges Becken mit vertieften Feldern und Goldrosetten, vier
+  // Delfinspeier am Schaft, gedrechselte Schalen (von unten sieht man ihre Unterseite), Goldknospe, zwei Kerzenständer. Das
+  // leuchtende Wasser liegt als Ringflächen um den Schaft (so verdeckt es richtig); Fontäne, Kaskaden, Wellenringe und aufsteigende
+  // Lichter kommen als 2D-Schicht perspektivisch darüber. Eigene Kamera: Auge 110 über dem Boden und 560 vor dem Brunnen, in der
+  // Bildmitte – geht man vorbei, sieht man ihn schräg von der Seite. Gerastert wird nur neu, wenn er sich im Bild verschiebt
+  static rgb(h) { const n = parseInt(h.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; }
+  // Drehkörper aus Profilpunkten [r, y, Seite]: 'o' außen/unten, 'u' Oberseite, 'i' Innenwand (zur Achse)
+  static lathe(m, prof, n, col, rot = 0) {
+    const ring = prof.map(([r, y]) => Array.from({ length: n }, (_, i) => { const a = rot + i / n * Math.PI * 2; return PS2.vtx(m, Math.cos(a) * r, y, Math.sin(a) * r); }));
+    for (let k = 0; k + 1 < prof.length; k++) {
+      const [r0, y0, s] = prof[k], [r1, y1] = prof[k + 1], ym = (y0 + y1) / 2;
+      for (let i = 0; i < n; i++) {
+        const j = (i + 1) % n, am = rot + (i + 0.5) / n * Math.PI * 2, rm = (r0 + r1) / 2;
+        const C = s === 'u' ? [0, ym - 40, 0] : s === 'i' ? [Math.cos(am) * rm * 3, ym, Math.sin(am) * rm * 3] : [0, ym, 0];
+        PS2.face(m, [ring[k][i], ring[k][j], ring[k + 1][j], ring[k + 1][i]], col, C);
       }
     }
-    // unteres Becken: Seitenflächen, Vorderseite mit vier Maßwerkfeldern
-    const bl = cx - 46, br = cx + 46, bt = F - 22;
-    ctx.fillStyle = S[1]; ctx.beginPath(); ctx.moveTo(bl - 6, bt + 2); ctx.lineTo(bl, bt + 4); ctx.lineTo(bl, F - 4); ctx.lineTo(bl - 6, F - 5); ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(br + 6, bt + 2); ctx.lineTo(br, bt + 4); ctx.lineTo(br, F - 4); ctx.lineTo(br + 6, F - 5); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = S[2]; ctx.fillRect(bl, bt + 4, br - bl, F - 4 - bt - 4);
-    for (let k = 0; k < 4; k++) {
-      const px = bl + 4 + k * 22;
-      ctx.fillStyle = S[1]; ctx.fillRect(px, bt + 7, 20, 10); ctx.fillStyle = S[0]; ctx.fillRect(px, bt + 7, 20, 1); ctx.fillRect(px, bt + 7, 1, 10);
-      ctx.fillStyle = G[1]; for (const [dx, dy] of [[-3, 0], [3, 0], [0, -3], [0, 3]]) { ctx.beginPath(); ctx.arc(px + 10 + dx, bt + 12 + dy, 2, 0, Math.PI * 2); ctx.fill(); }
-      ctx.fillStyle = S[1]; ctx.fillRect(px + 9, bt + 11, 2, 2);
+  }
+  static disc(m, r0, r1, y, n, col, rot = 0) { // Wasser als Ring um den Schaft, in n Felder geteilt (abwechselnd heller)
+    for (let i = 0; i < n; i++) {
+      const a0 = rot + i / n * Math.PI * 2, a1 = rot + (i + 1) / n * Math.PI * 2, P = (r, a) => PS2.vtx(m, Math.cos(a) * r, y, Math.sin(a) * r);
+      PS2.face(m, [P(r0, a0), P(r0, a1), P(r1, a1), P(r1, a0)], i % 2 ? col : col.map(v => Math.min(255, v * 1.08)), [0, y - 40, 0]);
     }
-    // leuchtendes Wasser im Becken, Wellenringe
-    ctx.fillStyle = '#0c4464'; ctx.beginPath(); ctx.ellipse(cx, bt + 1, 45, 6, 0, 0, Math.PI * 2); ctx.fill();
-    const wg = ctx.createRadialGradient(cx, bt, 2, cx, bt, 44); wg.addColorStop(0, f ? '#e8fcff' : '#7cdcfc'); wg.addColorStop(1, '#1c7ca8');
-    ctx.fillStyle = wg; ctx.beginPath(); ctx.ellipse(cx, bt + 1.5, 43, 4.5, 0, Math.PI, 0); ctx.fill();
-    ctx.strokeStyle = 'rgba(220,250,255,0.6)'; ctx.lineWidth = 1;
-    for (let i = 0; i < 4; i++) { const ph = ((t * 0.5 + i * 15) % 60) / 60; ctx.globalAlpha = 1 - ph; ctx.beginPath(); ctx.ellipse(cx + (i - 1.5) * 18, bt + 1, 2 + ph * 10, 0.6 + ph * 1.8, 0, 0, Math.PI * 2); ctx.stroke(); }
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = S[3]; ctx.fillRect(bl - 6, bt + 2, br - bl + 12, 3); ctx.fillStyle = G[1]; ctx.fillRect(bl - 6, bt + 2, br - bl + 12, 1);
-    // Schaft, mittlere Schale, oberer Schaft, obere Schale
-    const bowl = (y, rw, rh) => {
-      ctx.fillStyle = S[2]; ctx.beginPath(); ctx.ellipse(cx, y, rw, rh, 0, 0, Math.PI); ctx.fill();
-      ctx.fillStyle = S[1]; ctx.beginPath(); ctx.ellipse(cx, y + 2, rw * 0.7, rh * 0.6, 0, 0, Math.PI); ctx.fill();
-      ctx.fillStyle = '#5cc8f0'; ctx.beginPath(); ctx.ellipse(cx, y, rw - 1, 2.2, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = G[1]; ctx.fillRect(cx - rw, y, rw * 2, 1);
-    };
-    ctx.fillStyle = S[0]; ctx.fillRect(cx - 5, F - 52, 10, 32); ctx.fillStyle = S[2]; ctx.fillRect(cx - 4, F - 52, 8, 32); ctx.fillStyle = S[3]; ctx.fillRect(cx - 4, F - 52, 2, 32);
-    ctx.fillStyle = G[0]; ctx.fillRect(cx - 7, F - 36, 14, 3); ctx.fillStyle = G[2]; ctx.fillRect(cx - 7, F - 36, 14, 1);
-    bowl(F - 52, 26, 9);
-    ctx.fillStyle = S[0]; ctx.fillRect(cx - 3, F - 74, 6, 22); ctx.fillStyle = S[2]; ctx.fillRect(cx - 2, F - 74, 4, 22); ctx.fillStyle = S[3]; ctx.fillRect(cx - 2, F - 74, 1, 22);
-    bowl(F - 74, 14, 6);
-    ctx.fillStyle = G[0]; ctx.fillRect(cx - 3, F - 84, 6, 10); ctx.fillStyle = G[2]; ctx.fillRect(cx - 2, F - 86, 4, 3); ctx.fillStyle = G[1]; for (let k = 0; k < 3; k++) ctx.fillRect(cx - 3, F - 82 + k * 3, 6, 1); // Zapfen
-    ctx.save(); ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = 'rgba(180,240,255,0.8)'; ctx.fillRect(cx, F - 108, 1, 22); // Fontäne
-    for (let i = 0; i < 14; i++) { const ph = (t * 0.03 + i / 14) % 1, s = i % 2 ? 1 : -1, sx = cx + s * (2 + ph * 16), sy = F - 109 + ph * ph * 36 - ph * 8; ctx.fillStyle = `rgba(200,245,255,${(0.85 - ph * 0.5).toFixed(2)})`; ctx.fillRect(Math.round(sx), Math.round(sy), 1, 2); }
-    for (const [y0, y1, rw] of [[F - 74, F - 52, 14], [F - 52, bt, 26]]) for (const s of [-1, 1]) for (let i = 0; i < 10; i++) { // Kaskaden von Schale zu Schale
-      const ph = (t * 0.05 + i / 10) % 1, sx = cx + s * (rw + ph * 6), sy = y0 + ph * (y1 - y0);
-      ctx.fillStyle = `rgba(160,230,255,${(0.6 - ph * 0.25).toFixed(2)})`; ctx.fillRect(Math.round(sx), Math.round(sy), 1, 3);
+  }
+  static mesh3d(theme) {
+    const CA = ChamberFountain.CACHE || (ChamberFountain.CACHE = {}); if (CA[theme]) return CA[theme];
+    const S = ChamberHall.pal(theme).s.map(ChamberFountain.rgb), mix = (a, b, k) => a.map((v, i) => Math.round(v + (b[i] - v) * k));
+    const MAR = mix(S[3], [214, 206, 196], 0.35), MAR2 = mix(S[2], [176, 170, 164], 0.3), DK = mix(S[1], [30, 26, 40], 0.35), GO = [232, 184, 72], GD = [168, 120, 24], GL = [252, 224, 168];
+    const m = PS2.mesh(), r8 = Math.PI / 8, L = ChamberFountain.lathe, P = PS2;
+    P.prism(m, 0, 0, 0, 62, 5, 8, MAR2, { rot: r8, top: MAR }); P.prism(m, 0, 5, 0, 54, 4, 8, MAR2, { rot: r8, top: MAR }); // Stufen
+    L(m, [[44, 9, 'o'], [44, 26, 'o'], [47, 27, 'o'], [47, 30, 'u'], [40, 30, 'i'], [40, 24]], 8, MAR, r8);              // Becken
+    for (let i = 0; i < 8; i++) { // vertiefte Felder mit Goldrosette auf den acht Seiten
+      const am = r8 + (i + 0.5) / 8 * Math.PI * 2, ap = 44 * Math.cos(r8), rot = am - Math.PI / 2, at = (r) => [Math.cos(am) * r, Math.sin(am) * r];
+      const [px, pz] = at(ap + 0.4), [gx, gz] = at(ap + 1.4);
+      P.box(m, px, 12, pz, 26, 11, 0.8, DK, { rot }); P.box(m, gx, 15, gz, 5, 5, 1.6, GO, { rot, top: GL });
     }
-    if (this.t % 6 === 0 || (f && this.t % 2 === 0)) this.motes.push({ x: rnd(-38, 38), y: 0, v: rnd(0.2, 0.5) + f / 60, l: 0 }); // Lichter steigen aus dem Wasser
-    for (const m of this.motes) { m.l++; m.y -= m.v; m.x += Math.sin((m.l + m.x) * 0.06) * 0.2; const a = Math.max(0, 1 - m.l / 120); ctx.fillStyle = `rgba(200,250,255,${(a * 0.8).toFixed(2)})`; ctx.fillRect(Math.round(cx + m.x), Math.round(bt + m.y), 1, 1); }
-    this.motes = this.motes.filter(m => m.l < 120);
+    P.prism(m, 0, 24, 0, 7, 34, 8, MAR2, { rot: r8, rTop: 5.5, cap: false }); P.prism(m, 0, 37, 0, 8.6, 3, 8, GO, { rot: r8, top: GL }); // Schaft, Goldring
+    for (let k = 0; k < 4; k++) { const a = Math.PI / 4 + k * Math.PI / 2, c = Math.cos(a), s = Math.sin(a); P.beam(m, c * 5, 47, s * 5, c * 11, 44, s * 11, 2, 2.2, GD); P.cone(m, c * 11.5, 45, s * 11.5, 1.6, -2.5, 5, GO); } // Delfinspeier
+    L(m, [[5.5, 54, 'o'], [14, 56, 'o'], [22, 60, 'o'], [28, 64, 'o'], [28, 66, 'u'], [24, 66, 'i'], [24, 64]], 12, MAR);  // mittlere Schale
+    P.prism(m, 0, 64, 0, 3.6, 18, 8, MAR2, { cap: false }); P.prism(m, 0, 72, 0, 5, 2, 8, GO, { top: GL });
+    L(m, [[3, 80, 'o'], [8, 82, 'o'], [13, 85, 'o'], [16, 88, 'o'], [16, 89.5, 'u'], [13, 89.5, 'i'], [13, 87.5]], 10, MAR); // obere Schale
+    P.prism(m, 0, 87, 0, 2.2, 8, 6, GO, { cap: false }); P.cone(m, 0, 99, 0, 4.2, -4, 6, GO); P.cone(m, 0, 99, 0, 4.2, 7, 6, GL); // Goldknospe
+    for (const X of [-74, 74]) { // Kerzenständer, fünf Kerzen
+      const Z = -6;
+      P.prism(m, X, 0, Z, 7, 2, 6, GD, { top: GO }); P.cone(m, X, 2, Z, 5.5, 12, 6, GD); P.prism(m, X, 2, Z, 1.5, 52, 6, GO, { cap: false });
+      P.prism(m, X, 26, Z, 3.2, 3, 6, GO, { top: GL }); P.prism(m, X, 52, Z, 4.5, 2, 6, GO, { top: GL });
+      P.beam(m, X - 14, 56, Z, X + 14, 56, Z, 2, 2, GO); P.beam(m, X, 53, Z, X, 61, Z, 1.8, 1.8, GO);
+      for (const [dx, y] of [[-14, 57], [-7, 57], [0, 62], [7, 57], [14, 57]]) {
+        if (Math.abs(dx) === 14) P.beam(m, X + dx, 55, Z, X + dx, y, Z, 1.6, 1.6, GO);
+        P.prism(m, X + dx, y, Z, 2.4, 1.2, 6, GO); P.prism(m, X + dx, y + 1, Z, 1.5, 7, 6, [238, 230, 210]); P.cone(m, X + dx, y + 8, Z, 1.3, 4.5, 4, [255, 196, 96], { e: 1 });
+      }
+    }
+    return (CA[theme] = m);
+  }
+  drawBig(ctx) {
+    const t = this.t, f = this.flare(), cx = this.fx - Math.round(W.cam.x), F = (W.room.h - 2) * T - Math.round(W.cam.y);
+    if (cx < -130 || cx > View.w + 130) return;
+    const D = 560, YE = 110, VX = View.w / 2, HZ = F - YE, pj = (x, y, z) => { const k = D / (D + z); return [VX + (x + cx - VX) * k, HZ - (y - YE) * k]; };
+    const glowA = 0.1 + 0.04 * Math.sin(t * 0.04) + f / 90;
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'; // Lichtspiel des Wassers auf der Wand, Lichthof
+    for (let i = 0; i < 9; i++) {
+      const wx = cx + Math.sin(t * 0.015 + i * 1.7) * 56, wy = F - 92 + Math.sin(t * 0.021 + i * 2.3) * 32, r = 8 + (i % 3) * 4;
+      const g = ctx.createRadialGradient(wx, wy, 0, wx, wy, r); g.addColorStop(0, 'rgba(120,220,255,0.11)'); g.addColorStop(1, 'rgba(120,220,255,0)'); ctx.fillStyle = g; ctx.fillRect(wx - r, wy - r, r * 2, r * 2);
+    }
+    const halo = ctx.createRadialGradient(cx, F - 34, 4, cx, F - 34, 78 + f); halo.addColorStop(0, `rgba(150,230,255,${glowA.toFixed(3)})`); halo.addColorStop(1, 'rgba(150,230,255,0)');
+    ctx.fillStyle = halo; ctx.fillRect(cx - 90 - f, F - 120 - f, 180 + f * 2, 120 + f);
     ctx.restore();
-    // Bronzefrosch auf dem Beckenrand: blinzelt, spuckt ab und zu quer ins Becken
-    const fx = cx + 36, fy = bt + 2;
+    ctx.fillStyle = 'rgba(0,0,0,0.38)'; ctx.beginPath(); ctx.ellipse(cx, F - 1, 70, 5, 0, 0, Math.PI * 2); ctx.fill(); // Schatten
+    // 3D: Stein, Gold, Kerzen (zwischengespeichert) und das Wasser (Farbe je nach Aufflammen)
+    const BW = 280, BH = 150, bx = cx - 140, by = F - 136, fk = Math.min(8, Math.round(f / 4)), key = bx + '|' + by + '|' + VX + '|' + fk + '|' + W.room.theme;
+    let B = this.buf; if (!B) { const c = document.createElement('canvas'); c.width = BW; c.height = BH; B = this.buf = { c, x: c.getContext('2d', { willReadFrequently: true }), key: null }; }
+    if (B.key !== key) {
+      B.key = key; B.x.clearRect(0, 0, BW, BH);
+      const wm = PS2.mesh(), k = Math.min(1, fk / 6), wc = [60 + 166 * k, 178 + 72 * k, 228 + 27 * k].map(Math.round);
+      ChamberFountain.disc(wm, 7.2, 40, 25.5, 8, wc, Math.PI / 8); ChamberFountain.disc(wm, 3.8, 24, 65, 12, wc); ChamberFountain.disc(wm, 2.4, 13, 88.5, 10, wc);
+      PS2.render(B.x, BW, BH, [ChamberFountain.mesh3d(W.room.theme), wm], { x: VX - cx, y: YE, z: -D, yaw: 0, pitch: 0, f: D, near: 10, cx: VX - bx, cy: HZ - by }, ChamberFountain.ENV);
+    }
+    ctx.drawImage(B.c, bx, by);
+    // 2D-Schicht: Fontäne, Kaskaden (nur die vordere Hälfte, die hintere verdecken Schaft und Schalen), Speier, Wellen, Lichter
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    const dot = (p, a, w = 1, h = 2) => { ctx.fillStyle = `rgba(190,242,255,${a.toFixed(2)})`; ctx.fillRect(Math.round(p[0]), Math.round(p[1]), w, h); };
+    { const [jx, jy] = pj(0, 106, 0), [, jt] = pj(0, 128, 0); ctx.fillStyle = 'rgba(190,245,255,0.8)'; ctx.fillRect(Math.round(jx), Math.round(jt), 1, Math.round(jy - jt)); }
+    for (let i = 0; i < 16; i++) { const ph = (t * 0.03 + i / 16) % 1, a = i * 2.39, r = 2 + ph * 15; dot(pj(Math.cos(a) * r, 128 + ph * 4 - ph * ph * 40, Math.sin(a) * r), 0.85 - ph * 0.45); } // Krone der Fontäne
+    for (const [rr, y0, y1, n] of [[16.5, 89.5, 65, 10], [28.5, 66, 25.5, 14]]) for (let i = 0; i < n; i++) {
+      const a = Math.PI + (i + 0.5) / n * Math.PI * 1.1 - 0.05 * Math.PI; // vordere Hälfte (z < 0) und ein Stück der Flanken
+      for (let j = 0; j < 3; j++) { const ph = (t * 0.045 + j / 3 + i * 0.137) % 1, r = rr + ph * 5, y = y0 - ph * ph * (y0 - y1); dot(pj(Math.cos(a) * r, y, Math.sin(a) * r), 0.46 - ph * 0.26); }
+    }
+    for (const k of [2, 3]) { const a = Math.PI / 4 + k * Math.PI / 2, c = Math.cos(a), s = Math.sin(a); for (let i = 0; i < 9; i++) { const u = (t * 0.04 + i / 9) % 1, r = 15 + u * 17, y = 42 + 5 * u - 21.5 * u * u; dot(pj(c * r, y, s * r), 0.7 - u * 0.3, 1, 1); } } // Delfine speien
+    ctx.strokeStyle = 'rgba(220,250,255,0.55)'; ctx.lineWidth = 1;
+    for (let i = 0; i < 4; i++) { // Wellenringe auf dem Becken (perspektivisch als Vieleck)
+      const ph = ((t * 0.5 + i * 15) % 60) / 60, ox = [-22, 18, -10, 26][i], oz = [-18, -24, 20, 8][i], r = 2 + ph * 9;
+      ctx.globalAlpha = 1 - ph; ctx.beginPath();
+      for (let s = 0; s <= 12; s++) { const p = pj(ox + Math.cos(s / 12 * Math.PI * 2) * r, 25.6, oz + Math.sin(s / 12 * Math.PI * 2) * r); s ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); }
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    for (let i = 0; i < 7; i++) { const a = i * 0.9 + t * 0.004, r = 14 + ((i * 37) % 23), s = Math.sin(t * 0.09 + i * 2.1); if (s > 0.6) dot(pj(Math.cos(a) * r, 25.6, Math.sin(a) * r), (s - 0.6) * 2, 2, 1); } // Glitzern
+    if (this.t % 6 === 0 || (f && this.t % 2 === 0)) { const a = rnd(0, Math.PI * 2), r = rnd(9, 38); this.motes.push({ x: Math.cos(a) * r, z: Math.sin(a) * r, y: 26, v: rnd(0.2, 0.5) + f / 60, l: 0 }); } // Lichter steigen aus dem Wasser
+    for (const m of this.motes) { m.l++; m.y += m.v; m.x += Math.sin((m.l + m.z) * 0.06) * 0.2; dot(pj(m.x, m.y, m.z), Math.max(0, 1 - m.l / 120) * 0.8, 1, 1); }
+    this.motes = this.motes.filter(m => m.l < 120);
+    for (const X of [-74, 74]) for (const [dx, y] of [[-14, 57], [-7, 57], [0, 62], [7, 57], [14, 57]]) { // Kerzenschein
+      const [qx, qy] = pj(X + dx, y + 11, -6), r = 6 + Math.sin(t * 0.3 + dx + X) * 1.2, g = ctx.createRadialGradient(qx, qy, 0, qx, qy, r);
+      g.addColorStop(0, 'rgba(255,200,110,0.4)'); g.addColorStop(1, 'rgba(255,170,80,0)'); ctx.fillStyle = g; ctx.fillRect(qx - r, qy - r, r * 2, r * 2);
+    }
+    ctx.restore();
+    // Bronzefrosch vorn rechts auf dem Beckenrand: blinzelt, spuckt ab und zu quer ins Becken
+    const [fx0, fy0] = pj(34, 30, -26), fx = Math.round(fx0), fy = Math.round(fy0);
     ctx.fillStyle = '#2c4c24'; ctx.fillRect(fx - 4, fy - 4, 8, 4); ctx.fillRect(fx - 5, fy - 2, 10, 2);
     ctx.fillStyle = '#5c8c3c'; ctx.fillRect(fx - 3, fy - 5, 6, 3); ctx.fillStyle = '#8cbc5c'; ctx.fillRect(fx - 3, fy - 5, 2, 1);
     ctx.fillStyle = this.blink ? '#5c8c3c' : '#fce0a8'; ctx.fillRect(fx - 3, fy - 6, 2, 1); ctx.fillRect(fx + 1, fy - 6, 2, 1);
@@ -310,6 +344,7 @@ class ChamberFountain extends Ent { // d: { x (Mitte, Kacheln, auch halbe), big:
     if (this.spit > 8) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; for (let i = 0; i < 14; i++) { const u = ((i / 14) + t * 0.05) % 1; ctx.fillStyle = 'rgba(170,230,255,0.7)'; ctx.fillRect(Math.round(fx - 4 - u * 26), Math.round(fy - 4 - Math.sin(u * Math.PI) * 10), 1, 1); } ctx.restore(); }
   }
 }
+ChamberFountain.ENV = (() => { const v = [-0.4, 0.72, -0.56], l = Math.hypot(...v); return { static: true, sun: v.map(c => c / l), sunC: [0.86, 0.78, 0.66], amb: [0.24, 0.27, 0.38], sky: [0.14, 0.17, 0.26], fog: [0, 0, 0], fogD: 0 }; })(); // warmes Kerzen-/Mondlicht von vorn links, kühle Umgebung
 
 // ---------------- Portal der Warpkammer: wabernde Kugel in PS2-3D ----------------
 // Eine Ikosaederkugel (320 Flächen), deren Ecken jedes Bild nach überlagerten Sinuswellen pulsieren, selbstleuchtend in Cyan

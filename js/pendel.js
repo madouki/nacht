@@ -103,7 +103,6 @@ class ClockFace extends Ent { // Zifferblatt von innen, hinter allem (drawBack):
     }
   }
   drawBack(ctx) {
-    this.gears(ctx, W.frame);
     const x = Math.round(View.w / 2 + (this.x - View.w / 2 - W.cam.x) * 0.6), y = Math.round(104 + (this.y - 104 - W.cam.y) * 0.8), r = this.r, t = W.frame; // Parallaxe: liegt weiter hinten
     if (x + r < -20 || x - r > View.w + 20) return;
     ctx.save();
@@ -134,3 +133,42 @@ class ClockFace extends Ent { // Zifferblatt von innen, hinter allem (drawBack):
     ctx.restore();
   }
 }
+
+// Gigantisches Zahnwerk hinter der Pendelhalle in PS2-3D: drei Räderketten in verschiedenen Tiefen, jedes Rad extrudiert (Zähne,
+// Seitenflächen, Speichen, Nabe), ineinandergreifend und gegenläufig im Verhältnis der Zähne, warmes Lampenlicht, Tiefendunst.
+// Jedes Bild neu gebaut (die Räder drehen sich) und in halber Auflösung gerastert; weiter hinten liegende Räder ziehen langsamer vorbei.
+class GearWorks extends Ent {
+  constructor(d) {
+    super(0, 0, 1, 1); this.kind = 'prop'; this.noWrap = true; this.buf = null;
+    const g = (x, y, z, R, t, w) => ({ x, y, z, R, t, w }), at = (p, a, R) => [p.x + Math.cos(a) * (p.R + R + 9), p.y + Math.sin(a) * (p.R + R + 9)];
+    const A = g(360, 150, 430, 150, 30, 0.0035), B = g(...at(A, 0.6, 90), 430, 90, 18, 0), C = g(...at(B, -0.9, 60), 430, 60, 12, 0);
+    const D = g(1180, 250, 560, 200, 40, -0.0022), E = g(...at(D, 2.6, 80), 560, 80, 16, 0), F = g(...at(D, -0.4, 100), 560, 100, 20, 0);
+    const G = g(1760, 380, 360, 130, 26, 0.004), H = g(...at(G, -2.2, 70), 360, 70, 14, 0), I = g(...at(G, 0.5, 46), 360, 46, 10, 0);
+    for (const [a, b] of [[A, B], [B, C], [D, E], [D, F], [G, H], [G, I]]) b.w = -a.w * a.t / b.t; // Gegenlauf im Verhältnis der Zähne
+    this.gears = [A, B, C, D, E, F, G, H, I];
+  }
+  update() { this.t++; }
+  draw() { }
+  static gear(P, m, g, ang, col, hub) { // extrudiertes Zahnrad um seine Achse (z), Vorderseite zum Betrachter
+    const N = g.t * 4, out = [], back = [], zf = g.z - 12, zb = g.z + 12, R0 = g.R, R1 = g.R + 9;
+    for (let i = 0; i < N; i++) {
+      const q = Math.floor(i / 4), k = i % 4, a = ang + (q + [0, 0.18, 0.5, 0.68][k]) * Math.PI * 2 / g.t, r = k === 1 || k === 2 ? R1 : R0;
+      const x = g.x + Math.cos(a) * r, y = -(g.y + Math.sin(a) * r);
+      out.push(P.vtx(m, x, y, zf)); back.push(P.vtx(m, x, y, zb));
+    }
+    const c = P.vtx(m, g.x, -g.y, zf), C = [g.x, -g.y, g.z];
+    for (let i = 0; i < N; i++) { const j = (i + 1) % N; P.face(m, [c, out[i], out[j]], col, C); P.face(m, [out[i], back[i], back[j], out[j]], col.map(v => v * 0.8), C); } // Scheibe, Zahnflanken
+    for (let s = 0; s < 6; s++) { const a = ang + s * Math.PI / 3, ex = g.x + Math.cos(a) * R0 * 0.9, ey = g.y + Math.sin(a) * R0 * 0.9; P.beam(m, g.x, -g.y, zf - 4, ex, -ey, zf - 4, R0 * 0.09 + 3, 6, hub); } // Speichen
+    P.box(m, g.x, -g.y - R0 * 0.16, zf - 10, R0 * 0.32, R0 * 0.32, 8, hub, { rot: ang }); // Nabe
+  }
+  drawBack(ctx) {
+    const w = View.w, Wb = Math.ceil(w / 2), Hb = 104;
+    if (!this.buf || this.buf.w !== Wb) { const c = document.createElement('canvas'); c.width = Wb; c.height = Hb; this.buf = { c, x: c.getContext('2d', { willReadFrequently: true }), w: Wb }; }
+    const P = PS2, m = P.mesh(), t = W.frame, BR = [176, 128, 56], BZ = [124, 86, 42], IR = [92, 90, 104];
+    this.gears.forEach((g, i) => GearWorks.gear(P, m, g, g.w * t + i * 0.37, i % 3 === 1 ? BZ : BR, IR));
+    const B = this.buf; B.x.clearRect(0, 0, Wb, Hb);
+    P.render(B.x, Wb, Hb, [m], { x: W.cam.x + w / 2, y: -(W.cam.y + 104), z: 0, yaw: 0, pitch: 0, f: 100, near: 20, cx: Wb / 2, cy: 52 }, GearWorks.ENV);
+    ctx.save(); ctx.globalAlpha = 0.92; ctx.imageSmoothingEnabled = true; ctx.drawImage(B.c, 0, 0, Wb, Hb, 0, 0, Wb * 2, 208); ctx.restore();
+  }
+}
+GearWorks.ENV = (() => { const v = [-0.45, 0.5, -0.75], l = Math.hypot(...v); return { sun: v.map(c => c / l), sunC: [0.95, 0.78, 0.5], amb: [0.16, 0.14, 0.2], sky: [0.12, 0.12, 0.18], fog: [14, 12, 22], fogD: 0.0016 }; })(); // warme Lampe von vorn links, Dunst in der Tiefe

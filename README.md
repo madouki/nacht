@@ -22,6 +22,7 @@ Gothic-Action-Platformer im Stil von Castlevania (NES-Look mit SNES-Effekten) �
 | Spezialwaffe / Heiliger Sturm | C / C halten | Y / RT (halten) | SUB |
 | Versteinert (Medusas Blick) | Tasten hämmern | Tasten hämmern | Tasten hämmern |
 | Pause · Ton · Vollbild | Enter · M · F | Menü · Ansicht | II · Vollbild-Knopf |
+| Karte (Schloss-Modus, durchscheinend über dem Spiel) | Tab, Q | Ansicht | Karten-Knopf oben rechts |
 
 ## Inhalt
 

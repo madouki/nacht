@@ -645,19 +645,25 @@ const Castle = (() => {
       [[3, 0], { e: 'T', x: 58 }, ['side', 'vorzimmer'], { e: 'B', x: 2 }, {}],                     // Seelenstrudel: Aufzug → Vorzimmer → Seelenportal
       [['side', 'vorzimmer'], { e: 'L', y: 10 }, ['side', 'seelenportal'], { e: 'R', y: 10 }, {}],
     );
-    // Pendelhalle des Uhrturms (links am Zahnradwerk, Öffnung über dem Mauervorsprung; js/pendel.js): sechs riesige Uhrpendel mit
-    // Scheibengewicht schwingen über dem Abgrund, Nachbarn gegenläufig – am Umkehrpunkt kommen sich zwei Gewichte nahe, dann
-    // hinüberspringen. In der Mitte ein Steinpfeiler zum Verschnaufen, dahinter das Zifferblatt von innen. Am Ende die Taschenuhr
-    const ph = R(128, 'tower', 26)
+    // Pendelhalle des Uhrturms (links am Zahnradwerk, Öffnung über dem Mauervorsprung; js/pendel.js), zwei Etagen: unten schwingen
+    // sechs riesige Uhrpendel über dem Abgrund (Nachbarn gegenläufig – am Umkehrpunkt kommen sich zwei Gewichte nahe, dann
+    // hinüberspringen), in der Mitte ein Steinpfeiler; am linken Ende führt eine Treppe hinauf, oben geht es über drei Zahnrad-
+    // Riesenräder (Gondeln an den Speichen) zurück nach rechts zur Taschenuhr. Die Pendel hängen an den Trägern der oberen Etage,
+    // dahinter das Zifferblatt von innen und ein gigantisches Zahnwerk in PS2-3D
+    const ph = R(128, 'tower', 40)
       .fill(0, 0, 127, 1, '#')                                                         // Gewölbe
-      .fill(0, 18, 12, 25, '#').fill(60, 18, 66, 25, '#').fill(114, 18, 127, 25, '#')  // Absätze: links, Pfeiler, rechts (Eingang)
-      .prop('clockface', { x: 64, y: 9, r: 150 })
-      .candle(4, 15, 'H').candle(12, 15).candle(63, 15, '$').candle(118, 15, 'H').candle(124, 15)
-      .enemy('bat', 46, 8).enemy('bat', 84, 6)
-      .chest(3, 17, 'big').prop('vessel', { x: 8, y: 16 });
-    for (const [x, phase] of [[105, 0], [90, Math.PI], [75, 0], [51, 0], [36, Math.PI], [21, 0]]) ph.prop('bigpend', { x, y: 2, len: 274, amp: 0.36, speed: 0.021, phase }); // am Umkehrpunkt je ~3 Kacheln Sprung
-    add('pendelhalle', 2, 4, null, ph.music('stage3').label('PENDELHALLE').start(120, 17).done());
-    LINKS.push([[2, 2], { e: 'L', y: 17 }, ['side', 'pendelhalle'], { e: 'R', y: 17 }, {}]); // Uhrturm: Öffnung über dem Mauervorsprung → Pendelhalle
+      .fill(0, 36, 12, 39, '#').fill(60, 36, 66, 39, '#').fill(114, 36, 127, 39, '#')  // unten: Absätze links, Pfeiler, rechts (Eingang)
+      .stair(1, 35, 18, 1)                                                             // Treppe vom linken Absatz hinauf
+      .fill(19, 18, 38, 19, '#').fill(49, 18, 58, 19, '#').fill(71, 18, 93, 19, '#').fill(102, 18, 127, 19, '#') // obere Etage (Träger der Pendel)
+      .cog(702 / 16, 283 / 16, 64, 4, 0.011).cog(1040 / 16, 283 / 16, 82, 4, 0.011).cog(1568 / 16, 283 / 16, 50, 4, 0.011) // Zahnrad-Riesenräder über den Lücken
+      .prop('gearworks', {}).prop('clockface', { x: 64, y: 26, r: 150 })
+      .candle(4, 33, 'H').candle(12, 33).candle(63, 33, '$').candle(118, 33, 'H').candle(124, 33)
+      .candle(24, 15).candle(52, 15, 'H').candle(80, 15, '$').candle(110, 15, 'H')
+      .enemy('bat', 46, 26).enemy('bat', 84, 24).enemy('bat', 60, 8).enemy('bat', 96, 10)
+      .chest(3, 35).chest(124, 17, 'big').prop('vessel', { x: 120, y: 17 });
+    for (const [x, phase] of [[105, 0], [90, Math.PI], [75, 0], [51, 0], [36, Math.PI], [21, 0]]) ph.prop('bigpend', { x, y: 20, len: 274, amp: 0.36, speed: 0.021, phase }); // am Umkehrpunkt je ~3 Kacheln Sprung
+    { const pd = ph.music('stage3').label('PENDELHALLE').start(120, 35).done(); pd.mapH = 3; add('pendelhalle', 2, 4, null, pd); }
+    LINKS.push([[2, 2], { e: 'L', y: 17 }, ['side', 'pendelhalle'], { e: 'R', y: 35 }, {}]); // Uhrturm: Öffnung über dem Mauervorsprung → Pendelhalle (untere Etage)
     // Kaleidoskop (über der Sonnenkathedrale: Aufzug links im Vorplatz hinauf durch die Luke; js/kaleido.js): eine liegende Röhre
     // aus Buntglas in fünf Trommeln, die sich abwechselnd vorwärts und rückwärts um die Längsachse drehen. Unter den Trommeln nur
     // Abgrund – hinüber nur am Ankerring mit der Peitsche (je Trommel zwei Ringe), zwischen den Trommeln Steinringe zum
@@ -2144,7 +2150,7 @@ const Castle = (() => {
     [['side', 'kolosseum'], 'qcase1', 57, 6], [['side', 'attic'], 'qcase2', 30, 10], [['side', 'kanal'], 'qcase3', 100, 10],
     [['side', 'zimmer13'], 'saucer', 7, 10],
     [['side', 'kapelle'], 'trident', 10, 17], [['side', 'kapelle'], 'rec_kraken', 39, 18],
-    [['side', 'kaleido'], 'prisma', 108, 8], [['side', 'pendelhalle'], 'taschenuhr', 12, 17], [['side', 'passage'], 'schirm', 10, 9],
+    [['side', 'kaleido'], 'prisma', 108, 8], [['side', 'pendelhalle'], 'taschenuhr', 116, 17], [['side', 'passage'], 'schirm', 10, 9],
   ];
   // Nebenaufträge (Status, vierte Seite): Auftraggeber, Stücke, Szene zum Annehmen und zum Abgeben
   const QUESTS = [
@@ -3690,7 +3696,7 @@ const Castle = (() => {
     ctx.restore();
     if (overlay) { // Overlay: nur Erkundungsgrad und Hinweis am unteren Rand
       ctx.globalAlpha = 0.85;
-      Font.draw(ctx, tr('mapExplored', percent(W.stage)) + '   ' + tr('mapCastle', percent()) + '   ' + tr('mapOverlayHelp'), cx, top + H - 6, '#d8dcf4', { align: 'center', shadow: '#000' });
+      Font.draw(ctx, tr('mapExplored', percent(W.stage)) + '   ' + tr('mapCastle', percent()) + '   ' + tr(Input.device === 'touch' ? 'mapOverlayHelpT' : 'mapOverlayHelp'), cx, top + H - 6, '#d8dcf4', { align: 'center', shadow: '#000' });
       ctx.globalAlpha = 1;
       return;
     }
@@ -3859,7 +3865,7 @@ const Castle = (() => {
     for (const [A, , B] of LINKS) if (!ref(A) || !ref(B)) out.push('Verbindung ohne Raum: ' + JSON.stringify([A, B]));
     for (const b of BEATS) { const a = ref(b.at[0]); if (!a) out.push('Szene ohne Raum: ' + b.id); else if (!ground(S()[a.s].rooms[a.r], b.at[1], b.at[2])) out.push('Figur ohne Boden: ' + b.id); }
     for (const [R, id, x, y] of FINDS) { const a = ref(R); if (!a) out.push('Fund ohne Raum: ' + id); else if (SOLID.includes(S()[a.s].rooms[a.r].grid[y][x])) out.push('Fund in der Wand: ' + id); }
-    const need = ['famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'optGuide', 'optGuideH'];
+    const need = ['famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'mapOverlayHelpT', 'optGuide', 'optGuideH'];
     for (const id in GEAR) need.push('item_' + id, 'itemD_' + id);
     for (const b of BEATS) { if (b.lines !== false) need.push('story_' + b.id); need.push('story_' + (b.again || b.id) + 'Again'); }
     for (const id of SPELL_IDS) need.push('spell_' + id);
