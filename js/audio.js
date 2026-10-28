@@ -158,6 +158,7 @@ const Audio8 = (() => {
     cog: () => { noise(0.03, 0.1, 'highpass', 3200); tone('pulse', 1900, 1750, 0.025, 0.045, 0.125); },
     latch: () => { tone('pulse', 1800, 2600, 0.06, 0.12, 0.125); noise(0.08, 0.2, 'highpass', 5000); },
     whoosh: () => noise(0.22, 0.28, 'bandpass', 600, 3000),
+    hiss: () => { noise(0.7, 0.2, 'highpass', 5200, 2600); noise(0.4, 0.08, 'bandpass', 900, 500); }, // Dampf zischt (Automatenwerk)
     neigh: () => { // Geisterpferd wiehert: zitternd auf und ab, Atemrauschen, Schnauben am Ende (im Hall)
       const t = ac.currentTime, seq = [620, 1180, 1460, 1320, 1420, 1240, 1300, 1060, 1120, 820, 700, 520];
       seq.forEach((f, i) => tone('pulse', f, f * (i % 2 ? 0.88 : 1.1), 0.075, 0.07, 0.25, t + i * 0.055));
@@ -799,6 +800,10 @@ const Audio8 = (() => {
       const bp = ambNoise(nodes, out, 'bandpass', 600, 4); ambLfo(nodes, bp.frequency, 0.07, 340);
       ambDrone(nodes, out, 'sine', 1318.5, 0.05); ambDrone(nodes, out, 'sine', 1975.5, 0.035);
       ambLfo(nodes, out.gain, 0.06, 0.01); level = 0.026;
+    } else if (theme === 'werk') { // Automatenwerk: tiefes Maschinenbrummen, Rauschen der Transmission, stampfender Takt
+      const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 170; lp.connect(out);
+      ambDrone(nodes, lp, 'sawtooth', 49, 0.4); ambDrone(nodes, lp, 'sawtooth', 73.4, 0.2); ambNoise(nodes, out, 'lowpass', 320);
+      ambLfo(nodes, out.gain, 1.4, 0.009); level = 0.03;
     } else if (theme === 'crypt') { // kaltes Dröhnen, leicht schwebend
       ambDrone(nodes, out, 'sine', 55, 0.6); ambDrone(nodes, out, 'sine', 55.7, 0.6); ambDrone(nodes, out, 'triangle', 82.4, 0.25);
       level = 0.034;
@@ -863,6 +868,10 @@ const Audio8 = (() => {
     } else if (theme === 'library' || theme === 'hotel') { // Standuhr tickt gemächlich, irgendwo raschelt eine Seite
       if (ambT % 45 === 0) tone('triangle', ambT % 90 ? 820 : 640, 0, 0.05, 0.03, 0, t);
       if (Math.random() < 0.002) noise(0.18, 0.025, 'highpass', 3000, 6000, t);
+    } else if (theme === 'werk') { // Kolbenschlag der Dampfmaschine, fernes Zischen, ein Hammer auf Blech
+      if (ambT % 75 === 0) { tone('triangle', 62, 34, 0.18, 0.06, 0, t); noise(0.08, 0.03, 'lowpass', 400, 120, t); }
+      if (Math.random() < 0.003) noise(0.6, 0.02, 'highpass', 4500, 2500, t);
+      if (Math.random() < 0.0015) { tone('square', 820, 760, 0.05, 0.012, null, t); tone('square', 820, 760, 0.05, 0.01, null, t + 0.22); }
     } else if (theme === 'hall' && Math.random() < 0.0015) { // Gebälk knarzt
       tone('sawtooth', 70 + Math.random() * 20, 50, 0.6, 0.025, 0, t);
     }

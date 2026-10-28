@@ -227,6 +227,7 @@ const Rays = (() => {
   function draw(ctx, room, cam, frame) {
     if (room.theme === 'glass') { Tiles.drawGlassRays(ctx, cam, frame); return; }
     if (room.theme === 'kaleido') { Kaleido.drawRays(ctx, cam, frame); return; } // Kaleidoskop: Lichtschächte aus den Trommelfenstern
+    if (room.theme === 'werk') { Werk.drawRays(ctx, cam, frame); return; } // Automatenwerk: Gewitterlicht aus den Sheds, Glut der Gießerei
     if (room.round) return; // Zuschauerraum: keine Fenster // Glasturm: Lichtschächte aus den Fenstern der Röhre (tiles.js)
     const wins = WIN[room.theme];
     if (!wins) return;

@@ -313,7 +313,7 @@ const Castle = (() => {
     // Schaffnerpuppe. Danach liegen die Dampfstiefel (Supersprung) im Schuppen, und gleich daneben ein Kransims, das man nur mit ihnen erreicht.
     const shed = R(40, 'station', 20)
       .ground(0, 39, 18).fill(1, 18, 2, 19, '.')                 // Luke des Lastenaufzugs
-      .fill(5, 10, 10, 10, '=')                                   // Sims über dem Wasserkran (nur mit Supersprung)
+      .fill(0, 10, 10, 10, '=')                                   // Sims über dem Wasserkran (nur mit Supersprung), links hinaus ins Automatenwerk
       .candle(3, 14, 'H').candle(16, 14).candle(30, 13, '$').candle(37, 14, 'H')
       .prop('vessel', { x: 7, y: 9 })
       .mini('conductor', 18, 38, 20, 0)
@@ -714,6 +714,33 @@ const Castle = (() => {
     lab.puppets = [[49, 25], [61, 25], [42, 12]];
     add('galvani', 'expo', 5, null, lab);
     LINKS.push([['expo', 1], { e: 'B', x: 70 }, ['side', 'galvani'], { e: 'T', x: 70 }, {}]); // Maschinenhalle: Luke im Boden → Laufgang des Laboratoriums
+    // Automatenwerk (links am Lokschuppen, über den Steg oben links; rechts ein Laufsteg bis zum Rand): Fabrikhalle der Belle Époque, in der Aufziehsoldaten gebaut werden (js/werk.js) –
+    // Sheddach im Gewitter, Jugendstilbögen, hinten das Montageband mit hängenden Automaten, Schwungrad und Gießerei. Drei
+    // Förderbänder mit Dampfhämmern im Takt (unter dem Stempel hindurch, wenn er hochfährt), Dampfdüsen tragen auf die Laufstege,
+    // am Montageband senkt ein Kettenzug neue Automaten herab – sie fahren reglos auf dem Band, bis sie vom Ende fallen.
+    const werk = R(128, 'werk', 24)
+      .ground(0, 127, 22)                                                       // Hallenboden (Oberkante Reihe 22)
+      .fill(34, 20, 38, 21, '#')                                                // Maschinensockel mit Dampfdüse
+      .fill(39, 10, 52, 10, '=')                                                // Laufsteg über dem zweiten Band
+      .fill(64, 20, 80, 21, '#')                                                // Montageband (Oberkante Reihe 20)
+      .fill(85, 10, 127, 10, '=')                                               // Laufsteg über dem dritten Band bis zum rechten Rand (Lokschuppen)
+      .fill(99, 4, 104, 4, '=')                                                 // Kransims mit dem Lebensgefäß
+      .fill(110, 20, 127, 21, '#')                                              // Gießbühne
+      .prop('werkhall', {})
+      .prop('belt', { x0: 12, x1: 33, row: 22, v: 0.6 }).prop('press', { x: 16, row: 22, period: 130, phase: 0 }).prop('press', { x: 25, row: 22, period: 130, phase: 65 })
+      .prop('vent', { x: 35, row: 20, h: 11, period: 220, phase: 0 })
+      .prop('belt', { x0: 42, x1: 63, row: 22, v: -0.45 }).prop('press', { x: 47, row: 22, period: 130, phase: 20 }).prop('press', { x: 56, row: 22, period: 130, phase: 85 })
+      .prop('belt', { x0: 64, x1: 80, row: 20, v: -0.4 }).prop('hatch', { x: 77, top: 11, row: 19, max: 2, every: 300 })
+      .prop('vent', { x: 82, row: 22, h: 13, period: 240, phase: 60 }).prop('vent', { x: 96, row: 10, h: 7, period: 200, phase: 30 })
+      .prop('belt', { x0: 84, x1: 105, row: 22, v: 0.9 }).prop('press', { x: 88, row: 22, period: 120, phase: 0 }).prop('press', { x: 94, row: 22, period: 120, phase: 80 }).prop('press', { x: 100, row: 22, period: 120, phase: 40 })
+      .prop('hint', { x: 7, y: 17, w: 4, h: 5, key: 'hintPress' }).prop('hint', { x: 32, y: 15, w: 3, h: 5, key: 'hintVent' })
+      .enemy('automat', 37, 19).enemy('automat', 46, 9).enemy('automat', 81, 21).enemy('automat', 92, 9).enemy('automat', 107, 21).enemy('automat', 116, 19).enemy('automat', 122, 19)
+      .candle(5, 18, 'H').candle(13, 17).candle(30, 17, '$').candle(41, 18, 'H').candle(44, 7).candle(50, 7, '1').candle(60, 17)
+      .candle(68, 15, 'H').candle(83, 18, '$').candle(89, 7).candle(97, 7, 'H').candle(103, 1).candle(108, 18, 'H').candle(114, 16).candle(121, 16, '$').candle(126, 16)
+      .chest(51, 9).chest(125, 19, 'big').prop('vessel', { x: 101, y: 3 })
+      .music('stage3').label('AUTOMATENWERK').start(2, 21).done();
+    add('automatenwerk', 0, 3, null, werk);
+    LINKS.push([['side', 'schuppen'], { e: 'L', y: 9 }, ['side', 'automatenwerk'], { e: 'R', y: 9 }, {}]); // Lokschuppen (Steg oben links) → Automatenwerk (Laufsteg)
   }
   if (on && Levels.room) buildSide();
   // Gefahrenstufe je Region: tiefer im Schloss mehr Lebensenergie, Schaden und EXP der Gegner
@@ -2772,7 +2799,7 @@ const Castle = (() => {
 
   // ---------------- Bestiarium wie die Gegnerliste in SotN (Status, dritte Seite): Siege je Gegnerart, absurde Einträge ----------------
   const BEASTS = ['Bat', 'Skeleton', 'Ghoul', 'Raven', 'Knight', 'LivingArmor', 'Panther', 'Skull', 'Fishman', 'Ghost', 'Snake', 'FlyBook', 'Tome',
-    'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Jelly', 'Conductor', 'Doppel', 'GolemBoss', 'Awakened',
+    'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Automat', 'Jelly', 'Conductor', 'Doppel', 'GolemBoss', 'Awakened',
     'TentacleBoss', 'GiantBat', 'IceWitch', 'GiantSkeleton', 'Medusa', 'SunWarden', 'ManTrap', 'Count'];
   const BEAST_BOSS = { TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel', GolemBoss: 'bossGolem', Awakened: 'bossAwakened' };
   const BEAST_SET = new Set(BEASTS);
