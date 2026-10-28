@@ -355,6 +355,12 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   Schrankkoffer auf die Gepäckwaage schieben, Stempel nach dem Dienstweg; Gelöstes bleibt gelöst (`Castle.setFlag`).
 - **Karten-Schnelltaste:** Tab oder Q, Ansicht-Taste, auf dem Handy ein Karten-Knopf oben rechts (nur im Schloss-Modus):
   im Spiel die durchscheinende Karte, in der Pause die große Karte.
+- **Offene Aufzugsschächte** (`js/shaft.js`, Raum-Flag `openOut`): statt Blockwänden ein Stahlgitterschacht frei in einer
+  Riesenhalle in PS2-3D – fest sind nur unsichtbare Gitterspalten ('G') neben der Kabine mit Öffnungen an den Haltestellen und
+  schmale Absätze, die über den Raumrand hinaus weiterlaufen. Dahinter je Aufzug eine eigene Halle, Geschoss für Geschoss mit
+  Tiefenparallaxe und Kolossalpfeilern vorn: Lichthof des Hotels Krat (Galerien, Messinggeländer, Kugellampen), Eisdom (Eissäulen,
+  Eiszapfen, Kristalle, leuchtende Adern), Pumpwerk (Glaswand, Nietträger, Rohre, Schwungräder mit Kolben), Himmelsaufzug außen an
+  der Sonnenkathedrale (Stadt der Kathedralen). Bot-Test: alle Haltestellen und Ausgänge, während der Fahrt bleibt der Held im Gitter.
 - **Karte:** Pause → **KARTE** zeigt das ganze Schloss (Regionen um die Eingangshalle: Prolog links, Katakomben unten,
   Bergfried oben, Sonnenkathedrale oben rechts, Wintergarten rechts, Thron ganz oben). Angriff zoomt, im Zoom scrollen
   die Pfeile, Sprung/Start schließt. Unten: Erkundungsgrad der Region und des Schlosses, Siegel n/5.

@@ -3780,7 +3780,8 @@ const Tiles = (() => {
   const SOLID3D = new Set(['#', '=', 'X', 'Y', 'B']), FLAT3D = new Set(['vortex', 'glass', 'mirror']);
   function draw3DFaces(ctx, room, cam, t, x0, x1, y0, y1, ox, oy) {
     const g = room.grid, VX = View.w / 2, VY = 60, K = 0.9;
-    const solid = (cx, cy) => { if (cx < 0 || cx >= room.w) return true; if (cy < 0 || cy >= room.h) return false; return SOLID3D.has(g[cy][cx]); };
+    const OO = room.openOut, gc = (cx, cy) => g[cy][cx < 0 ? 0 : cx >= room.w ? room.w - 1 : cx]; // openOut: außerhalb geht der Randstreifen weiter (offene Aufzugsschächte)
+    const solid = (cx, cy) => { if ((cx < 0 || cx >= room.w) && !OO) return true; if (cy < 0 || cy >= room.h) return false; return SOLID3D.has(gc(cx, cy)); };
     const imgOf = (ch, above, v) => ch === '#' ? (above === '#' ? t.ground : t.groundTop)[v] : ch === '=' ? (t.crate || t.alt[v % 3]) : ch === 'B' ? (t.B ? t.B[v] : t.ground[v]) : ch === 'X' ? t.X : ch === 'Y' ? t.Y : t.ground[v];
     const M = ctx.getTransform(), A = M.a, B = M.b, Cc = M.c, D = M.d, E = M.e, F = M.f;
     const face = (img, X0, Y0, ux, uy, vx2, vy2, tone) => { // Kachel affin auf das Viereck (X0,Y0)+(u,v) legen (Matrix direkt verrechnet)
@@ -3789,8 +3790,8 @@ const Tiles = (() => {
       ctx.drawImage(toned(img, tone), 0, 0);
     };
     for (let pass = 0; pass < 2; pass++) for (let cy = y0; cy <= y1; cy++) for (let cx = x0; cx <= x1; cx++) {
-      if (cx < 0 || cx >= room.w || !SOLID3D.has(g[cy][cx])) continue;
-      const ch = g[cy][cx], X = cx * T + ox, Y = cy * T + oy, v = ((cx * 7 + cy * 3) % 4 + 4) % 4, img = imgOf(ch, cy > 0 ? g[cy - 1][cx] : '.', v);
+      if (((cx < 0 || cx >= room.w) && !OO) || !SOLID3D.has(gc(cx, cy))) continue;
+      const ch = gc(cx, cy), X = cx * T + ox, Y = cy * T + oy, v = ((cx * 7 + cy * 3) % 4 + 4) % 4, img = imgOf(ch, cy > 0 ? gc(cx, cy - 1) : '.', v);
       if (pass === 0) { // Seitenflächen
         if (!solid(cx - 1, cy) && X > VX) face(img, X, Y, 0, 16, (VX - X) * (1 - K), (VY - Y) * (1 - K), 1);
         if (!solid(cx + 1, cy) && X + 16 < VX) face(img, X + 16, Y, 0, 16, (VX - X - 16) * (1 - K), (VY - Y) * (1 - K), 1);
@@ -3883,11 +3884,12 @@ const Tiles = (() => {
     if (!FLAT3D.has(room.theme) && !View.lite3d) { draw3DFaces(ctx, room, cam, t, x0 - 2, x1 + 2, y0, y1, ox, oy); draw3DStairs(ctx, room, t, x0 - 2, x1 + 2, y0, y1, ox, oy); }
     const deco = [];
     for (let cy = y0; cy <= y1; cy++) for (let cx = x0; cx <= x1; cx++) {
-      const out = cx < 0 || cx >= room.w; // außerhalb schmaler Räume: Mauer (Bibliothek: Bücherwand)
-      const wallCh = t.B ? 'B' : '#', ch = out ? wallCh : g[cy][cx];
+      const oc = room.openOut && (cx < 0 || cx >= room.w) ? (cx < 0 ? 0 : room.w - 1) : -1; // offener Schacht: außerhalb geht der Randstreifen weiter
+      const out = oc < 0 && (cx < 0 || cx >= room.w); // außerhalb schmaler Räume: Mauer (Bibliothek: Bücherwand)
+      const wallCh = t.B ? 'B' : '#', ch = out ? wallCh : g[cy][oc < 0 ? cx : oc];
       if (ch === '.') continue;
       const X = cx * T + ox, Y = cy * T + oy, v = ((cx * 7 + cy * 3) % 4 + 4) % 4;
-      const above = out ? wallCh : cy > 0 ? g[cy - 1][cx] : '.', below = out ? wallCh : cy < room.h - 1 ? g[cy + 1][cx] : '#';
+      const gx = oc < 0 ? cx : oc, above = out ? wallCh : cy > 0 ? g[cy - 1][gx] : '.', below = out ? wallCh : cy < room.h - 1 ? g[cy + 1][gx] : '#';
       let img = null;
       if (ch === '#') img = (above === '#' ? t.ground : t.groundTop)[v];
       else if (ch === 'B') img = t.B ? (above === 'B' || above === '#' ? t.B : t.Btop)[v] : t.ground[v];

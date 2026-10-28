@@ -536,15 +536,20 @@ const Castle = (() => {
       .enemy('raven', 22, 6).enemy('skel', 28, 10).enemy('raven', 42, 5).enemy('skel', 52, 10)
       .zone('ghoul', 10, 54, { interval: 170, max: 2 })
       .music('stage1').label('ZWINGER').start(2, 10).done());
-    // Hotelaufzug: Schacht des Hotels Krat mit Kabine (lift.js, ↑/↓). Oben links die Galerie, gegenüber Zimmer 13 (Schlüsselbund),
+    // Offene Aufzugsschächte (js/shaft.js): die Kabine fährt in einem Stahlgitter frei durch eine Riesenhalle in PS2-3D. Fest sind nur
+    // die Gitterspalten links und rechts der Kabine ('G', unsichtbar – das Gitter wird gezeichnet) mit Öffnungen an den Haltestellen,
+    // und schmale Absätze von dort bis an den Rand; außerhalb des Raums keine Mauer (openOut), die Absätze laufen weiter
+    const open = (b, style) => { const d = b.prop('liftshaft', { style }).done(); d.openOut = true; return d; };
+    const cage = (b, h) => b.fill(5, 0, 5, h - 1, 'G').fill(9, 0, 9, h - 1, 'G'); // Gitterspalten neben der Kabine (x 6–8)
+    // Hotelaufzug: Schacht im Lichthof des Hotels Krat (lift.js, ↑/↓). Oben links die Galerie, gegenüber Zimmer 13 (Schlüsselbund),
     // in der Mitte rechts der Wehrgang, unten rechts der Zwinger – ein senkrechter Schacht, der die Räume an ihren Haltestellen berührt
-    const hlift = R(16, 'hotel', 52)
-      .fill(0, 0, 15, 4, '#')                                        // Decke über der obersten Haltestelle
-      .fill(0, 11, 5, 51, '#')                                       // links: Mauer unter dem Absatz zur Galerie
-      .fill(9, 11, 15, 33, '#').fill(9, 37, 15, 46, '#').ground(0, 15, 50) // rechts: Absätze zu Zimmer 13, zum Wehrgang, zum Zwinger
+    const hlift = open(cage(R(16, 'hotel', 52), 52)
+      .fill(5, 8, 5, 10, '.').fill(9, 8, 9, 10, '.').fill(0, 11, 5, 11, '#').fill(9, 11, 15, 11, '#') // oben: Galerie links, Zimmer 13 rechts
+      .fill(9, 34, 9, 36, '.').fill(9, 37, 15, 37, '#')               // Mitte rechts: Wehrgang
+      .fill(9, 47, 9, 49, '.').ground(0, 15, 50)                      // unten: Zwinger
       .lift(6, [10, 36, 49], { id: 'hotel' })
       .candle(2, 8).candle(13, 8).candle(13, 34).candle(13, 47)
-      .music('hotel').label('HOTELAUFZUG').start(12, 49).done();
+      .music('hotel').label('HOTELAUFZUG').start(12, 49), 'hotel');
     add('hotelaufzug', 0, 1, null, hlift);
     LINKS.push(
       [[0, 0], { e: 'B', x: 36 }, ['side', 'kolosseum'], { e: 'T', x: 36 }, {}],                    // Burghof: Schacht im Hof → Kolosseum (Aufzug zurück)
@@ -561,13 +566,13 @@ const Castle = (() => {
     // Eisaufzug: Schacht zwischen Eisrutsche und Eisturm. Oben die Luke vor dem Eisturm (Eishöhle), unten links der Eiskeller unter
     // der Rutsche, ganz unten rechts der Gruftgang zur Gruft. Von oben verriegelt: die Kabine wartet oben unter der Luke (wer
     // hineinfällt, landet auf ihr) und fährt erst, wenn man sie einmal von unten heraufgeholt hat – der Rückweg aus der Tiefe
-    add('eisaufzug', 1, 2, null, R(16, 'ice', 117)
-      .fill(0, 2, 5, 116, '#').fill(9, 2, 15, 116, '#').fill(0, 0, 5, 1, '#').fill(9, 0, 15, 1, '#') // Schachtwände (Kabine x 6–8)
-      .fill(0, 98, 5, 100, '.')                                                  // links: Gang zum Eiskeller
-      .fill(9, 111, 15, 113, '.').fill(6, 114, 8, 116, '#')                      // rechts unten: Gang zum Gruftgang, Schachtgrund
+    add('eisaufzug', 1, 2, null, open(cage(R(16, 'ice', 117), 117)
+      .fill(4, 2, 5, 2, '#').fill(9, 2, 10, 2, '#')                              // Schachtkopf unter der Luke (oberste Haltestelle)
+      .fill(5, 98, 5, 100, '.').fill(0, 101, 5, 101, '#')                        // links: Absatz zum Eiskeller
+      .fill(9, 111, 9, 113, '.').fill(0, 114, 15, 116, '#')                      // rechts unten: Absatz zum Gruftgang, Schachtgrund
       .lift(6, [1, 100, 113], { id: 'eis', start: 0, lock: 'top', speed: 5 })
       .candle(2, 98).candle(13, 111, 'H')
-      .music('stage2').label('EISAUFZUG').start(2, 100).done());
+      .music('stage2').label('EISAUFZUG').start(2, 100), 'ice'));
     // Eiskeller unter der Eisrutsche: wer unten aus der Rutsche fällt, landet hier; rechts der Eisaufzug
     add('eiskeller', 1, 3, null, R(64, 'ice')
       .ground(0, 63)
@@ -585,20 +590,20 @@ const Castle = (() => {
       .music('stage2').label('GRUFTGANG').start(2, 10).done());
     // Pumpenschacht: vom Kanal (Aufzug durch die Luke) hinauf zur Kuppel des Wintergartens. Vom Kanal aus verriegelt – die
     // Abkürzung öffnet sich, wenn man sie einmal von der Kuppel aus hinabgefahren ist
-    add('pumpenschacht', 'expo', 5, null, R(16, 'expo', 117)
-      .fill(0, 0, 15, 7, '#').fill(0, 11, 5, 116, '#').fill(9, 8, 15, 111, '#')  // Decke, Schachtwände (Kabine x 6–8)
-      .fill(6, 115, 8, 116, '#').fill(9, 115, 15, 116, '#').fill(11, 115, 12, 116, '.') // Grund mit der Luke hinab in den Kanal
+    add('pumpenschacht', 'expo', 5, null, open(cage(R(16, 'expo', 117), 117)
+      .fill(5, 8, 5, 10, '.').fill(0, 11, 5, 11, '#')                            // oben links: Absatz zur Kuppel
+      .fill(9, 112, 9, 114, '.').fill(0, 115, 15, 116, '#').fill(11, 115, 12, 116, '.') // Grund mit der Luke hinab in den Kanal
       .lift(6, [10, 114], { id: 'pumpe', lock: 'bottom', speed: 5 })
       .candle(2, 8).candle(14, 112)
-      .music('expo').label('PUMPENSCHACHT').start(2, 10).done());
+      .music('expo').label('PUMPENSCHACHT').start(2, 10), 'works'));
     // Himmelsaufzug: vom rechten Ende der Himmelsbrücke hinab zur Luke über der Menschenfalle. Von unten verriegelt – erst die
     // Fahrt von der Brücke aus öffnet ihn
-    add('himmelsaufzug', 'sun', 5, null, R(16, 'cathedral', 130)
-      .fill(0, 0, 15, 5, '#').fill(0, 9, 5, 129, '#').fill(9, 6, 15, 124, '#')  // Decke, Schachtwände (Kabine x 6–8)
-      .fill(6, 128, 8, 129, '#').fill(9, 128, 15, 129, '#').fill(11, 128, 12, 129, '.') // Grund mit der Luke hinab in die Kuppel
+    add('himmelsaufzug', 'sun', 5, null, open(cage(R(16, 'cathedral', 130), 130)
+      .fill(5, 6, 5, 8, '.').fill(0, 9, 5, 9, '#')                               // oben links: Absatz zur Himmelsbrücke
+      .fill(9, 125, 9, 127, '.').fill(0, 128, 15, 129, '#').fill(11, 128, 12, 129, '.') // Grund mit der Luke hinab in die Kuppel
       .lift(6, [8, 127], { id: 'himmel', lock: 'bottom', speed: 5 })
       .candle(2, 6).candle(14, 125)
-      .music('sun').label('HIMMELSAUFZUG').start(2, 8).done());
+      .music('sun').label('HIMMELSAUFZUG').start(2, 8), 'sky'));
     // ---- Speicher- und Warpkammern als eigene kleine Räume (wie in SotN), je Region ein Paar an einem Seitenausgang ----
     // Speicherkammer: ruhig, Kerzen, die Sargnische; Warpkammer daneben als Sackgasse mit dem leuchtenden Portal. Beide als kleine
     // Kapelle mit zwei Jochen unter einem Kreuzrippengewölbe (js/kammer.js): die Nische im hinteren Joch, im anderen ein Brunnen.
