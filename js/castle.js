@@ -768,6 +768,33 @@ const Castle = (() => {
       .music('hotel').label('LICHTERPASSAGE').start(108, 17).done();
     add('passage', 0, 2, null, passage);
     LINKS.push([['side', 'bahnhof'], { e: 'L', y: 17 }, ['side', 'passage'], { e: 'R', y: 17 }, {}]); // Bahnhof (links am Bahnsteig) → Lichterpassage
+    // Fundbüro (links an der Lichterpassage; js/puzzle.js): Schalterrätsel in drei Abschnitten. Gepäckaufzug: ein Peitschenhieb legt den
+    // Stellhebel um, der Aufzug trägt hinauf zur Öffnung in der Mauer. Gepäckwaage: der Held allein ist zu leicht – den Schrankkoffer
+    // vom Gepäckbord stoßen und auf die Waage schieben, dann hebt sich das Rollgitter. Stempel: in der Reihenfolge des Dienstwegs
+    // (Emailschild) geschlagen, füllen sie das Formular, und der Rückgabeschalter mit Truhe und Lebensgefäß öffnet sich
+    const fund = R(64, 'station', 20)
+      .ground(0, 63, 18).fill(0, 0, 63, 1, '#')                                // Boden (Oberkante Reihe 18), Decke
+      .fill(44, 18, 46, 18, '.')                                                // Grube des Gepäckaufzugs
+      .fill(40, 2, 43, 7, '#').fill(40, 12, 43, 17, '#')                        // Mauer mit der Öffnung (Reihen 8–11)
+      .fill(30, 12, 39, 12, '=').stair(24, 17, 6, 1)                            // Gepäckbord, Treppe hinauf
+      .fill(20, 2, 21, 11, '#').fill(4, 2, 5, 11, '#')                          // Wände über den Rollgittern
+      .prop('pz', { k: 'lever', x: 48, y: 17, g: 'lift' }).prop('pz', { k: 'lift', x: 44, low: 18, high: 12, g: 'lift' })
+      .prop('pz', { k: 'trunk', x: 35, y: 11, lim: [[12, 28, 39], [18, 22, 36]], hint: 'pzTrunk' })
+      .prop('pz', { k: 'scale', x: 22, y: 17, g: 'waage', need: 100, save: 'fundWaage' })
+      .prop('pz', { k: 'gate', x: 20, y0: 12, y1: 17, g: 'waage', save: 'fundWaage' })
+      .prop('pz', { k: 'form', x: 7, y: 7.5, w: 12, h: 3, rail: 11, g: 'stempel', order: [0, 1, 2, 3], save: 'fundStempel' })
+      .prop('pz', { k: 'stamp', x: 8, y: 16, top: 11, n: 3, g: 'stempel' }).prop('pz', { k: 'stamp', x: 11, y: 16, top: 11, n: 0, g: 'stempel' })
+      .prop('pz', { k: 'stamp', x: 14, y: 16, top: 11, n: 2, g: 'stempel' }).prop('pz', { k: 'stamp', x: 17, y: 16, top: 11, n: 1, g: 'stempel' })
+      .prop('pz', { k: 'gate', x: 4, y0: 12, y1: 17, g: 'stempel', save: 'fundStempel' })
+      .prop('pz', { k: 'sign', x: 56, y: 10, title: 'pzOpenT', key: 'pzOpen', col: '#1c4c3c' })
+      .prop('pz', { k: 'sign', x: 19, y: 10, title: 'pzWayT', key: 'pzWay' })
+      .prop('hint', { x: 46, y: 14, w: 5, h: 4, key: 'pzLiftHint' })
+      .candle(52, 15, 'H').candle(60, 15).candle(34, 9, '$').candle(27, 15).candle(12, 13, 'H').candle(2, 15)
+      .enemy('ghost', 32, 5).enemy('ghost', 10, 9).enemy('bat', 54, 4)
+      .chest(1, 17, 'big').prop('vessel', { x: 3, y: 17 })
+      .music('hotel').label('FUNDBÜRO').start(61, 17).done();
+    add('fundbuero', 0, 2, null, fund);
+    LINKS.push([['side', 'passage'], { e: 'L', y: 17 }, ['side', 'fundbuero'], { e: 'R', y: 17 }, {}]); // Lichterpassage (links unten) → Fundbüro
   }
   if (on && Levels.room) buildSide();
   // Gefahrenstufe je Region: tiefer im Schloss mehr Lebensenergie, Schaden und EXP der Gegner
