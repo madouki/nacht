@@ -42,7 +42,6 @@ const Castle = (() => {
     [[0, 1], SEAL, [3, 0], { e: 'B', x: 0 }, { seals: true }],     // Eingangshalle: Siegelschacht über der oberen Galerie → Thron
     [[0, -1], 'right', ['expo', 0], 'start', { boss: true }],      // Große Halle hinter der Riesenfledermaus → Wintergarten
     [[2, -1], 'right', ['sun', 0], 'start', { boss: true }],       // Marmorgalerie hinter Medusa → Sonnenkathedrale
-    [[1, -1], { e: 'T', x: 93 }, [0, 1], CELLAR, { boss: true, oneway: true }], // Gruft: Aufzug hinter dem Knochenriesen hinauf → Kellerschacht der Halle
   ];
 
   // ---------------- Spielstand: aufgedeckte Zellen, besiegte Bosse und Zwischengegner, freigeschaltete Warpkammern ----------------
@@ -124,7 +123,7 @@ const Castle = (() => {
     const room = (id, i) => { const s = sIdx(id); return s >= 0 ? S()[s].rooms[i] : null; };
     const open = (def, x0, y0, x1, y1) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) def.grid[y][x] = '.'; };
     const ledge = (def, x0, x1, y) => { for (let x = x0; x <= x1; x++) def.grid[y][x] = '='; };
-    const hall = room(0, 1), bell = room(0, 2), cave = room(1, 0), well = room(1, 1), keep = room(2, 0), crypt = room(1, 4), vortex = room(3, 0);
+    const hall = room(0, 1), bell = room(0, 2), cave = room(1, 0), well = room(1, 1), keep = room(2, 0), vortex = room(3, 0);
     // Glockenturm und Brunnenschacht (30 Reihen, gut zwei Bildschirme) zählen auf der Karte zwei Zellen hoch: über dem Glockenturm
     // bleibt so Platz für den Thron, und die Große Halle liegt auf Höhe der oberen Halle
     if (bell) bell.mapH = 2;
@@ -136,7 +135,6 @@ const Castle = (() => {
     if (cave) cave.ents.push({ type: 'elevator', x: 18, y: 10, y1: 0 });          // Katakomben: Aufzug am Ufer hinauf in den Kellerschacht
     if (keep) open(keep, 48, keep.h - 2, 49, keep.h - 1);                          // Bergfried: Luke im Boden (hinab in die Halle)
     if (vortex) open(vortex, 0, vortex.h - 2, 1, vortex.h - 1);                    // Seelenstrudel: Schacht links im Boden (hinab zum Siegeltor)
-    if (crypt) crypt.lift = { x: 93, y: 10, y1: 0 };                               // Gruft: nach dem Knochenriesen fährt ein Aufzug hinauf
   }
   // Burghof Rand an Rand (Schloss-Modus): Schacht im Hof hinab ins Kolosseum (x 36, unter der Treppe); eine Treppe neben dem
   // rechten Torturm führt hinauf zum Absatz unter der Luke der Torstube (Reihe 3, x 30–32) – von dort ein einfacher Sprung hinein
@@ -157,6 +155,23 @@ const Castle = (() => {
     if (glass) glass.grid[14][26] = glass.grid[14][27] = '=';                                                 // Glasturm: Steg zur Öffnung rechts
     if (ball) ball.ents.push({ type: 'elevator', x: 100, y: 10, y1: 0 });                                     // Ballsaal: Aufzug zur Luke
   }
+  // Tiefe und Kammern Rand an Rand (Schloss-Modus): Löcher in der Eishöhle (Lücke in der Stachelgrube → Eisrutsche, vor dem Eisturm
+  // → Eisaufzug) und in der Gruft (unter der Brücke → Gruftgang); Simse zu den Speicher-/Warpkammern an Brunnenschacht, Bibliothek,
+  // Kathedrale und Palmenhaus; Aufzüge hinauf in die Menschenfalle (Luke des Himmelsaufzugs) und im Seelenstrudel (Vorzimmer)
+  function edgeDeep() {
+    const room = (id, i) => { const s = sIdx(id); return s >= 0 ? S()[s].rooms[i] : null; };
+    const open = (def, x0, y0, x1, y1) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) def.grid[y][x] = '.'; };
+    const ledge = (def, x0, x1, y) => { for (let x = x0; x <= x1; x++) def.grid[y][x] = '='; };
+    const ice = room(1, 2), crypt = room(1, 4), well = room(1, 1), lib = room(2, 1), cath = room('sun', 0), palm = room('expo', 0), trap = room('expo', 3), vortex = room(3, 0);
+    if (ice) { open(ice, 40, 11, 41, 12); open(ice, 96, 11, 97, 12); }          // Eishöhle: Lücke in der Stachelgrube, Loch vor dem Eisturm
+    if (crypt) open(crypt, 13, 11, 14, 12);                                       // Gruft: Loch unter der Brücke
+    if (well) ledge(well, 27, 27, 22);                                            // Brunnenschacht: Steg bis zum rechten Rand
+    if (lib) { open(lib, 0, 29, 0, 30); ledge(lib, 1, 2, 31); }                    // Bibliothek: Öffnung links über dem unteren Steg
+    if (cath) ledge(cath, 0, 4, 12);                                              // Kathedrale: Sims links oben (Doppelsprung)
+    if (palm) ledge(palm, 0, 11, 23);                                             // Palmenhaus: Sims links über dem Eingang
+    if (trap) trap.ents.push({ type: 'elevator', x: 20, y: 10, y1: 0 });          // Menschenfalle: Aufzug hinauf zur Luke
+    if (vortex) vortex.ents.push({ type: 'elevator', x: 58, y: 10, y1: 0 });      // Seelenstrudel: Aufzug hinauf ins Vorzimmer
+  }
   function buildSide() {
     const R = Levels.room;
     const add = (key, id, tier, at, def) => {
@@ -168,6 +183,7 @@ const Castle = (() => {
     edgeHub();
     edgeBurg();
     edgeKeep();
+    edgeDeep();
     // Kolosseum (unter dem Burghof): Kampfbahn mit Rittern und Skeletten, Zombies und Schädel kommen immer nach – zum Aufleveln.
     // Hinein fällt man durch den Schacht im Burghof, hinauf fährt ein Aufzug wie im Hypogäum (x 36); ein Loch in der Arena führt
     // hinab in den Kerker, rechts geht es durch die Kasematte in die Katakomben
@@ -180,9 +196,10 @@ const Castle = (() => {
       .zone('ghoul', 8, 80, { interval: 120, max: 3 }).zone('skull', 20, 70, { interval: 300, max: 1 })
       .statue(4, 10).chest(78, 10, 'big').prop('vessel', { x: 72, y: 7 }) // am Ende liegt das erste Relikt (Doppelsprung)
       .label('KOLOSSEUM').start(2, 10).done());
-    // Unterirdischer Kanal (unter dem Eisturm): von der Gruft zum Palmenhaus – zwei Becken mit Fischmenschen, Trittsteine, bröckelnde Steine
-    add('kanal', 1, 3, [32, 8], R(112, 'cave')
-      .ground(0, 14).fill(15, 11, 34, 12, '~')
+    // Unterirdischer Kanal (rechts hinter der Gruft): zwei Becken mit Fischmenschen, Trittsteine, bröckelnde Steine; am Anfang ein Loch
+    // hinab in die versunkene Kapelle, in der Mitte ein Aufzug hinauf in den Pumpenschacht (zur Kuppel des Wintergartens)
+    add('kanal', 1, 3, null, R(112, 'cave')
+      .ground(0, 14).fill(6, 11, 7, 12, '.').fill(15, 11, 34, 12, '~').elevator(48, 10, 0)
       .fill(17, 9, 20, 9, '=').fill(24, 8, 27, 8, '=').fill(31, 9, 33, 9, '=')
       .ground(35, 52).fill(40, 8, 46, 8, '=')
       .fill(53, 11, 70, 12, '~').crumble(55, 9).crumble(59, 8).crumble(63, 9).fill(67, 9, 69, 9, '=')
@@ -219,13 +236,13 @@ const Castle = (() => {
       .enemy('raven', 18, 6).enemy('knight', 34, 10).enemy('raven', 45, 5).enemy('skel', 58, 10).enemy('bat', 66, 3)
       .statue(31, 10)
       .label('WEHRGANG').start(2, 10).done());
-    // Himmelsbrücke (zwischen Kathedralendach und Wintergarten-Kuppel, offen nach beiden Bossen): Steg über dem Wolkenmeer
-    add('himmel', 'sun', 5, null, R(96, 'bridge')
-      .fill(0, 9, 5, 12, '#').fill(6, 9, 89, 9, '=').fill(90, 9, 95, 12, '#')
-      .fill(24, 9, 26, 9, '.').fill(52, 9, 55, 9, '.').fill(72, 9, 74, 9, '.')
-      .fill(42, 6, 47, 6, '=')
-      .candle(10, 6, 'H').candle(30, 6).candle(44, 4, '$').candle(60, 6, 'H').candle(80, 6)
-      .enemy('raven', 20, 7).enemy('raven', 64, 7).enemy('ghost', 40, 5).enemy('ghost', 84, 5)
+    // Himmelsbrücke (vom Kathedralendach zum Himmelsaufzug hinab zur Menschenfalle, offen nach beiden Bossen): Steg über dem Wolkenmeer
+    add('himmel', 'sun', 5, null, R(128, 'bridge')
+      .fill(0, 9, 5, 12, '#').fill(6, 9, 121, 9, '=').fill(122, 9, 127, 12, '#')
+      .fill(24, 9, 26, 9, '.').fill(52, 9, 55, 9, '.').fill(72, 9, 74, 9, '.').fill(98, 9, 100, 9, '.')
+      .fill(42, 6, 47, 6, '=').fill(106, 6, 110, 6, '=')
+      .candle(10, 6, 'H').candle(30, 6).candle(44, 4, '$').candle(60, 6, 'H').candle(80, 6).candle(96, 6).candle(108, 4, 'H')
+      .enemy('raven', 20, 7).enemy('raven', 64, 7).enemy('ghost', 40, 5).enemy('ghost', 84, 5).enemy('raven', 104, 7)
       .statue(46, 8)
       .label('HIMMELSBRÜCKE').start(2, 8).done());
     // Sims unter der Decke der Eingangshalle zwischen zwei Kronleuchtern (nur fliegend erreichbar): die obere Galerie mit dem
@@ -359,11 +376,11 @@ const Castle = (() => {
     shaft.mtower = true; // Spiegelröhre wie der Glasturm (tiles.js drawMirrorTower)
     shaft.mapH = 3; // 44 Reihen: auf der Karte drei Zellen hoch (passt zwischen Galerie und Ballsaal)
     add('spiegelschacht', 2, 5, null, shaft);
-    // Versunkene Kapelle (unter dem Kanal, Tür am Kanalanfang): oben eine Luftblase mit Steg, darunter alles unter Wasser – nur
+    // Versunkene Kapelle (unter dem Kanal, Loch am Kanalanfang): oben eine Luftblase mit Steg, darunter alles unter Wasser – nur
     // mit dem Taucherhelm zu erkunden. Säulenstümpfe, Simse, eine versunkene Glocke (Blender), Quallen, Altar mit Lebensgefäß.
     const chapel = R(64, 'crypt', 26)
       .ground(0, 63, 24)
-      .fill(0, 8, 7, 9, '#')                                                            // Steg in der Luftblase
+      .fill(0, 8, 7, 9, '#').elevator(3, 7, 0)                                          // Steg in der Luftblase, Aufzug hinauf in den Kanal
       .fill(14, 14, 15, 23, '#').fill(30, 12, 31, 23, '#').fill(46, 14, 47, 23, '#')    // Säulenstümpfe
       .fill(8, 18, 12, 18, '=').fill(20, 15, 26, 15, '=').fill(36, 19, 42, 19, '=').fill(52, 16, 58, 16, '=')
       .fill(56, 21, 61, 23, '#')                                                        // Altar
@@ -374,14 +391,13 @@ const Castle = (() => {
     chapel.waterLine = 9;
     chapel.jellies = [[18, 11], [27, 18], [35, 13], [44, 20], [54, 12]];
     chapel.decor = [D('sbell', 33.5, 23)];
-    add('kapelle', 1, 4, [32, 9], chapel);
-    LINKS.push([['side', 'kanal'], { x: 6, y: 10, door: 'side' }, ['side', 'kapelle'], { x: 3, y: 7, door: 'side' }, {}]); // Kanal → versunkene Kapelle
-    // Eisrutsche (Tür in der Eishöhle, nur mit Enterhaken und Schattenmantel): eine Hindernis-Rutschpartie abwärts rund um einen
+    add('kapelle', 1, 4, null, chapel);
+    // Eisrutsche (Lücke in der Stachelgrube der Eishöhle, offen erst mit Enterhaken und Schattenmantel): eine Hindernis-Rutschpartie abwärts rund um einen
     // Turm aus Höhlenfels im Eis (PS2-3D wie der Eisturm, eigener Mantel mit Kristallbüscheln und gefrorenen Wasserfällen).
     // Vier Runden um den Turm: Stacheln im Rutschweg überspringen, eine Eiswand, die nur ein Dash zerschlägt, unter niedrigen
     // Eisdecken durchrutschen (geduckt mit Tempo: Bauchrutscher), eine unterbrochene Rampe (am Fuß Stacheln – vorher abspringen),
     // zwei Gruben, zu breit für jeden Sprung, nur am Ankerring zu überschwingen, Schanzen über Stachelreihen. Unten ein Schatz
-    // und ein Lebensgefäß, dann zurück in die Eishöhle.
+    // und ein Lebensgefäß, dann durch das Loch hinab in den Eiskeller und mit dem Eisaufzug zurück hinauf.
     const slide = R(60, 'ice', 88)
       // Runde 1: Gipfel, Rampe, Stachelfeld, Eiswand (Dash), niedrige Eisdecke (rutschen), unterbrochene Rampe
       .fill(0, 6, 5, 7, '#').statue(3, 5)
@@ -414,7 +430,7 @@ const Castle = (() => {
       .fill(4, 75, 21, 75, '^').fill(4, 76, 21, 76, '#').ring(8, 67).ring(19, 62)
       .fill(22, 71, 32, 72, '#').statue(26, 70)
       .stair(47, 85, 15, -1)                                                      // R8: (33,71) → (47,85)
-      .ground(0, 59, 86).statue(51, 85)                                           // Turmfuß
+      .ground(0, 59, 86).fill(57, 86, 58, 87, '.').statue(51, 85)                 // Turmfuß, Loch hinab in den Eiskeller
       .chest(55, 85, 'big').prop('vessel', { x: 13, y: 85 })
       .prop('hint', { x: 7, y: 3, w: 3, h: 3, key: 'hintRamp' })
       .prop('hint', { x: 24, y: 12, w: 4, h: 3, key: 'hintIceWall' })
@@ -432,7 +448,7 @@ const Castle = (() => {
       .candle(2, 3, 'H').candle(36, 13).candle(25, 30, '$').candle(10, 49, 'H').candle(23, 68).candle(58, 83, 'H')
       .wrap().ice().iceRamps().music('stage2').label('EISRUTSCHE').start(2, 5).done();
     slide.towerTex = 'cave'; // eigener Turmmantel (ps2.js caveTex)
-    add('eisrutsche', 1, 3, [17, 1], slide);
+    add('eisrutsche', 1, 3, null, slide);
     // Hoftheater (über dem Ballsaal: der Aufzug am Ende des Parketts fährt hinauf durch die Luke im Foyerboden): ein barockes Theater aus weißem Marmor und Gold, ein
     // wenig wie ein Wiener Hoftheater. Foyer mit riesigen Rundbogenfenstern (Mondlicht, Lichtstrahlen) und Prunkstiege mit rotem
     // Läufer hinauf zur Galerie, dort die Tür in den Zuschauerraum.
@@ -473,10 +489,6 @@ const Castle = (() => {
       [['side', 'theaterfoyer'], { e: 'R', y: 13 }, ['side', 'theater'], 'start', {}],                     // Galerie → Zuschauerraum
     );
     LINKS.push(
-      [[1, 2], { x: 80, y: 10, door: 'side' }, ['side', 'eisrutsche'], 'start', { relics: ['dash', 'ring'] }], // Eishöhle → Eisrutsche (oben)
-      [['side', 'eisrutsche'], { x: 57, y: 85, door: 'side' }, [1, 2], { x: 24, y: 10, door: 'side' }, { oneway: true }], // Turmfuß → zurück in die Eishöhle
-    );
-    LINKS.push(
       [['side', 'spiegel'], { e: 'R', y: 10 }, ['side', 'spiegelschacht'], { e: 'L', y: 2 }, {}],       // Kabinett (hinter der Wand) → oben in den Schacht
       [['side', 'spiegelschacht'], { e: 'R', y: 41 }, ['side', 'spiegeltunnel'], 'start', {}],          // Schachtfuß → Tunnel
       [['side', 'spiegeltunnel'], 'right', ['side', 'theaterfoyer'], { e: 'L', y: 23 }, { seals: true }], // Tunnel → Foyer (erst mit allen Siegeln, zurück immer)
@@ -492,13 +504,8 @@ const Castle = (() => {
       // Himmelsbrücke: Kathedralendach hinter dem Wächter ↔ Kuppel hinter der Menschenfalle; in eine Arena mit lebendem Boss führt
       // sie nicht (beat: dieser Boss muss besiegt sein, sonst „von der anderen Seite verriegelt“; back: Bedingung der Rückrichtung)
       [['sun', -1], 'right', ['side', 'himmel'], 'start', { boss: true, back: { beat: ['sun', -1] } }],
-      [['side', 'himmel'], 'right', ['expo', -1], { e: 'L', y: 6 }, { beat: ['expo', -1] }],          // ... links oben in die Kuppel (Sims)
     );
-    const dome = sIdx('expo') >= 0 && S()[sIdx('expo')].rooms[mainCount(sIdx('expo')) - 1];
-    if (dome) for (let x = 0; x <= 3; x++) dome.grid[7][x] = '='; // Kuppel: Sims am linken Rand, dort kommt die Himmelsbrücke an
     LINKS.push( // crack: Tür mit rissigem Gestein verschlossen – erst der Steinbrecher (Medusas Relikt) zerschlägt es
-      [[1, 4], { x: 5, y: 10, door: 'side' }, ['side', 'kanal'], 'start', { crack: 'kanal' }],       // Gruft → Kanal
-      [['side', 'kanal'], 'right', ['expo', 0], { x: 14, y: 27, door: 'side' }, {}],                  // Kanal → Palmenhaus (Schleife, von dort offen)
       [[2, 1], { e: 'R', y: 16 }, ['side', 'schatz'], 'start', { crack: 'schatz' }],                 // Bibliothek (rechts) → Schatzkammer
       [[3, 1], { e: 'R', y: 13 }, ['side', 'verlies'], 'start', { crack: 'verlies' }],               // Glasturm (Steg rechts) → Verlies
     );
@@ -541,6 +548,91 @@ const Castle = (() => {
       [['side', 'hotelaufzug'], { e: 'L', y: 10 }, ['side', 'hotel'], { e: 'R', y: 10 }, {}],        // Aufzug oben → Galerie des Hotels
       [['side', 'hotelaufzug'], { e: 'R', y: 10, door: 'room13' }, ['side', 'zimmer13'], { e: 'L', y: 10, door: 'room13' }, { item: 'keyring' }], // ... → Zimmer 13
       [['side', 'wehrgang'], 'start', ['side', 'hotelaufzug'], { e: 'R', y: 36 }, {}],               // Wehrgang (linker Rand) → Aufzug
+    );
+    // ---- Katakomben Rand an Rand: Eisaufzug, Eiskeller, Gruftgang (Plätze auf der Karte von selbst) ----
+    // Eisaufzug: Schacht zwischen Eisrutsche und Eisturm. Oben die Luke vor dem Eisturm (Eishöhle), unten links der Eiskeller unter
+    // der Rutsche, ganz unten rechts der Gruftgang zur Gruft. Von oben verriegelt: die Kabine wartet oben unter der Luke (wer
+    // hineinfällt, landet auf ihr) und fährt erst, wenn man sie einmal von unten heraufgeholt hat – der Rückweg aus der Tiefe
+    add('eisaufzug', 1, 2, null, R(16, 'ice', 117)
+      .fill(0, 2, 5, 116, '#').fill(9, 2, 15, 116, '#').fill(0, 0, 5, 1, '#').fill(9, 0, 15, 1, '#') // Schachtwände (Kabine x 6–8)
+      .fill(0, 98, 5, 100, '.')                                                  // links: Gang zum Eiskeller
+      .fill(9, 111, 15, 113, '.').fill(6, 114, 8, 116, '#')                      // rechts unten: Gang zum Gruftgang, Schachtgrund
+      .lift(6, [1, 100, 113], { id: 'eis', start: 0, lock: 'top', speed: 5 })
+      .candle(2, 98).candle(13, 111, 'H')
+      .music('stage2').label('EISAUFZUG').start(2, 100).done());
+    // Eiskeller unter der Eisrutsche: wer unten aus der Rutsche fällt, landet hier; rechts der Eisaufzug
+    add('eiskeller', 1, 3, null, R(64, 'ice')
+      .ground(0, 63)
+      .fill(10, 8, 15, 8, '=').fill(28, 7, 34, 7, '=').fill(44, 8, 48, 8, '=')
+      .candle(5, 9, 'H').candle(12, 6).candle(31, 5, '$').candle(46, 6).candle(58, 9, 'H')
+      .enemy('iceskel', 20, 10).enemy('bat', 38, 3).enemy('iceskel', 40, 10).enemy('ghost', 54, 4)
+      .chest(31, 6)
+      .music('stage2').label('EISKELLER').start(2, 10).done());
+    // Gruftgang unter dem Eisturm: von der Luke unter der Brücke der Gruft (Aufzug hinauf) nach links zum Eisaufzug
+    add('gruftgang', 1, 3, null, R(80, 'crypt')
+      .ground(0, 79).elevator(70, 10, 0)
+      .fill(14, 8, 18, 8, '=').fill(32, 7, 37, 7, '=').fill(52, 8, 56, 8, '=')
+      .candle(6, 9, 'H').candle(16, 6).candle(26, 9).candle(35, 5, '$').candle(46, 9, 'H').candle(54, 6).candle(64, 9)
+      .enemy('skel', 24, 10).enemy('bat', 30, 3).enemy('skel', 44, 10).enemy('ghost', 58, 4).enemy('knight', 62, 10)
+      .music('stage2').label('GRUFTGANG').start(2, 10).done());
+    // Pumpenschacht: vom Kanal (Aufzug durch die Luke) hinauf zur Kuppel des Wintergartens. Vom Kanal aus verriegelt – die
+    // Abkürzung öffnet sich, wenn man sie einmal von der Kuppel aus hinabgefahren ist
+    add('pumpenschacht', 'expo', 5, null, R(16, 'expo', 117)
+      .fill(0, 0, 15, 7, '#').fill(0, 11, 5, 116, '#').fill(9, 8, 15, 111, '#')  // Decke, Schachtwände (Kabine x 6–8)
+      .fill(6, 115, 8, 116, '#').fill(9, 115, 15, 116, '#').fill(11, 115, 12, 116, '.') // Grund mit der Luke hinab in den Kanal
+      .lift(6, [10, 114], { id: 'pumpe', lock: 'bottom', speed: 5 })
+      .candle(2, 8).candle(14, 112)
+      .music('expo').label('PUMPENSCHACHT').start(2, 10).done());
+    // Himmelsaufzug: vom rechten Ende der Himmelsbrücke hinab zur Luke über der Menschenfalle. Von unten verriegelt – erst die
+    // Fahrt von der Brücke aus öffnet ihn
+    add('himmelsaufzug', 'sun', 5, null, R(16, 'cathedral', 130)
+      .fill(0, 0, 15, 5, '#').fill(0, 9, 5, 129, '#').fill(9, 6, 15, 124, '#')  // Decke, Schachtwände (Kabine x 6–8)
+      .fill(6, 128, 8, 129, '#').fill(9, 128, 15, 129, '#').fill(11, 128, 12, 129, '.') // Grund mit der Luke hinab in die Kuppel
+      .lift(6, [8, 127], { id: 'himmel', lock: 'bottom', speed: 5 })
+      .candle(2, 6).candle(14, 125)
+      .music('sun').label('HIMMELSAUFZUG').start(2, 8).done());
+    // ---- Speicher- und Warpkammern als eigene kleine Räume (wie in SotN), je Region ein Paar an einem Seitenausgang ----
+    // Speicherkammer: ruhig, Kerzen, die Sargnische; Warpkammer daneben als Sackgasse mit dem leuchtenden Portal. Die Kammern
+    // nehmen den alten Schlüssel mit (CHAMBERS), Spielstände und freigeschaltete Portale bleiben gültig
+    const kammer = (key, id, theme, music, label, walls) => {
+      const k = R(16, theme).ground(0, 15).fill(0, 0, 15, 2, '#').candle(2, 9).candle(13, 9);
+      if (walls === 'L') k.fill(0, 3, 0, 10, '#'); else if (walls === 'R') k.fill(15, 3, 15, 10, '#');
+      add(key, id, 1, null, k.music(music).label(label).start(2, 10).done());
+    };
+    kammer('felsenkammer', 1, 'cave', 'stage2', 'FELSENKAMMER');                 // Katakomben: rechts am Brunnenschacht
+    kammer('grottenportal', 1, 'cave', 'stage2', 'GROTTENPORTAL', 'R');
+    kammer('lesezimmer', 2, 'library', 'library', 'LESEZIMMER');                 // Bergfried: links unten an der Bibliothek
+    kammer('turmstube', 2, 'tower', 'library', 'TURMSTUBE', 'L');
+    kammer('sakristei', 'sun', 'cathedral', 'sun', 'SAKRISTEI');                 // Kathedrale: links oben am Vorplatz
+    kammer('kreuzgang', 'sun', 'cathedral', 'sun', 'KREUZGANG', 'L');
+    kammer('orangerie', 'expo', 'expo', 'expo', 'ORANGERIE');                    // Wintergarten: links am Sims über dem Eingang
+    kammer('treibhaus', 'expo', 'expo', 'expo', 'TREIBHAUS', 'L');
+    kammer('vorzimmer', 3, 'throne', 'chapel', 'VORZIMMER', 'R');               // Thron: über dem Ende des Seelenstrudels
+    kammer('seelenportal', 3, 'throne', 'chapel', 'SEELENPORTAL', 'L');
+    { const v = S()[SIDE.vorzimmer.s].rooms[SIDE.vorzimmer.r]; for (let y = 11; y <= 12; y++) for (let x = 2; x <= 3; x++) v.grid[y][x] = '.'; } // Luke hinab in den Strudel
+    LINKS.push(
+      [[1, 2], { e: 'B', x: 96 }, ['side', 'eisaufzug'], { e: 'T', x: 6 }, {}],                     // Eishöhle: Loch vor dem Eisturm → Eisaufzug
+      [['side', 'eiskeller'], { e: 'R', y: 10 }, ['side', 'eisaufzug'], { e: 'L', y: 100 }, {}],     // Eiskeller → Eisaufzug (Mitte)
+      [['side', 'eisaufzug'], { e: 'R', y: 113 }, ['side', 'gruftgang'], { e: 'L', y: 10 }, {}],     // Eisaufzug (unten) → Gruftgang
+      [['side', 'gruftgang'], { e: 'T', x: 70 }, [1, 4], { e: 'B', x: 13 }, {}],                    // Gruftgang: Aufzug → Loch unter der Brücke der Gruft
+      [[1, 2], { e: 'B', x: 40 }, ['side', 'eisrutsche'], { e: 'T', x: 2 }, {}],                    // Eishöhle: Lücke in der Stachelgrube → Eisrutsche (settle)
+      [['side', 'eisrutsche'], { e: 'B', x: 57 }, ['side', 'eiskeller'], { e: 'T', x: 50 }, {}],     // Turmfuß der Rutsche → Eiskeller
+      [[1, 4], { e: 'R', y: 10 }, ['side', 'kanal'], 'start', { crack: 'kanal', back: { beat: [1, -1] } }], // Gruft (hinter dem Knochenriesen) → Kanal
+      [['side', 'kanal'], { e: 'B', x: 6 }, ['side', 'kapelle'], { e: 'T', x: 3 }, {}],              // Kanal: Loch am Anfang → versunkene Kapelle
+      [['side', 'kanal'], { e: 'T', x: 48 }, ['side', 'pumpenschacht'], { e: 'B', x: 11 }, {}],      // Kanal: Aufzug → Pumpenschacht
+      [['side', 'pumpenschacht'], { e: 'L', y: 10 }, ['expo', 2], { e: 'R', y: 53 }, {}],           // ... oben zur Kuppel (rechts unten)
+      [['side', 'himmel'], 'right', ['side', 'himmelsaufzug'], { e: 'L', y: 8 }, { beat: ['expo', -1] }], // Himmelsbrücke → Himmelsaufzug
+      [['side', 'himmelsaufzug'], { e: 'B', x: 11 }, ['expo', -1], { e: 'T', x: 20 }, {}],          // ... Luke hinab zur Menschenfalle
+      [[1, 1], { e: 'R', y: 21 }, ['side', 'felsenkammer'], { e: 'L', y: 10 }, {}],                 // Kammern: Brunnenschacht → Felsenkammer → Grottenportal
+      [['side', 'felsenkammer'], { e: 'R', y: 10 }, ['side', 'grottenportal'], { e: 'L', y: 10 }, {}],
+      [[2, 1], { e: 'L', y: 30 }, ['side', 'lesezimmer'], { e: 'R', y: 10 }, {}],                  // Bibliothek → Lesezimmer → Turmstube
+      [['side', 'lesezimmer'], { e: 'L', y: 10 }, ['side', 'turmstube'], { e: 'R', y: 10 }, {}],
+      [['sun', 0], { e: 'L', y: 11 }, ['side', 'sakristei'], { e: 'R', y: 10 }, {}],               // Kathedrale → Sakristei → Kreuzgang
+      [['side', 'sakristei'], { e: 'L', y: 10 }, ['side', 'kreuzgang'], { e: 'R', y: 10 }, {}],
+      [['expo', 0], { e: 'L', y: 22 }, ['side', 'orangerie'], { e: 'R', y: 10 }, {}],              // Palmenhaus → Orangerie → Treibhaus
+      [['side', 'orangerie'], { e: 'L', y: 10 }, ['side', 'treibhaus'], { e: 'R', y: 10 }, {}],
+      [[3, 0], { e: 'T', x: 58 }, ['side', 'vorzimmer'], { e: 'B', x: 2 }, {}],                     // Seelenstrudel: Aufzug → Vorzimmer → Seelenportal
+      [['side', 'vorzimmer'], { e: 'L', y: 10 }, ['side', 'seelenportal'], { e: 'R', y: 10 }, {}],
     );
   }
   if (on && Levels.room) buildSide();
@@ -696,11 +788,10 @@ const Castle = (() => {
     const k = kindOf(def, place);
     return k === 'edgeR' ? [1, 0] : k === 'edgeL' ? [-1, 0] : k === 'edgeT' ? [0, -1] : k === 'edgeB' ? [0, 1] : null;
   }
-  function holeSpot(def, x) { // aus dem Schacht unten heraufgekommen: neben der Öffnung auf festem Boden stehen
-    for (const dx of [2, -1, 3, -2, 4, -3, 5, -4]) {
+  function holeSpot(def, x) { // aus dem Schacht unten heraufgekommen: neben der Öffnung auf dem untersten festen Boden stehen
+    for (const dx of [2, -1, 3, -2, 4, -3, 5, -4]) { // (von unten gesucht: über einer Landestelle im Schacht kann massive Wand liegen)
       const col = x + dx; if (col < 1 || col > def.w - 2) continue;
-      const fr = floorRow(def, col, Math.max(0, def.h - 10));
-      if (fr < def.h - 1 || SOLID.includes(def.grid[def.h - 1][col])) return { cx: col * T + 8, feet: fr * T, face: dx > 0 ? 1 : -1 };
+      for (let y = def.h - 2; y >= 1; y--) if (SOLID.includes(def.grid[y + 1][col]) && !SOLID.includes(def.grid[y][col]) && !SOLID.includes(def.grid[y - 1][col])) return { cx: col * T + 8, feet: (y + 1) * T, face: dx > 0 ? 1 : -1 };
     }
     return { cx: (x + 1) * T, feet: (def.h - 1) * T, face: 1 };
   }
@@ -881,11 +972,11 @@ const Castle = (() => {
   const CHAMBERS = [
     [['arrival', -1], 'save', 7, 10],                              // Wald: gleich nach der Landung
     [['side', 'kasematte'], 'save', 7, 10, '0:1:save'], [['side', 'torstube'], 'warp', 5, 10, '0:1:warp'], // Eingangshalle → eigene Räume: Kasematte, Torstube
-    [[1, 0], 'save', 8, 10], [[1, 0], 'warp', 15, 10],             // Katakomben: Ufer des Höhlensees
-    [[2, 0], 'save', 6, 10], [[2, 0], 'warp', 10, 10],             // Bergfried: vor der Stachelgrube
-    [['sun', 0], 'save', 6, 15], [['sun', 0], 'warp', 11, 15],     // Sonnenkathedrale: Vorplatz
-    [['expo', 0], 'save', 5, 27], [['expo', 0], 'warp', 63, 27],   // Wintergarten: Eingang und jenseits des Beckens
-    [[3, 0], 'save', 57, 10], [[3, 2], 'warp', 3, 8],              // Thron: Ende des Strudels, Torbogen vor der Brücke
+    [['side', 'felsenkammer'], 'save', 7, 10, '1:0:save'], [['side', 'grottenportal'], 'warp', 7, 10, '1:0:warp'], // Katakomben: am Brunnenschacht
+    [['side', 'lesezimmer'], 'save', 7, 10, '2:0:save'], [['side', 'turmstube'], 'warp', 7, 10, '2:0:warp'],       // Bergfried: an der Bibliothek
+    [['side', 'sakristei'], 'save', 7, 10, 'sun:0:save'], [['side', 'kreuzgang'], 'warp', 7, 10, 'sun:0:warp'],     // Kathedrale: am Vorplatz
+    [['side', 'orangerie'], 'save', 7, 10, 'expo:0:save'], [['side', 'treibhaus'], 'warp', 7, 10, 'expo:0:warp'],   // Wintergarten: am Palmenhaus
+    [['side', 'vorzimmer'], 'save', 8, 10, '3:0:save'], [['side', 'seelenportal'], 'warp', 7, 10, '3:2:warp'],      // Thron: über dem Seelenstrudel
     [['side', 'hotel'], 'save', 9, 17], [['side', 'hotel'], 'warp', 44, 17], // Hotel Krat: Sternlampe und Aufzug
   ];
   function spotOk(def, x, y) { // ebener Boden unter beiden Kacheln, darüber drei Reihen frei
@@ -1556,6 +1647,7 @@ const Castle = (() => {
   function settle(arrive) {
     const s = W.stage, r = W.roomIdx, def = S()[s].rooms[r], key = roomKey(s, r);
     if (W.player) W.player.superT = 0;
+    if (S()[s].id === 1 && r === 2 && !(rel('dash') && rel('ring'))) for (let x = 40; x <= 41; x++) W.room.grid[12][x] = '^'; // Eishöhle: Lücke zur Eisrutsche erst mit Dash und Enterhaken
     if (W.player && (W.player.batForm || W.player.mistForm || W.player.wolfForm)) { W.player.batForm = false; W.player.mistForm = false; W.player.wolfForm = false; W.player.h = HERO_H; } // Raumwechsel: wieder in Menschengestalt (reset hat Ort und Größe gesetzt)
     if (boss[key] && s < S().length - 1) W.room.arena = null; // Bossarena: Boss besiegt, der Raum ist frei
     if (mini[key]) W.miniDone[s + ':' + r] = true;
@@ -1579,13 +1671,14 @@ const Castle = (() => {
     spawnNpcs(s, r); roomT = 0; // Figuren der Geschichte (nach dem Fluch: der zweite Held wartet schon im Burghof)
     spawnFinds(s, r); // Einzelstücke der Ausrüstung
     hpSeen.clear(); applyHp(W.player); // neuer Raum: Gegner des alten zählen nicht als besiegt
-    inSave = arrive && arrive.place && arrive.place.chamber === 'save' ? roomKey(s, r) + ':save' : null; // beim Fortsetzen nicht gleich noch einmal speichern
+    const sc = chambersOf(s, r).find(c => c.kind === 'save');
+    inSave = arrive && arrive.place && arrive.place.chamber === 'save' && sc ? sc.key : null; // beim Fortsetzen nicht gleich noch einmal speichern
     if (arrive && arrive.place !== 'start') {
       const p = W.player;
       let cx, feet, face = 1;
       if (arrive.place === 'exit') { // vor der Ausgangszone, wenn dort Boden in ihrer Höhe ist – sonst mitten darin (dann gilt sie erst nach dem Verlassen)
         const ex = def.exit, out = ex.x0 - 1, fo = out >= 0 ? floorRow(def, out, ex.y0) : def.h;
-        const col = out >= 0 && fo - 1 <= ex.y1 + 1 && !SOLID.includes(def.grid[fo - 1][out]) ? out : Math.min(ex.x1, Math.floor((ex.x0 + ex.x1 + 1) / 2));
+        const col = out >= 0 && fo >= 1 && fo - 1 <= ex.y1 + 1 && !SOLID.includes(def.grid[fo - 1][out]) ? out : Math.min(ex.x1, Math.floor((ex.x0 + ex.x1 + 1) / 2));
         cx = col * T + 8; feet = floorRow(def, col, ex.y0) * T; face = ex.x1 >= def.w - 1 || cx > def.w * T / 2 ? -1 : 1;
       } else if (arrive.place === 'right') {
         cx = (def.w - 2) * T + 8; feet = floorRow(def, def.w - 2, def.start.y - 2) * T; face = -1;
@@ -1692,7 +1785,7 @@ const Castle = (() => {
     for (const d of doorsOf(s, W.roomIdx)) W.spawn(new CastleDoor(d, S()[s].rooms[W.roomIdx]));
     const def = S()[s].rooms[W.roomIdx];
     for (const [R, k] of BOSS_RELIC) if (same(ref(R), s, W.roomIdx) && !rel(k)) W.spawn(new RelicStone(k, def.w - 10, def.start.y)); // Relikt des Bosses
-    spawnLift(def); // Gruft: der Aufzug zur Halle setzt sich in Bewegung
+    spawnLift(def); // Aufzug hinter dem Boss (def.lift), falls der Raum einen hat
     for (const [R, id] of BOSS_LOOT) if (same(ref(R), s, W.roomIdx) && !flag['find_' + id] && !inv[id]) W.spawn(new CastleLoot(id, (def.w - 14) * T + 8, (def.start.y + 1) * T - 10, id)); // sein Junges
     Game.bossName = 0; Audio8.tempo(1); Audio8.play('fanfare', W.songName()); Audio8.sfx('bigItem');
     Game.note('castleSeal', seals(), sealRooms().length); announceGoal(260);
@@ -3621,7 +3714,7 @@ const Castle = (() => {
     preUpdate, statusInput, mpMax, get mp() { return mp; }, set mp(v) { mp = v; },
     startTest, finishTest, drawMilestones, milestones: MILESTONES.length, get testing() { return testing; },
     setFlag: (k) => { flag[k] = 1; save(); }, // z. B. Aufzug als Abkürzung freigeschaltet (lift.js)
-    toolsInput, drawTools, selfCheck, mapReport, get god() { return god; }, get best() { return best; },
+    toolsInput, drawTools, selfCheck, mapReport, doorsOf, get god() { return god; }, get best() { return best; },
     toggleOverlay, get overlay() { return overlayOn; },
     tier: (s) => (TIER[S()[s].id] || 1) + 2 * (flag.ngp || 0), side: SIDE, startEpilogue, resultsInput, drawResults, ngPlus, ngRestore, drawGoalBanner, drawGoalToast, announceGoal, drawGuide, guidePlan, inPrologue, goal: () => { const g = goal(); return g && { text: goalText(g), where: tr(g.where) }; }, get vessels() { return vessel; }, get relics() { return relic; }, get cracks() { return crack; }, has,
     get seen() { return seen; }, get warps() { return warp; },

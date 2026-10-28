@@ -428,7 +428,7 @@ const W = {
   updateCam() {
     const p = this.player, r = this.room, vw = View.w;
     const M = r.mini; // Miniboss mitten im Raum: ein Abschnitt wird zur Arena (Kontrollpunkt davor wird sicher gesetzt)
-    if (M && !this.arenaOn && p.alive && p.cx > M.x * T && p.feet > M.minRow * T && !this.miniDone[this.stage + ':' + this.roomIdx]) {
+    if (M && !this.arenaOn && p.alive && p.cx > M.x * T && p.cx < (M.x1 + 1) * T && p.feet > M.minRow * T && !this.miniDone[this.stage + ':' + this.roomIdx]) { // nur in der Arena (von rechts hinter einer Wand nicht)
       this.arenaOn = true; this.camLock = true; this.arenaBoss = M.boss;
       this.arenaX = M.x0 * T; this.arenaW = (M.x1 - M.x0) * T;
       this.camTarget = clamp(Math.round(this.arenaX + this.arenaW / 2 - vw / 2), 0, r.w * T - vw);

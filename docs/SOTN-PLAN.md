@@ -252,17 +252,34 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   (`story_<id>` = Seiten „A:/H:/K:/L:/T:Text", `story_<id>Again`).
 - **Türen:** zurück in den vorigen Raum geht es am linken Rand (gegen den Rand laufen; ein goldener Pfeil erscheint),
   in Turmräumen ohne Rand (Sonnenturm, Kuppel-Aufstieg) mit ↑ an der Starttür. Torbögen mit ↑ betritt man ebenfalls mit ↑.
-- **Eingangshalle als Knoten:** Kellertür unten links → Katakomben, Turmtür auf dem Sims → Bergfried,
-  Siegeltor auf der Galerie → Thron der Nacht (erst mit 5 Siegeln; sonst Meldung „SIEGELTOR: n/5 SIEGEL").
+- **Eingangshalle als Knoten:** Kellerschacht im Boden → Katakomben, Turmschacht über dem Sims → Bergfried,
+  Siegelschacht über der oberen Galerie → Thron der Nacht (erst mit 5 Siegeln; sonst Meldung „SIEGELTOR: n/5 SIEGEL").
 - **Hinter den Bossen:** Große Halle (Riesenfledermaus) → Wintergarten, Marmorgalerie (Medusa) → Sonnenkathedrale,
-  Gruft (Knochenriese) → Aufzug zurück zur Kellertür (Einbahn). Bis zum Sieg: „DER WEG IST NOCH VERSPERRT".
+  Gruft (Knochenriese) → zurück durch das Loch unter der Brücke, den Gruftgang und den Eisaufzug.
 - **Bosse:** der Orb schließt kein Kapitel mehr ab, sondern gibt ein Siegel („SIEGEL n/5 – EIN NEUER WEG IST OFFEN");
   die Arena öffnet sich, der Boss bleibt besiegt (auch nach Neuladen). Beim Grafen gibt es wie gewohnt den Abspann.
   Zwischengegner (Tentakel, Eishexe) bleiben ebenfalls besiegt.
 - **Einbahnen:** vom Schiff (Prolog), vom Eisturm (Rutschpartie) und von der einstürzenden Brücke führt kein Weg zurück;
-  der Rückweg aus den Katakomben ist der Gruftaufzug.
+  der Rückweg aus den Katakomben führt durch das Loch in der Gruft, den Gruftgang und den Eisaufzug hinauf in die Eishöhle.
 - **Regionen:** ein Regionswechsel zeigt die Kapitelkarte als Regionsnamen (Ansage nur beim ersten Betreten). Kein
   Zeitlimit; Tod → Wiedereinstieg an der letzten Statue oder an der Tür, durch die man gekommen ist.
+- **Karte Rand an Rand (wie in SotN):** Räume hängen nur noch an Seitenausgängen (`{ e: 'L'|'R', y }`) oder Schächten
+  (`{ e: 'T'|'B', x }`) zusammen, und auf der Karte grenzen sie genau dort aneinander – keine ↑-Türen mehr zwischen Räumen.
+  `Castle.mapReport()` liefert `{ bad: [], doors: [] }`, `Castle.selfCheck()` `[]`. Zusatzräume legen sich von selbst an
+  ihren Randausgang (`mapAt` `null`). Umbauten im Schloss-Modus: Bibliothek → Schatzkammer und Glasturm → Verlies seitlich
+  (rissiges Gestein am Rand), Loch in der Marmorgalerie ins Spiegelkabinett (Aufzug zurück), Kabinett → oben in den
+  Spiegelschacht → Schachtfuß → Spiegeltunnel (zwei Zellen länger) → Foyer des Hoftheaters (erst mit allen Siegeln, zurück
+  immer), Ballsaal-Aufzug durch die Luke ins Foyer, Foyer-Galerie → Zuschauerraum; Gruft (hinter dem Knochenriesen) → Kanal,
+  Loch am Kanalanfang in die versunkene Kapelle, Lücke in der Stachelgrube der Eishöhle → Eisrutsche (erst mit Dash und
+  Enterhaken, sonst Stachelgrube), Turmfuß der Rutsche → Eiskeller.
+- **Aufzüge als Abkürzung** (`js/lift.js`, `.lift(x, Haltestellen, { id, start, lock, speed })`, von einer Seite verriegelt
+  bis zur ersten Fahrt): **Eisaufzug** (Eishöhle ↔ Eiskeller ↔ Gruftgang ↔ Gruft; oben verriegelt, die Kabine wartet unter
+  der Luke), **Pumpenschacht** (Kanal ↔ Kuppel des Wintergartens; vom Kanal aus verriegelt), **Himmelsaufzug**
+  (Himmelsbrücke ↔ Menschenfalle; von unten verriegelt), dazu Hotelaufzug und Lastenaufzug im Bahnhof.
+- **Speicher- und Warpkammern als eigene kleine Räume** (eine Kartenzelle, Seitenausgang): Kasematte/Torstube (Burghof),
+  Felsenkammer/Grottenportal (Brunnenschacht), Lesezimmer/Turmstube (Bibliothek), Sakristei/Kreuzgang (Kathedrale),
+  Orangerie/Treibhaus (Palmenhaus), Vorzimmer/Seelenportal (über dem Seelenstrudel). Sie behalten den alten Schlüssel
+  (`CHAMBERS`, 5. Feld) – Spielstände und freigeschaltete Portale bleiben gültig. Das Hotel behält Sternlampe und Aufzug.
 - **Karte:** Pause → **KARTE** zeigt das ganze Schloss (Regionen um die Eingangshalle: Prolog links, Katakomben unten,
   Bergfried oben, Sonnenkathedrale oben rechts, Wintergarten rechts, Thron ganz oben). Angriff zoomt, im Zoom scrollen
   die Pfeile, Sprung/Start schließt. Unten: Erkundungsgrad der Region und des Schlosses, Siegel n/5.

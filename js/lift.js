@@ -2,7 +2,7 @@
 // Seitenausgängen in jedem Stockwerk. Steht der Held an einer Haltestelle neben dem leeren Schacht, holt ↑ die Kabine her.
 // Wie eine Abkürzung in SotN: von der verriegelten Seite aus (lock: 'top' | 'bottom') rührt sie sich erst, wenn man sie
 // einmal von der anderen Seite aus benutzt hat (Castle-Flag lift_<id>, bleibt im Spielstand).
-// Bau: .lift(x, [Standreihen der Haltestellen von oben nach unten], { id, start, lock }) – die Kabine ist 3 Kacheln breit
+// Bau: .lift(x, [Standreihen der Haltestellen von oben nach unten], { id, start, lock, speed }) – die Kabine ist 3 Kacheln breit
 // (x .. x+2); an jeder Haltestelle braucht der Raum Boden in Reihe+1 links und/oder rechts neben dem Schacht.
 'use strict';
 
@@ -38,7 +38,7 @@ class ShortcutLift extends Ent {
       return;
     }
     const goal = this.stops[this.to], dist = goal - this.y, dir = Math.sign(dist);
-    this.v = Math.min(2.4, this.v + 0.08, Math.max(0.5, Math.abs(dist) * 0.06)); // anfahren, gleiten, sanft halten
+    this.v = Math.min(this.d.speed || 2.4, this.v + 0.08, Math.max(0.5, Math.abs(dist) * 0.06)); // anfahren, gleiten, sanft halten (speed: Höchsttempo)
     const ny = Math.abs(dist) <= this.v ? goal : this.y + dir * this.v;
     this.dy = ny - this.y; this.y = ny; this.hum++;
     if (this.hum % 24 === 0) Audio8.sfx('cog');
