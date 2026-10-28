@@ -776,7 +776,7 @@ const Audio8 = (() => {
       const bp = ambNoise(nodes, out, 'bandpass', 1600, 0.8); ambLfo(nodes, bp.frequency, 0.05, 500);
       ambNoise(nodes, out, 'lowpass', 300);
       ambLfo(nodes, out.gain, 0.08, 0.012); level = 0.026;
-    } else if (theme === 'foyer') { // Eingangshalle: Regen an den hohen Fenstern, Wind heult durch zerbrochene Scheiben
+    } else if (theme === 'foyer' || theme === 'passage') { // Eingangshalle: Regen an den hohen Fenstern, Wind heult durch zerbrochene Scheiben (Lichterpassage: Regen auf dem Glasdach)
       const hp = ambNoise(nodes, out, 'highpass', 900), lp = ac.createBiquadFilter();
       hp.disconnect(); lp.type = 'lowpass'; lp.frequency.value = 4200; hp.connect(lp); lp.connect(out);
       const bp = ambNoise(nodes, out, 'bandpass', 480, 6); ambLfo(nodes, bp.frequency, 0.06, 220);

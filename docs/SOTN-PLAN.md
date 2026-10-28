@@ -309,6 +309,14 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   Rosenfenster mit Mondlichtschacht, Blendarkade im Sockel; Steinfarben nach Region. Im einen Joch die Nische (Sarg/Portal,
   im hinteren Joch der Sackgasse), im anderen ein Brunnen mit Schale, Fontäne, Wasserschleier und Lichtspiel – und ein
   Bronzefrosch auf dem Beckenrand, der blinzelt und ab und zu ins Becken spuckt.
+- **Lichterpassage** (`js/passage.js`, links am Bahnhof Krat, Bahnsteig links ↔ rechter Rand, Seitenraum 0:16): Einkaufspassage
+  der Belle Époque unter einem Glastonnendach im Regen (Mond hinter nassem Glas, Blitze), Galeriegeschoss mit Rundbogenfenstern,
+  Ladenzeile mit vergoldeten Schildern in sechs Sprachen (Hutmacher, Konditorei, Parfümerie, Puppenklinik), Café. Unten die
+  Ladenzeile, darüber zwei Galerien über Treppen. **Schaufensterpuppen** (`Mannequin`) bewegen sich nur, solange der Held ihnen
+  den Rücken zukehrt, und erstarren beim Hinsehen in einer neuen Pose (nur in Bewegung gefährlich, zerschlagbar);
+  **Schaufenster** (`ShopWindow`) lassen sich einschlagen (Beute, zwei davon entlassen eine beleidigte Puppe);
+  **Kristalllüster** (`FallingLuster`) klirren, wenn man darunter durchläuft, und stürzen. Am Ende auf der linken Galerie:
+  Truhe, Lebensgefäß und der **Schirm mit dem Entenkopf** (Amulett, DEF +3, Glück).
 - **Treppen statt Aufzügen** an allen 13 Ausgängen nach oben (Kolosseum, Kerker, Bahnhof, Katakomben, Kanal, Kapelle,
   Gruftgang, Spiegelkabinett, Kathedrale, Menschenfalle, Laboratorium, Seelenstrudel, Ballsaal): die Treppe endet in Reihe 0
   im Schacht und führt oben hinaus; wo der Platz nicht reicht, mit Podest (Bahnhof: der Sims am Stellwerk ist das Podest,

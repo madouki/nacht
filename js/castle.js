@@ -747,6 +747,25 @@ const Castle = (() => {
       .music('stage3').label('AUTOMATENWERK').start(2, 21).done();
     add('automatenwerk', 0, 3, null, werk);
     LINKS.push([['side', 'schuppen'], { e: 'L', y: 9 }, ['side', 'automatenwerk'], { e: 'R', y: 9 }, {}]); // Lokschuppen (Steg oben links) → Automatenwerk (Laufsteg)
+    // Lichterpassage (links am Bahnhof Krat; js/passage.js): Einkaufspassage der Belle Époque unter dem Glasdach im Regen, nach
+    // Ladenschluss. Unten die Ladenzeile mit Schaufenstern (zerschlagbar) und dem Café, darüber zwei Galerien über Treppen;
+    // Schaufensterpuppen bewegen sich nur, wenn man wegschaut; Kristalllüster stürzen, wenn man darunter durchläuft. Ganz links auf
+    // der Galerie: Truhe, Lebensgefäß und der Schirm mit dem Entenkopf
+    const passage = R(112, 'passage', 20)
+      .ground(0, 111, 18)
+      .fill(0, 10, 20, 10, '=').stair(28, 17, 8, -1)                     // linke Galerie, Treppe hinauf
+      .fill(44, 10, 82, 10, '=').stair(90, 17, 8, -1)                    // lange Galerie, Treppe vom Café hinauf
+      .prop('shopwin', { x: 7, y: 17, ware: 'dolls', col: '#1c1c24', doll: true }).prop('shopwin', { x: 38, y: 17, ware: 'hats', col: '#1c3c2c' })
+      .prop('shopwin', { x: 58, y: 17, ware: 'bottles', col: '#2c1c48' }).prop('shopwin', { x: 74, y: 17, ware: 'cakes', col: '#5c1420', doll: true })
+      .prop('shopwin', { x: 96, y: 17, ware: 'cakes', col: '#5c1420' }).prop('cafe', { x: 100, y: 17, n: 2 })
+      .prop('luster', { x: 34, y: 1, len: 72 }).prop('luster', { x: 52, y: 1, len: 44 }).prop('luster', { x: 66, y: 1, len: 44 }).prop('luster', { x: 84, y: 1, len: 88 })
+      .enemy('mannequin', 13, 17).enemy('mannequin', 31, 17, { pose: 'point' }).enemy('mannequin', 49, 17).enemy('mannequin', 68, 17, { pose: 'wave' })
+      .enemy('mannequin', 12, 9, { pose: 'shy' }).enemy('mannequin', 56, 9).enemy('mannequin', 72, 9, { pose: 'hip' }).enemy('mannequin', 104, 17, { pose: 'show' })
+      .candle(4, 15, 'H').candle(24, 15).candle(46, 7, '$').candle(62, 7, 'H').candle(80, 7).candle(86, 15, 'W').candle(108, 15)
+      .chest(2, 9, 'big').prop('vessel', { x: 6, y: 9 })
+      .music('hotel').label('LICHTERPASSAGE').start(108, 17).done();
+    add('passage', 0, 2, null, passage);
+    LINKS.push([['side', 'bahnhof'], { e: 'L', y: 17 }, ['side', 'passage'], { e: 'R', y: 17 }, {}]); // Bahnhof (links am Bahnsteig) → Lichterpassage
   }
   if (on && Levels.room) buildSide();
   // Gefahrenstufe je Region: tiefer im Schloss mehr Lebensenergie, Schaden und EXP der Gegner
@@ -2063,6 +2082,7 @@ const Castle = (() => {
     prisma: { slot: 'weapon', atk: 6, col: '#fc7cf8' },                      // Prismenklinge (Ende des Kaleidoskops)
     steinhaut: { slot: 'armor', def: 6, col: '#8c8478' },                    // Steinhaut (Lohn des Steingolems)
     taschenuhr: { slot: 'acc', atk: 1, def: 2, luck: 1, col: '#e8c060' },   // Taschenuhr des Grafen (Ende der Pendelhalle)
+    schirm: { slot: 'acc', def: 3, luck: 1, col: '#3c5a4a' },              // Schirm mit Entenkopf (Ende der Lichterpassage)
     rec_kraken: { rec: 'kraken', col: '#7c4cc8' },     // Hotelbademantel (Portier): weich, heilt langsam
     // Schallplatten fürs Grammophon im Hotel (spielen ein Stück des Schlosses): gefunden, gekauft, eine liegt schon auf dem Teller
     rec_hotel: { rec: 'hotel', col: '#c89020' }, rec_title: { rec: 'title', col: '#9c6cfc' }, rec_stage1: { rec: 'stage1', price: 1500, col: '#fc7460' },
@@ -2088,7 +2108,7 @@ const Castle = (() => {
     [['side', 'kolosseum'], 'qcase1', 57, 6], [['side', 'attic'], 'qcase2', 30, 10], [['side', 'kanal'], 'qcase3', 100, 10],
     [['side', 'zimmer13'], 'saucer', 7, 10],
     [['side', 'kapelle'], 'trident', 10, 17], [['side', 'kapelle'], 'rec_kraken', 39, 18],
-    [['side', 'kaleido'], 'prisma', 108, 8], [['side', 'pendelhalle'], 'taschenuhr', 12, 17],
+    [['side', 'kaleido'], 'prisma', 108, 8], [['side', 'pendelhalle'], 'taschenuhr', 12, 17], [['side', 'passage'], 'schirm', 10, 9],
   ];
   // Nebenaufträge (Status, vierte Seite): Auftraggeber, Stücke, Szene zum Annehmen und zum Abgeben
   const QUESTS = [
@@ -2807,7 +2827,7 @@ const Castle = (() => {
 
   // ---------------- Bestiarium wie die Gegnerliste in SotN (Status, dritte Seite): Siege je Gegnerart, absurde Einträge ----------------
   const BEASTS = ['Bat', 'Skeleton', 'Ghoul', 'Raven', 'Knight', 'LivingArmor', 'Panther', 'Skull', 'Fishman', 'Ghost', 'Snake', 'FlyBook', 'Tome',
-    'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Automat', 'Jelly', 'Conductor', 'Doppel', 'GolemBoss', 'Awakened',
+    'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Automat', 'Mannequin', 'Jelly', 'Conductor', 'Doppel', 'GolemBoss', 'Awakened',
     'TentacleBoss', 'GiantBat', 'IceWitch', 'GiantSkeleton', 'Medusa', 'SunWarden', 'ManTrap', 'Count'];
   const BEAST_BOSS = { TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel', GolemBoss: 'bossGolem', Awakened: 'bossAwakened' };
   const BEAST_SET = new Set(BEASTS);
