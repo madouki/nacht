@@ -1,77 +1,36 @@
 // Kaleidoskop (Schloss-Modus, über der Sonnenkathedrale): eine liegende Röhre aus Buntglas, in Trommeln geteilt, die sich um
 // ihre Längsachse drehen – abwechselnd vorwärts und rückwärts. Unter den Trommeln nur Abgrund: hinüber kommt man nur am
-// Ankerring mit der Peitsche, zwischen den Trommeln stehen Steinringe zum Verschnaufen. Mondlicht fällt durch die Fenster als
-// farbige Lichtschächte in die Röhre (Mantel, Kern, Streifen, Staub, Lichthof, farbiger Dunst über dem Abgrund) und wandert mit
-// jeder Trommel um – benachbarte Trommeln laufen gegeneinander.
+// Ankerring mit der Peitsche, zwischen den Trommeln stehen Steinringe zum Verschnaufen. Die Fenster sind die Figurenfenster des
+// Glasturms (König, Georg, Drache, Engel, Tentakel …, mit Baldachin, Juwelenbordüre und Inschrift), um die Röhre gelegt: sie
+// kreisen mit jeder Trommel, die Figuren stehen mal Kopf. Wer oben im Mondlicht steht, wirft wie im Glasturm einen weichen,
+// goldweißen Lichtschacht in die Röhre (Mantel, Kern, Streifen der Bleiruten, Lichthof, Staub) – benachbarte gegeneinander.
 // Zeichnen: Röhre von innen pro Bildpunkt (wie der Glasturm, nur liegend: jede Bildzeile ist ein Strahl auf die Zylinderwand),
 // die Drehung je Bildspalte nach der Trommel an dieser Stelle; Steinringe als Rippen davor; Lichtschächte nach dem Licht.
 'use strict';
 
 const Kaleido = (() => {
-  const TW = 256, TH = 512;                     // Textur: entlang der Achse × um den Umfang (ein Umlauf)
+  const TW = 512, TH = 624;                     // Textur (Glasturm): entlang der Achse × um den Umfang (ein Umlauf = drei Fensterreihen)
   const SEC0 = 8, SEC = 20, PIT = 17, N = 5;      // Trommeln ab Kachel 8, je 20 Kacheln: 17 Abgrund + 3 Steinring; fünf Trommeln
   const SPIN = 0.011;                            // Drehung je Bild (rad)
-  const GLASS = [[200, 24, 48], [36, 72, 220], [24, 156, 84], [236, 176, 40], [132, 48, 196], [236, 120, 28], [60, 176, 220]];
   let T3 = null, tab = null, out = null, rayC = null, rayX = null;
 
-  const hsh = (n) => { const h = Math.sin(n * 127.1 + 311.7) * 43758.5453; return h - Math.floor(h); };
   const drum = (wx) => { const k = Math.floor((wx / T - SEC0) / SEC); return k >= 0 && k < N && (wx / T - SEC0) - k * SEC < PIT ? k : -1; }; // Trommel an Welt-x (−1: Steinring/Rand)
   const dirOf = (k) => (k % 2 ? -1 : 1);
   const angle = (k, f) => dirOf(k) * f * SPIN + k * 1.3;
 
-  // ---------------- Textur: Lanzettfenster mit Butzen aus farbigem Glas, Bleiruten, Steinpfosten; dazwischen Rosetten ----------------
+  // ---------------- Textur: die Fenster des Glasturms (Tiles), in vier Leuchtstufen: vom Mond abgewandt bis voll beschienen ----------------
   function buildTex() {
-    const c = document.createElement('canvas'); c.width = TW; c.height = TH; const x = c.getContext('2d');
-    const g = document.createElement('canvas'); g.width = TW; g.height = TH; const gx = g.getContext('2d'); // Leuchtebene (nur Glas)
-    x.fillStyle = '#100a14'; x.fillRect(0, 0, TW, TH);
-    for (let y = 0; y < TH; y += 8) for (let u = 0; u < TW; u += 16) { // Mauerwerk zwischen den Fenstern
-      x.fillStyle = (Math.floor(y / 8) + Math.floor(u / 16)) % 3 ? '#1c1420' : '#241a28'; x.fillRect(u + ((y / 8) % 2) * 8, y, 15, 7);
-    }
-    const pane = (px, py, pw, ph, col, k) => { // eine Butze: Glas mit Schimmer, darunter die Leuchtebene
-      const [r, gg, b] = col, m = 0.55 + 0.45 * k;
-      x.fillStyle = `rgb(${Math.round(r * 0.42 * m)},${Math.round(gg * 0.42 * m)},${Math.round(b * 0.42 * m)})`; x.fillRect(px, py, pw, ph);
-      x.fillStyle = `rgba(255,255,255,${(0.05 + 0.08 * k).toFixed(3)})`; x.fillRect(px, py, Math.max(1, pw >> 2), ph);
-      gx.fillStyle = `rgb(${Math.round(r * m)},${Math.round(gg * m)},${Math.round(b * m)})`; gx.fillRect(px, py, pw, ph);
-    };
-    const lancet = (u0, v0, w, h, seed) => { // Spitzbogenfenster: Rahmen, Butzen im Rautenraster, Bleiruten
-      x.fillStyle = '#3c3040'; x.fillRect(u0 - 3, v0 - 3, w + 6, h + 6);
-      x.fillStyle = '#6c5c64'; x.fillRect(u0 - 3, v0 - 3, w + 6, 1);
-      for (let yy = 0; yy < h; yy += 6) for (let xx = 0; xx < w; xx += 6) {
-        const arch = yy < w / 2 ? Math.abs(xx + 3 - w / 2) > Math.sqrt(Math.max(0, (w / 2) ** 2 - (w / 2 - yy) ** 2)) : false; // Bogen oben
-        if (arch) continue;
-        const ci = Math.floor(hsh(seed + xx * 0.37 + yy * 0.11) * 4 + (yy / h) * 3) % GLASS.length;
-        pane(u0 + xx, v0 + yy, 5, 5, GLASS[(ci + seed) % GLASS.length], hsh(seed * 3 + xx + yy * 7));
-      }
-      x.fillStyle = '#0a060c'; for (let yy = 0; yy < h; yy += 6) x.fillRect(u0, v0 + yy + 5, w, 1); // Bleiruten
-      for (let xx = 0; xx < w; xx += 6) x.fillRect(u0 + xx + 5, v0 + w / 2, 1, h - w / 2);
-      x.fillStyle = '#5c4c58'; x.fillRect(u0 + w / 2 - 1, v0 + w / 2, 2, h - w / 2); // Mittelpfosten
-    };
-    const rose = (cu, cv, r, seed) => { // Rosette: Ring aus Blütenblättern um eine Sonne
-      x.fillStyle = '#3c3040'; x.beginPath(); x.arc(cu, cv, r + 4, 0, Math.PI * 2); x.fill();
-      for (let yy = -r; yy <= r; yy += 4) for (let xx = -r; xx <= r; xx += 4) {
-        const d = Math.hypot(xx, yy); if (d > r) continue;
-        const a = Math.atan2(yy, xx), petal = Math.floor(((a + Math.PI) / (Math.PI * 2)) * 12);
-        const ci = d < r * 0.3 ? 3 : (petal + Math.floor(d / (r / 3)) + seed) % GLASS.length;
-        pane(cu + xx, cv + yy, 3, 3, GLASS[ci], d < r * 0.3 ? 1 : hsh(petal + seed));
-      }
-      x.strokeStyle = '#0a060c'; x.lineWidth = 1;
-      for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; x.beginPath(); x.moveTo(cu + Math.cos(a) * r * 0.3, cv + Math.sin(a) * r * 0.3); x.lineTo(cu + Math.cos(a) * r, cv + Math.sin(a) * r); x.stroke(); }
-      for (const rr of [r * 0.3, r * 0.66, r]) { x.beginPath(); x.arc(cu, cv, rr, 0, Math.PI * 2); x.stroke(); }
-    };
-    for (let i = 0; i < 4; i++) lancet(i * 64 + 14, 24, 36, 132, i * 5 + 1);       // obere Fensterreihe
-    for (let i = 0; i < 4; i++) rose(i * 64 + 32, 222, 26, i * 3 + 2);            // Rosetten
-    for (let i = 0; i < 4; i++) lancet(i * 64 + 14, 280, 36, 132, i * 7 + 11);     // untere Fensterreihe
-    for (let i = 0; i < 4; i++) rose(i * 64 + 32, 470, 22, i * 5 + 4);
-    const a = x.getImageData(0, 0, TW, TH).data, gl = gx.getImageData(0, 0, TW, TH).data;
-    const lv = [0.12, 0.45, 0.85, 1.4].map(k => { // vier Leuchtstufen: vom Mond abgewandt bis voll beschienen
+    const wall = Tiles.layer('glass', 'wall'), glow = Tiles.layer('glass', 'glassGlow');
+    const a = wall.c.getContext('2d').getImageData(0, 0, TW, TH).data, gl = glow.c.getContext('2d').getImageData(0, 0, TW, TH).data;
+    const lv = [[0.5, 0.04], [0.75, 0.2], [0.95, 0.46], [1.05, 0.86]].map(([m, k]) => {
       const o = new Int32Array(TW * TH);
       for (let i = 0, j = 0; i < o.length; i++, j += 4) {
-        const r = Math.min(255, a[j] * (0.7 + k * 0.3) + gl[j] * k), gg = Math.min(255, a[j + 1] * (0.7 + k * 0.3) + gl[j + 1] * k), b = Math.min(255, a[j + 2] * (0.7 + k * 0.3) + gl[j + 2] * k);
+        const r = Math.min(255, a[j] * m + gl[j] * k), gg = Math.min(255, a[j + 1] * m + gl[j + 1] * k), b = Math.min(255, a[j + 2] * m + gl[j + 2] * k);
         o[i] = (255 << 24) | (b << 16) | (gg << 8) | r;
       }
       return o;
     });
-    T3 = { lv };
+    T3 = { lv, wins: Tiles.glassWins() || [] };
   }
   // Röhrentabelle: jede Bildzeile y trifft die Zylinderwand an der Umfangsstelle v[y]; s[y] = Maßstab entlang der Achse
   // (fern in der Bildmitte klein, nah oben und unten groß); light[y] = Mondlicht (oben hell, unten dunkel)
@@ -123,55 +82,72 @@ const Kaleido = (() => {
     }
   }
 
-  // Fenster je Trommel (entlang der Achse versetzt): Lichtschacht, solange das Fenster dem Mond zugewandt ist
+  // Fenster auf dem Bildschirm: je sichtbare Trommel und Fenster die Bildzeile seiner Mitte (Umfang + Drehung der Trommel), die Spalte
+  // (entlang der Achse, mit der Röhrenparallaxe) und die Breite; oben steht es im Mondlicht und wirft einen Schacht
   function beams(cam, frame) {
-    const out = [], w = View.w;
+    if (!T3) buildTex();
+    const out = [], w = View.w, tb = table(), H = 208, u0 = cam.x * 0.5, v0 = tb.v[0], v1 = tb.v[H - 1];
+    const rowOf = (v) => { let lo = 0, hi = H - 1; while (lo < hi) { const m = (lo + hi) >> 1; if (tb.v[m] < v) lo = m + 1; else hi = m; } return lo; };
     for (let k = 0; k < N; k++) {
-      const xs = (SEC0 + k * SEC) * T - cam.x; if (xs > w + 40 || xs + PIT * T < -40) continue;
-      for (let i = 0; i < 4; i++) {
-        const a = angle(k, frame) + i * 1.57 + k * 0.4, c = Math.cos(a); // Fenster i der Trommel k: oben (c = 1) im vollen Mondlicht
-        if (c < 0.15) continue;
-        const xw = xs + (2 + i * 4.2) * T, yw = 104 - 150 * c, col = GLASS[(i * 3 + k * 2) % GLASS.length];
-        out.push({ x: xw, y: yw, ww: 34, k: Math.pow((c - 0.15) / 0.85, 1.4), slant: 0.22 * dirOf(k) * Math.sin(a) + 0.12, col: col.map(v => Math.round(Math.min(255, v * 0.7 + 70))).join(','), id: k * 4 + i, x0: xs, x1: xs + PIT * T });
-      }
+      const xs = (SEC0 + k * SEC) * T - cam.x, xe = xs + PIT * T; if (xs > w + 40 || xe < -40) continue;
+      const rot = angle(k, frame) / (Math.PI * 2) * TH;
+      T3.wins.forEach((win, wi) => {
+        const vc = ((((win.v0 + win.v1) / 2 - rot - v0) % TH) + TH) % TH + v0; // Fenstermitte relativ zur sichtbaren Wand
+        if (vc > v1) return;
+        const y = rowOf(vc), L = tb.light[y]; if (L < 0.9) return;     // unten im Schatten: kein Schacht
+        const s = tb.s[y], hw = win.hw / s;
+        for (let n = -2; n <= 2; n++) {
+          const x = w / 2 + (win.u + n * TW - u0) / s;
+          if (x + hw < xs - 20 || x - hw > xe + 20) continue;
+          const yT = rowOf(Math.min(v1, Math.max(v0, vc - (win.v1 - win.v0) / 2))), yB = rowOf(Math.min(v1, Math.max(v0, vc + (win.v1 - win.v0) / 2)));
+          const kL = Math.min(1, (L - 0.9) / 1.3), rgb = win.col.map((c, j) => Math.round(Math.min(255, c * 0.62 + win.acc[j] * 0.18 + 70)));
+          out.push({ x0: x - hw, ww: hw * 2, wy: (yT + y) / 2, yT, yB, len: 200 + hw * 1.6, slant: 0.3 * dirOf(k) + (x / w - 0.5) * 0.35, col: rgb.join(','), k: kL * (0.85 + 0.15 * Math.sin(frame * 0.017 + wi + k)), id: k * 16 + wi, cx0: xs, cx1: xe });
+        }
+      });
     }
     return out;
   }
-  // Volumetrische Lichtschächte (nach dem Licht gezeichnet, additiv): halbe Auflösung, Mantel, Kern, Streifen, Lichthof, Staub
+  // Volumetrische Lichtschächte wie im Glasturm (nach dem Licht gezeichnet, additiv, halbe Auflösung): Mantel, Kern, Streifen der
+  // Bleiruten, Lichthof ums Glas, pixelscharfer Staub; jeder Schacht bleibt in seiner Trommel. Darunter farbiger Dunst über dem Abgrund
   function drawRays(ctx, cam, frame) {
     const B = beams(cam, frame); if (!B.length) return;
     const w = View.w, hw2 = Math.ceil(w / 2), lite = View.lite;
+    const hsh2 = (n) => { const h = Math.sin(n * 127.1) * 43758.5453; return h - Math.floor(h); };
     if (!rayC || rayC.width !== hw2) { rayC = document.createElement('canvas'); rayC.width = hw2; rayC.height = 104; rayX = rayC.getContext('2d'); }
     const x = rayX; x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, hw2, 104); x.setTransform(0.5, 0, 0, 0.5, 0, 0); x.globalCompositeOperation = 'lighter';
     for (const b of B) {
-      x.save(); x.beginPath(); x.rect(b.x0, 0, b.x1 - b.x0, 208); x.clip(); // jeder Schacht bleibt in seiner Trommel
-      const len = 260, beam = (f0, f1, a) => {
-        const ax = b.x - b.ww / 2 + b.ww * f0, bx = b.x - b.ww / 2 + b.ww * f1, mx = (ax + bx) / 2;
-        const gr = x.createLinearGradient(mx, b.y, mx + len * b.slant, b.y + len);
-        gr.addColorStop(0, `rgba(${b.col},${(a * b.k).toFixed(3)})`); gr.addColorStop(0.5, `rgba(${b.col},${(a * b.k * 0.5).toFixed(3)})`); gr.addColorStop(1, `rgba(${b.col},0)`);
-        x.fillStyle = gr; x.beginPath(); x.moveTo(ax, b.y); x.lineTo(bx, b.y);
-        x.lineTo(mx + (bx - mx) * 1.7 + len * b.slant, b.y + len); x.lineTo(mx + (ax - mx) * 1.7 + len * b.slant, b.y + len); x.closePath(); x.fill();
+      x.save(); x.beginPath(); x.rect(b.cx0, 0, b.cx1 - b.cx0, 208); x.clip();
+      const { x0, ww, wy, len, slant, col, k } = b, spread = 1.6;
+      const beam = (f0, f1, a) => {
+        const ax = x0 + ww * f0, bx = x0 + ww * f1, mx = (ax + bx) / 2;
+        const g = x.createLinearGradient(mx, wy, mx + len * slant, wy + len);
+        g.addColorStop(0, `rgba(${col},${(a * k).toFixed(3)})`); g.addColorStop(0.45, `rgba(${col},${(a * k * 0.45).toFixed(3)})`); g.addColorStop(1, `rgba(${col},0)`);
+        x.fillStyle = g; x.beginPath(); x.moveTo(ax, wy); x.lineTo(bx, wy);
+        x.lineTo(mx + (bx - mx) * spread + len * slant, wy + len); x.lineTo(mx + (ax - mx) * spread + len * slant, wy + len); x.closePath(); x.fill();
       };
-      beam(0, 1, 0.26);                                                     // Mantel
-      beam(0.28, 0.72, 0.3);                                                // Kern
-      for (let i = 0; i < (lite ? 2 : 5); i++) { const f = (i + 0.5) / (lite ? 2 : 5) + 0.04 * Math.sin(frame * 0.013 + i * 2.1 + b.id); beam(f - 0.03, f + 0.03, 0.12 + 0.06 * Math.sin(frame * 0.021 + i + b.id)); } // Bleiruten werfen Streifen
-      if (b.y > -30) { const h = x.createRadialGradient(b.x, b.y, 0, b.x, b.y, 40); h.addColorStop(0, `rgba(${b.col},${(0.3 * b.k).toFixed(3)})`); h.addColorStop(1, `rgba(${b.col},0)`); x.fillStyle = h; x.fillRect(b.x - 40, b.y - 40, 80, 80); } // Lichthof ums Glas
+      beam(0.02, 0.98, 0.26);                                                            // Mantel
+      beam(0.25, 0.75, 0.3);                                                             // Kern
+      for (let i = 0; i < (lite ? 3 : 6); i++) { const n = lite ? 3 : 6, f = (i + 0.5) / n + 0.035 * Math.sin(frame * 0.012 + i * 2.1 + b.id), h = 0.025 + 0.02 * hsh2(i + b.id * 7); beam(f - h, f + h, 0.11 + 0.06 * Math.sin(frame * 0.02 + i + b.id)); } // Streifen
+      const halo = x.createRadialGradient(x0 + ww / 2, wy, 0, x0 + ww / 2, wy, ww * 0.9); // Lichthof ums Glas
+      halo.addColorStop(0, `rgba(${col},${(0.22 * k).toFixed(3)})`); halo.addColorStop(1, `rgba(${col},0)`);
+      x.fillStyle = halo; x.fillRect(x0 - ww * 0.4, wy - ww, ww * 1.8, ww * 2);
       x.restore();
     }
     ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.imageSmoothingEnabled = true;
     ctx.drawImage(rayC, 0, 0, hw2, 104, 0, 0, hw2 * 2, 208);
-    for (const b of B) for (let m = 0; m < (lite ? 6 : 12); m++) { // Staub treibt durch das farbige Licht
-      const t = (hsh(m + b.id * 31) + frame * (0.0007 + hsh(m * 3 + b.id) * 0.001)) % 1, along = t * 200;
-      const X = b.x + (hsh(m * 7 + b.id) - 0.5) * b.ww * (1 + t) + along * b.slant, Y = b.y + along;
-      if (X < b.x0 || X > b.x1) continue;
-      ctx.globalAlpha = Math.max(0, (1 - t) * 0.8 * b.k * (0.5 + 0.5 * Math.sin(frame * 0.09 + m * 2.3)));
-      ctx.fillStyle = `rgb(${b.col})`; ctx.fillRect(Math.round(X), Math.round(Y), m % 4 ? 1 : 2, m % 4 ? 1 : 2);
+    ctx.fillStyle = '#fff8e6';
+    for (const b of B) for (let m = 0; m < (lite ? 8 : 16); m++) { // Staubkörnchen treiben langsam durch das Licht
+      const t = (hsh2(m + b.id * 31) + frame * (0.0006 + hsh2(m * 3 + b.id) * 0.0009)) % 1, f = 0.1 + 0.8 * hsh2(m * 7 + b.id * 3) + 0.04 * Math.sin(frame * 0.017 + m);
+      const along = t * b.len * 0.85, wid = b.ww * (1 + 0.6 * t), X = b.x0 + b.ww / 2 + (f - 0.5) * wid + along * b.slant, Y = b.wy + along;
+      if (X < b.cx0 || X > b.cx1) continue;
+      ctx.globalAlpha = Math.max(0, (1 - t) * 0.85 * b.k * (0.5 + 0.5 * Math.sin(frame * 0.09 + m * 2.3)));
+      ctx.fillRect(Math.round(X), Math.round(Y), m % 5 ? 1 : 2, 1);
     }
     ctx.globalAlpha = 1;
     const fog = ctx.createLinearGradient(0, 150, 0, 208); // farbiger Lichtnebel über dem Abgrund, gemischt aus den Glasfarben
     const mix = B.reduce((m, b) => { const c = b.col.split(',').map(Number); return [m[0] + c[0] * b.k, m[1] + c[1] * b.k, m[2] + c[2] * b.k, m[3] + b.k]; }, [0, 0, 0, 0]);
-    if (mix[3] > 0) { const c = mix.slice(0, 3).map(v => Math.round(v / mix[3])).join(','); fog.addColorStop(0, `rgba(${c},0)`); fog.addColorStop(1, `rgba(${c},${Math.min(0.22, 0.06 * mix[3]).toFixed(3)})`); ctx.fillStyle = fog; ctx.fillRect(0, 150, w, 58); }
+    if (mix[3] > 0) { const c = mix.slice(0, 3).map(v => Math.round(v / mix[3])).join(','); fog.addColorStop(0, `rgba(${c},0)`); fog.addColorStop(1, `rgba(${c},${Math.min(0.2, 0.05 * mix[3]).toFixed(3)})`); ctx.fillStyle = fog; ctx.fillRect(0, 150, w, 58); }
     ctx.restore();
   }
-  return { drawTube, drawRays, drum, SEC0, SEC, PIT, N, prewarm() { if (!T3) buildTex(); table(); } };
+  return { drawTube, drawRays, drum, SEC0, SEC, PIT, N, prewarm() { Tiles.build('glass'); if (!T3) buildTex(); table(); } }; // die Fenster kommen aus dem Glasturm
 })();

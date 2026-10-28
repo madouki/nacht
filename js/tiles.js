@@ -3927,5 +3927,5 @@ const Tiles = (() => {
     }
   }
 
-  return { build, drawBg, drawTiles, drawFront, layer, drawLayer, shipLights, drawCloud7, drawGlassRays, drawPortal };
+  return { build, drawBg, drawTiles, drawFront, layer, drawLayer, shipLights, drawCloud7, drawGlassRays, drawPortal, glassWins: () => glassWins }; // glassWins: Fenster des Glasturms (das Kaleidoskop leiht sie sich)
 })();

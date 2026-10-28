@@ -276,10 +276,11 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   bis zur ersten Fahrt): **Eisaufzug** (Eishöhle ↔ Eiskeller ↔ Gruftgang ↔ Gruft; oben verriegelt, die Kabine wartet unter
   der Luke), **Pumpenschacht** (Kanal ↔ Kuppel des Wintergartens; vom Kanal aus verriegelt), **Himmelsaufzug**
   (Himmelsbrücke ↔ Menschenfalle; von unten verriegelt), dazu Hotelaufzug und Lastenaufzug im Bahnhof.
-- **Kaleidoskop** (`js/kaleido.js`, über der Sonnenkathedrale: Aufzug links im Vorplatz hinauf durch die Luke): liegende Röhre
-  aus Buntglas (Lanzettfenster, Rosetten, Bleiruten) in fünf Trommeln, die sich abwechselnd vorwärts und rückwärts um die
-  Längsachse drehen; Steinringe mit Goldkante zwischen den Trommeln. Volumetrische Lichtschächte aus den Fenstern (Mantel,
-  Kern, Streifen, Lichthof, Staub, farbiger Dunst über dem Abgrund) kreisen mit ihrer Trommel. Unter jeder Trommel 17 Kacheln
+- **Kaleidoskop** (`js/kaleido.js`, über der Sonnenkathedrale: Treppe links im Vorplatz hinauf durch die Luke): liegende Röhre
+  aus Buntglas in fünf Trommeln, die sich abwechselnd vorwärts und rückwärts um die Längsachse drehen; Steinringe mit Goldkante
+  zwischen den Trommeln. Die Fenster sind die Figurenfenster des Glasturms (`Tiles.layer('glass', …)`, `Tiles.glassWins()`),
+  um die Röhre gelegt – sie kreisen mit ihrer Trommel. Was oben im Mondlicht steht, wirft wie im Glasturm einen goldweißen
+  Lichtschacht (Mantel, Kern, Streifen der Bleiruten, Lichthof, Staub), darunter farbiger Dunst über dem Abgrund. Unter jeder Trommel 17 Kacheln
   Abgrund mit zwei Ankerringen: nur mit der Peitsche zu schaffen (Bot-Test: Sprung + Doppelsprung + Luft-Dash kommen höchstens
   gut 10 Kacheln weit, mit den Ringen klappt jede Trommel); Fledermaus, Nebel und Wolf reißt der Wirbel zurück. Am Ende Truhe,
   Lebensgefäß und die **Prismenklinge** (ATT +6), dann durch die Luke hinab auf den Pfeiler der Kathedrale (Einbahn).
@@ -303,6 +304,27 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   Felsenkammer/Grottenportal (Brunnenschacht), Lesezimmer/Turmstube (Bibliothek), Sakristei/Kreuzgang (Kathedrale),
   Orangerie/Treibhaus (Palmenhaus), Vorzimmer/Seelenportal (über dem Seelenstrudel). Sie behalten den alten Schlüssel
   (`CHAMBERS`, 5. Feld) – Spielstände und freigeschaltete Portale bleiben gültig. Das Hotel behält Sternlampe und Aufzug.
+  Jede Kammer ist eine kleine Kapelle (`js/kammer.js`, `def.hall`): zwei Joche unter einem Kreuzrippengewölbe mit Sternenhimmel
+  in den Kappen, Rippen mit Goldfilet, Nasenbesatz am Schildbogen, goldene Schlusssteine, Dienstbündel mit Blattkapitellen,
+  Rosenfenster mit Mondlichtschacht, Blendarkade im Sockel; Steinfarben nach Region. Im einen Joch die Nische (Sarg/Portal,
+  im hinteren Joch der Sackgasse), im anderen ein Brunnen mit Schale, Fontäne, Wasserschleier und Lichtspiel – und ein
+  Bronzefrosch auf dem Beckenrand, der blinzelt und ab und zu ins Becken spuckt.
+- **Treppen statt Aufzügen** an allen 13 Ausgängen nach oben (Kolosseum, Kerker, Bahnhof, Katakomben, Kanal, Kapelle,
+  Gruftgang, Spiegelkabinett, Kathedrale, Menschenfalle, Laboratorium, Seelenstrudel, Ballsaal): die Treppe endet in Reihe 0
+  im Schacht und führt oben hinaus; wo der Platz nicht reicht, mit Podest (Bahnhof: der Sims am Stellwerk ist das Podest,
+  Ballsaal: Fuß auf dem sicheren Zielpodest). Von oben kommend fängt man sich auf der Treppe. Die Abkürzungs-Aufzüge
+  (`js/lift.js`) und die Aufzüge innerhalb eines Raums bleiben. Bot-Test: in jedem Raum hinauf und durch das Loch zurück.
+- **Handy:** die Peitsche hakt per Touch zuverlässig ein (ein schräg nach unten gehaltener Stick zählt in der Luft nicht als ↓,
+  ein zu früher Schlag wird 14 Bilder gemerkt, ein zweiter Tipp holt neu aus); im Pausenmenü bleiben A/B/II Tasten (vorher
+  galt A als Tipp auf die Menüzeile in derselben Höhe – oft ZUM TITEL); Abschnitte, Meilensteine und Test-Werkzeuge per Tipp
+  wählbar (zweiter Tipp startet), die Abschnittsliste rollt erst am Rand.
+- **Laden eines Abschnitts / Meilensteins:** Ladebild sofort (erst gezeichnet, dann gebaut), Balken über den Vorbau nur des
+  Zielraums (die übrigen Räume der Region bauen sich beim Betreten), dazu ein CSS-Lade-Kranz (`#loadspin`), der sich auch
+  während eines großen Vorbaus weiterdreht. Abschnittswahl im Schloss = Testspielen: eigene Test-Spielstände, im Pausenmenü
+  die TEST-WERKZEUGE (unverwundbar, alle Relikte, **alle Ausrüstung**, Stufe +5, Gold …).
+- **Steingolem überarbeitet:** volle Auflösung (scharf), schräg zum Betrachter (etwa 45°, ferne Kamera ohne Fluchtverzerrung),
+  gedrungen und breitschultrig, der linke Arm stützt sich auf, der Schlagarm kommt von der Schulter zum Helden hin; dunkle
+  Kontur um den Felsleib, glühende Runenrisse.
 - **Karte:** Pause → **KARTE** zeigt das ganze Schloss (Regionen um die Eingangshalle: Prolog links, Katakomben unten,
   Bergfried oben, Sonnenkathedrale oben rechts, Wintergarten rechts, Thron ganz oben). Angriff zoomt, im Zoom scrollen
   die Pfeile, Sprung/Start schließt. Unten: Erkundungsgrad der Region und des Schlosses, Siegel n/5.
