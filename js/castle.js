@@ -3199,8 +3199,13 @@ const Castle = (() => {
     { id: 'concq2', who: 'conc', at: [['side', 'hotel'], 24, 17], when: () => questHas(QUESTS[1]) || !!flag.story_concq2, give: 'porter', take: QUESTS[1].items },
     { id: 'tent4', who: 'tent', at: [['side', 'zimmer13'], 21, 10], when: () => !!inv.keyring, give: 'pillow' }, // Zimmer 13: der Tentakel wohnt jetzt hier
     { id: 'gramo', who: 'gramo', at: [['side', 'hotel'], 14, 17], when: () => true, lines: false },      // Grammophon (↑: Platten)
+    { id: 'speed', who: 'speed', at: [['side', 'kaleido'], 6, 8], when: () => true },                   // Kaleidoskop: der Geist eines Speedrunners
+    { id: 'bones', who: 'bones', at: [['side', 'gruftgang'], 10, 10], when: () => true, gold: 500 },     // Gruftgang: der Betriebsrat der Skelette (Streikgeld)
+    { id: 'chick', who: 'chick', at: [['side', 'fundbuero'], 58, 17], when: () => true },                // Fundbüro: Fundsache Nr. 13
+    { id: 'barber', who: 'barber', at: [['side', 'passage'], 22, 17], when: () => true },               // Lichterpassage: Medusas Friseur
+    { id: 'carto', who: 'carto', at: [['side', 'pendelhalle'], 108, 17], when: () => true },           // Pendelhalle oben: der Kartograf
   ];
-  const WHO = ['ally', 'lib', 'tent', 'pris', 'conc', 'gramo'], VOICE = { ally: 'A', lib: 'L', tent: 'T', pris: 'P', conc: 'C' };
+  const WHO = ['ally', 'lib', 'tent', 'pris', 'conc', 'gramo', 'speed', 'bones', 'chick', 'barber', 'carto'], VOICE = { ally: 'A', lib: 'L', tent: 'T', pris: 'P', conc: 'C', speed: 'S', bones: 'B', chick: 'W', barber: 'F', carto: 'M' };
   const allyId = () => { const ids = HEROES.list.map(d => d.id), i = Math.max(0, ids.indexOf(Options.character)); return ids[(i + 1) % ids.length]; };
   const beatDone = (b) => b.lines === false || !!flag['story_' + b.id];
   function beatNow(who) { let b = null; for (const x of BEATS) if (x.who === who && x.when()) b = x; return b; }
@@ -3259,6 +3264,79 @@ const Castle = (() => {
     R(-2, -26 + bob, 2, 1, '#e87070'); R(0, -25 + bob, 3, 1, '#7c3c20'); // Wange, Lächeln
     const n = Math.round(nose); R(4, -27 + bob, 2 + n, 2, WD); R(4, -27 + bob, 2 + n, 1, WL); if (n > 4) R(4 + n, -28 + bob, 1, 1, '#58a838'); // Nase (wächst beim Lügen; ab und zu treibt sie aus)
   }
+  // ---- Easter-Egg-Figuren (je eine Szene, jederzeit ansprechbar) ----
+  // Geist eines Speedrunners (Kaleidoskop): schwebt, flackert vor Ungeduld, Stirnband, Stoppuhr in der Hand (die Uhr ist nicht durchsichtig)
+  function drawSpeedGhost(ctx, cx, feet, t, flip) {
+    const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
+    const bob = Math.round(Math.sin(t * 0.08) * 2) - 4;
+    ctx.save(); ctx.globalAlpha = 0.55 + 0.25 * Math.sin(t * 0.3) * Math.sin(t * 0.07);
+    for (let k = 0; k < 8; k++) { const sw = Math.round(Math.sin(t * 0.2 + k) * 1.5); R(-4 + sw + (k >> 1), bob - 2 - k, Math.max(2, 8 - (8 - k)), 1, '#b8d4ff'); } // wehender Schweif
+    R(-5, bob - 20, 10, 10, '#d8e8ff'); R(-5, bob - 20, 2, 10, '#a8c4f0');                       // Leib
+    R(-4, bob - 28, 8, 8, '#e8f0ff'); R(-4, bob - 28, 8, 1, '#ffffff');                         // Kopf
+    R(-4, bob - 26, 8, 2, '#e83c3c'); R(-6, bob - 26 + ((t >> 2) & 1), 2, 1, '#e83c3c'); R(-8, bob - 25, 2, 1, '#e83c3c'); // Stirnband, die Enden wehen
+    R(0, bob - 23, 1, 2, '#24304c'); R(3, bob - 23, 1, 2, '#24304c'); R(1, bob - 21, 3, 1, '#24304c'); // Augen, verbissener Mund
+    R(5, bob - 18, 3, 2, '#d8e8ff');                                                             // Arm
+    ctx.restore();
+    const tick = (t >> 3) & 1;
+    R(7, bob - 21, 5, 5, '#c89020'); R(8, bob - 20, 3, 3, '#fcf0c8'); R(9, bob - 22, 1, 1, '#c89020'); R(9, bob - 20 + tick, 1, 2 - tick, '#1c1c24'); // Stoppuhr
+  }
+  // Knochen-Kalle, Betriebsrat der Skelette (Gruftgang): Schiebermütze, rote Armbinde, Protestschild auf dem Stiel
+  function drawBones(ctx, cx, feet, t, flip) {
+    const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
+    const bob = (t >> 4) & 1, wave = Math.round(Math.sin(t * 0.1) * 1.5), BN = '#e8e4d0', BD = '#a8a490';
+    R(-4, -2, 3, 2, BN); R(1, -2, 3, 2, BN); R(-3, -12, 1, 10, BN); R(2, -12, 1, 10, BN);     // Füße, Beine
+    R(-4, -14, 8, 2, BD);                                                                     // Becken
+    R(-1, -24, 2, 10, BN); for (let k = 0; k < 4; k++) R(-4, -23 + k * 2, 8, 1, BN);           // Wirbel, Rippen
+    R(-5, -25 + bob, 10, 2, BN); R(-6, -24 + bob, 1, 9, BN); R(-7, -21 + bob, 3, 2, '#c82828'); // Schultern, Arm mit Armbinde
+    R(-4, -32 + bob, 8, 7, BN); R(-3, -30 + bob, 2, 2, '#1c1c24'); R(1, -30 + bob, 2, 2, '#1c1c24'); R(-1, -28 + bob, 1, 1, '#1c1c24'); R(-2, -26 + bob, 5, 1, BD); // Schädel
+    R(-5, -34 + bob, 10, 2, '#5c5c6c'); R(2, -33 + bob, 4, 1, '#5c5c6c'); R(-5, -34 + bob, 10, 1, '#7c7c8c'); // Schiebermütze
+    R(5, -24 + bob, 1, 6, BN); R(6, -42 + wave, 1, 24, '#7c5c34');                           // Arm, Stiel
+    R(1, -45 + wave, 13, 9, '#f4ecd4'); R(1, -45 + wave, 13, 1, '#c82828'); R(1, -37 + wave, 13, 1, '#c82828'); // Schild
+    R(3, -43 + wave, 9, 1, '#c82828'); R(3, -41 + wave, 6, 1, '#c82828'); R(10, -41 + wave, 2, 1, '#c82828'); R(3, -39 + wave, 8, 1, '#c82828'); // „Schrift“
+  }
+  // Wandhuhn (Fundbüro): sitzt auf einer Fundkiste, Fundzettel Nr. 13 am Bein, pickt ab und zu, blinzelt
+  function drawChicken(ctx, cx, feet, t, flip) {
+    const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
+    const peck = t % 120 < 10 ? 2 : 0, blink = t % 90 < 5;
+    R(-8, -10, 16, 10, '#7c5428'); R(-8, -10, 16, 1, '#a07040'); R(-8, -5, 16, 1, '#5c3c1c'); R(-1, -10, 2, 10, '#5c3c1c'); // Kiste
+    R(-5, -18, 10, 8, '#f4f0e4'); R(-5, -12, 10, 2, '#d8d0bc'); R(-3, -16, 4, 3, '#e8e0cc');     // Leib, Flügel
+    R(-8, -21, 3, 5, '#f4f0e4'); R(-9, -22, 2, 2, '#e8e0cc');                                     // Schwanzfedern
+    R(3, -24 + peck, 5, 7, '#f4f0e4'); R(4, -26 + peck, 2, 2, '#d82828'); R(6, -25 + peck, 1, 1, '#d82828'); // Kopf, Kamm
+    R(8, -22 + peck, 2, 1, '#f8b800'); R(7, -20 + peck, 1, 2, '#d82828');                         // Schnabel, Kehllappen
+    R(6, -23 + peck, 1, 1, blink ? '#d8d0bc' : '#1c1c24');                                        // Auge
+    R(1, -10, 1, 1, '#f8b800'); R(2, -9, 5, 4, '#fcf4c8'); R(3, -8, 3, 1, '#8c7c5c'); R(3, -6, 2, 1, '#8c7c5c'); // Fuß, Fundzettel
+  }
+  // Friseur Anatol (Lichterpassage): hager, gestreiftes Hemd, Schürze, gezwirbelter Schnurrbart, klappernde Schere, Pflaster an jedem Finger
+  function drawBarber(ctx, cx, feet, t, flip) {
+    const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
+    const bob = (t >> 5) & 1, snip = (t >> 3) % 4 < 2, SK = '#e8b088';
+    R(-4, -2, 3, 2, '#1c1410'); R(1, -2, 3, 2, '#1c1410'); R(-3, -12, 2, 10, '#2c2c3c'); R(1, -12, 2, 10, '#2c2c3c'); // Schuhe, Hose
+    for (let k = 0; k < 10; k++) R(-4, -22 + k + bob, 8, 1, k % 2 ? '#f4f0e8' : '#c83c3c');       // gestreiftes Hemd
+    R(-3, -18 + bob, 6, 9, '#e8e8f0'); R(-3, -18 + bob, 6, 1, '#b8b8c8');                           // Schürze
+    R(-6, -21 + bob, 2, 7, '#c83c3c'); R(4, -21 + bob, 2, 5, '#c83c3c');                             // Arme
+    R(-6, -14 + bob, 2, 2, SK); R(-6, -14 + bob, 2, 1, '#f4ecd4'); R(5, -16 + bob, 2, 2, SK); R(5, -16 + bob, 1, 1, '#f4ecd4'); // Hände mit Pflastern
+    R(7, -18 + bob, 4, 1, '#c8ccd8'); R(7, -16 + bob, 4, 1, snip ? '#c8ccd8' : '#9ca0b0'); if (!snip) R(10, -17 + bob, 1, 1, '#c8ccd8'); // Schere
+    R(-1, -24 + bob, 3, 2, SK); R(-3, -31 + bob, 7, 7, SK); R(-3, -33 + bob, 7, 3, '#2c1c14'); R(-4, -32 + bob, 1, 3, '#2c1c14'); // Hals, Kopf, Pomade
+    R(1, -29 + bob, 1, 1, '#1c1020'); R(3, -29 + bob, 1, 1, '#1c1020');                              // Augen (zugekniffen – nie hinsehen)
+    R(-1, -26 + bob, 6, 1, '#2c1c14'); R(-2, -27 + bob, 1, 1, '#2c1c14'); R(5, -27 + bob, 1, 1, '#2c1c14'); // gezwirbelter Schnurrbart
+    R(-4, -30 + bob, 1, 3, '#f4c8a0'); R(-5, -30 + bob, 1, 1, '#f8b800');                            // Kamm hinterm Ohr
+  }
+  // Der Kartograf (Pendelhalle, oben): alter Mann mit Kneifer und zerzaustem Haar, Kartenrollen unterm Arm, der Federkiel kritzelt, die Karte schleift am Boden
+  function drawCarto(ctx, cx, feet, t, flip) {
+    const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
+    const bob = (t >> 5) & 1, scr = (t >> 2) & 1;
+    R(-15, -2, 12, 2, '#e8dcb8'); R(-15, -2, 12, 1, '#c8b890'); R(-12, -1, 3, 1, '#7c5c34'); R(-7, -1, 2, 1, '#2c6c9c'); // Karte am Boden
+    R(-3, -2, 3, 2, '#2c1c14'); R(1, -2, 3, 2, '#2c1c14');                                          // Schuhe
+    R(-4, -20 + bob, 9, 18, '#5c4c2c'); R(-4, -20 + bob, 2, 18, '#3c3018'); R(-4, -3, 9, 1, '#3c3018'); // Mantel
+    R(-7, -19 + bob, 4, 3, '#e8dcb8'); R(-8, -17 + bob, 4, 3, '#d8c8a0'); R(-6, -20 + bob, 1, 6, '#c8b890'); // Kartenrollen
+    R(4, -18 + bob, 3, 2, '#5c4c2c'); R(6, -18 + bob, 2, 2, '#e8b088'); R(7, -23 + bob, 1, 5, '#f4f4fc'); R(7, -24 + bob + scr, 1, 1, '#1c1c24'); // Arm, Federkiel
+    R(-3, -28 + bob, 7, 8, '#e8b088'); R(-3, -21 + bob, 7, 1, '#c88860');                             // Kopf
+    R(-4, -30 + bob, 9, 2, '#e8e8f0'); R(-4, -28 + bob, 2, 4, '#e8e8f0'); R(4, -31 + bob, 2, 2, '#e8e8f0'); // zerzaustes Haar
+    R(0, -26 + bob, 2, 2, '#c89020'); R(3, -26 + bob, 2, 2, '#c89020'); R(2, -26 + bob, 1, 1, '#c89020'); // Kneifer
+    R(0, -25 + bob, 1, 1, '#1c1c24'); R(3, -25 + bob, 1, 1, '#1c1c24'); R(1, -22 + bob, 4, 1, '#e8e8f0'); // Augen, Bart
+  }
+  const EGG = { speed: drawSpeedGhost, bones: drawBones, chick: drawChicken, barber: drawBarber, carto: drawCarto }; // Figur je Sprecher
+  const EGG_OF = { S: 'speed', B: 'bones', W: 'chick', F: 'barber', M: 'carto' };
   const noseOf = (npc) => { if (!talk || talk.npc !== npc) return 0; const pg = talk.pages[talk.i]; return pg && pg.lie ? Math.min(9, (Game.t - (talk.lieAt || 0)) * 0.35) : 0; };
   // Kammern im Hotel: Sternlampe (Speichern) und Aufzug (Schnellreise) statt Steinnische – Blender-Modelle
   function drawHotelChamber(ch, ctx) {
@@ -3345,6 +3423,7 @@ const Castle = (() => {
         drawConcierge(ctx, Math.round(this.cx - cam.x), Math.round(feet - cam.y) - 4, this.t, this.face < 0, noseOf(this));
         k3draw(ctx, 'desk', this.cx, feet);
       } else if (this.b.who === 'gramo') k3draw(ctx, 'gramo', this.cx, feet);
+      else if (EGG[this.b.who]) EGG[this.b.who](ctx, Math.round(this.cx - cam.x), Math.round(feet - cam.y), this.t, this.face < 0);
       else {
         const H = HEROES.get(allyId()), spr = this.go ? H.walk[Math.floor(this.walk / 5) % 8] : H.idle[Math.floor(this.t / 40) % 2];
         if (this.go) ctx.globalAlpha = clamp(1 - (this.t - 10) / 26, 0, 1);
@@ -3395,7 +3474,7 @@ const Castle = (() => {
     talk = { npc, b, again, pages, i: 0, n: 0, lieAt: Game.t };
     if (pages[0] && pages[0].lie) Audio8.sfx('squeak');
     npc.face = p.cx < npc.cx ? -1 : 1; p.face = -npc.face; p.vx = 0;
-    Audio8.sfx(b.who === 'lib' ? 'page' : b.who === 'tent' ? 'slime' : b.who === 'conc' ? 'bell' : 'select');
+    Audio8.sfx(b.who === 'lib' ? 'page' : b.who === 'tent' ? 'slime' : b.who === 'conc' ? 'bell' : b.who === 'chick' ? 'squeak' : 'select');
     Game.go('talk');
   }
   function endTalk() {
@@ -3435,12 +3514,13 @@ const Castle = (() => {
   function portrait(ctx, who, x, y, t) { // 40×40: Figur in doppelter Größe, Kopf und Schultern
     ctx.fillStyle = '#c89020'; ctx.fillRect(x - 2, y - 2, 44, 44);
     ctx.fillStyle = '#000'; ctx.fillRect(x - 1, y - 1, 42, 42);
-    ctx.fillStyle = who === 'L' ? '#24183c' : who === 'H' ? '#0c1c34' : who === 'T' ? '#0c2434' : who === 'C' ? '#0c2418' : '#1c1028'; ctx.fillRect(x, y, 40, 40);
+    ctx.fillStyle = who === 'L' ? '#24183c' : who === 'H' ? '#0c1c34' : who === 'T' ? '#0c2434' : who === 'C' ? '#0c2418' : { S: '#101c3c', B: '#241414', W: '#2c2010', F: '#2c1018', M: '#20200c' }[who] || '#1c1028'; ctx.fillRect(x, y, 40, 40);
     ctx.save(); ctx.beginPath(); ctx.rect(x, y, 40, 40); ctx.clip();
     if (who === 'L') { ctx.translate(x + 20, y + 70); ctx.scale(2, 2); drawLibrarian(ctx, 0, 0, t, false); }
     else if (who === 'T') { ctx.translate(x + 18, y + 80); ctx.scale(2, 2); drawTentacle(ctx, 0, 0, t, false); }
     else if (who === 'P') { ctx.translate(x + 20, y + 66); ctx.scale(2, 2); drawPrisoner(ctx, 0, 0, t, false); }
     else if (who === 'C') { ctx.translate(x + 18, y + 70); ctx.scale(2, 2); drawConcierge(ctx, 0, 0, t, false, talk ? noseOf(talk.npc) : 0); }
+    else if (EGG_OF[who]) { const lift = { S: 66, B: 74, W: 54, F: 70, M: 66 }[who]; ctx.translate(x + 18, y + lift); ctx.scale(2, 2); EGG[EGG_OF[who]](ctx, 0, 0, t, false); }
     else {
       const H = HEROES.get(who === 'A' ? allyId() : Options.character), spr = H.idle[0], img = who === 'H' ? spr.f : spr.c;
       ctx.imageSmoothingEnabled = false;
@@ -3457,8 +3537,9 @@ const Castle = (() => {
     ctx.fillStyle = '#fce0a8'; for (const [ex, ey] of [[x, y], [x + w - 1, y], [x, y + h - 1], [x + w - 1, y + h - 1]]) { ctx.fillRect(ex - 1, ey, 3, 1); ctx.fillRect(ex, ey - 1, 1, 3); }
     const px = hero ? x + w - 48 : x + 8, tx = hero ? x + 10 : x + 56;
     portrait(ctx, pg.who, px, y + 10, t);
-    const name = pg.who === 'L' ? tr('npcLib') : pg.who === 'T' ? tr('bossTentacle') : pg.who === 'P' ? tr('npcPrisoner') : pg.who === 'C' ? tr('npcConcierge') : HEROES.def(pg.who === 'A' ? allyId() : Options.character).name;
-    Font.draw(ctx, name, tx, y + 7, hero ? '#7cdcfc' : pg.who === 'L' ? '#c8a0fc' : pg.who === 'T' ? '#d880fc' : pg.who === 'P' ? '#e8e0c8' : pg.who === 'C' ? '#a8e8c0' : '#f8b800', { shadow: '#000' });
+    const EGN = { S: 'npcSpeed', B: 'npcBones', W: 'npcChicken', F: 'npcBarber', M: 'npcCarto' }, EGC = { S: '#b8d4ff', B: '#e8e4d0', W: '#fcf4c8', F: '#f0a0a0', M: '#e8dcb8' };
+    const name = pg.who === 'L' ? tr('npcLib') : pg.who === 'T' ? tr('bossTentacle') : pg.who === 'P' ? tr('npcPrisoner') : pg.who === 'C' ? tr('npcConcierge') : EGN[pg.who] ? tr(EGN[pg.who]) : HEROES.def(pg.who === 'A' ? allyId() : Options.character).name;
+    Font.draw(ctx, name, tx, y + 7, hero ? '#7cdcfc' : pg.who === 'L' ? '#c8a0fc' : pg.who === 'T' ? '#d880fc' : pg.who === 'P' ? '#e8e0c8' : pg.who === 'C' ? '#a8e8c0' : EGC[pg.who] || '#f8b800', { shadow: '#000' });
     let left = Math.floor(talk.n);
     pg.lines.forEach((l, i) => {
       const ch = [...l], s = ch.slice(0, Math.max(0, left)).join('');
@@ -3531,6 +3612,15 @@ const Castle = (() => {
     S().forEach((st, i) => { const [x, y] = stats(i); a += x; n += y; });
     return pct(a, n);
   }
+  // Neueste Änderungen (zum Testen): die Abschnittswahl markiert diese Räume mit NEU und zeigt darunter, was sich geändert hat;
+  // SUB springt zum nächsten markierten Abschnitt. Bei jeder Auslieferung neu füllen
+  const RECENT = [
+    [['side', 'kaleido'], 'chgKaleido'], [['side', 'pendelhalle'], 'chgPendel'], [[2, 2], 'chgTower'], [['side', 'golemstollen'], 'chgGolem'],
+    [['side', 'galvani'], 'chgLab'], [['side', 'gruftgang'], 'chgBones'], [['side', 'fundbuero'], 'chgFund'], [['side', 'passage'], 'chgBarber'],
+    ...['hotelaufzug', 'eisaufzug', 'pumpenschacht', 'himmelsaufzug'].map(k => [['side', k], 'chgLift']),
+    ...['kasematte', 'felsenkammer', 'lesezimmer', 'sakristei', 'orangerie', 'vorzimmer'].map(k => [['side', k], 'chgFountain']),
+  ];
+  function recentNote(s, r) { for (const [R, k] of RECENT) { const a = ref(R); if (a && a.s === s && a.r === r) return k; } return null; }
   function roomPercent(s, r) {
     const rm = layout(s)[r], set = seen[rm.key];
     let a = 0, n = 0;
@@ -3877,7 +3967,7 @@ const Castle = (() => {
     for (const [A, , B] of LINKS) if (!ref(A) || !ref(B)) out.push('Verbindung ohne Raum: ' + JSON.stringify([A, B]));
     for (const b of BEATS) { const a = ref(b.at[0]); if (!a) out.push('Szene ohne Raum: ' + b.id); else if (!ground(S()[a.s].rooms[a.r], b.at[1], b.at[2])) out.push('Figur ohne Boden: ' + b.id); }
     for (const [R, id, x, y] of FINDS) { const a = ref(R); if (!a) out.push('Fund ohne Raum: ' + id); else if (SOLID.includes(S()[a.s].rooms[a.r].grid[y][x])) out.push('Fund in der Wand: ' + id); }
-    const need = ['famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'mapOverlayHelpT', 'optGuide', 'optGuideH'];
+    const need = ['secNew', 'secNewHelp', ...RECENT.map(([, k]) => k), 'famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'npcSpeed', 'npcBones', 'npcChicken', 'npcBarber', 'npcCarto', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'mapOverlayHelpT', 'optGuide', 'optGuideH'];
     for (const id in GEAR) need.push('item_' + id, 'itemD_' + id);
     for (const b of BEATS) { if (b.lines !== false) need.push('story_' + b.id); need.push('story_' + (b.again || b.id) + 'Again'); }
     for (const id of SPELL_IDS) need.push('spell_' + id);
@@ -3951,7 +4041,7 @@ const Castle = (() => {
 
   return {
     hush: () => { toast = null; goalWait = 0; }, // Ziel-Tafel ausblenden (Trailer-Aufnahmen)
-    on, update, settle, forward, bossBeaten, draw, openMap, mapInput, openWarp, warpInput, layout, castle, percent, roomPercent, firstVisit, seals,
+    on, update, settle, forward, bossBeaten, draw, openMap, mapInput, openWarp, warpInput, layout, castle, percent, roomPercent, recentNote, firstVisit, seals,
     bossDone: (s, r) => !!boss[roomKey(s, r)],
     hasSave: () => !!readSave(), loadSave: readSave, applySave, chambers: allChambers, writeResume, dropResume,
     newRun, drawStatus, expProgress, gainExp, get rpg() { return rpg; }, talkInput, drawTalk, get talk() { return talk; }, get flags() { return flag; },

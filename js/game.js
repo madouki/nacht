@@ -1350,6 +1350,9 @@ const Game = {
     const L = this.sectionList(), rooms = L.filter(e => !e.head);
     if (this.secSel === undefined) { let v = 0; try { v = parseInt(localStorage.getItem('nachtmahr.sec') || '0', 10) || 0; } catch (e) { /* privat */ } this.secSel = clamp(v, 0, rooms.length - 1); }
     if (P.up || P.down) { this.secSel = (this.secSel + (P.down ? 1 : rooms.length - 1)) % rooms.length; Audio8.sfx('select'); }
+    if (P.sub && Castle.on) { // Testen: zum nächsten Abschnitt mit neuen Änderungen
+      for (let k = 1; k <= rooms.length; k++) { const j = (this.secSel + k) % rooms.length; if (Castle.recentNote(rooms[j].s, rooms[j].r)) { this.secSel = j; Audio8.sfx('select'); break; } }
+    }
     if (P.left || P.right) { // ganze Stage weiter
       const s = rooms[this.secSel].s, ns = (s + (P.right ? 1 : Levels.STAGES.length - 1)) % Levels.STAGES.length;
       this.secSel = rooms.findIndex(e => e.s === ns); Audio8.sfx('select');
@@ -1380,9 +1383,16 @@ const Game = {
         continue;
       }
       if (on) { ctx.fillStyle = 'rgba(200,40,40,0.35)'; ctx.fillRect(lx + 4, y - 2, 244, 11); if ((this.t >> 4) % 2 === 0) Sprites.draw(ctx, Sprites.S.heartS, lx + 6, y - 1); }
-      Font.draw(ctx, e.label, lx + 18, y, on ? '#fcfcfc' : '#a0a0b0', { shadow: '#000', wave: on ? 1.2 : 0, t: this.t });
+      const nk = Castle.on && Castle.recentNote(e.s, e.r);
+      if (nk) { // neu geändert: grünes Schild links neben der Zeile (zu schmal: grüner Punkt)
+        const nt = tr('secNew'), bw = Font.width(nt) + 6, g = (this.t >> 4) % 2 ? '#3cb860' : '#2c9c4c';
+        if (lx >= bw + 4) { ctx.fillStyle = g; ctx.fillRect(lx - bw - 2, y - 2, bw, 11); Font.draw(ctx, nt, lx - bw + 1, y, '#fcfcfc', { shadow: '#000' }); }
+        else { ctx.fillStyle = g; ctx.fillRect(lx + 1, y + 1, 4, 4); }
+      }
+      Font.draw(ctx, e.label, lx + 18, y, on ? '#fcfcfc' : nk ? '#a8e8b8' : '#a0a0b0', { shadow: '#000', wave: on ? 1.2 : 0, t: this.t });
       if (Castle.on) { const p = Castle.roomPercent(e.s, e.r); Font.draw(ctx, p + '%', lx + 240, y, p >= 100 ? '#f8b800' : p ? '#8c9cc8' : '#4c4c5c', { align: 'right', shadow: '#000' }); }
     }
+    if (Castle.on) { const sk = sel && Castle.recentNote(sel.s, sel.r); Font.draw(ctx, sk ? tr(sk) : tr('secNewHelp'), cx, 201, sk ? '#7cf0a0' : '#5c8c6c', { align: 'center', shadow: '#000' }); } // was ist neu (oder: SUB springt hin)
     Font.draw(ctx, tr('secHelp'), cx, 212, '#7c7c8c', { align: 'center' });
   },
 

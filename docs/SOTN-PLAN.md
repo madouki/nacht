@@ -372,6 +372,12 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   extrudiertes Zahnrad am Drehpunkt, Messinglinse als Drehkörper mit Perlrand und graviertem Sonnengesicht; Linse jetzt 64 px
   (Bot-Test: alle Sprünge). Unter dem Gewölbe der oberen Etage drehen sich Räderwerke wie im Uhrturm; im Uhrturm schwingt
   dafür ein Riesenpendel tief hinten als Kulisse (`PendulumDeco`).
+- **Easter-Egg-Figuren** (`BEATS` speed/bones/chick/barber/carto, Zeichnungen `EGG`, Texte `story_*` in 6 Sprachen): Geist eines
+  Speedrunners im Kaleidoskop (seit 1391 halb in der Wand), Knochen-Kalle, Betriebsrat der Skelette, im Gruftgang (500 Gold
+  Streikgeld), das Wandhuhn als Fundsache Nr. 13 im Fundbüro, Friseur Anatol (Medusas Friseur, Tipps gegen den Blick) in der
+  Lichterpassage, der Kartograf oben in der Pendelhalle (verzweifelt am ständigen Anbauen, erklärt die Karten-Taste).
+- **Abschnittswahl zeigt Neues:** `RECENT` in castle.js markiert die zuletzt geänderten Räume mit NEU, darunter steht, was sich
+  geändert hat; SUB springt zum nächsten markierten Abschnitt. Bei jeder Auslieferung neu füllen.
 - **Karte:** Pause → **KARTE** zeigt das ganze Schloss (Regionen um die Eingangshalle: Prolog links, Katakomben unten,
   Bergfried oben, Sonnenkathedrale oben rechts, Wintergarten rechts, Thron ganz oben). Angriff zoomt, im Zoom scrollen
   die Pfeile, Sprung/Start schließt. Unten: Erkundungsgrad der Region und des Schlosses, Siegel n/5.
