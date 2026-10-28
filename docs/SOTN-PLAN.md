@@ -277,13 +277,10 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   der Luke), **Pumpenschacht** (Kanal ↔ Kuppel des Wintergartens; vom Kanal aus verriegelt), **Himmelsaufzug**
   (Himmelsbrücke ↔ Menschenfalle; von unten verriegelt), dazu Hotelaufzug und Lastenaufzug im Bahnhof.
 - **Kaleidoskop** (`js/kaleido.js`, über der Sonnenkathedrale: Treppe links im Vorplatz hinauf durch die Luke): liegende Röhre
-  aus Buntglas mit kolossalem Radius (acht Fensterfelder je Umlauf, enges Blickfeld: flache Wölbung, die Wand zieht langsam
-  vorbei) in fünf Trommeln, die sich abwechselnd vorwärts und rückwärts um die Längsachse drehen; Steinringe mit Goldkante
-  zwischen den Trommeln. Die Trommeln wechseln sich ab: Rosetten und schmale Spitzbogenfenster (die andere Hälfte um 180°
-  gedreht: Spitzbogen, Rosette), dann nur Spitzbögen (Dreiergruppen, die mittlere Lanzette rubinrot), dann nur Rosetten
-  (Kugelfries, 24 Rundscheiben, zwölf Blütenblätter, Pässe, goldene Sonne) – und wieder von vorn. Was oben im Mondlicht steht,
-  wirft wie im Glasturm einen goldweißen Lichtschacht (Mantel, Kern, Streifen der Bleiruten, Lichthof, Staub; höchstens zehn),
-  darunter farbiger Dunst über dem Abgrund. Unter jeder Trommel 17 Kacheln
+  aus Buntglas in fünf Trommeln, die sich abwechselnd vorwärts und rückwärts um die Längsachse drehen; Steinringe mit Goldkante
+  zwischen den Trommeln. Die Fenster sind die Figurenfenster des Glasturms (`Tiles.layer('glass', …)`, `Tiles.glassWins()`),
+  um die Röhre gelegt – sie kreisen mit ihrer Trommel. Was oben im Mondlicht steht, wirft wie im Glasturm einen goldweißen
+  Lichtschacht (Mantel, Kern, Streifen der Bleiruten, Lichthof, Staub), darunter farbiger Dunst über dem Abgrund. Unter jeder Trommel 17 Kacheln
   Abgrund mit zwei Ankerringen: nur mit der Peitsche zu schaffen (Bot-Test: Sprung + Doppelsprung + Luft-Dash kommen höchstens
   gut 10 Kacheln weit, mit den Ringen klappt jede Trommel); Fledermaus, Nebel und Wolf reißt der Wirbel zurück. Am Ende Truhe,
   Lebensgefäß und die **Prismenklinge** (ATT +6), dann durch die Luke hinab auf den Pfeiler der Kathedrale (Einbahn).
