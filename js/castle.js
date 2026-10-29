@@ -3644,6 +3644,7 @@ const Castle = (() => {
   // Neueste Änderungen (zum Testen): die Abschnittswahl markiert diese Räume mit NEU und zeigt darunter, was sich geändert hat;
   // SUB springt zum nächsten markierten Abschnitt. Bei jeder Auslieferung neu füllen
   const RECENT = [
+    [['side', 'versuchsstrecke'], 'chgMoto'], [['side', 'fundbuero'], 'chgFund'], // Dampfrad-Fahrt (links am Automatenwerk), Schalterrätsel (links an der Passage)
     [['side', 'kaleido'], 'chgKaleido'], [['side', 'pendelhalle'], 'chgPendel'], [['side', 'passage'], 'chgPassage'],
     [['side', 'golemstollen'], 'chgGolem'], [['side', 'galvani'], 'chgLab'],
     [[0, 1], 'chgPortrait'], [[0, 3], 'chgPortrait'], [[3, 4], 'chgPortrait'], // Ahnenbilder im Foyer, in der Halle und im Thronsaal

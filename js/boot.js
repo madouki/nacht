@@ -526,6 +526,7 @@ var Boot = (() => {
   window.addEventListener('keydown', press); window.addEventListener('pointerdown', press);
   function finish() { // Ladebild steht ganz weiß: jetzt übernimmt der Titel (Logo-Einschlag), das Weiß blendet kurz aus
     B.state = 'gone'; B.cover = false; B.hold = false;
+    if (later.length) try { Game.warmJobs = later.concat(Game.warmJobs || []); Game.warmTotal = Game.warmJobs.length; Game.warmDoneT = -1; later = []; } catch (e) { /* Spiel noch nicht da */ } // Rest baut der Titel nebenher
     try { if (B.onExit) B.onExit(); } catch (e) { /* Titel noch nicht da */ }
     el.classList.add('out'); setTimeout(() => el.remove(), 400); window.removeEventListener('resize', onResize);
     window.removeEventListener('keydown', press); window.removeEventListener('pointerdown', press);
@@ -534,16 +535,20 @@ var Boot = (() => {
 
   // Vorbau: mit Worker in großen Stücken (die Animation läuft ja woanders) – inklusive allem, was sonst erst im Titel
   // nachgebaut würde; ohne Worker wie bisher etwa 10 ms pro Bild
+  // „Taste drücken“ erscheint, sobald der Titel bereit ist (bootJobs); der übrige Vorbau (Ton, Helden, Gegner, Weltkarte, Prolog,
+  // Menüs) läuft mit Worker hier weiter – während man drückt und der Abgang blitzt –, der Rest dann im Titel (Game.warmJobs)
+  let later = [];
   const pump = () => {
     if (B.state === 'gone') return;
     if (!jobs && loaded && gameReady()) {
       try { jobs = Game.bootJobs ? Game.bootJobs() : []; } catch (e) { console.warn(e); jobs = []; }
-      if (worker && Game.warmJobs && Game.warmJobs.length) { jobs = jobs.concat(Game.warmJobs.splice(0)); Game.warmTotal = 0; }
+      if (worker && Game.warmJobs && Game.warmJobs.length) { later = Game.warmJobs.splice(0); Game.warmTotal = 0; }
       jobsN = jobs.length;
     }
-    if (jobs && jobs.length) {
+    const list = jobs && jobs.length ? jobs : B.state === 'load' ? [] : later; // Nachlauf erst ab „Taste drücken“: sonst drosselt Chrome die Ladeanimation im Worker
+    if (list.length) {
       const t0 = performance.now(), budget = worker ? 45 : 10;
-      do { try { jobs.shift()(); } catch (e) { console.warn(e); } } while (jobs.length && performance.now() - t0 < budget);
+      do { try { list.shift()(); } catch (e) { console.warn(e); } } while (list.length && performance.now() - t0 < budget);
       if (eng) eng.idle(); // die Zeit des Vorbaus nicht als Animationszeit nachholen
     }
     done = (!!jobs && !jobs.length) || (loaded && !gameReady() && performance.now() - loadT > 4000);
