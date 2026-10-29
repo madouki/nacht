@@ -203,6 +203,7 @@ const Game = {
     if (tg.s !== W.stage) { this.arrival = tg; this.startStage(tg.s, tg.r); this.arrival = null; return; }
     if (this.pendingView) this.applyView(this.pendingView);
     W.loadRoom(tg.s, tg.r); Castle.settle(tg); Audio8.play(W.songName(), null, 0.12);
+    this.bossName = 0; this.banter = null; // Bossraum erneut betreten (ohne Regionskarte): Namensband und Geplänkel wieder von vorn
   },
   titleItems() { // Titelmenü; der Moduswechsel lädt die Seite mit bzw. ohne ?castle neu
     if (!Castle.on) return ['start', 'castle', 'options', 'lang', 'scores', 'sections'];
@@ -650,6 +651,7 @@ const Game = {
   },
 
   updatePlay(P) {
+    if (this.banter && this.banter.t >= 0) { this.holdBanter(P); return; } // Wortgeplänkel vor dem Kampf: die Welt steht still
     if (P.start && W.player.alive) { this.go('pause'); this.pauseSel = 0; Audio8.setMusicVolume(0.3); Audio8.muffle(true); Audio8.sfx('pause'); this.saveResume(); return; } // Schloss: Pause = Fortsetzungspunkt
     if (Castle.on && P.map) Castle.toggleOverlay(); // Schloss: Select/Tab – Karte durchscheinend über dem Spiel
     if (this.readyT > 0) { // READY? … GO! (das Spiel läuft dabei schon)
@@ -1159,20 +1161,31 @@ const Game = {
     }
   },
 
-  // Schloss: kurzes Wortgeplänkel zu Beginn eines Bosskampfs (einmal je Boss und Spielstand). Es läuft unten im Bild mit, der Kampf
-  // beginnt währenddessen schon (nichts hält an); B = Boss, H = Held, Text banter_<Bossname> in i18n.js
+  // Schloss: kurzes Wortgeplänkel vor einem Bosskampf (einmal je Boss und Spielstand): erscheint der Boss, läuft kurz sein Auftritt
+  // (Namensband, Kamerafahrt), dann hält die Welt an, bis das Gespräch vorbei ist – Sprung/Angriff zeigt die Zeile ganz bzw. blättert
+  // weiter, Start überspringt alles; erst danach beginnt der Kampf. B = Boss, H = Held, Text banter_<Bossname> in i18n.js
   startBanter() {
     this.banter = null;
     if (!Castle.on || !W.boss) return;
     const id = W.boss.nameKey || W.stageDef.bossKey, k = 'banter_' + id, raw = tr(k);
     if (!Array.isArray(raw) || Castle.flags[k]) return;
     Castle.setFlag(k);
-    this.banter = { id, lines: raw.map(s => ({ who: s[0], text: s.slice(2) })), i: 0, t: -40 }; // erst nach dem Namensband
+    this.banter = { id, lines: raw.map(s => ({ who: s[0], text: s.slice(2) })), i: 0, t: -24 }; // erst kurz der Auftritt des Bosses
   },
-  tickBanter() {
-    const b = this.banter;
-    if (!W.boss || this.state !== 'play') { if (!W.boss) this.banter = null; return; }
-    if (++b.t > 70 + [...b.lines[b.i].text].length * 2.4) { b.i++; b.t = 0; if (b.i >= b.lines.length) this.banter = null; }
+  tickBanter() { // Auftritt: die Welt läuft noch (holdBanter übernimmt ab t = 0)
+    if (!W.boss) { this.banter = null; return; }
+    if (this.banter.t < 0) this.banter.t++;
+  },
+  holdBanter(P) {
+    const b = this.banter, n = [...b.lines[b.i].text].length, next = () => { b.i++; b.t = 0; if (b.i >= b.lines.length) this.banter = null; };
+    if (!W.boss) { this.banter = null; return; }
+    W.frame++; if (W.zoomFx && ++W.zoomFx.t > W.zoomFx.len) W.zoomFx = null; // nur die Auftrittseffekte laufen aus, Figuren stehen
+    if (W.cinema > 0) W.cinema--; if (W.shake > 0) W.shake--; if (W.flash > 0) W.flash--;
+    if (this.bossName < 150) this.bossName++;
+    b.t++;
+    if (P.start) { this.banter = null; Audio8.sfx('select'); return; } // überspringen
+    if (P.jump || P.attack) { if (b.t * 1.3 < n) b.t = Math.ceil(n / 1.3); else next(); Audio8.sfx('tick'); }
+    else if (b.t > 100 + n * 3) next(); // ohne Taste blättert es nach einer Weile selbst weiter
   },
   drawBanter(ctx) {
     const b = this.banter; if (b.t < 0) return;
@@ -1187,6 +1200,7 @@ const Game = {
     Font.draw(ctx, name, hero ? x + w - 6 : x + 6, y + 3, hero ? '#7cdcfc' : '#fc7460', { align: hero ? 'right' : 'left', shadow: '#000' });
     let left = Math.floor(b.t * 1.3);
     rows.forEach((r, i) => { const ch = [...r], s = ch.slice(0, Math.max(0, left)).join(''); left -= ch.length; if (s) Font.draw(ctx, s, x + 6, y + 13 + i * lh, '#fcfcfc', { shadow: '#000' }); });
+    Font.draw(ctx, tr('banterSkip'), hero ? x + 6 : x + w - 6, y + 3, (this.t >> 4) & 1 ? '#8c8ca4' : '#5c5c74', { align: hero ? 'left' : 'right' }); // Sprung: weiter, Start: überspringen
   },
   drawBossBanner(ctx) {
     const t = this.bossName, cx = View.cx;

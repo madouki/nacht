@@ -937,6 +937,7 @@ const I18N = (() => {
     // Abschnittswahl: neueste Änderungen markieren (zum Testen)
     secNew: { de: 'NEU', en: 'NEW', fr: 'NEUF', es: 'NUEVO', ja: '新', zh: '新' },
     secNewHelp: { de: 'SUB: ZUM NÄCHSTEN NEUEN ABSCHNITT', en: 'SUB: NEXT NEW SECTION', fr: 'SUB : SECTION NOUVELLE SUIVANTE', es: 'SUB: SIGUIENTE SECCIÓN NUEVA', ja: 'SUB：次の新しいセクションへ', zh: 'SUB：下一个新区域' },
+    banterSkip: { de: 'SPRUNG: WEITER · START: ÜBERSPRINGEN', en: 'JUMP: NEXT · START: SKIP', fr: 'SAUT : SUITE · START : PASSER', es: 'SALTO: SEGUIR · START: SALTAR', ja: 'ジャンプ: 次へ · START: スキップ', zh: '跳跃：继续 · START：跳过' },
     chgMoto: { de: 'DAMPFRAD-FAHRT: ↑ AUFSITZEN, SPRINGEN, DUCKEN, DASH = DAMPFSTOSS', en: 'STEAM BIKE RIDE: ↑ MOUNT, JUMP, DUCK, DASH = STEAM BOOST', fr: 'VÉLO À VAPEUR : ↑ MONTER, SAUTER, SE BAISSER, RUÉE = VAPEUR', es: 'MOTO DE VAPOR: ↑ MONTAR, SALTAR, AGACHARSE, IMPULSO = VAPOR', ja: '蒸気バイク: ↑ 乗る・ジャンプ・伏せる・ダッシュで蒸気噴射', zh: '蒸汽摩托：↑ 骑上、跳跃、俯身、冲刺=蒸汽喷射' },
     chgKaleido: { de: 'NOCH GRÖSSERE FENSTER, LANGSAMER, FEINES GLAS', en: 'EVEN BIGGER WINDOWS, SLOWER, FINER GLASS', fr: 'VITRAUX ENCORE PLUS GRANDS, PLUS LENTS', es: 'VENTANAS AÚN MAYORES, MÁS LENTAS', ja: 'さらに巨大な窓・低速回転・精細なガラス', zh: '更大的彩窗、更慢的旋转、更精细的玻璃' },
     chgPendel: { de: 'AUFGERÄUMT, GROSSE EINGEMAUERTE FENSTER', en: 'TIDIED UP, BIG WINDOWS SET IN STONE', fr: 'RANGÉE, GRANDS VITRAUX ENCASTRÉS', es: 'ORDENADA, GRANDES VENTANAS EN PIEDRA', ja: '整理整頓・石に埋め込まれた大窓', zh: '整理一新、嵌入石墙的大彩窗' },

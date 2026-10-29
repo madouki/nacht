@@ -66,6 +66,7 @@ class ClockFace extends Ent { // Zifferblatt von innen, hinter allem (drawBack):
   constructor(d) { super(d.x * T, d.y * T, 1, 1); this.kind = 'prop'; this.r = d.r || 150; this.noWrap = true; }
   update() { this.t++; }
   draw() { }
+  screen() { return { x: Math.round(View.w / 2 + (this.x - View.w / 2 - W.cam.x) * 0.6), y: Math.round(104 + (this.y - 104 - W.cam.y) * 0.8), r: this.r }; } // Lage in der Wandebene (wie die Fenster)
   gears(ctx, t) { // Riesenzahnräder des Uhrwerks weit hinten (Parallaxe 0.35), dunkle Bronze mit Lichtkante
     const G = [[-220, 40, 70, 20, 1], [-120, 150, 46, 14, -1.53], [150, 30, 90, 26, -0.78], [270, 160, 54, 16, 1.44], [40, 200, 40, 12, -1.75], [380, 60, 60, 18, 1.0]];
     for (const [ox, oy, r, n, sp] of G) {
@@ -83,12 +84,17 @@ class ClockFace extends Ent { // Zifferblatt von innen, hinter allem (drawBack):
     }
   }
   drawBack(ctx) {
-    const x = Math.round(View.w / 2 + (this.x - View.w / 2 - W.cam.x) * 0.6), y = Math.round(104 + (this.y - 104 - W.cam.y) * 0.8), r = this.r, t = W.frame; // Parallaxe: liegt weiter hinten
-    if (x + r < -20 || x - r > View.w + 20) return;
+    const { x, y, r } = this.screen(), t = W.frame; // in der Rückwand (TowerGlass.wall spart die Öffnung aus, dahinter Himmel und Zahnwerk)
+    if (x + r + 24 < -20 || x - r - 24 > View.w + 20) return;
     ctx.save();
-    const g = ctx.createRadialGradient(x, y, r * 0.1, x, y, r); // Milchglas, von hinten vom Mond beschienen
-    g.addColorStop(0, 'rgba(220,226,255,0.55)'); g.addColorStop(0.7, 'rgba(150,160,210,0.35)'); g.addColorStop(1, 'rgba(60,64,100,0.25)');
-    ctx.fillStyle = '#1c1828'; ctx.beginPath(); ctx.arc(x, y, r + 10, 0, Math.PI * 2); ctx.fill();
+    const g = ctx.createRadialGradient(x, y, r * 0.1, x, y, r); // Milchglas, von hinten vom Mond beschienen – das Zahnwerk scheint als Schatten durch
+    g.addColorStop(0, 'rgba(220,226,255,0.5)'); g.addColorStop(0.7, 'rgba(150,160,210,0.32)'); g.addColorStop(1, 'rgba(60,64,100,0.22)');
+    for (let k = 0; k < 24; k++) { // Steinkranz aus Keilsteinen, in die Quaderwand eingebunden
+      const a0 = k / 24 * Math.PI * 2, a1 = (k + 1) / 24 * Math.PI * 2 - 0.02;
+      ctx.fillStyle = k % 2 ? '#3a3848' : '#33313f'; ctx.beginPath(); ctx.arc(x, y, r + 24, a0, a1); ctx.arc(x, y, r + 10, a1, a0, true); ctx.closePath(); ctx.fill();
+    }
+    ctx.strokeStyle = '#4c4a5c'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(x, y, r + 24, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeStyle = '#1c1828'; ctx.lineWidth = 10; ctx.beginPath(); ctx.arc(x, y, r + 5, 0, Math.PI * 2); ctx.stroke(); // eiserner Ring
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = '#2c2438'; ctx.lineWidth = 4; // Sprossen des Zifferblatts
     for (let k = 0; k < 12; k++) { const a = k * Math.PI / 6; ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * r * 0.22, y + Math.sin(a) * r * 0.22); ctx.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r); ctx.stroke(); }
@@ -142,13 +148,15 @@ class GearWorks extends Ent {
     P.box(m, g.x, -g.y - R0 * 0.16, zf - 10, R0 * 0.32, R0 * 0.32, 8, hub, { rot: ang }); // Nabe
   }
   drawBack(ctx) {
+    const clock = W.ents.find(e => e instanceof ClockFace && !e.dead), c = clock && clock.screen(); // in der Pendelhalle: nur durch das Zifferblatt sichtbar
+    if (c && (c.x + c.r < 0 || c.x - c.r > View.w || c.y + c.r < 0 || c.y - c.r > 208)) return;
     const w = View.w, Wb = Math.ceil(w / 2), Hb = 104;
     if (!this.buf || this.buf.w !== Wb) { const c = document.createElement('canvas'); c.width = Wb; c.height = Hb; this.buf = { c, x: c.getContext('2d', { willReadFrequently: true }), w: Wb }; }
     const P = PS2, m = P.mesh(), t = W.frame, BR = [176, 128, 56], BZ = [124, 86, 42], IR = [92, 90, 104];
     this.gears.forEach((g, i) => GearWorks.gear(P, m, g, g.w * t + i * 0.37, i % 3 === 1 ? BZ : BR, IR));
     const B = this.buf; B.x.clearRect(0, 0, Wb, Hb);
     P.render(B.x, Wb, Hb, [m], { x: W.cam.x + w / 2, y: -(W.cam.y + 104), z: 0, yaw: 0, pitch: 0, f: 100, near: 20, cx: Wb / 2, cy: 52 }, GearWorks.ENV);
-    ctx.save(); ctx.globalAlpha = 0.45; ctx.imageSmoothingEnabled = true; ctx.drawImage(B.c, 0, 0, Wb, Hb, 0, 0, Wb * 2, 208); ctx.restore(); // dezent: weit hinten
+    ctx.save(); if (c) { ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2); ctx.clip(); } ctx.globalAlpha = c ? 0.8 : 0.45; ctx.imageSmoothingEnabled = true; ctx.drawImage(B.c, 0, 0, Wb, Hb, 0, 0, Wb * 2, 208); ctx.restore(); // dezent: weit hinten
   }
 }
 GearWorks.ENV = (() => { const v = [-0.45, 0.5, -0.75], l = Math.hypot(...v); return { sun: v.map(c => c / l), sunC: [0.95, 0.78, 0.5], amb: [0.16, 0.14, 0.2], sky: [0.12, 0.12, 0.18], fog: [14, 12, 22], fogD: 0.0016 }; })(); // warme Lampe von vorn links, Dunst in der Tiefe
@@ -210,7 +218,37 @@ class TowerGlass extends Ent { // d: { list: [[x, y, Fenster 0–11], …] (Kach
     const A = W * 0.866;
     ctx.beginPath(); ctx.moveTo(x0, y0 + H); ctx.lineTo(x0, y0 + A); ctx.arc(x0 + W, y0 + A, W, Math.PI, Math.PI * 4 / 3); ctx.arc(x0, y0 + A, W, -Math.PI / 3, 0); ctx.lineTo(x0 + W, y0 + H); ctx.closePath();
   }
+  // Rückwand der Halle in derselben Ebene wie Fenster und Zifferblatt (Parallaxe 0.6 / 0.8): Quader in versetzten Lagen, Pilaster
+  // zwischen den Fenstern, Gesimse über und unter den Fensterreihen – so sitzen die Fenster fest im Mauerwerk, statt vor der
+  // ferneren Turmkulisse zu schweben. Das Zifferblatt bleibt eine Öffnung (dahinter Nachthimmel, das Zahnwerk, das Milchglas)
+  static wall(ctx, clock) {
+    const vw = View.w, sx = (wx) => vw / 2 + (wx - vw / 2 - W.cam.x) * 0.6, sy = (wy) => 104 + (wy - 104 - W.cam.y) * 0.8;
+    const hn = (a, b) => { let n = Math.imul(a * 374761393 + b * 668265263, 1274126177); n ^= n >>> 13; return ((n >>> 0) % 997) / 997; };
+    ctx.save();
+    if (clock) { const c = clock.screen(); ctx.beginPath(); ctx.rect(-4, -4, vw + 8, 216); ctx.arc(c.x, c.y, c.r + 10, 0, Math.PI * 2, true); ctx.clip('evenodd'); } // Öffnung für das Zifferblatt
+    ctx.fillStyle = '#121018'; ctx.fillRect(0, 0, vw, 208);
+    const BW = 38, BH = 19, x0 = sx(0), y0 = sy(0), r0 = Math.floor(-y0 / BH) - 1;
+    for (let r = r0; y0 + r * BH < 208; r++) { // Quaderlagen
+      const y = Math.round(y0 + r * BH), off = (r & 1) * BW / 2, k0 = Math.floor((-x0 - off) / BW) - 1;
+      for (let k = k0; x0 + off + k * BW < vw; k++) {
+        const x = Math.round(x0 + off + k * BW), v = hn(k, r);
+        ctx.fillStyle = v < 0.33 ? '#2a2734' : v < 0.66 ? '#2e2b39' : '#262330'; ctx.fillRect(x + 1, y + 1, BW - 2, BH - 2);
+        ctx.fillStyle = '#3c394e'; ctx.fillRect(x + 1, y + 1, BW - 2, 1); ctx.fillStyle = '#1c1a24'; ctx.fillRect(x + 1, y + BH - 2, BW - 2, 1); // Lichtkante oben, Schattenkante unten
+        if (v > 0.86) { ctx.fillStyle = '#16141c'; ctx.fillRect(x + 6 + Math.round(v * 20), y + 5, 7, 1); } // Riss
+      }
+    }
+    for (const wy of [262, 348]) { const y = Math.round(sy(wy)); ctx.fillStyle = '#2c2a38'; ctx.fillRect(0, y, vw, 7); ctx.fillStyle = '#3c3a4c'; ctx.fillRect(0, y, vw, 1); ctx.fillStyle = '#0e0c14'; ctx.fillRect(0, y + 7, vw, 2); } // Gesimse zwischen den Fensterreihen
+    for (const wx of [0, 480, 794, 1254, 1568, 2048]) { // Pilaster zwischen Fenstern und Zifferblatt
+      const x = Math.round(sx(wx)) - 8; if (x > vw + 10 || x < -26) continue;
+      ctx.fillStyle = '#34313f'; ctx.fillRect(x, 0, 16, 208); ctx.fillStyle = '#48455c'; ctx.fillRect(x, 0, 2, 208); ctx.fillStyle = '#121018'; ctx.fillRect(x + 14, 0, 2, 208);
+      for (let y = Math.round(y0) % 38 - 38; y < 208; y += 38) { ctx.fillStyle = '#1a1822'; ctx.fillRect(x + 2, y, 12, 1); } // Fugen der Pilasterquader
+    }
+    ctx.restore();
+    if (clock) { const c = clock.screen(), g = ctx.createRadialGradient(c.x - c.r * 0.3, c.y - c.r * 0.3, 10, c.x, c.y, c.r + 10); g.addColorStop(0, '#2c3460'); g.addColorStop(1, '#0c0e1e'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c.x, c.y, c.r + 10, 0, Math.PI * 2); ctx.fill(); } // Nachthimmel hinter dem Glas
+  }
   drawBack(ctx) {
+    const clock = W.ents.find(e => e instanceof ClockFace && !e.dead);
+    TowerGlass.wall(ctx, clock);
     const HI = Tiles.glassHi(), fl = W.storm && FX.stormOn(W.storm), t = this.t, s = this.s, w = 84 * s, h = 196 * s, A = TowerGlass.arch;
     for (const [tx, ty, i] of this.list) {
       const x = Math.round(View.w / 2 + (tx * T - View.w / 2 - W.cam.x) * 0.6 - w / 2), y = Math.round(104 + (ty * T - 104 - W.cam.y) * 0.8);

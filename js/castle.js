@@ -662,8 +662,8 @@ const Castle = (() => {
       .stair(1, 35, 18, 1)                                                             // Treppe vom linken Absatz hinauf
       .fill(19, 18, 38, 19, '#').fill(49, 18, 58, 19, '#').fill(71, 18, 93, 19, '#').fill(102, 18, 127, 19, '#') // obere Etage (Träger der Pendel)
       .cog(702 / 16, 283 / 16, 64, 4, 0.011).cog(1040 / 16, 283 / 16, 82, 4, 0.011).cog(1568 / 16, 283 / 16, 50, 4, 0.011) // Zahnrad-Riesenräder über den Lücken
-      .prop('gearworks', {})
-      .prop('pendglass', { list: [[16, 2, 0], [44, 2, 1], [84, 2, 2], [112, 2, 6], [40, 24, 5], [88, 24, 4]] }) // Figurenfenster in der Rückwand (oben vier, unten zwei neben dem Zifferblatt), vor dem fernen Zahnwerk.prop('clockface', { x: 64, y: 26, r: 150 })
+      .prop('pendglass', { list: [[16, 2, 0], [44, 2, 1], [84, 2, 2], [112, 2, 6], [40, 24, 5], [88, 24, 4]] }) // Rückwand aus Quadern mit den Figurenfenstern (oben vier, unten zwei neben dem Zifferblatt)
+      .prop('gearworks', {}).prop('clockface', { x: 64, y: 26, r: 150 }) // Zifferblatt als Öffnung in der Wand, das ferne Zahnwerk scheint durch sein Milchglas
       .prop('gears', { list: [ // Räderwerk wie im Uhrturm unter dem Gewölbe der oberen Etage (dreht mit, nicht begehbar)
         { type: 'wheel', ax: 30 * 16, ay: 4 * 16, r: 48, v: 0.4, walk: false, post: false }, { type: 'wheel', mesh: 0, ang: 20, r: 32, walk: false, post: false },
         { type: 'wheel', mesh: 1, ang: -30, r: 40, walk: false, post: false },
