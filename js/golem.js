@@ -130,6 +130,16 @@ class GolemBoss extends Boss {
     B(m, hx + 27, hy + 6, 0, 4, 5, 28, [30, 20, 20]);                                       // Mundspalt
     for (const z of [-13, 13]) B(m, hx + 27, hy + 21, z, 3, 7, 11, eye, { e: 0.25 + this.eye * 0.9 });
     B(m, hx - 8, hy + 44, -8, 26, 8, 26, MOSS); P.cone(m, hx - 12, hy + 44, 14, 8, 16, 4, D);
+    // Oberfläche: kleine Felsbrocken kleben an Schultern, Buckel und Schenkeln, Flechten (gelbgrün) und Moospolster auf den
+    // Oberseiten, glühende Runenbänder ziehen sich über Brust und Schenkel, ein Steinkamm über den Rücken
+    for (const [x, y, z, w2, h2, col] of [[-20, ch + 2, -46, 14, 9, S2], [-26, ch - 10, 40, 12, 10, D], [-36, ch - 20, -12, 16, 12, S], [-38, ch - 30, 22, 12, 9, S2],
+      [14, hip - 2, -48, 10, 8, D], [18, hip + 6, 44, 12, 9, S2], [-8, hip + 30, -58, 10, 9, S], [-6, hip + 26, 56, 9, 8, D], [30, ch - 50, -40, 9, 7, S2], [28, ch - 44, 44, 10, 8, S]])
+      B(m, x, y, z, w2, h2, w2, col, { rot: (x + z) * 0.03 });
+    for (const [x, y, z, w2, d2, col] of [[-10, ch + 20, -30, 22, 16, [150, 160, 70]], [-20, ch + 26, 36, 18, 14, MOSS2], [-30, ch + 10, 4, 16, 18, MOSS], [8, ch + 2, -70, 14, 12, [170, 170, 80]], [-6, hip + 40 + 30 * (1 - k), 48, 12, 10, MOSS]])
+      B(m, x, y, z, w2, 3, d2, col, { rot: z * 0.02 }); // Flechten und Moos
+    for (let i = 0; i < 6; i++) P.cone(m, -44 + i * 3, ch - 8 + i * 6, -30 + i * 12, 6 - i * 0.4, 14, 4, D); // Steinkamm über den Rücken
+    for (const [x0, y0, z0, x1, y1, z1] of [[44, hip + 30, -30, 48, ch - 46, -10], [48, ch - 46, -10, 46, ch - 22, 26], [34, hip * 0.3, -40, 34, hip * 0.9, -30], [34, hip * 0.3, 40, 34, hip * 0.8, 32]])
+      P.beam(m, x0, y0, z0, x1, y1, z1, 2.4, 2.4, RUNE, { e: glowR * 0.85, open: true }); // glühende Runenbänder
     // Kristallbüschel aus der Höhle wachsen aus Schultern und Buckel (selbstleuchtend, pulsierend)
     const cg = 0.1 + 0.07 * Math.sin(this.t * 0.06), CR = [[150, 80, 255], [60, 190, 255]];
     for (const [x0, y0, z0, n] of [[-30, ch + 8, -26, 3], [-28, ch + 8, 24, 2], [-10, ch + 26, -74, 3], [-12, ch + 26, 76, 3], [-40, ch - 6, 0, 2]])

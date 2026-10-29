@@ -718,7 +718,9 @@ const AwakenedModel = (() => {
     const { hip, up, fp, chest, neck, head } = J, sN = J.arms[0].s, sF = J.arms[1].s;
     for (const L of J.legs) { // Beine: zerrissene Hose, schwere Stiefel
       seg(L.h, L.knee, 8, 8, 6.6, 6.6, PANTS); seg(L.knee, L.foot, 6.6, 6.6, 5.6, 5.4, PANTS2);
-      seg([L.foot[0] - 4, L.foot[1] - 1.5, L.foot[2]], [L.foot[0] + 9, L.foot[1] - 2, L.foot[2]], 5, 3.4, 4.6, 2.8, BOOT);
+      seg([L.foot[0] - 5, L.foot[1] - 1, L.foot[2]], [L.foot[0] + 10, L.foot[1] - 1.5, L.foot[2]], 5.8, 3.8, 5.2, 3.2, BOOT); // schwere Plateaustiefel
+      seg([L.foot[0] - 6, L.foot[1] - 4.6, L.foot[2]], [L.foot[0] + 11, L.foot[1] - 4.8, L.foot[2]], 6.2, 1.4, 5.8, 1.4, [24, 20, 18]); // dicke Sohle
+      seg(add(L.knee, [0, -6, 0]), add(L.knee, [0, -3, 0]), 7.2, 7.2, 7.2, 7.2, PANTS2); // Flicken am Knie
     }
     seg(add(hip, [0, -7, 0]), add(hip, mul(up, 3)), 12.5, 9, 13, 9.4, PANTS); seg(add(hip, mul(up, 2)), add(hip, mul(up, 5)), 13.6, 10, 13.6, 10, LEATH); // Becken, Gürtel
     seg(add(hip, mul(up, 4)), add(chest, mul(up, -2)), 12, 8.6, 16.5, 10.6, TORSO); // Rumpf: schmale Hüfte, breiter Brustkorb
@@ -737,6 +739,9 @@ const AwakenedModel = (() => {
     seg(H(-0.6, 3.6), H(-0.6, 10.8), 8.6, 7.8, 8.3, 7.4, HAIR, { cap: HAIR2 }); // flacher Haarschopf, oben platt abgeschnitten
     for (let i = -2; i <= 2; i++) seg(H(6.3, 7.4, i * 2.7), H(7.6, 3.4 + (i & 1) * 1.4, i * 2.7), 1.5, 1.2, 0.5, 0.5, HAIR); // Ponyfransen
     for (const k of [-1, 1]) seg(add(neck, [1, -1, k * 5]), add(neck, [1, -1, k * 9.6]), 1.5, 1.5, 2.2, 2.2, IRONC, { cap: [150, 150, 164] }); // Halsbolzen
+    for (const k of [-1, 1]) for (const u of [16, 22, 28]) seg(add(add(hip, mul(up, u)), add(mul(fp, 11.4), [0, 0, k * 4.2])), add(add(hip, mul(up, u)), add(mul(fp, 12.6), [0, 0, k * 4.2])), 1.1, 1.1, 1.1, 1.1, [200, 160, 70]); // Messingknöpfe am Gehrock
+    seg(add(add(hip, mul(up, 3)), mul(fp, 12.2)), add(add(hip, mul(up, 3)), mul(fp, 13.4)), 2.6, 2, 2.6, 2, [214, 170, 80]); // Gürtelschnalle
+    seg(H(6.2, 3.4, -5.4), H(6.2, 3.4, 5.4), 1.2, 2.2, 1.2, 2.2, HAIR); // buschige Brauen
     seg(H(6.4, 2.4, -5.6), H(6.4, 2.4, 5.6), 1.8, 2, 1.8, 2, NECK); // Brauenwulst
     seg(H(1.5, -6), H(7.2, -6.6), 5.8, 2.6, 5, 2.2, NECK); // schwerer Unterkiefer
     for (const k of [-1, 1]) { seg(H(0.5, 0.5, k * 6.6), H(0.5, 0.5, k * 11), 1.6, 1.6, 1.3, 1.3, CU); seg(H(0.5, 0.5, k * 11), H(0.5, 0.5, k * 12.8), 2, 2, 2, 2, pal.tip); } // Kupferelektroden an den Schläfen
@@ -749,7 +754,7 @@ const AwakenedModel = (() => {
     // Leuchtpunkte und Nähte (für die 2D-Überlagerung, nur die zur Kamera gewandte Seite)
     const near = J.arms[0], ln = J.legs[0];
     const pts = {
-      heart: W3(add(pc, mul(fp, 3))), tips: [W3(H(0.5, 0.5, -12.8)), W3(H(0.5, 0.5, 12.8))], eyes: [W3(H(7.4, 0.2, -3)), W3(H(7.4, 0.2, 3))], fist: W3(add(near.hand, mul(near.d2, 4))),
+      heart: W3(add(pc, mul(fp, 3))), tips: [W3(H(0.5, 0.5, -12.8)), W3(H(0.5, 0.5, 12.8))], bolts: [W3(add(neck, [1, -1, -9.8])), W3(add(neck, [1, -1, 9.8]))], eyes: [W3(H(7.4, 0.2, -3)), W3(H(7.4, 0.2, 3))], fist: W3(add(near.hand, mul(near.d2, 4))),
       seams: [
         [add(add(chest, mul(fp, 10.8)), [0, -2, -11]), add(add(chest, mul(fp, 11.2)), mul(up, -8)), add(add(hip, mul(fp, 9.4)), add(mul(up, 9), [0, 0, 5]))],
         [H(7.7, 2.2, -4.4), H(8.3, 3.2, 0), H(7.7, 2.4, 4.4)], // quer über die Stirn
@@ -898,6 +903,7 @@ class Awakened extends Boss {
     const s = this.state;
     if (s === 'slamUp' || s === 'wind' || s === 'rage' || s === 'roar' || (this.ph2 && this.t % 40 < 6)) Lab.zap(x, tips[0][0], tips[0][1], tips[1][0], tips[1][1] - 6, this.t >> 1, 5, 0.9); // Überschlag zwischen den Elektroden
     if (s === 'slamUp') { const f = pr(pts.fist); Lab.zap(x, tips[0][0], tips[0][1], f[0], f[1], (this.t >> 1) + 9, 6, 0.8); }
+    if (this.t % 70 < 7) { const b = pts.bolts.map(pr); Lab.zap(x, b[0][0], b[0][1], b[1][0], b[1][1] - 2, this.t >> 1, 3, 0.75, '160,255,190'); } // Funken zwischen den Halsbolzen
     if (s === 'throw' && this.timer < 24) { const f = pr(pts.fist); x.fillStyle = '#e8fff0'; x.fillRect(Math.round(f[0]) - 2, Math.round(f[1]) - 4, 4, 7); const fg = x.createRadialGradient(f[0], f[1], 0, f[0], f[1], 10); fg.addColorStop(0, 'rgba(120,255,170,0.9)'); fg.addColorStop(1, 'rgba(60,255,140,0)'); x.fillStyle = fg; x.fillRect(f[0] - 10, f[1] - 10, 20, 20); }
     x.restore();
     ctx.drawImage(this.buf, X, Y);

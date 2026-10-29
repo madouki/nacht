@@ -1351,6 +1351,18 @@ class Portrait extends Ent {
         ctx.fillStyle = '#fcfcf0'; ctx.fillRect(X + mx - 4, Y + my - 1, 1, 1 + Math.round(k * 2)); ctx.fillRect(X + mx + 3, Y + my - 1, 1, 1 + Math.round(k * 2));
         ctx.fillStyle = '#a80020'; ctx.fillRect(X + mx - 3, Y + my + Math.round(k * 2), 6, 1);
       }
+      // Bilderleuchte aus Messing über dem Rahmen wirft einen warmen Lichtkegel auf das Bild; darunter das Namensschild des Ahnen
+      const lx = X + FW / 2, nm = I18N.t('portrait' + v), nw = Math.min(FW - 2, Font.width(nm) + 6);
+      ctx.fillStyle = '#3c2c10'; ctx.fillRect(lx - 1, Y - 10, 2, 7); ctx.fillRect(lx - 17, Y - 6, 34, 4);
+      ctx.fillStyle = '#c89838'; ctx.fillRect(lx - 16, Y - 6, 32, 3); ctx.fillStyle = '#fce0a8'; ctx.fillRect(lx - 16, Y - 6, 32, 1);
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      const lg = ctx.createRadialGradient(lx, Y - 2, 2, lx, Y + FH * 0.3, FH * 0.7); lg.addColorStop(0, 'rgba(255,214,140,0.5)'); lg.addColorStop(0.55, 'rgba(255,200,120,0.14)'); lg.addColorStop(1, 'rgba(255,190,110,0)');
+      ctx.fillStyle = lg; ctx.fillRect(X - 8, Y - 4, FW + 16, FH * 0.95);
+      ctx.restore();
+      const ny = Y + FH - 12; // Schild auf der unteren Rahmenleiste
+      ctx.fillStyle = '#2c1c08'; ctx.fillRect(lx - nw / 2 - 1, ny - 1, nw + 2, 11); ctx.fillStyle = '#c89838'; ctx.fillRect(lx - nw / 2, ny, nw, 9); ctx.fillStyle = '#fce0a8'; ctx.fillRect(lx - nw / 2, ny, nw, 1);
+      ctx.fillStyle = '#5c3c10'; ctx.fillRect(lx - nw / 2 + 1, ny + 4, 1, 1); ctx.fillRect(lx + nw / 2 - 2, ny + 4, 1, 1); // Nieten
+      Font.draw(ctx, nm, lx, ny + 1, '#3c2008', { align: 'center' });
     }
   }
 }

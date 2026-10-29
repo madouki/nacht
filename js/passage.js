@@ -72,13 +72,40 @@ const Passage = (() => {
     for (let X = 0; X < W0; X += 64) {
       px(x, '#b8a47c', X, 74, 8, 72); px(x, '#e8dcc0', X + 1, 74, 2, 72); px(x, '#8c7454', X + 7, 74, 1, 72); // Pilaster
       x.strokeStyle = '#3c5a4a'; x.lineWidth = 1; x.beginPath(); for (let Y = 80; Y < 142; Y += 10) { x.moveTo(X + 4, Y); x.quadraticCurveTo(X + 8, Y + 5, X + 4, Y + 10); } x.stroke();
-      const wx = X + 18, wy = 84, ww = 36, wh = 52; // Rundbogenfenster
-      x.fillStyle = '#5c4834'; x.beginPath(); x.arc(wx + ww / 2, wy + ww / 2, ww / 2 + 3, Math.PI, 0); x.lineTo(wx + ww + 3, wy + wh); x.lineTo(wx - 3, wy + wh); x.closePath(); x.fill();
-      const gl = x.createLinearGradient(0, wy, 0, wy + wh); gl.addColorStop(0, '#f8d890'); gl.addColorStop(1, '#c87c38'); x.fillStyle = gl; // warmes Licht der Wohnungen
-      x.beginPath(); x.arc(wx + ww / 2, wy + ww / 2, ww / 2, Math.PI, 0); x.lineTo(wx + ww, wy + wh); x.lineTo(wx, wy + wh); x.closePath(); x.fill();
-      x.strokeStyle = '#3c2c1c'; x.lineWidth = 2; x.beginPath(); x.moveTo(wx + ww / 2, wy); x.lineTo(wx + ww / 2, wy + wh); x.moveTo(wx, wy + 30); x.lineTo(wx + ww, wy + 30); x.stroke();
-      x.lineWidth = 1; x.beginPath(); x.arc(wx + ww / 2, wy + ww / 2, ww / 4, Math.PI, 0); x.stroke();
-      if (hn(X, 3, 1) < 0.5) { px(x, 'rgba(40,20,10,0.75)', wx + 4, wy + 34, 9, 18); px(x, 'rgba(40,20,10,0.75)', wx + 6, wy + 30, 5, 5); } // ein Schatten am Fenster
+      // Rundbogenfenster der Wohnungen über den Läden: Sandsteingewände mit Schlussstein, Jugendstil-Buntglas im Oberlicht,
+      // Sprossenflügel, Spitzengardinen, warmes Licht mit einer Silhouette (Katze, Leser, Tanzpaar, Vogelkäfig, Vampir beim
+      // Zähneputzen …), Fensterbank mit Geranien im Blumenkasten
+      const wx = X + 18, wy = 84, ww = 36, wh = 52, cxw = wx + ww / 2, r0 = ww / 2, sy = wy + r0, n = Math.floor(X / 64);
+      const archP = (ex) => { x.beginPath(); x.arc(cxw, sy, r0 + ex, Math.PI, 0); x.lineTo(wx + ww + ex, wy + wh); x.lineTo(wx - ex, wy + wh); x.closePath(); };
+      archP(5); x.fillStyle = '#7c6448'; x.fill(); archP(4); x.fillStyle = '#c8b088'; x.fill(); archP(2); x.fillStyle = '#5c4834'; x.fill(); // Gewände
+      for (let k = 0; k <= 8; k++) { const t = Math.PI + k / 8 * Math.PI; x.strokeStyle = '#8c7454'; x.lineWidth = 1; x.beginPath(); x.moveTo(cxw + Math.cos(t) * (r0 + 1), sy + Math.sin(t) * (r0 + 1)); x.lineTo(cxw + Math.cos(t) * (r0 + 5), sy + Math.sin(t) * (r0 + 5)); x.stroke(); } // Keilsteinfugen
+      x.fillStyle = '#e8dcc0'; x.beginPath(); x.moveTo(cxw - 4, wy - 6); x.lineTo(cxw + 4, wy - 6); x.lineTo(cxw + 3, wy + 1); x.lineTo(cxw - 3, wy + 1); x.closePath(); x.fill(); px(x, '#8c7454', cxw - 1, wy - 4, 2, 3); // Schlussstein
+      const gl = x.createLinearGradient(0, wy, 0, wy + wh); gl.addColorStop(0, '#fce4a0'); gl.addColorStop(1, '#d08840'); x.fillStyle = gl; archP(0); x.fill(); // warmes Licht der Wohnung
+      const sil = Math.floor(hn(n, 7, 3) * 7); // Silhouette im Zimmer
+      x.fillStyle = 'rgba(48,22,10,0.8)';
+      if (sil === 0) { x.beginPath(); x.ellipse(cxw - 4, wy + 46, 6, 4, 0, 0, Math.PI * 2); x.fill(); x.beginPath(); x.arc(cxw + 2, wy + 41, 3, 0, Math.PI * 2); x.fill(); x.fillRect(cxw + 1, wy + 37, 1, 2); x.fillRect(cxw + 3, wy + 37, 1, 2); x.fillRect(cxw - 10, wy + 44, 3, 1); } // Katze auf der Fensterbank
+      else if (sil === 1) { x.fillRect(cxw - 9, wy + 34, 6, 16); x.beginPath(); x.arc(cxw - 6, wy + 31, 3, 0, Math.PI * 2); x.fill(); x.fillRect(cxw - 4, wy + 34, 6, 5); x.fillRect(cxw + 6, wy + 26, 1, 24); x.beginPath(); x.moveTo(cxw + 2, wy + 26); x.lineTo(cxw + 10, wy + 26); x.lineTo(cxw + 6, wy + 21); x.closePath(); x.fill(); } // Leser unter der Stehlampe
+      else if (sil === 2) { for (const dx of [-5, 3]) { x.fillRect(cxw + dx, wy + 30, 4, 20); x.beginPath(); x.arc(cxw + dx + 2, wy + 27, 3, 0, Math.PI * 2); x.fill(); } x.fillRect(cxw - 2, wy + 33, 6, 2); } // Tanzpaar
+      else if (sil === 3) { x.strokeStyle = 'rgba(48,22,10,0.8)'; x.lineWidth = 1; x.beginPath(); x.arc(cxw, wy + 36, 7, Math.PI, 0); x.lineTo(cxw + 7, wy + 46); x.lineTo(cxw - 7, wy + 46); x.closePath(); x.stroke(); for (let k = -4; k <= 4; k += 4) { x.beginPath(); x.moveTo(cxw + k, wy + 30); x.lineTo(cxw + k, wy + 46); x.stroke(); } x.fillRect(cxw - 2, wy + 39, 4, 3); x.fillRect(cxw, wy + 22, 1, 8); } // Vogelkäfig
+      else if (sil === 4) { x.fillRect(cxw - 6, wy + 30, 8, 20); x.beginPath(); x.moveTo(cxw - 9, wy + 30); x.lineTo(cxw + 5, wy + 30); x.lineTo(cxw - 2, wy + 50); x.closePath(); x.fill(); x.beginPath(); x.arc(cxw - 2, wy + 26, 3, 0, Math.PI * 2); x.fill(); x.fillRect(cxw + 1, wy + 26, 5, 1); px(x, 'rgba(252,252,252,0.9)', cxw + 4, wy + 25, 2, 1); } // Vampir beim Zähneputzen (Spiegel zeigt nichts)
+      else if (sil === 5) { x.fillRect(cxw - 2, wy + 40, 5, 10); x.beginPath(); x.ellipse(cxw, wy + 36, 7, 6, 0, 0, Math.PI * 2); x.fill(); x.fillRect(cxw - 9, wy + 33, 3, 2); x.fillRect(cxw + 6, wy + 31, 3, 2); } // Zimmerpalme
+      const fan = [[200, 120, 30], [60, 140, 90], [170, 40, 60], [230, 180, 60]]; // Oberlicht: Jugendstil-Fächer aus farbigem Glas
+      for (let k = 0; k < 6; k++) { const t0 = Math.PI + k / 6 * Math.PI, t1 = t0 + Math.PI / 6, c = fan[(k + n) % 4]; x.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},0.85)`; x.beginPath(); x.moveTo(cxw, sy); x.arc(cxw, sy, r0, t0, t1); x.closePath(); x.fill(); }
+      x.fillStyle = '#fce8b0'; x.beginPath(); x.arc(cxw, sy, 5, Math.PI, 0); x.fill(); // Sonne in der Mitte des Fächers
+      x.strokeStyle = '#2c1c10'; x.lineWidth = 1; for (let k = 0; k <= 6; k++) { const t = Math.PI + k / 6 * Math.PI; x.beginPath(); x.moveTo(cxw + Math.cos(t) * 5, sy + Math.sin(t) * 5); x.lineTo(cxw + Math.cos(t) * r0, sy + Math.sin(t) * r0); x.stroke(); } // Bleiruten
+      x.beginPath(); x.arc(cxw, sy, 5, Math.PI, 0); x.stroke(); x.beginPath(); x.arc(cxw, sy, r0 * 0.62, Math.PI, 0); x.stroke();
+      x.lineWidth = 2; x.beginPath(); x.moveTo(wx, sy); x.lineTo(wx + ww, sy); x.moveTo(cxw, sy); x.lineTo(cxw, wy + wh); x.stroke(); // Kämpfer, Mittelpfosten
+      x.lineWidth = 1; for (const yy of [sy + 11, sy + 22]) { x.beginPath(); x.moveTo(wx, yy); x.lineTo(wx + ww, yy); x.stroke(); } for (const xx of [wx + 9, wx + ww - 9]) { x.beginPath(); x.moveTo(xx, sy); x.lineTo(xx, wy + wh); x.stroke(); } // Sprossen
+      x.fillStyle = 'rgba(255,255,255,0.22)'; x.beginPath(); x.moveTo(wx + 3, sy + 2); x.lineTo(wx + 6, sy + 2); x.lineTo(wx + 2, wy + wh - 2); x.lineTo(wx + 1, wy + wh - 2); x.closePath(); x.fill(); // Glanz
+      for (const sd of [-1, 1]) { // Spitzengardinen, mit Kordel gerafft
+        const gx0 = sd < 0 ? wx : wx + ww, inner = sd < 0 ? wx + 10 : wx + ww - 10;
+        x.fillStyle = 'rgba(250,246,236,0.55)'; x.beginPath(); x.moveTo(gx0, sy); x.lineTo(inner, sy); x.quadraticCurveTo(gx0 + sd * -3, sy + 20, gx0, wy + wh); x.closePath(); x.fill();
+        x.fillStyle = 'rgba(255,255,255,0.5)'; for (let yy = sy + 3; yy < wy + wh - 2; yy += 4) px(x, 'rgba(255,255,255,0.5)', gx0 + sd * -2 + (sd < 0 ? 0 : -1), yy, 1, 1); // Spitzenmuster
+        px(x, '#c83c3c', gx0 + sd * -5 + (sd < 0 ? 0 : -1), sy + 24, 2, 2); // Kordel
+      }
+      px(x, '#e8dcc0', wx - 6, wy + wh, ww + 12, 3); px(x, '#8c7454', wx - 6, wy + wh + 3, ww + 12, 1); // Fensterbank
+      px(x, '#5c3418', wx - 2, wy + wh - 5, ww + 4, 5); px(x, '#7c4c24', wx - 2, wy + wh - 5, ww + 4, 1); // Blumenkasten
+      for (let k = 0; k < 7; k++) { const fx = wx + k * 6, fy = wy + wh - 8 - (k % 2) * 2; px(x, '#3c7c3c', fx, fy + 2, 4, 2); px(x, k % 3 === 1 ? '#f0f0e8' : '#d82838', fx + 1, fy, 3, 3); px(x, '#fc8c8c', fx + 1, fy, 1, 1); } // Geranien
       px(x, '#2c3c34', X + 8, 140, 56, 6); x.strokeStyle = '#3c5a4a'; for (let k = 0; k < 7; k++) { x.beginPath(); x.arc(X + 12 + k * 8, 143, 3, 0, Math.PI); x.stroke(); } // Brüstungsgitter
     }
     // Ladenzeile: lackierte Holzfronten, vergoldete Schilder, große Schaufenster, Türen mit Glas

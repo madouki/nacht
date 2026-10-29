@@ -148,7 +148,7 @@ class GearWorks extends Ent {
     this.gears.forEach((g, i) => GearWorks.gear(P, m, g, g.w * t + i * 0.37, i % 3 === 1 ? BZ : BR, IR));
     const B = this.buf; B.x.clearRect(0, 0, Wb, Hb);
     P.render(B.x, Wb, Hb, [m], { x: W.cam.x + w / 2, y: -(W.cam.y + 104), z: 0, yaw: 0, pitch: 0, f: 100, near: 20, cx: Wb / 2, cy: 52 }, GearWorks.ENV);
-    ctx.save(); ctx.globalAlpha = 0.92; ctx.imageSmoothingEnabled = true; ctx.drawImage(B.c, 0, 0, Wb, Hb, 0, 0, Wb * 2, 208); ctx.restore();
+    ctx.save(); ctx.globalAlpha = 0.45; ctx.imageSmoothingEnabled = true; ctx.drawImage(B.c, 0, 0, Wb, Hb, 0, 0, Wb * 2, 208); ctx.restore(); // dezent: weit hinten
   }
 }
 GearWorks.ENV = (() => { const v = [-0.45, 0.5, -0.75], l = Math.hypot(...v); return { sun: v.map(c => c / l), sunC: [0.95, 0.78, 0.5], amb: [0.16, 0.14, 0.2], sky: [0.12, 0.12, 0.18], fog: [14, 12, 22], fogD: 0.0016 }; })(); // warme Lampe von vorn links, Dunst in der Tiefe
@@ -198,36 +198,43 @@ class PendulumDeco extends Ent { // d: { x, y (Drehpunkt, Kacheln), z (Tiefe px)
 }
 PendulumDeco.ENV = (() => { const v = [-0.4, 0.5, -0.77], l = Math.hypot(...v); return { sun: v.map(c => c / l), sunC: [0.95, 0.8, 0.56], amb: [0.26, 0.22, 0.28], sky: [0.12, 0.1, 0.16], fog: [16, 14, 26], fogD: 0.0009 }; })();
 
-// Buntglasfenster an der Rückwand der Pendelhalle: die Figurenfenster des Glasturms (König, Georg, Drache …) in Steinlaibungen,
-// weit hinten (Parallaxe wie das Zifferblatt). Mondlicht lässt sie glimmen und wirft farbige Schächte; schlägt der Blitz ein
+// Buntglasfenster in der Rückwand der Pendelhalle: die Figurenfenster des Glasturms in doppelter Auflösung (Tiles.glassHi), fest
+// eingemauert – tiefe Laibung, Spitzbogen aus Keilsteinen mit Wulst, Sohlbank auf Konsolen, Säulchen mit Kapitell –, auf derselben
+// Wandebene wie das Zifferblatt (Parallaxe 0.6). Mondlicht lässt sie glimmen und wirft farbige Schächte; schlägt der Blitz ein
 // (Gewitter über dem Schloss), gleißen sie auf und werfen helle Lichtbahnen schräg durch die Halle
 class TowerGlass extends Ent { // d: { list: [[x, y, Fenster 0–11], …] (Kacheln: Fenstermitte, Oberkante), s (Maßstab) }
-  constructor(d) { super(0, 0, 1, 1); this.kind = 'prop'; this.noWrap = true; this.list = d.list; this.s = d.s || 0.7; }
+  constructor(d) { super(0, 0, 1, 1); this.kind = 'prop'; this.noWrap = true; this.list = d.list; this.s = d.s || 1; }
   update() { this.t++; }
   draw() { }
-  static crops() { // je Fenster ein Bild (Glas) und seine Leuchtebene, einmal aus dem Glasturm geschnitten
-    if (TowerGlass.C) return TowerGlass.C;
-    Tiles.build('glass');
-    const wall = Tiles.layer('glass', 'wall').c, glow = Tiles.layer('glass', 'glassGlow').c, out = [];
-    for (let band = 0; band < 3; band++) for (let wi = 0; wi < 4; wi++) {
-      const sx = 22 + wi * 128 - 6, sy = band * 208, mk = (src) => { const c = document.createElement('canvas'); c.width = 96; c.height = 208; c.getContext('2d').drawImage(src, sx, sy, 96, 208, 0, 0, 96, 208); return c; };
-      out.push({ c: mk(wall), g: mk(glow) });
-    }
-    return (TowerGlass.C = out);
+  static arch(ctx, x0, y0, W, H) { // gleichseitiger Spitzbogen als Pfad
+    const A = W * 0.866;
+    ctx.beginPath(); ctx.moveTo(x0, y0 + H); ctx.lineTo(x0, y0 + A); ctx.arc(x0 + W, y0 + A, W, Math.PI, Math.PI * 4 / 3); ctx.arc(x0, y0 + A, W, -Math.PI / 3, 0); ctx.lineTo(x0 + W, y0 + H); ctx.closePath();
   }
   drawBack(ctx) {
-    const C = TowerGlass.crops(), fl = W.storm && FX.stormOn(W.storm), t = this.t, s = this.s, w = 96 * s, h = 208 * s;
+    const HI = Tiles.glassHi(), fl = W.storm && FX.stormOn(W.storm), t = this.t, s = this.s, w = 84 * s, h = 196 * s, A = TowerGlass.arch;
     for (const [tx, ty, i] of this.list) {
       const x = Math.round(View.w / 2 + (tx * T - View.w / 2 - W.cam.x) * 0.6 - w / 2), y = Math.round(104 + (ty * T - 104 - W.cam.y) * 0.8);
-      if (x + w < -60 || x > View.w + 60 || y > 220 || y + h < -10) continue;
-      const im = C[i % C.length];
-      ctx.fillStyle = 'rgba(8,6,14,0.85)'; ctx.fillRect(x + 4 * s, y + 70 * s, w - 8 * s, h - 76 * s); // Laibung (dunkel hinterlegt)
-      ctx.drawImage(im.c, x, y, w, h);
+      if (x + w + 30 < 0 || x - 30 > View.w || y > 220 || y + h + 20 < -10) continue;
+      const im = HI[i % HI.length], e = 9 * s;
+      ctx.save();
+      A(ctx, x - e - 4 * s, y - e - 4 * s, w + 2 * e + 8 * s, h + 2 * e + 4 * s); ctx.fillStyle = '#1c1a26'; ctx.fill();   // Fuge um den Bogen
+      A(ctx, x - e, y - e, w + 2 * e, h + 2 * e); const sg = ctx.createLinearGradient(x - e, 0, x + w + e, 0); sg.addColorStop(0, '#6c6878'); sg.addColorStop(0.5, '#4c4858'); sg.addColorStop(1, '#2c2a36'); ctx.fillStyle = sg; ctx.fill(); // Keilsteinbogen
+      ctx.strokeStyle = 'rgba(20,18,28,0.9)'; ctx.lineWidth = 1; // Fugen der Keilsteine
+      for (let k = 0; k <= 12; k++) { const a = Math.PI + (k / 12) * Math.PI / 3, cx0 = x + w + e, cy0 = y + w * 0.866; ctx.beginPath(); ctx.moveTo(cx0 + Math.cos(a) * (w + e), cy0 + Math.sin(a) * (w + e) - e * 0.2); ctx.lineTo(cx0 + Math.cos(a) * w, cy0 + Math.sin(a) * w); ctx.stroke(); }
+      A(ctx, x - 3 * s, y - 3 * s, w + 6 * s, h + 3 * s); ctx.fillStyle = '#0c0a12'; ctx.fill();                              // tiefe Laibung
+      ctx.restore();
+      ctx.drawImage(im.c, x, y, w, h);                                                                                          // das Glas (doppelt aufgelöst)
+      for (const sx of [x - e + 1, x + w + e - 5 * s]) { // Säulchen mit Kapitell und Basis
+        ctx.fillStyle = '#4c4858'; ctx.fillRect(sx, y + w * 0.7, 4 * s, h - w * 0.7); ctx.fillStyle = '#6c6878'; ctx.fillRect(sx, y + w * 0.7, 1, h - w * 0.7);
+        ctx.fillStyle = '#7c7888'; ctx.fillRect(sx - s, y + w * 0.7 - 3 * s, 6 * s, 3 * s); ctx.fillRect(sx - s, y + h - 2 * s, 6 * s, 2 * s);
+      }
+      ctx.fillStyle = '#5c5868'; ctx.fillRect(x - e - 6 * s, y + h, w + 2 * e + 12 * s, 5 * s); ctx.fillStyle = '#8c8898'; ctx.fillRect(x - e - 6 * s, y + h, w + 2 * e + 12 * s, 1); // Sohlbank
+      ctx.fillStyle = '#2c2a36'; for (const kx of [x - e, x + w / 2 - 3 * s, x + w + e - 6 * s]) { ctx.fillRect(kx, y + h + 5 * s, 6 * s, 4 * s); ctx.fillRect(kx + s, y + h + 9 * s, 4 * s, 2 * s); } // Konsolen
       ctx.save(); ctx.globalCompositeOperation = 'lighter';
-      ctx.globalAlpha = fl ? 0.95 : 0.28 + 0.06 * Math.sin(t * 0.03 + i); ctx.drawImage(im.g, x, y, w, h); // Mondlicht bzw. Blitz durchs Glas
-      const len = fl ? 300 : 170, sl = 0.45, x0 = x + 16 * s, x1 = x + w - 16 * s, y0 = y + h * 0.62, g = ctx.createLinearGradient(0, y0, 0, y0 + len);
-      g.addColorStop(0, fl ? 'rgba(220,214,255,0.4)' : 'rgba(170,150,255,0.08)'); g.addColorStop(1, 'rgba(170,150,255,0)');
-      ctx.globalAlpha = 1; ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y0); ctx.lineTo(x1 + len * sl + 20, y0 + len); ctx.lineTo(x0 + len * sl - 10, y0 + len); ctx.closePath(); ctx.fill();
+      ctx.globalAlpha = fl ? 0.95 : 0.3 + 0.06 * Math.sin(t * 0.03 + i); ctx.drawImage(im.g, x, y, w, h); // Mondlicht bzw. Blitz durchs Glas
+      const len = fl ? 320 : 180, sl = 0.42, x0 = x + 14 * s, x1 = x + w - 14 * s, y0 = y + h * 0.66, g = ctx.createLinearGradient(0, y0, 0, y0 + len);
+      g.addColorStop(0, fl ? 'rgba(220,214,255,0.42)' : 'rgba(170,150,255,0.08)'); g.addColorStop(1, 'rgba(170,150,255,0)');
+      ctx.globalAlpha = 1; ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y0); ctx.lineTo(x1 + len * sl + 24, y0 + len); ctx.lineTo(x0 + len * sl - 12, y0 + len); ctx.closePath(); ctx.fill();
       ctx.restore();
     }
   }

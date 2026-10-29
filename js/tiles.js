@@ -1195,11 +1195,13 @@ const Tiles = (() => {
   };
   const figCache = {};
   // 'name!' = gespiegelt; liefert { col: Palettenindex+1 je Pixel (0 = kein Glas der Figur), paint: 1 = Schwarzlot }
-  function glassFigure(name) {
-    if (figCache[name]) return figCache[name];
-    const mirror = name.endsWith('!'), base = name.replace('!', '');
-    const c = C(FIG_W, FIG_H), x = c.getContext('2d'), pc = C(FIG_W, FIG_H), q = pc.getContext('2d');
-    if (mirror) { x.translate(FIG_W, 0); x.scale(-1, 1); q.translate(FIG_W, 0); q.scale(-1, 1); }
+  function glassFigure(name, sc = 1) { // sc: Auflösung (2 = doppelt, für die hochauflösenden Fenster)
+    const ck = sc === 1 ? name : name + '@' + sc;
+    if (figCache[ck]) return figCache[ck];
+    const mirror = name.endsWith('!'), base = name.replace('!', ''), FW = FIG_W * sc, FH = FIG_H * sc;
+    const c = C(FW, FH), x = c.getContext('2d'), pc = C(FW, FH), q = pc.getContext('2d');
+    if (mirror) { x.translate(FW, 0); x.scale(-1, 1); q.translate(FW, 0); q.scale(-1, 1); }
+    if (sc !== 1) { x.scale(sc, sc); q.scale(sc, sc); }
     const g = {
       poly(col, pts) { x.fillStyle = col; x.beginPath(); pts.forEach(([a, b], i) => i ? x.lineTo(a, b) : x.moveTo(a, b)); x.closePath(); x.fill(); },
       circ(col, cx, cy, r) { x.fillStyle = col; x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2); x.fill(); },
@@ -1207,16 +1209,16 @@ const Tiles = (() => {
       rect(col, a, b, w, h) { x.fillStyle = col; x.fillRect(a, b, w, h); },
       line(col, x0, y0, x1, y1, w) { x.strokeStyle = col; x.lineWidth = w; x.beginPath(); x.moveTo(x0, y0); x.lineTo(x1, y1); x.stroke(); },
     };
-    q.strokeStyle = q.fillStyle = '#000'; q.lineWidth = 1;
+    q.strokeStyle = q.fillStyle = '#000'; q.lineWidth = sc === 1 ? 1 : 0.6; // doppelt aufgelöst: feinere Schwarzlotstriche
     const p = {
-      dot(a, b) { q.fillRect(Math.floor(a), Math.floor(b), 1, 1); },
+      dot(a, b) { if (sc === 1) q.fillRect(Math.floor(a), Math.floor(b), 1, 1); else q.fillRect(a + 0.15, b + 0.15, 0.7, 0.7); },
       line(x0, y0, x1, y1) { q.beginPath(); q.moveTo(x0 + 0.5, y0 + 0.5); q.lineTo(x1 + 0.5, y1 + 0.5); q.stroke(); },
       circ(cx, cy, r) { q.beginPath(); q.arc(cx + 0.5, cy + 0.5, r, 0, Math.PI * 2); q.stroke(); },
       rays(cx, cy, r0, r1, n) { for (let k = 0; k < n; k++) { const a = k / n * Math.PI * 2; this.line(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0, cx + Math.cos(a) * r1, cy + Math.sin(a) * r1); } }, // Strahlen im Heiligenschein
     };
     FIGS[base](g); PAINT[base](p);
-    const src = x.getImageData(0, 0, FIG_W, FIG_H).data, ps = q.getImageData(0, 0, FIG_W, FIG_H).data;
-    const col = new Uint8Array(FIG_W * FIG_H), paint = new Uint8Array(FIG_W * FIG_H);
+    const src = x.getImageData(0, 0, FW, FH).data, ps = q.getImageData(0, 0, FW, FH).data;
+    const col = new Uint8Array(FW * FH), paint = new Uint8Array(FW * FH);
     for (let i = 0; i < col.length; i++) {
       if (src[i * 4 + 3] < 128) continue;
       let best = 0, bd = 1e9;
@@ -1224,7 +1226,109 @@ const Tiles = (() => {
       col[i] = best + 1;
       paint[i] = ps[i * 4 + 3] > 90 ? 1 : 0;
     }
-    return (figCache[name] = { col, paint });
+    return (figCache[ck] = { col, paint });
+  }
+
+  // Figurenfenster in doppelter Auflösung (Kaleidoskop, Pendelhalle): dieselben Entwürfe wie im Glasturm, aber in Gestaltungs-
+  // koordinaten gerechnet – die Figuren als glatte Vektorformen, Bleiruten und Schwarzlot halb so dick, Bögen und Rosetten runder.
+  // Je Fenster: Bild mit Laibung (außen durchsichtig), Leuchtebene und Rohdaten (Farbe, Leuchten, Glasmaske) fürs Kaleidoskop
+  let glassHi = null;
+  function glassWindowsHi() {
+    if (glassHi) return glassHi;
+    const sc = 2, W0 = 84, H0 = 196, A0 = Math.round(W0 * 0.866), FX = 7, FY = 56, RC = { x: W0 / 2, y: 27 }, RR = 14, WH = W0 * sc, HH = H0 * sc, FWs = FIG_W * sc;
+    const SETS = [[[26, 52, 168], [168, 26, 44], [216, 160, 32], [120, 200, 240]], [[152, 22, 44], [26, 52, 168], [216, 160, 32], [252, 200, 120]],
+      [[22, 108, 70], [152, 22, 44], [216, 160, 32], [180, 248, 200]], [[96, 40, 168], [216, 160, 32], [168, 26, 44], [220, 170, 252]]];
+    const MOTIFS = [['king', 'slayer', 'dragon', 'horse'], ['queen', 'knight', 'angel', 'king!'], ['tentacle', 'pirate!', 'knight!', 'queen!']];
+    const SET_OF = [[0, 2, 1, 3], [2, 3, 1, 0], [2, 1, 0, 3]];
+    const NAMES = { king: 'REX', slayer: 'GEORGIVS', dragon: 'DRACO', horse: 'EQVVS', knight: 'MILES', queen: 'REGINA', angel: 'ANGELVS', tentacle: 'TENTACVLVS', pirate: 'GVYBRVSH' };
+    const LEAD = [12, 6, 18], ST = [[50, 42, 62], [78, 68, 92], [112, 100, 128], [26, 20, 34]], WHITE_G = FIG_PAL[3], YEL = FIG_PAL[11], GOLD_G = FIG_PAL[2];
+    const hash = (n) => { n = Math.imul(n ^ (n >>> 15), 0x2c1b3c6d); n = Math.imul(n ^ (n >>> 12), 0x297a2d39); return ((n ^ (n >>> 15)) >>> 0) / 4294967296; };
+    const label = (t) => { const tc = C(FIG_W, 10), tx = tc.getContext('2d'); Font.draw(tx, t, FIG_W / 2, 2, '#000', { align: 'center' }); const a = tx.getImageData(0, 0, FIG_W, 10).data, m = new Uint8Array(FIG_W * 10); for (let i = 0; i < m.length; i++) m[i] = a[i * 4 + 3] > 100 ? 1 : 0; return m; };
+    const insideW = (lx, ly) => ly >= 0 && ly < H0 && lx >= 0 && lx < W0 && (ly >= A0 || ((lx - W0) ** 2 + (ly - A0) ** 2 <= W0 * W0 && lx ** 2 + (ly - A0) ** 2 <= W0 * W0));
+    const edgeW = (lx, ly, r) => !insideW(lx - r, ly) || !insideW(lx + r, ly) || !insideW(lx, ly - r) || !insideW(lx, ly + r);
+    const canopy = (lx, ly) => { // Baldachin wie im Glasturm (Gestaltungskoordinaten, Teilungen über ganze Einheiten)
+      const cx = W0 / 2, ax = Math.abs(lx + 0.5 - cx), fx = Math.floor(lx), fy = Math.floor(ly);
+      if (ly >= 56 && ly < 61 && lx >= 11 && lx < W0 - 11) return { id: 5000, col: WHITE_G, p: fx % 5 === 0 || fy === 60 ? 1 : 0 };
+      if (ly >= 40 && ly < 56 && ax <= ly - 38) { const ring = Math.abs(Math.hypot(lx + 0.5 - cx, ly - 52) - 5) < 0.5 && ly < 53, crab = Math.abs(ax - (ly - 38)) < 0.6 && fy % 3 === 0; return { id: 5001, col: YEL, p: ring || crab ? 1 : 0 }; }
+      for (const pc of [15, W0 - 15]) {
+        const dx = Math.abs(lx + 0.5 - pc), s = pc > cx ? 1 : 0;
+        if (ly >= 40 && ly < 56 && dx <= 3) return { id: 5002 + s, col: WHITE_G, p: dx < 0.5 && ly >= 44 && ly <= 51 ? 1 : 0 };
+        if (ly >= 32 && ly < 40 && dx <= (ly - 32) * 0.45) return { id: 5004 + s, col: YEL, p: 0 };
+      }
+      return null;
+    };
+    const out = [];
+    MOTIFS.forEach((row, band) => row.forEach((name, wi) => {
+      const S = SETS[SET_OF[band][wi]], key = band * 4 + wi, F = glassFigure(name, sc), txt = label(NAMES[name.replace('!', '')]), N = WH * HH;
+      const pid = new Int32Array(N).fill(-1), base = new Array(N), paint = new Uint8Array(N), zone = new Uint8Array(N);
+      for (let hy = 0; hy < HH; hy++) for (let hx = 0; hx < WH; hx++) {
+        const lx = (hx + 0.5) / sc - 0.5, ly = (hy + 0.5) / sc - 0.5, i = hy * WH + hx;
+        const z = !insideW(lx, ly) ? 0 : edgeW(lx, ly, 2) ? 1 : edgeW(lx, ly, 6) ? 2 : edgeW(lx, ly, 8) ? 3 : 4; zone[i] = z;
+        if (z < 2) continue;
+        let id, col, pt = 0, cz;
+        const ud = lx - FX, vd = ly - FY, fu = hx - FX * sc, fv = hy - FY * sc, f = fu >= 0 && fu < FWs && fv >= 0 && fv < 120 * sc ? F.col[fv * FWs + fu] : 0;
+        const dr = Math.hypot(lx + 0.5 - RC.x, ly + 0.5 - RC.y);
+        if (z === 2) { const k = Math.floor((ly + Math.abs(lx + 0.5 - W0 / 2) * 0.7) / 8); id = 1000 + k; col = k % 3 === 0 ? S[2] : S[1]; }        // Juwelen
+        else if (z === 3) { const k = Math.floor((ly + Math.abs(lx + 0.5 - W0 / 2)) / 3); id = 2000 + k; col = k % 2 ? WHITE_G : S[3]; }       // Perlen
+        else if (dr < RR + 1.6) { // Maßwerkrosette
+          const lobes = [[6, 0], [-6, 0], [0, 6], [0, -6]].map(([ox, oy]) => Math.hypot(lx + 0.5 - RC.x - ox, ly + 0.5 - RC.y - oy) - 6);
+          const md = Math.min(...lobes), li = lobes.indexOf(md);
+          if (dr > RR - 1.4 || Math.abs(md) < 0.7 || Math.abs(dr - 3) < 0.6) { pid[i] = -2; base[i] = ly + 0.5 < RC.y ? ST[2] : ST[0]; continue; }
+          if (dr < 3) { id = 3000; col = GOLD_G; }
+          else if (md < 0) { id = 3001 + li; col = li < 2 ? S[2] : S[3]; pt = Math.abs(md + 3) < 0.35 ? 1 : 0; }
+          else { id = 3010 + (lx < RC.x ? 0 : 1) + (ly < RC.y ? 0 : 2); col = S[1]; }
+        }
+        else if ((cz = canopy(lx, ly))) { id = cz.id; col = cz.col; pt = cz.p; }
+        else if (vd >= 120 && vd < 130 && ud >= 0 && ud < FIG_W) { // Inschriftband
+          const uu = Math.floor(ud), vv = Math.floor(vd);
+          if (uu < 3 || uu > 66) { id = 6001 + (uu < 3 ? 0 : 1); col = S[1]; } else { id = 6000; col = WHITE_G; pt = txt[(vv - 120) * FIG_W + uu]; }
+        }
+        else if (f) { id = 7000 + f; col = FIG_PAL[f - 1]; pt = F.paint[fv * FWs + fu]; }
+        else { // Rautengrund mit gemalten Rosetten und Juwelen
+          const U = lx + ly, V = lx - ly + 400, cu = Math.floor(U / 10), cv = Math.floor(V / 10), du = U - cu * 10 - 5, dv = V - cv * 10 - 5;
+          const hq = hash(cu * 92821 + cv * 68917 + key * 7);
+          id = 10000 + cu * 100 + cv; pt = Math.abs(du) + Math.abs(dv) <= 1.1 && (Math.abs(du) < 0.35 || Math.abs(dv) < 0.35) ? 1 : 0;
+          col = hq < 0.07 ? S[2] : hq < 0.14 ? S[3] : (cu + cv) % 2 ? S[0] : S[0].map((c, j) => Math.min(255, c * 0.82 + S[3][j] * 0.26));
+          if (hq < 0.14) pt = Math.abs(du) + Math.abs(dv) <= 1.1 ? 1 : 0;
+        }
+        pid[i] = id; base[i] = col; paint[i] = pt;
+      }
+      const c = C(WH, HH), x = c.getContext('2d'), img = x.createImageData(WH, HH), d = img.data, gc = C(WH, HH), gx = gc.getContext('2d'), gimg = gx.createImageData(WH, HH), gd = gimg.data;
+      const rgb = new Int32Array(N), glw = new Int32Array(N), mask = new Uint8Array(N);
+      const put = (i, col, glow) => { const j = i * 4; d[j] = col[0]; d[j + 1] = col[1]; d[j + 2] = col[2]; d[j + 3] = 255; rgb[i] = col[0] | (col[1] << 8) | (col[2] << 16); if (glow) { gd[j] = col[0]; gd[j + 1] = col[1]; gd[j + 2] = col[2]; gd[j + 3] = 255; glw[i] = rgb[i]; } };
+      const nb = (hx, hy, dx, dy) => { const xx = hx + dx, yy = hy + dy; return xx < 0 || yy < 0 || xx >= WH || yy >= HH ? -1 : pid[yy * WH + xx]; };
+      for (let hy = 0; hy < HH; hy++) for (let hx = 0; hx < WH; hx++) {
+        const i = hy * WH + hx, z = zone[i];
+        if (!z) continue;
+        const lx = (hx + 0.5) / sc - 0.5, ly = (hy + 0.5) / sc - 0.5;
+        mask[i] = z >= 2 ? 1 : 0;
+        if (z === 1) { put(i, edgeW(lx, ly, 0.5) ? ST[3] : ly < A0 ? ST[2] : ST[1]); continue; }                                  // Laibung mit Fase
+        if (pid[i] === -2) { put(i, base[i]); continue; }                                                                         // Maßwerk
+        const l = hx > 0 ? pid[i - 1] : -1, t = hy > 0 ? pid[i - WH] : -1;
+        if ((l >= 0 && l !== pid[i]) || (t >= 0 && t !== pid[i])) { put(i, LEAD); continue; }                                    // Bleirute (fein)
+        const col = base[i], me = pid[i], h = hash(me * 7919 + key * 104729);
+        let k = 0.58 + 0.42 * Math.sin(Math.PI * (lx + 0.5) / W0) * (0.8 + 0.2 * (1 - ly / H0));                                   // Mondlicht von hinten
+        k *= 0.9 + 0.2 * h;
+        k *= 1 + 0.07 * Math.sin(lx * (0.45 + h) + ly * (1.2 - h) * 0.6 + h * 40);                                               // Schlieren
+        k += (bay(hx, hy) - 0.5) * 0.08;
+        if (hash(i * 31 + key * 977) < 0.0015) k *= 1.4;                                                                          // Bläschen
+        if (nb(hx, hy, 1, 0) !== me || nb(hx, hy, 0, 1) !== me) k *= 0.74;                                                        // Kantenschatten
+        else if (nb(hx, hy, 3, 0) !== me || nb(hx, hy, 0, 3) !== me || nb(hx, hy, -3, 0) !== me || nb(hx, hy, 0, -3) !== me) k *= 0.88;
+        { // Mattierung: jede Scheibe zum Rand hin abgedunkelt, die Mitte leuchtet – Gewänder, Flügel, Rüstungen wirken gewölbt
+          let ed = 8; for (let e = 2; e < 8 && ed === 8; e++) for (const [dx, dy] of [[e, 0], [-e, 0], [0, e], [0, -e], [e, e], [-e, -e], [e, -e], [-e, e]]) if (nb(hx, hy, dx, dy) !== me) { ed = e; break; }
+          const deep = me >= 3000 && me < 10000; k *= (deep ? 0.68 : 0.86) + (deep ? 0.32 : 0.14) * Math.pow(ed / 8, 0.7);
+        }
+        let glint = me >= 3000 && nb(hx, hy, -3, 0) !== me && nb(hx, hy, 0, -3) !== me && nb(hx, hy, -1, 0) === me && nb(hx, hy, 0, -1) === me && hash(me * 13 + key) < 0.55;
+        let r = col[0] * k, g = col[1] * k, b = col[2] * k;
+        if (paint[i]) { r = r * 0.28 + 10; g = g * 0.24 + 5; b = b * 0.22 + 4; glint = false; }                                    // Schwarzlot
+        if (glint) { r = r * 0.4 + 150; g = g * 0.4 + 150; b = b * 0.4 + 150; }
+        if (!paint[i]) { const L = 0.3 * r + 0.59 * g + 0.11 * b; r = (L + (r - L) * 1.55) * 1.2; g = (L + (g - L) * 1.55) * 1.2; b = (L + (b - L) * 1.55) * 1.2; }
+        put(i, [Math.max(0, Math.min(255, r)) | 0, Math.max(0, Math.min(255, g)) | 0, Math.max(0, Math.min(255, b)) | 0], true);
+      }
+      x.putImageData(img, 0, 0); gx.putImageData(gimg, 0, 0);
+      out.push({ c, g: gc, rgb, glw, mask, w: WH, h: HH });
+    }));
+    return (glassHi = out);
   }
 
   // ---------------- Hintergründe ----------------
@@ -3935,5 +4039,5 @@ const Tiles = (() => {
     }
   }
 
-  return { build, drawBg, drawTiles, drawFront, layer, drawLayer, shipLights, drawCloud7, drawGlassRays, drawPortal, glassWins: () => glassWins }; // glassWins: Fenster des Glasturms (das Kaleidoskop leiht sie sich)
+  return { build, drawBg, drawTiles, drawFront, layer, drawLayer, shipLights, drawCloud7, drawGlassRays, drawPortal, glassWins: () => glassWins, glassHi: glassWindowsHi }; // glassWins: Fenster des Glasturms (das Kaleidoskop leiht sie sich)
 })();

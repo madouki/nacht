@@ -662,9 +662,8 @@ const Castle = (() => {
       .stair(1, 35, 18, 1)                                                             // Treppe vom linken Absatz hinauf
       .fill(19, 18, 38, 19, '#').fill(49, 18, 58, 19, '#').fill(71, 18, 93, 19, '#').fill(102, 18, 127, 19, '#') // obere Etage (Träger der Pendel)
       .cog(702 / 16, 283 / 16, 64, 4, 0.011).cog(1040 / 16, 283 / 16, 82, 4, 0.011).cog(1568 / 16, 283 / 16, 50, 4, 0.011) // Zahnrad-Riesenräder über den Lücken
-      .prop('pendglass', { list: [[8, 4, 0], [30, 4, 2], [52, 4, 6], [76, 4, 1], [98, 4, 8], [120, 4, 4], [12, 24, 5], [34, 24, 3], [96, 24, 9], [118, 24, 11]] }) // Figurenfenster an der Rückwand
-      .prop('pendeco', { x: 34, y: -2, z: 300, len: 700, R: 150, amp: 0.16, speed: 0.006 }).prop('pendeco', { x: 94, y: -2, z: 340, len: 720, R: 160, amp: 0.15, speed: 0.0055, phase: 2 }) // Kolossalpendel tief hinten
-      .prop('gearworks', {}).prop('clockface', { x: 64, y: 26, r: 150 })
+      .prop('gearworks', {})
+      .prop('pendglass', { list: [[16, 2, 0], [44, 2, 1], [84, 2, 2], [112, 2, 6], [40, 24, 5], [88, 24, 4]] }) // Figurenfenster in der Rückwand (oben vier, unten zwei neben dem Zifferblatt), vor dem fernen Zahnwerk.prop('clockface', { x: 64, y: 26, r: 150 })
       .prop('gears', { list: [ // Räderwerk wie im Uhrturm unter dem Gewölbe der oberen Etage (dreht mit, nicht begehbar)
         { type: 'wheel', ax: 30 * 16, ay: 4 * 16, r: 48, v: 0.4, walk: false, post: false }, { type: 'wheel', mesh: 0, ang: 20, r: 32, walk: false, post: false },
         { type: 'wheel', mesh: 1, ang: -30, r: 40, walk: false, post: false },
@@ -3617,8 +3616,9 @@ const Castle = (() => {
   // Neueste Änderungen (zum Testen): die Abschnittswahl markiert diese Räume mit NEU und zeigt darunter, was sich geändert hat;
   // SUB springt zum nächsten markierten Abschnitt. Bei jeder Auslieferung neu füllen
   const RECENT = [
-    [['side', 'kaleido'], 'chgKaleido'], [['side', 'pendelhalle'], 'chgPendel'], [['side', 'hotelaufzug'], 'chgLift'], [['side', 'eisaufzug'], 'chgLift'],
-    [['side', 'passage'], 'chgPassage'],
+    [['side', 'kaleido'], 'chgKaleido'], [['side', 'pendelhalle'], 'chgPendel'], [['side', 'passage'], 'chgPassage'],
+    [['side', 'golemstollen'], 'chgGolem'], [['side', 'galvani'], 'chgLab'],
+    [[0, 1], 'chgPortrait'], [[0, 3], 'chgPortrait'], [[3, 4], 'chgPortrait'], // Ahnenbilder im Foyer, in der Halle und im Thronsaal
   ];
   function recentNote(s, r) {
     for (const [R, k] of RECENT) { const a = ref(R); if (a && a.s === s && a.r === r) return k; }
@@ -3970,7 +3970,7 @@ const Castle = (() => {
     for (const [A, , B] of LINKS) if (!ref(A) || !ref(B)) out.push('Verbindung ohne Raum: ' + JSON.stringify([A, B]));
     for (const b of BEATS) { const a = ref(b.at[0]); if (!a) out.push('Szene ohne Raum: ' + b.id); else if (!ground(S()[a.s].rooms[a.r], b.at[1], b.at[2])) out.push('Figur ohne Boden: ' + b.id); }
     for (const [R, id, x, y] of FINDS) { const a = ref(R); if (!a) out.push('Fund ohne Raum: ' + id); else if (SOLID.includes(S()[a.s].rooms[a.r].grid[y][x])) out.push('Fund in der Wand: ' + id); }
-    const need = ['banter_boss1', 'banter_boss2', 'banter_boss3', 'banter_boss4', 'banter_bossKraken', 'banter_bossTentacle', 'banter_bossKnight', 'banter_bossTrap', 'banter_bossWitch', 'banter_bossConductor', 'banter_bossDoppel', 'banter_bossAwakened', 'banter_bossGolem', 'secNew', 'secNewHelp', ...RECENT.map(([, k]) => k), 'chgBanter', 'famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'npcSpeed', 'npcBones', 'npcChicken', 'npcBarber', 'npcCarto', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'mapOverlayHelpT', 'optGuide', 'optGuideH'];
+    const need = ['portrait0', 'portrait1', 'portrait2', 'banter_boss1', 'banter_boss2', 'banter_boss3', 'banter_boss4', 'banter_bossKraken', 'banter_bossTentacle', 'banter_bossKnight', 'banter_bossTrap', 'banter_bossWitch', 'banter_bossConductor', 'banter_bossDoppel', 'banter_bossAwakened', 'banter_bossGolem', 'secNew', 'secNewHelp', ...RECENT.map(([, k]) => k), 'chgBanter', 'famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'npcSpeed', 'npcBones', 'npcChicken', 'npcBarber', 'npcCarto', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'mapOverlayHelpT', 'optGuide', 'optGuideH'];
     for (const id in GEAR) need.push('item_' + id, 'itemD_' + id);
     for (const b of BEATS) { if (b.lines !== false) need.push('story_' + b.id); need.push('story_' + (b.again || b.id) + 'Again'); }
     for (const id of SPELL_IDS) need.push('spell_' + id);

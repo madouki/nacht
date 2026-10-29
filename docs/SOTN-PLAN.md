@@ -387,6 +387,15 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
 - **Wortgeplänkel zu Beginn der Bosskämpfe** (`Game.startBanter`, Texte `banter_<Bossname>` für 13 Bosse in 6 Sprachen): läuft
   unten im Bild mit, der Kampf beginnt währenddessen; einmal je Boss und Spielstand.
 - **Lichterpassage in 3D:** gestreifte Markisen über den Schaufenstern und Gaslaternen an den Pfeilern (PS2.drawLocal an der Fassade).
+- **Buntglas in doppelter Auflösung** (`Tiles.glassHi`, 168×392 je Fenster): feine Bleiruten, plastische Scheiben (zum Rand hin
+  dunkler), Gesichter und Schrift sauber; das Kaleidoskop tastet es direkt ab (`KZ` 3,4, Drehung 0,0025 – Fenster noch größer, langsamer).
+- **Pendelhalle aufgeräumt:** keine Kolossalpendel mehr im Hintergrund, das Uhrwerk blasser; die sechs Fenster (84×196) sitzen fest in der
+  Wand (Parallaxe 0.6 wie das Zifferblatt) mit Keilsteinbogen, tiefer Laibung, Säulchen und Sohlbank auf Konsolen.
+- **Lichterpassage:** Jugendstilfenster der Wohnungen – Sandsteingewände mit Schlussstein, Fächer-Oberlicht aus Buntglas, Gardinen,
+  Geranien, Silhouetten im warmen Licht (Katze, Leser, Tanzpaar, Vogelkäfig, Vampir beim Zähneputzen, Zimmerpalme).
+- **Golem** mit Felsbrocken, Flechten, Moos, Steinkamm und glühenden Runenbändern; der **Erweckte** mit Plateaustiefeln, Knieflicken,
+  Messingknöpfen, Gürtelschnalle, Brauen und Funken zwischen den Halsbolzen.
+- **Ahnenbilder** mit Messing-Bilderleuchte (warmer Lichtkegel) und Namensschild auf der unteren Rahmenleiste (`portrait0–2`, 6 Sprachen).
 - **Karte:** Pause → **KARTE** zeigt das ganze Schloss (Regionen um die Eingangshalle: Prolog links, Katakomben unten,
   Bergfried oben, Sonnenkathedrale oben rechts, Wintergarten rechts, Thron ganz oben). Angriff zoomt, im Zoom scrollen
   die Pfeile, Sprung/Start schließt. Unten: Erkundungsgrad der Region und des Schlosses, Siegel n/5.

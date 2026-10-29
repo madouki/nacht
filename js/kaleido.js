@@ -11,8 +11,8 @@
 const Kaleido = (() => {
   const TW = 512, TH = 1104;                    // Textur: entlang der Achse × um den Umfang (ein Umlauf = drei Fenster- und drei Gewölbereihen)
   const SEC0 = 8, SEC = 20, PIT = 17, N = 5;      // Trommeln ab Kachel 8, je 20 Kacheln: 17 Abgrund + 3 Steinring; fünf Trommeln
-  const SPIN = 0.005;                            // Drehung je Bild (rad) – gemächlich, die Fenster sollen wirken
-  const KZ = 2.5;                                // Brennweite: enger Bildwinkel – riesige Fenster (eins füllt fast das Bild), die Röhre krümmt sich kaum
+  const SPIN = 0.0025;                           // Drehung je Bild (rad) – sehr gemächlich, die Fenster sollen wirken
+  const KZ = 3.4;                                // Brennweite: enger Bildwinkel – riesige Fenster (eins größer als das Bild), die Röhre krümmt sich kaum
   let T3 = null, tab = null, out = null, rayC = null, rayX = null;
 
   const drum = (wx) => { const k = Math.floor((wx / T - SEC0) / SEC); return k >= 0 && k < N && (wx / T - SEC0) - k * SEC < PIT ? k : -1; }; // Trommel an Welt-x (−1: Steinring/Rand)
@@ -110,7 +110,12 @@ const Kaleido = (() => {
       return o;
     });
     const wins = (Tiles.glassWins() || []).map(w => { const sh = Math.floor(w.v0 / 208) * (RH - 208) + 10; return { ...w, v0: w.v0 + sh, v1: w.v1 + sh }; }); // Fenster in der neuen Textur
-    T3 = { lv, wins };
+    const hi = Tiles.glassHi ? Tiles.glassHi().map(Wd => LVK.map(([mm, k]) => { // Glas der Fenster doppelt aufgelöst (tiles.js), je Leuchtstufe vorgerechnet (0 = kein Glas)
+      const o = new Int32Array(Wd.rgb.length);
+      for (let j = 0; j < o.length; j++) if (Wd.mask[j]) { const c = Wd.rgb[j], g = Wd.glw[j]; o[j] = (255 << 24) | (Math.min(255, ((c >> 16) & 255) * mm + ((g >> 16) & 255) * k) << 16) | (Math.min(255, ((c >> 8) & 255) * mm + ((g >> 8) & 255) * k) << 8) | Math.min(255, (c & 255) * mm + (g & 255) * k); }
+      return o;
+    })) : null;
+    T3 = { lv, wins, hi };
   }
   // Röhrentabelle: jede Bildzeile y trifft die Zylinderwand an der Umfangsstelle v[y]; s[y] = Maßstab entlang der Achse
   // (fern in der Bildmitte klein, nah oben und unten groß); light[y] = Mondlicht (oben hell, unten dunkel)
@@ -152,13 +157,14 @@ const Kaleido = (() => {
     return (RING = { RW, lv: o });
   }
 
+  const LVK = [[0.5, 0.04], [0.75, 0.2], [0.95, 0.46], [1.05, 0.86]]; // Leuchtstufen (Grundfarbe, Leuchtebene) wie in buildTex
   const flash = () => typeof W !== 'undefined' && W.storm && FX.stormOn(W.storm); // Gewitter über dem Schloss (world.js STORMY)
   // Hintergrund: die Röhre; jeder Bildpunkt gehört zum Abschnitt an seiner Stelle der Achse (gedreht) oder zu einem Steinring
   function drawTube(ctx, cam, frame) {
     if (!T3) buildTex();
     const w = View.w, H = 208, tb = table(), LV = T3.lv, RG = RING || ringTex(), RL = RG.lv, RW = RG.RW;
     if (!out || out.w !== w) { const c = document.createElement('canvas'); c.width = w; c.height = H; const x = c.getContext('2d'), img = x.createImageData(w, H); out = { w, c, x, img, buf: new Int32Array(img.data.buffer) }; }
-    const buf = out.buf, u0 = cam.x * 0.5, rots = new Float32Array(N + 2), fl = flash(); // Blitz: alle Fenster gleißen auf
+    const buf = out.buf, u0 = cam.x * 0.5, rots = new Float32Array(N + 2), fl = flash(), HI = T3.hi; // Blitz: alle Fenster gleißen auf
     for (let k = -1; k <= N; k++) rots[k + 1] = angle(k, frame) / (Math.PI * 2) * TH;
     const a0 = A(SEC0), sec = A(SEC), pit = A(PIT), ringW = A(3), aEnd = A(SEC0 + N * SEC);
     for (let x = 0; x < w; x++) {
@@ -170,8 +176,13 @@ const Kaleido = (() => {
         else if (a >= aEnd) { k = N; ua = (a - aEnd) * SC; }
         else { k = ((a - a0) / sec) | 0; const loc = a - a0 - k * sec; if (loc >= pit) ring = (loc - pit) / ringW; ua = loc * SC + (k & 3) * CW; }
         if (ring >= 0) { const v = ((Math.floor(tb.v[y]) % TH) + TH) % TH; buf[o] = RL[hi ? Math.min(3, lo + 1) : lo][v * RW + Math.min(RW - 1, (ring * RW) | 0)]; continue; }
-        const u = ((Math.floor(ua) % TW) + TW) % TW, v = ((Math.floor(tb.v[y] + rots[k + 1]) % TH) + TH) % TH;
-        buf[o] = (hi ? LV[lo + 1] : LV[lo])[v * TW + u];
+        const vv = tb.v[y] + rots[k + 1], fua = Math.floor(ua), fvv = Math.floor(vv), u = ((fua % TW) + TW) % TW, v = ((fvv % TH) + TH) % TH, li = hi ? lo + 1 : lo;
+        const cu = u & 127, band = (v / RH) | 0, cv = v - band * RH;
+        if (HI && cu >= 22 && cu < 106 && cv >= 16 && cv < 212) { // im Fenster: Glas aus der doppelt aufgelösten Fassung, Licht je Stufe
+          const val = HI[band * 4 + (u >> 7)][li][(((cv - 16 + vv - fvv) * 2) | 0) * 168 + (((cu - 22 + ua - fua) * 2) | 0)];
+          if (val) { buf[o] = val; continue; }
+        }
+        buf[o] = LV[li][v * TW + u];
       }
     }
     out.x.putImageData(out.img, 0, 0);
