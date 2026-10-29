@@ -359,6 +359,12 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   Spielerzustand `ride` (entities.js: update/hurt/sprite rufen `Moto.*`), Gruben → letzter Prüfposten (−3 Energie).
   Zeitfahren (MotoGate/MotoGhost): Start/Ziel-Tor, Wendemarke am Prellbock, Medaillen Gold ≤ 32 s / Silber ≤ 40 s / Bronze ≤ 52 s
   (beim ersten Mal Beute), Bestfahrt als Geisterfahrer (`nachtmahr.moto`); eigene Musik „Dampfgalopp“ (audio.js `galopp`).
+  Der Prüfmeister (MotoInspector, Werk-Automat auf einem Pult hinter der Strecke) hebt zum Start die Flagge, nickt bei Bronze/Silber,
+  fällt bei Gold scheppernd um, gähnt ohne Medaille.
+- **Rohrpostamt** (`js/puzzle.js` PzTube/PzTubeBoard, links am Fundbüro hinter dem Rückgabeschalter): Rohrpost für Personen – ↑ am
+  Einwurf, Fahrt durch gläserne Rohre (Fahrzeug-Zustand `ride`), drei Weichen, Hebel A stellt J1, B stellt J2 und J3, C nur J3;
+  Ausgänge RETOUR / UNZUSTELLBAR (Sack) / STRAFPORTO / ZUGESTELLT (Balkon mit Truhe und Lebensgefäß). Lösung: A und B an, C aus.
+  Musik im Fundbüro und Rohrpostamt: „Amtsstuben-Walzer“ (audio.js `amt`, Schreibmaschine, Zeilenglocke, Wagenrücklauf).
 - **Karten-Schnelltaste:** Tab oder Q, Ansicht-Taste, auf dem Handy ein Karten-Knopf oben rechts (nur im Schloss-Modus):
   im Spiel die durchscheinende Karte, in der Pause die große Karte.
 - **Offene Aufzugsschächte** (`js/shaft.js`, Raum-Flag `openOut`): statt Blockwänden ein Stahlgitterschacht frei in einer

@@ -94,7 +94,7 @@ const Moto = (() => {
     p.ride = null; if (p.state === 'ride') p.state = 'normal';
     p.crouchAtk = false; p.y = p.feet - 28; p.h = 28;
   }
-  const make = (d) => d.k === 'ramp' ? new MotoRamp(d) : d.k === 'post' ? new MotoPost(d) : d.k === 'gate' ? new MotoGate(d) : new MotoBike(d);
+  const make = (d) => d.k === 'ramp' ? new MotoRamp(d) : d.k === 'post' ? new MotoPost(d) : d.k === 'gate' ? new MotoGate(d) : d.k === 'insp' ? new MotoInspector(d) : new MotoBike(d);
   return { R, WB, SEAT, LOW, HEAD, HEADD, FAST, BOOST, HOP, G, LAUNCH, body, wheel, rampMesh, postMesh, groundAt, ride, bump, pose, release, make };
 })();
 
@@ -337,6 +337,7 @@ class MotoGate extends Ent { // d: { x, y } – Tor über der Strecke (Mitte x),
     this.run = { t: 0, turned: false, rec: [] }; this.result = null;
     if (st.ghost && st.ghost.length > 8) this.ghost = W.spawn(new MotoGhost(st.ghost, this));
     Audio8.sfx('go'); Game.note('motoRunGo'); W.popup(this.gx, this.fy - 74, tr('motoGo3'), '#fce0a8');
+    this.insp('start');
   }
   stop(abort) {
     if (this.ghost) { this.ghost.dead = true; this.ghost = null; }
@@ -356,8 +357,10 @@ class MotoGate extends Ent { // d: { x, y } – Tor über der Strecke (Mitte x),
       const loot = m === 'gold' ? ['bagBig', 'bagBig', 'heartB'] : m === 'silver' ? ['bagBig', 'heartB'] : ['bagBig'];
       loot.forEach((t, i) => W.spawn(new Item(t, this.gx - 20 + i * 20, this.fy - 40)));
     }
+    this.insp(m || 'none');
     this.stop(false);
   }
+  insp(k) { const i = W.ents.find(e => e instanceof MotoInspector && !e.dead); if (i) i.react(k); } // der Prüfmeister am Pult
   update() {
     this.t++; if (this.resT > 0) this.resT--;
     const p = W.player, b = p.state === 'ride' ? p.ride : null;
@@ -450,3 +453,43 @@ Moto.drawHud = (ctx) => {
     Font.draw(ctx, s, cx + 7, 74, r.m ? col[r.m] : '#fcfcfc', { align: 'center', shadow: '#000' }); ctx.restore();
   }
 };
+
+// ---------------- Der Prüfmeister ----------------
+// Ein Aufziehsoldat aus dem Automatenwerk als Zeitnehmer auf einem Holzpult hinter der Strecke (etwas in der Tiefe): zum Start reißt
+// er die Zielflagge hoch, Bronze = einmal nicken, Silber = zweimal, Gold = er fällt scheppernd um (und steht nach einer Weile wieder
+// auf), ohne Medaille gähnt er. Kommt man zu Fuß vorbei, grüßt er einmal
+class MotoInspector extends Ent {
+  constructor(d) { super(d.x * T, (d.y + 1) * T - 40, 24, 40); this.kind = 'prop'; this.fx = d.x * T + 8; this.fy = (d.y + 1) * T; this.o = {}; this.act = null; this.at = 0; this.hi = false; this.face = d.face || -1; }
+  react(k) { this.act = k; this.at = 0; if (k === 'gold') { Audio8.sfx('clank', this.fx); Audio8.sfx('wall', this.fx); W.sparks(this.fx, this.fy - 30, 10); W.popup(this.fx, this.fy - 56, tr('motoClang'), '#fce0a8'); } else if (k === 'none') W.popup(this.fx, this.fy - 56, tr('motoYawn'), '#bcbcbc'); else if (k !== 'start') W.popup(this.fx, this.fy - 56, tr('motoNod'), '#fce0a8'); else Audio8.sfx('latch', this.fx); }
+  update() {
+    this.t++; this.at++;
+    const p = W.player;
+    if (!this.hi && p.alive && p.state === 'normal' && Math.abs(p.cx - this.fx) < 40) { this.hi = true; W.popup(this.fx, this.fy - 56, tr('motoInspHi'), '#fce0a8'); Audio8.sfx('cog', this.fx); }
+    const len = { start: 60, gold: 260, silver: 70, bronze: 40, none: 110 }[this.act] || 0;
+    if (this.act && this.at > len) this.act = null;
+    if (!this.act && this.t % 90 === 0) this.face = p.cx < this.fx ? -1 : 1; // schaut dem Fahrer nach
+  }
+  draw(ctx) {
+    const sx = this.fx - W.cam.x, sy = this.fy - W.cam.y, Z = 26;
+    if (sx < -60 || sx > View.w + 60) return;
+    PS2.drawLocal(ctx, this.o, MotoInspector.mesh(), sx, sy, [-24, -26, 48, 30], 'p');
+    const SPR = Werk.SPR, a = this.act, t = this.at;
+    const pose = a === 'start' ? 'wind' : a === 'none' && t < 90 ? 'sleep' : 'stand', S = SPR[pose]; if (!S) return;
+    const [px, py] = PS2.projLocal(sx, sy, 0, 20, Z), k = 200 / (200 + Z); // Füße oben auf dem Pult, in der Tiefe kleiner
+    let bob = 0, rot = 0;
+    if (a === 'silver' || a === 'bronze') { const n = a === 'silver' ? 2 : 1, u = t / 35; if (u < n) bob = Math.round(Math.sin(u * Math.PI * 2) * 2); }
+    if (a === 'gold') rot = t < 20 ? -(t / 20) * Math.PI / 2 : t < 200 ? -Math.PI / 2 : -Math.PI / 2 * (1 - (t - 200) / 60); // umfallen, liegen, aufstehen
+    const s = S.s, img = this.face < 0 ? s.f : s.c;
+    ctx.save(); ctx.translate(Math.round(px), Math.round(py)); ctx.scale(k, k); ctx.rotate(rot * this.face);
+    ctx.drawImage(img, -s.w / 2 - s.pad, -s.h - s.pad + 2 + bob);
+    if (pose === 'wind' && S.tip) { const fx = this.face < 0 ? -S.tip[0] : S.tip[0], fy = S.tip[1] + 2; for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) { ctx.fillStyle = (r + c) % 2 ? '#e8e8ec' : '#141418'; ctx.fillRect(Math.round(fx + this.face * c * 2) - 1, Math.round(fy - 6 + r * 2), 2, 2); } } // Zielflagge an der Klinge
+    ctx.restore();
+  }
+  static mesh() { // Zeitnehmerpult: Eichenkasten mit Messingkante, darauf eine Tafel
+    if (MotoInspector.M) return MotoInspector.M;
+    const m = PS2.mesh(), OAK = [118, 78, 44], OAK2 = [86, 54, 30];
+    PS2.box(m, 0, 0, 26, 30, 20, 16, OAK2, { top: OAK }); PS2.box(m, 0, 19, 18, 31, 1.6, 1, [218, 172, 76]);
+    PS2.box(m, 0, 6, 17.4, 22, 8, 0.6, [36, 40, 52]);
+    return (MotoInspector.M = [m]);
+  }
+}

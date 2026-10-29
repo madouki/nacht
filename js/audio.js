@@ -338,6 +338,17 @@ const Audio8 = (() => {
     'b5:1 -:1 b5:1 -:1 b5:2 d6:2 f#6:2 d6:2 b5:2 d6:2', 'f#6:4 e6:2 d6:2 b5:8', 'a5:1 -:1 a5:1 -:1 a5:2 c#6:2 f#6:2 c#6:2 a5:2 c#6:2', 'f#6:4 e6:2 c#6:2 a5:8',
     'g5:2 b5:2 d6:2 g6:2 b6:4 a6:2 g6:2', 'g#6:2 f#6:2 e6:2 b5:2 e6:4 g#6:4', 'a6:2 g6:2 f#6:2 e6:2 d6:2 c#6:2 b5:2 a5:2', 'c#6:1 d6:1 e6:1 f#6:1 g6:1 a6:1 b6:1 c#7:1 a6:8'];
 
+  // Fundbüro und Rohrpostamt – Amtsstuben-Walzer (G-Dur, 3/4, 150 BPM, 12 Schritte pro Takt): schläfrig-feierliche Melodie über
+  // „Bumm-pah-pah“, dazu eine Schreibmaschine (klappernde Tasten); alle vier Takte läutet die Zeilenglocke, dann ratscht der Wagen zurück
+  const AW = { G: ['g3', 'b3', 'd4'], D7: ['f#3', 'a3', 'c4'], C: ['e3', 'g3', 'c4'], E7: ['g#3', 'b3', 'd4'], Am: ['a3', 'c4', 'e4'], Em: ['e3', 'g3', 'b3'], B7: ['f#3', 'a3', 'd#4'], A7: ['g3', 'c#4', 'e4'] };
+  const AW_B = { G: 'g2', D7: 'd2', C: 'c2', E7: 'e2', Am: 'a1', Em: 'e2', B7: 'b1', A7: 'a1' };
+  const AW_C = ['G', 'D7', 'G', 'G', 'C', 'G', 'D7', 'G', 'G', 'D7', 'G', 'E7', 'Am', 'D7', 'G', 'G', 'Em', 'B7', 'Em', 'Em', 'C', 'G', 'A7', 'D7', 'G', 'D7', 'G', 'E7', 'Am', 'D7', 'G', 'G'];
+  const AW_L = ['d5:6 b4:3 g4:3', 'c5:6 a4:3 f#4:3', 'b4:4 d5:4 g5:4', 'f#5:6 g5:6', 'e5:6 g5:3 e5:3', 'd5:6 b4:3 d5:3', 'c5:4 b4:4 a4:4', 'g4:12',
+    'g5:6 f#5:3 g5:3', 'a5:6 g5:3 f#5:3', 'g5:4 b5:4 d6:4', 'd6:6 b5:6', 'c6:6 a5:3 e5:3', 'f#5:4 a5:4 c6:4', 'b5:6 a5:3 g5:3', 'g5:9 -:3',
+    'e5:6 g5:3 b5:3', 'a5:6 f#5:3 d#5:3', 'e5:4 g5:4 e5:4', 'b4:12', 'c5:6 e5:3 g5:3', 'b5:6 g5:3 d5:3', 'c#5:4 e5:4 g5:4', 'f#5:6 -:6',
+    'd5:6 b4:3 g4:3', 'c5:6 a4:3 f#4:3', 'b4:4 d5:4 g5:4', 'g#5:6 b5:6', 'a5:6 c6:3 a5:3', 'f#5:4 d5:4 a4:4', 'g5:6 d5:3 b4:3', 'g4:6 -:6'];
+  const AW_TYPE = ['z:1 -:1 z:1 z:1 -:2 z:1 -:1 z:1 z:1 z:1 -:1', 'z:1 z:1 -:1 z:1 z:1 -:1 z:1 -:2 z:1 z:1 -:1', '-:1 z:1 z:1 z:1 -:1 z:1 z:1 -:1 z:1 -:1 z:1 z:1'];
+
   const SONGS = {
     title: {
       bpm: 104, loop: true,
@@ -538,6 +549,14 @@ const Audio8 = (() => {
       // B-Teil ein Doppel-Kick in Dauer-16teln – das nervte. B-Teil jetzt: Snare auf 2 und 3, Hi-Hat in 16teln, keine Kick-Flut
       dr: EX_C.map((c, i) => i % 8 === 7 ? 'k:2 h:2 s:2 t:1 t:1 u:1 u:1 s:2' : i % 8 === 0 ? 'x:2 h:2 o:2 h:2 o:2 h:2' : 'k:2 h:2 o:2 h:2 o:2 h:2').join(' ') + ' ' +
         EX_C.map((c, i) => i === 31 ? 'k:2 h:2 s:2 w:6' : i % 8 === 7 ? 'k:2 s:1 s:1 s:2 t:1 t:1 u:1 u:1 s:2' : i % 8 === 0 ? 'x:2 h:1 h:1 s:2 h:2 s:2 h:1 h:1' : 'k:2 h:1 h:1 s:2 h:2 s:2 h:1 h:1').join(' '),
+    },
+    amt: {
+      bpm: 150, loop: true, echo: { delay: 3, vol: 0.3 },
+      p1: AW_L.join(' '),
+      p2: AW_C.map(c => `-:4 ${AW[c][1]}:4 ${AW[c][2]}:4`).join(' '),
+      tri: AW_C.map(c => `${AW_B[c]}:4 -:8`).join(' '),
+      pad: AW_C.map(c => AW[c].join('+') + ':12').join(' '),
+      dr: AW_C.map((c, i) => i % 4 === 3 ? 'z:1 z:1 b:2 -:4 r:4' : AW_TYPE[i % 3]).join(' '), // Schreibmaschine, Zeilenglocke, Wagenrücklauf
     },
     galopp: {
       bpm: 200, loop: true, echo: { delay: 3, vol: 0.3 },

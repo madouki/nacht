@@ -105,6 +105,8 @@ const Puzzle = (() => {
       case 'scale': return new PzScale(d);
       case 'stamp': return new PzStamp(d);
       case 'form': return new PzForm(d);
+      case 'tube': return new PzTube(d);
+      case 'tubeboard': return new PzTubeBoard(d);
       default: return new PzSign(d);
     }
   };
@@ -119,7 +121,7 @@ const pzSay = (key, ...args) => { if (Game.noteKey !== key || Game.noteT < 40) G
 class PzLever extends Ent {
   constructor(d) {
     super(d.x * T - 4, (d.y + 1) * T - 36, 24, 36); this.kind = 'candle';
-    this.g = d.g; this.save = d.save; this.fy = (d.y + 1) * T; this.cool = 0; this.o = {}; this.say = d.say;
+    this.g = d.g; this.save = d.save; this.fy = (d.y + 1) * T; this.cool = 0; this.o = {}; this.say = d.say; this.label = d.label;
     this.a = Puzzle.get(this.g) ? 1 : 0;
   }
   hit() {
@@ -138,6 +140,7 @@ class PzLever extends Ent {
     if (sx < -40 || sx > View.w + 40) return;
     const ang = 0.5 - this.a * 1.0, lit = this.a > 0.5;
     PS2.drawLocal(ctx, this.o, () => Puzzle.leverMesh(ang, lit), sx, sy, [-26, -40, 52, 44], Math.round(ang * 30) + (lit ? 'g' : 'r'));
+    if (this.label) Puzzle.enamel(ctx, sx, Math.round(sy) + 4, this.label); // Schild am Sockel (Rohrpost: A, B, C)
   }
 }
 
@@ -381,5 +384,112 @@ class PzSign extends Ent {
     const x = this.cx - W.cam.x, y = Math.round(this.y - W.cam.y);
     if (x < -120 || x > View.w + 120) return;
     Puzzle.enamel(ctx, x, y, tr(this.title), this.col);
+  }
+}
+
+// ---------------- Rohrpost für Personen ----------------
+// Gläserne Rohre mit Messingringen an der Rückwand; ↑ am Einwurf steigt man in eine Rohrpostbüchse und saust durch das Netz. Drei
+// Weichen entscheiden, wo man herauskommt; die Hebel A, B, C stellen sie, aber nicht eins zu eins (Hebel B stellt zwei Weichen) – die
+// Rohrnetz-Tafel zeigt den Weg, der gerade gestellt ist. Die Fahrt nutzt den Fahrzeug-Zustand des Helden ('ride', Moto.ride → drive).
+// d: { inlet: [x, y], j: { J1: [x, y], … }, legs: { 'J1-0': [[x, y], …, 'J2' | Ausgang], … }, outs: { name: { x, y, say } }, sw: (get) → { J1: 0|1, … } }
+class PzTube extends Ent {
+  constructor(d) {
+    super(0, 0, 1, 1); this.kind = 'prop'; this.noWrap = true; this.d = d; this.ride = null; this.cool = 0; this.hint = false;
+    const P = (q) => [q[0] * T, q[1] * T];
+    this.inlet = P(d.inlet); this.j = {}; for (const k in d.j) this.j[k] = P(d.j[k]); this.legs = {}; for (const k in d.legs) this.legs[k] = d.legs[k].map(q => typeof q === 'string' ? q : P(q));
+    this.outs = {}; for (const k in d.outs) this.outs[k] = { ...d.outs[k], p: P([d.outs[k].x, d.outs[k].y]) };
+  }
+  state() { const g = (k) => Puzzle.get(k) ? 1 : 0, A = g('tA'), B = g('tB'), C = g('tC'); return { J1: A, J2: B, J3: B ^ C }; } // Hebel B stellt zwei Weichen
+  route() { // Punkte vom Einwurf bis zum Ausgang nach den Weichenstellungen
+    const st = this.state(), pts = [this.inlet.slice()]; let cur = this.d.first, out = null, n = 0;
+    while (cur && n++ < 8) {
+      pts.push(this.j[cur].slice()); const leg = this.legs[cur + '-' + st[cur]];
+      cur = null;
+      for (const q of leg) { if (typeof q === 'string') { if (this.j[q]) cur = q; else out = q; } else pts.push(q.slice()); }
+    }
+    if (out) pts.push(this.outs[out].p.slice());
+    return { pts, out };
+  }
+  update() {
+    this.t++; if (this.cool > 0) this.cool--;
+    const p = W.player, [ix, iy] = this.inlet;
+    if (!this.ride && this.cool === 0 && p.alive && p.state === 'normal' && p.onGround && Math.abs(p.cx - ix) < 14 && Math.abs(p.feet - (iy + 8)) < 10) {
+      pzSay('pzTubeIn'); if (Input.pressed.up) this.board(p);
+    }
+  }
+  board(p) { // einsteigen: der Held verschwindet in der Büchse, die Fahrt übernimmt
+    const r = this.route(), net = this;
+    let L = 0; const seg = []; for (let i = 1; i < r.pts.length; i++) { const a = r.pts[i - 1], b = r.pts[i], l = Math.hypot(b[0] - a[0], b[1] - a[1]); seg.push({ a, b, l, s0: L }); L += l; }
+    p.state = 'ride'; p.vx = p.vy = 0; p.atkT = 0; p.dangle = false; p.setCrouch(false); p.hidden = true;
+    this.ride = { rider: p, s: 0, v: 1, L, seg, out: r.out, lastJ: 0, bump() {}, drive(pl) { net.drive(pl); } };
+    p.ride = this.ride; Audio8.sfx('hiss', p.cx); Audio8.sfx('whoosh', p.cx);
+    if (Game.noteKey === 'pzTubeIn') Game.noteT = 0; // Hinweis weg, damit man die Büchse im Glas sieht
+  }
+  pos(s) { const sg = this.ride.seg.find(q => s <= q.s0 + q.l) || this.ride.seg[this.ride.seg.length - 1], u = sg.l ? Math.min(1, (s - sg.s0) / sg.l) : 1; return [sg.a[0] + (sg.b[0] - sg.a[0]) * u, sg.a[1] + (sg.b[1] - sg.a[1]) * u]; }
+  drive(p) {
+    const R = this.ride; R.v = Math.min(6, R.v + 0.25); R.s += R.v;
+    const [x, y] = this.pos(Math.min(R.s, R.L)); p.x = x - p.w / 2; p.y = y - p.h / 2; p.face = 1; p.onGround = false;
+    const ji = R.seg.findIndex(q => R.s <= q.s0 + q.l); if (ji !== R.lastJ) { R.lastJ = ji; Audio8.sfx('clank', x); } // an jeder Biegung klackt die Büchse
+    if (this.t % 10 === 0) Audio8.sfx('hiss', x);
+    if (R.s >= R.L) this.arrive(p);
+  }
+  arrive(p) { // Ausgang: der Held fällt aus dem Rohr
+    const o = this.outs[this.ride.out]; this.ride = null; this.cool = 40;
+    Moto.release(p); p.hidden = false; p.x = o.p[0] - p.w / 2; p.y = o.p[1]; p.vx = 0; p.vy = 1.5; p.onGround = false; p.inv = Math.max(p.inv, 30);
+    Audio8.sfx(o.prize ? 'bigItem' : 'wall', p.cx); W.puff(p.cx, p.y + 10); W.shake = Math.max(W.shake, 4);
+    W.popup(p.cx, p.y - 10, tr(o.say), o.prize ? '#7cf0a8' : '#fce0a8');
+    if (o.prize) { Puzzle.set('rohr', true); Puzzle.keep('rohrpost'); }
+  }
+  // Rohr als Glas mit dunkler Kante, Spiegelstreif und Messingringen; Weichen als Messingkasten mit Klappe in Stellrichtung
+  drawTube(ctx, pts, lit) {
+    const cx = W.cam.x, cy = W.cam.y, path = () => { ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x - cx, y - cy) : ctx.moveTo(x - cx, y - cy)); };
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    path(); ctx.strokeStyle = '#0e0c14'; ctx.lineWidth = 12; ctx.stroke();
+    path(); ctx.strokeStyle = lit ? 'rgba(150,230,200,0.42)' : 'rgba(150,180,210,0.24)'; ctx.lineWidth = 9; ctx.stroke();
+    path(); ctx.strokeStyle = 'rgba(230,245,255,0.35)'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillStyle = '#c8a040';
+    for (let i = 1; i < pts.length; i++) { const [ax, ay] = pts[i - 1], [bx, by] = pts[i], l = Math.hypot(bx - ax, by - ay), n = Math.floor(l / 26); for (let k = 1; k < n; k++) { const x = ax + (bx - ax) * k / n - cx, y = ay + (by - ay) * k / n - cy; if (Math.abs(bx - ax) > Math.abs(by - ay)) ctx.fillRect(Math.round(x) - 1, Math.round(y) - 6, 2, 12); else ctx.fillRect(Math.round(x) - 6, Math.round(y) - 1, 12, 2); } }
+  }
+  drawBack(ctx) {
+    const st = this.state(), r = this.route(), on = new Set(r.pts.map(q => q.join(',')));
+    for (const k in this.legs) { const [jn, v] = k.split('-'), pts = [this.j[jn]]; for (const q of this.legs[k]) pts.push(typeof q === 'string' ? (this.j[q] || this.outs[q].p) : q); this.drawTube(ctx, pts, st[jn] === +v && on.has(this.j[jn].join(','))); }
+    this.drawTube(ctx, [this.inlet, this.j[this.d.first]], true);
+    for (const k in this.j) { // Weichenkästen
+      const [x, y] = this.j[k], sx = Math.round(x - W.cam.x), sy = Math.round(y - W.cam.y); if (sx < -20 || sx > View.w + 20) continue;
+      ctx.fillStyle = '#2c2418'; ctx.fillRect(sx - 9, sy - 9, 18, 18); ctx.fillStyle = '#c8a040'; ctx.fillRect(sx - 8, sy - 8, 16, 16); ctx.fillStyle = '#6c5420'; ctx.fillRect(sx - 6, sy - 6, 12, 12);
+      const leg = this.legs[k + '-' + st[k]], nx = typeof leg[0] === 'string' ? (this.j[leg[0]] || this.outs[leg[0]].p) : leg[0], ang = Math.atan2(nx[1] - y, nx[0] - x);
+      ctx.strokeStyle = '#7cf0a8'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx + Math.cos(ang) * 6, sy + Math.sin(ang) * 6); ctx.stroke();
+      Font.draw(ctx, k.slice(1), sx, sy - 18, '#c8a040', { align: 'center', shadow: '#000' });
+    }
+    for (const k in this.outs) { const o = this.outs[k], sx = Math.round(o.p[0] - W.cam.x), sy = Math.round(o.p[1] - W.cam.y); ctx.fillStyle = '#c8a040'; ctx.fillRect(sx - 8, sy - 3, 16, 4); ctx.fillStyle = '#2c2418'; ctx.fillRect(sx - 6, sy + 1, 12, 2);
+      if (o.sack) { let r = Math.floor(o.p[1] / T); while (r < W.room.h && !Phys.solidTile(Math.floor(o.p[0] / T), r)) r++; const fy = Math.round(r * T - W.cam.y); // Postsack am Boden mit Anhänger
+        ctx.fillStyle = '#3c2814'; ctx.fillRect(sx - 14, fy - 18, 28, 18); ctx.fillRect(sx - 12, fy - 21, 24, 3); ctx.fillStyle = '#5c4020'; ctx.fillRect(sx - 12, fy - 17, 24, 2); ctx.fillStyle = '#2c1c0c'; ctx.fillRect(sx - 3, fy - 24, 6, 4);
+        ctx.fillStyle = '#e8e0c8'; ctx.fillRect(sx + 4, fy - 14, 10, 7); ctx.fillStyle = '#b01828'; ctx.fillRect(sx + 6, fy - 12, 6, 1); ctx.fillRect(sx + 6, fy - 10, 4, 1); }
+    } // Ausgabe-Trichter
+    const [ix, iy] = this.inlet, isx = Math.round(ix - W.cam.x), isy = Math.round(iy - W.cam.y); // Einwurf: Messingtrichter am Boden
+    ctx.fillStyle = '#2c2418'; ctx.fillRect(isx - 12, isy - 4, 24, 20); ctx.fillStyle = '#c8a040'; ctx.fillRect(isx - 11, isy - 3, 22, 3); ctx.fillRect(isx - 11, isy, 2, 15); ctx.fillRect(isx + 9, isy, 2, 15); ctx.fillStyle = '#0a0810'; ctx.fillRect(isx - 8, isy + 1, 16, 15);
+    if (this.ride) { // die Büchse im Glas: Messingzylinder mit Bullauge, Funken an den Ringen
+      const [x, y] = this.pos(Math.min(this.ride.s, this.ride.L)), sx = Math.round(x - W.cam.x), sy = Math.round(y - W.cam.y);
+      ctx.fillStyle = '#5c4418'; ctx.fillRect(sx - 6, sy - 6, 12, 12); ctx.fillStyle = '#d8b060'; ctx.fillRect(sx - 5, sy - 5, 10, 10); ctx.fillStyle = '#8cc8e8'; ctx.fillRect(sx - 2, sy - 2, 4, 4); ctx.fillStyle = '#fff'; ctx.fillRect(sx - 2, sy - 2, 1, 1);
+      if (this.t % 3 === 0) W.sparks(x, y, 1);
+    }
+  }
+}
+// Rohrnetz-Tafel: das Netz als Schaubild, der gestellte Weg leuchtet grün, die Ausgänge mit ihren Namen
+class PzTubeBoard extends Ent {
+  constructor(d) { super(d.x * T, d.y * T, (d.w || 9) * T, (d.h || 5) * T); this.kind = 'prop'; }
+  update() { this.t++; }
+  draw(ctx) {
+    const net = W.ents.find(e => e instanceof PzTube); if (!net) return;
+    const x = Math.round(this.x - W.cam.x), y = Math.round(this.y - W.cam.y), w = this.w, h = this.h; if (x > View.w + 8 || x + w < -8) return;
+    ctx.fillStyle = '#2c2418'; ctx.fillRect(x - 3, y - 3, w + 6, h + 6); ctx.fillStyle = '#c8a040'; ctx.fillRect(x - 2, y - 2, w + 4, 1);
+    ctx.fillStyle = '#10141c'; ctx.fillRect(x, y, w, h);
+    Font.draw(ctx, tr('pzBoardT'), x + w / 2, y + 2, '#c8a040', { align: 'center' });
+    const r = net.route(), all = [net.inlet, ...Object.values(net.j), ...Object.values(net.outs).map(o => o.p)], X0 = Math.min(...all.map(q => q[0])), X1 = Math.max(...all.map(q => q[0])), Y0 = Math.min(...all.map(q => q[1])), Y1 = Math.max(...all.map(q => q[1]));
+    const mx = (q) => x + 6 + (q[0] - X0) / (X1 - X0 || 1) * (w - 12), my = (q) => y + 13 + (q[1] - Y0) / (Y1 - Y0 || 1) * (h - 18);
+    const line = (pts, col) => { ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.beginPath(); pts.forEach((q, i) => i ? ctx.lineTo(mx(q), my(q)) : ctx.moveTo(mx(q), my(q))); ctx.stroke(); };
+    for (const k in net.legs) { const [jn] = k.split('-'), pts = [net.j[jn]]; for (const q of net.legs[k]) pts.push(typeof q === 'string' ? (net.j[q] || net.outs[q].p) : q); line(pts, '#3c4050'); }
+    line(r.pts, (this.t >> 3) & 1 ? '#7cf0a8' : '#58c880');
+    for (const k in net.outs) { const o = net.outs[k]; ctx.fillStyle = k === r.out ? '#7cf0a8' : '#5c6070'; ctx.fillRect(Math.round(mx(o.p)) - 1, Math.round(my(o.p)) - 1, 3, 3); }
   }
 }

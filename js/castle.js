@@ -811,7 +811,7 @@ const Castle = (() => {
       .candle(52, 15, 'H').candle(60, 15).candle(34, 9, '$').candle(27, 15).candle(12, 13, 'H').candle(2, 15)
       .enemy('ghost', 32, 5).enemy('ghost', 10, 9).enemy('bat', 54, 4)
       .chest(1, 17, 'big').prop('vessel', { x: 3, y: 17 })
-      .music('hotel').label('FUNDBÜRO').start(61, 17).done();
+      .music('amt').label('FUNDBÜRO').start(61, 17).done();
     add('fundbuero', 0, 2, null, fund);
     LINKS.push([['side', 'passage'], { e: 'L', y: 17 }, ['side', 'fundbuero'], { e: 'R', y: 17 }, {}]); // Lichterpassage (links unten) → Fundbüro
     // Versuchsstrecke (links am Automatenwerk, durch den Hallenboden; js/moto.js): die Prüfstrecke des Werks für das Dampfrad „Krat I“.
@@ -831,7 +831,7 @@ const Castle = (() => {
       .fill(96, 11, 97, 11, '^')                                                     // Stacheln (Platz zum Landen nach dem Absatz)
       .fill(18, 11, 30, 12, '.').prop('moto', ramp(31, 36, -1)).prop('moto', ramp(12, 17, 1)) // weitester Graben: Dampfstoß
       .fill(0, 6, 1, 10, '#')                                                        // Prellbock
-      .prop('moto', { k: 'gate', x: 181, y: 10 }).prop('moto', { k: 'bike', x: 186, y: 10, dir: -1 }) // Start/Ziel-Tor des Zeitfahrens
+      .prop('moto', { k: 'gate', x: 181, y: 10 }).prop('moto', { k: 'insp', x: 189, y: 10 }).prop('moto', { k: 'bike', x: 186, y: 10, dir: -1 }) // Start/Ziel-Tor des Zeitfahrens
       .prop('moto', { k: 'post', x: 112, y: 10 }).prop('moto', { k: 'post', x: 64, y: 10 }).prop('moto', { k: 'post', x: 39, y: 10 })
       .prop('pz', { k: 'sign', x: 192, y: 7, title: 'motoTitle', key: 'motoSign', col: '#5c2c14' })
       .prop('pz', { k: 'sign', x: 41, y: 7, title: 'motoBoostT', key: 'motoBoost', col: '#5c2c14', reach: 3 })
@@ -842,6 +842,24 @@ const Castle = (() => {
       .music('galopp').label('VERSUCHSSTRECKE').start(197, 10).done();
     add('versuchsstrecke', 0, 3, null, track);
     LINKS.push([['side', 'automatenwerk'], { e: 'L', y: 21 }, ['side', 'versuchsstrecke'], { e: 'R', y: 10 }, {}]); // Automatenwerk (Hallenboden links) → Versuchsstrecke
+    // Rohrpostamt (links am Fundbüro, hinter dem Rückgabeschalter; js/puzzle.js): Rohrpost für Personen – am Einwurf steigt man in eine
+    // Büchse und saust durch gläserne Rohre unter der Decke. Drei Weichen, drei Hebel (A stellt die erste, B die zweite und die dritte,
+    // C nur die dritte); falsch gestellt landet man im Sack UNZUSTELLBAR, mit STRAFPORTO am Boden oder RETOUR am Einwurf, richtig oben
+    // links auf dem Balkon mit Truhe und Lebensgefäß. Die Rohrnetz-Tafel zeigt den gestellten Weg
+    const rohr = R(48, 'station', 20)
+      .ground(0, 47, 18).fill(0, 0, 47, 1, '#').fill(2, 9, 10, 9, '=')                        // Boden, Decke, Balkon der Ausgabe
+      .prop('pz', { k: 'tube', first: 'J1', inlet: [42.5, 17], j: { J1: [42.5, 3.5], J2: [25.5, 3.5], J3: [16.5, 3.5] },
+        legs: { 'J1-0': [[45.5, 3.5], 'back'], 'J1-1': ['J2'], 'J2-0': ['bin'], 'J2-1': ['J3'], 'J3-0': ['porto'], 'J3-1': [[6.5, 3.5], 'prize'] },
+        outs: { back: { x: 45.5, y: 14.5, say: 'pzTubeBack' }, bin: { x: 25.5, y: 13, say: 'pzTubeBin', sack: true }, porto: { x: 16.5, y: 13.5, say: 'pzTubePorto' }, prize: { x: 6.5, y: 6, say: 'pzTubePrize', prize: true } } })
+      .prop('pz', { k: 'lever', x: 33, y: 17, g: 'tA', label: 'A' }).prop('pz', { k: 'lever', x: 36, y: 17, g: 'tB', label: 'B' }).prop('pz', { k: 'lever', x: 39, y: 17, g: 'tC', label: 'C' })
+      .prop('pz', { k: 'tubeboard', x: 9, y: 11, w: 12, h: 5 })
+      .prop('pz', { k: 'sign', x: 38, y: 9, title: 'pzTubeT', key: 'pzTubeHint', col: '#5c2c14', reach: 4 })
+      .candle(46, 15, 'H').candle(30, 15).candle(20, 15, '$').candle(5, 6, 'H')
+      .enemy('bat', 30, 8)
+      .chest(3, 8, 'big').prop('vessel', { x: 9, y: 8 })
+      .music('amt').label('ROHRPOSTAMT').start(45, 17).done();
+    add('rohrpost', 0, 2, null, rohr);
+    LINKS.push([['side', 'fundbuero'], { e: 'L', y: 17 }, ['side', 'rohrpost'], { e: 'R', y: 17 }, {}]); // Fundbüro (hinter dem Rückgabeschalter) → Rohrpostamt
   }
   if (on && Levels.room) buildSide();
   // Gefahrenstufe je Region: tiefer im Schloss mehr Lebensenergie, Schaden und EXP der Gegner
@@ -3644,7 +3662,7 @@ const Castle = (() => {
   // Neueste Änderungen (zum Testen): die Abschnittswahl markiert diese Räume mit NEU und zeigt darunter, was sich geändert hat;
   // SUB springt zum nächsten markierten Abschnitt. Bei jeder Auslieferung neu füllen
   const RECENT = [
-    [['side', 'versuchsstrecke'], 'chgMoto'], [['side', 'fundbuero'], 'chgFund'], // Dampfrad-Fahrt (links am Automatenwerk), Schalterrätsel (links an der Passage)
+    [['side', 'versuchsstrecke'], 'chgMoto'], [['side', 'fundbuero'], 'chgFund'], [['side', 'rohrpost'], 'chgTube'], // Dampfrad-Fahrt (links am Automatenwerk), Schalterrätsel (links an der Passage)
     [['side', 'kaleido'], 'chgKaleido'], [['side', 'pendelhalle'], 'chgPendel'], [['side', 'passage'], 'chgPassage'],
     [['side', 'golemstollen'], 'chgGolem'], [['side', 'galvani'], 'chgLab'],
     [[0, 1], 'chgPortrait'], [[0, 3], 'chgPortrait'], [[3, 4], 'chgPortrait'], // Ahnenbilder im Foyer, in der Halle und im Thronsaal
