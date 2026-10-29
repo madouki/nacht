@@ -324,6 +324,20 @@ const Audio8 = (() => {
     'c6:6 a5:2 f5:2 a5:2', 'g5:8 e5:4', 'f5:6 a5:2 d6:2 c6:2', 'c6:8 e5:4', 'd6:6 c6:2 a#5:2 a5:2', 'a5:8 f5:4', 'g5:4 a#5:4 d6:4', 'c6:8 -:4',
     'f6:6 e6:2 d6:2 c6:2', 'e6:6 d6:2 c6:2 g5:2', 'd6:4 a5:4 f5:4', 'e6:8 c#6:4', 'd6:6 c6:2 a#5:2 a5:2', 'g5:6 a#5:2 a5:2 g5:2', 'a5:4 c#6:4 e6:4', 'd6:12'];
 
+  // Versuchsstrecke – Dampfgalopp (D-Dur, 200 BPM): ein Galopp der Belle Époque für das Dampfrad – hüpfende Tonrepetitionen über
+  // Umpa-Bass, A-Teil D-Dur, B-Teil G-Dur über h-Moll und fis-Moll zurück, am Ende 32tel-Arpeggien und ein Lauf zurück zum Anfang
+  const MO = { D: ['d4', 'f#4', 'a4'], A: ['c#4', 'e4', 'a4'], G: ['b3', 'd4', 'g4'], Bm: ['b3', 'd4', 'f#4'], 'F#m': ['c#4', 'f#4', 'a4'], E: ['e4', 'g#4', 'b4'], A7: ['c#4', 'e4', 'g4'] };
+  const MO_B = { D: ['d2', 'a2'], A: ['a1', 'e2'], G: ['g1', 'd2'], Bm: ['b1', 'f#2'], 'F#m': ['f#1', 'c#2'], E: ['e2', 'b2'], A7: ['a1', 'e2'] };
+  const MO_C = ['D', 'D', 'A', 'A', 'D', 'D', 'G', 'A', 'D', 'D', 'A', 'A', 'G', 'A', 'D', 'D', 'G', 'G', 'D', 'D', 'G', 'G', 'A', 'A', 'Bm', 'Bm', 'F#m', 'F#m', 'G', 'E', 'A', 'A7'];
+  const MO_L = ['a5:1 -:1 a5:1 -:1 a5:2 f#5:2 d5:2 f#5:2 a5:2 d6:2', 'f#6:4 e6:2 d6:2 a5:4 -:4', 'g5:1 -:1 g5:1 -:1 g5:2 e5:2 c#5:2 e5:2 a5:2 c#6:2', 'e6:4 d6:2 c#6:2 a5:4 -:4',
+    'a5:1 -:1 a5:1 -:1 a5:2 f#5:2 d5:2 f#5:2 a5:2 d6:2', 'f#6:2 g6:2 a6:2 f#6:2 d6:4 -:4', 'g6:2 f#6:2 e6:2 d6:2 b5:2 d6:2 g6:4', 'f#6:2 e6:2 d6:2 c#6:2 e6:8',
+    'd6:1 c#6:1 d6:1 e6:1 f#6:2 d6:2 a5:2 d6:2 f#6:2 a6:2', 'a6:4 f#6:2 d6:2 a5:8', 'c#6:1 b5:1 c#6:1 d6:1 e6:2 c#6:2 a5:2 c#6:2 e6:2 g6:2', 'g6:4 e6:2 c#6:2 a5:8',
+    'b5:2 d6:2 g6:2 b6:2 a6:2 g6:2 f#6:2 e6:2', 'e6:2 f#6:2 g6:2 e6:2 c#6:2 e6:2 a6:4', 'f#6:2 a6:2 d7:4 a6:2 f#6:2 d6:4', 'd6:2 a5:2 f#5:2 a5:2 d5:4 -:4',
+    'd5:2 g5:2 b5:2 d6:6 b5:2 g5:2', 'a5:2 b5:2 c6:2 b5:2 a5:4 g5:4', 'f#5:2 a5:2 d6:2 f#6:6 d6:2 a5:2', 'g5:2 a5:2 b5:2 a5:2 f#5:4 d5:4',
+    'd5:2 g5:2 b5:2 d6:6 e6:2 f#6:2', 'g6:4 f#6:2 e6:2 d6:4 b5:4', 'c#6:2 e6:2 a6:6 g6:2 f#6:2 e6:2', 'e6:2 d6:2 c#6:2 b5:2 a5:4 -:4',
+    'b5:1 -:1 b5:1 -:1 b5:2 d6:2 f#6:2 d6:2 b5:2 d6:2', 'f#6:4 e6:2 d6:2 b5:8', 'a5:1 -:1 a5:1 -:1 a5:2 c#6:2 f#6:2 c#6:2 a5:2 c#6:2', 'f#6:4 e6:2 c#6:2 a5:8',
+    'g5:2 b5:2 d6:2 g6:2 b6:4 a6:2 g6:2', 'g#6:2 f#6:2 e6:2 b5:2 e6:4 g#6:4', 'a6:2 g6:2 f#6:2 e6:2 d6:2 c#6:2 b5:2 a5:2', 'c#6:1 d6:1 e6:1 f#6:1 g6:1 a6:1 b6:1 c#7:1 a6:8'];
+
   const SONGS = {
     title: {
       bpm: 104, loop: true,
@@ -524,6 +538,14 @@ const Audio8 = (() => {
       // B-Teil ein Doppel-Kick in Dauer-16teln – das nervte. B-Teil jetzt: Snare auf 2 und 3, Hi-Hat in 16teln, keine Kick-Flut
       dr: EX_C.map((c, i) => i % 8 === 7 ? 'k:2 h:2 s:2 t:1 t:1 u:1 u:1 s:2' : i % 8 === 0 ? 'x:2 h:2 o:2 h:2 o:2 h:2' : 'k:2 h:2 o:2 h:2 o:2 h:2').join(' ') + ' ' +
         EX_C.map((c, i) => i === 31 ? 'k:2 h:2 s:2 w:6' : i % 8 === 7 ? 'k:2 s:1 s:1 s:2 t:1 t:1 u:1 u:1 s:2' : i % 8 === 0 ? 'x:2 h:1 h:1 s:2 h:2 s:2 h:1 h:1' : 'k:2 h:1 h:1 s:2 h:2 s:2 h:1 h:1').join(' '),
+    },
+    galopp: {
+      bpm: 200, loop: true, echo: { delay: 3, vol: 0.3 },
+      p1: MO_L.join(' '),
+      p2: MO_C.map((c, i) => (i < 24 ? arp3 : arp3f)(...MO[c])).join(' '),
+      tri: MO_C.map(c => oct(MO_B[c][0], MO_B[c][1], 4)).join(' '),
+      pad: MO_C.map(c => MO[c].join('+') + ':16').join(' '),
+      dr: section() + ' ' + sectionB(),
     },
     hotel: {
       bpm: 132, loop: true, echo: { delay: 3, vol: 0.32 },

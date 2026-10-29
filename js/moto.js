@@ -94,7 +94,7 @@ const Moto = (() => {
     p.ride = null; if (p.state === 'ride') p.state = 'normal';
     p.crouchAtk = false; p.y = p.feet - 28; p.h = 28;
   }
-  const make = (d) => d.k === 'ramp' ? new MotoRamp(d) : d.k === 'post' ? new MotoPost(d) : new MotoBike(d);
+  const make = (d) => d.k === 'ramp' ? new MotoRamp(d) : d.k === 'post' ? new MotoPost(d) : d.k === 'gate' ? new MotoGate(d) : new MotoBike(d);
   return { R, WB, SEAT, LOW, HEAD, HEADD, FAST, BOOST, HOP, G, LAUNCH, body, wheel, rampMesh, postMesh, groundAt, ride, bump, pose, release, make };
 })();
 
@@ -170,7 +170,7 @@ class MotoBike extends Ent {
       else this.vx = Math.max(0, this.vx - (this.air ? 0.003 : 0.02));
     }
     if (P.dash && this.boostCool === 0 && this.crashT === 0) { this.boostT = 45; this.boostCool = 140; Audio8.sfx('hiss', this.bx); this.puff(4); W.shake = Math.max(W.shake, 3); }
-    if (this.boostT > 0) { this.boostT--; if (this.vx > 0.5) this.vx += (M.BOOST - this.vx) * 0.12; }
+    if (this.boostT > 0) { this.boostT--; if (this.vx > 0.5) this.vx += (M.BOOST - this.vx) * 0.12; if (this.t % 2 === 0) this.puff(); } // Dampffahne
     // Dampfsprung: am Boden oder kurz nach der Kante; auf einer Schanze mit ihrem Schwung
     if (P.jump && this.crashT === 0 && (!this.air || this.coyote > 0)) {
       this.vy = M.HOP + Math.min(0, this.air ? this.vy : this.slope * M.LAUNCH); this.air = true; this.coyote = 0;
@@ -266,6 +266,11 @@ class MotoBike extends Ent {
     ctx.fillStyle = '#f0d890'; ctx.fillRect(Math.round(kx) - 1, Math.round(ky) - 1, 2, 2);
     if (this.boostT > 0 && (this.t & 2)) { ctx.fillStyle = 'rgba(255,190,90,0.7)'; ctx.fillRect(-15, -30, 3, 3); }
     ctx.restore();
+    if (this.boostT > 0 && this.vx > 3.6) { // Tempo-Streifen hinter dem Rad
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      for (let k = 0; k < 7; k++) { const y = sy - 6 - ((k * 37 + this.t * 3) % 40), len = 30 + ((k * 53 + this.t * 5) % 50), x = sx - this.dir * (24 + ((k * 29 + this.t * 11) % 60)); ctx.fillStyle = `rgba(255,230,180,${(0.08 + 0.04 * (k % 3)).toFixed(2)})`; ctx.fillRect(this.dir > 0 ? x - len : x, y, len, 1); }
+      ctx.restore();
+    }
   }
 }
 
@@ -306,3 +311,142 @@ class MotoPost extends Ent {
     PS2.drawLocal(ctx, this.o, () => Moto.postMesh(this.lit), sx, sy, [-12, -44, 24, 48], this.lit ? 'g' : 'r');
   }
 }
+
+// ---------------- Zeitfahren: Start/Ziel-Tor, Wendemarke, Medaillen, Geisterfahrer ----------------
+// Fährt man vom Start weg durch das Tor, läuft die Uhr; am Prellbock (Wendemarke) wenden und zurück durchs Tor = eine Runde.
+// Bestzeit, Medaillen und die Bestfahrt (alle 2 Bilder Ort, Lage, Richtung) bleiben im Spielstand; beim nächsten Versuch fährt
+// die Bestfahrt als Geisterfahrer mit. Absteigen bricht ab, Stürze kosten nur Zeit
+const MotoRun = (() => {
+  const MEDALS = [['gold', 32 * 60], ['silver', 40 * 60], ['bronze', 52 * 60]]; // Bilder
+  const key = () => 'nachtmahr.' + (typeof Castle !== 'undefined' && Castle.testing ? 'test.' : '') + 'moto';
+  const load = () => { try { return JSON.parse(localStorage.getItem(key()) || '{}') || {}; } catch (e) { return {}; } };
+  const keep = (o) => { try { localStorage.setItem(key(), JSON.stringify(o)); } catch (e) { /* privat */ } };
+  const medalOf = (f) => (MEDALS.find(([, lim]) => f <= lim) || [null])[0];
+  const fmt = (f) => (f / 60).toFixed(2);
+  return { MEDALS, load, keep, medalOf, fmt };
+})();
+
+class MotoGate extends Ent { // d: { x, y } – Tor über der Strecke (Mitte x), y = Standreihe
+  constructor(d) {
+    super(d.x * T - 40, (d.y + 1) * T - 70, 80, 70); this.kind = 'prop'; this.gx = d.x * T + 8; this.fy = (d.y + 1) * T; this.o = {};
+    this.run = null; this.lastX = null; this.result = null; this.resT = 0; this.ghost = null;
+    const st = MotoRun.load(); this.best = st.best || 0; this.medal = st.best ? MotoRun.medalOf(st.best) : null;
+  }
+  start() {
+    const st = MotoRun.load();
+    this.run = { t: 0, turned: false, rec: [] }; this.result = null;
+    if (st.ghost && st.ghost.length > 8) this.ghost = W.spawn(new MotoGhost(st.ghost, this));
+    Audio8.sfx('go'); Game.note('motoRunGo'); W.popup(this.gx, this.fy - 74, tr('motoGo3'), '#fce0a8');
+  }
+  stop(abort) {
+    if (this.ghost) { this.ghost.dead = true; this.ghost = null; }
+    if (abort) { Game.note('motoAbort'); Audio8.sfx('select'); }
+    this.run = null;
+  }
+  finish() {
+    const r = this.run, f = r.t, st = MotoRun.load(), m = MotoRun.medalOf(f), newBest = !st.best || f < st.best;
+    st.medals = st.medals || {};
+    if (newBest) { st.best = f; st.ghost = r.rec; this.best = f; this.medal = m; }
+    const first = m && !st.medals[m]; if (m) st.medals[m] = 1;
+    MotoRun.keep(st);
+    this.result = { f, m, newBest }; this.resT = 300;
+    Audio8.sfx(m === 'gold' ? 'oneUp' : m ? 'bigItem' : 'item'); W.flash = Math.max(W.flash, m ? 6 : 2);
+    Game.note(m ? 'motoMedal_' + m : 'motoNoMedal', MotoRun.fmt(f));
+    if (first) { // erste Medaille dieser Art: der Prüfmeister zahlt aus
+      const loot = m === 'gold' ? ['bagBig', 'bagBig', 'heartB'] : m === 'silver' ? ['bagBig', 'heartB'] : ['bagBig'];
+      loot.forEach((t, i) => W.spawn(new Item(t, this.gx - 20 + i * 20, this.fy - 40)));
+    }
+    this.stop(false);
+  }
+  update() {
+    this.t++; if (this.resT > 0) this.resT--;
+    const p = W.player, b = p.state === 'ride' ? p.ride : null;
+    if (this.run) {
+      if (!b) { this.stop(true); this.lastX = null; return; } // abgestiegen
+      const r = this.run; r.t++;
+      if (r.t % 2 === 0) r.rec.push(Math.round(b.bx), Math.round(b.by), Math.round(b.tilt * 100), b.dir);
+      if (!r.turned && b.bx < 10 * T) { r.turned = true; Audio8.sfx('checkpoint'); W.popup(b.bx, b.by - 50, tr('motoTurn'), '#7cf0a8'); }
+      if (r.t > 60 * 300) this.stop(true); // nach fünf Minuten zählt es nicht mehr
+    }
+    if (b) {
+      if (this.lastX !== null) {
+        const crossedL = this.lastX >= this.gx && b.bx < this.gx, crossedR = this.lastX < this.gx && b.bx >= this.gx;
+        if (crossedL && !this.run) this.start();
+        else if (crossedR && this.run && this.run.turned) this.finish();
+      }
+      this.lastX = b.bx;
+    } else this.lastX = null;
+  }
+  lightUp(L, cx, cy) { for (const s of [-1, 1]) L.push({ x: this.gx + s * 38 - cx, y: this.fy - 70 - cy, r: 34, c: [255, 214, 140], a: 0.45 }); }
+  static mesh() { // Gusseisenpfosten mit Gaslaternen, genieteter Querträger mit Fachwerk
+    if (MotoGate.M) return MotoGate.M;
+    const { mesh, box, prism, cone, beam } = PS2, m = mesh(), IR = [40, 42, 52], IRL = [104, 110, 128], BR = [218, 172, 76];
+    for (const s of [-1, 1]) {
+      box(m, s * 38, 0, 16, 10, 5, 10, IR, { top: IRL }); prism(m, s * 38, 5, 16, 2.6, 58, 8, IR, { rTop: 2 }); prism(m, s * 38, 24, 16, 3.4, 3, 8, BR);
+      box(m, s * 38, 63, 16, 7, 2, 7, IR); prism(m, s * 38, 65, 16, 3, 7, 6, [255, 230, 160], { e: 1 }); cone(m, s * 38, 72, 16, 4.4, 4, 6, IR);
+    }
+    beam(m, -40, 60, 16, 40, 60, 16, 4, 5, IR); beam(m, -40, 52, 16, 40, 52, 16, 2, 2, IRL);
+    for (let k = -4; k < 4; k++) beam(m, k * 10, 53, 16, k * 10 + 10, 59, 16, 1.2, 1.2, IRL, { open: true });
+    return (MotoGate.M = [m]);
+  }
+  draw(ctx) {
+    const sx = this.gx - W.cam.x, sy = this.fy - W.cam.y;
+    if (sx < -70 || sx > View.w + 70) return;
+    PS2.drawLocal(ctx, this.o, MotoGate.mesh(), sx, sy, [-50, -84, 100, 90], 'g');
+    const [lx, ly] = PS2.projLocal(sx, sy, -34, 51, 16), [rx] = PS2.projLocal(sx, sy, 34, 51, 16); // Zielflagge als Band unter dem Träger
+    const x0 = Math.round(lx), x1 = Math.round(rx), y0 = Math.round(ly);
+    for (let x = x0; x < x1; x += 3) for (let r = 0; r < 2; r++) { ctx.fillStyle = (Math.floor((x - x0) / 3) + r) % 2 ? '#e8e8ec' : '#141418'; ctx.fillRect(x, y0 + r * 3, 3, 3); }
+    Font.draw(ctx, tr('motoGateT'), Math.round(sx), y0 + 8, '#fce0a8', { align: 'center', shadow: '#000' });
+  }
+}
+
+// Geisterfahrer: die Bestfahrt als durchscheinendes Dampfrad mit weißem Fahrer – im Takt der laufenden Runde
+class MotoGhost extends Ent {
+  constructor(rec, gate) { super(0, 0, 28, 26); this.kind = 'prop'; this.rec = rec; this.gate = gate; this.ph = 0; this.lastBx = null; }
+  at() {
+    const r = this.gate.run; if (!r) return null;
+    const R = this.rec, n = R.length / 4, k = Math.min(n - 1, r.t / 2), i = Math.floor(k), j = Math.min(n - 1, i + 1), u = k - i, q = (o) => R[i * 4 + o] + (R[j * 4 + o] - R[i * 4 + o]) * u;
+    return { bx: q(0), by: q(1), tilt: q(2) / 100, dir: R[i * 4 + 3], done: r.t / 2 >= n - 1 };
+  }
+  update() {
+    this.t++; const g = this.at(); if (!g) { this.dead = true; return; }
+    if (this.lastBx !== null) this.ph += Math.abs(g.bx - this.lastBx) / Moto.R;
+    this.lastBx = g.bx; this.x = g.bx - 14; this.y = g.by - 26;
+  }
+  draw(ctx) {
+    const g = this.at(); if (!g) return;
+    const sx = Math.round(g.bx - W.cam.x), sy = Math.round(g.by - W.cam.y);
+    if (sx < -60 || sx > View.w + 60) return;
+    ctx.save(); ctx.globalAlpha = g.done ? 0.2 : 0.55; ctx.globalCompositeOperation = 'lighter';
+    ctx.translate(sx, sy); ctx.scale(g.dir, 1); ctx.rotate(g.tilt);
+    const img = Moto.body(); ctx.imageSmoothingEnabled = true; ctx.drawImage(img.c, -img.ox, -img.oy);
+    for (const wx of [-Moto.WB, Moto.WB]) Moto.wheel(ctx, wx, -Moto.R, this.ph);
+    ctx.restore();
+    const H = W.player.H, spr = H && H.crouch; // Fahrer als weißer Schemen
+    if (spr) {
+      const wc = Sprites.whiteOf(spr);
+      ctx.save(); ctx.globalAlpha = g.done ? 0.18 : 0.5;
+      ctx.drawImage(g.dir < 0 ? wc.f : wc.c, Math.round(g.bx - 5 + g.dir - 3 - (spr.mx || 0) - W.cam.x) - spr.pad, Math.round(g.by - Moto.SEAT - spr.h - W.cam.y) - spr.pad);
+      ctx.restore();
+    }
+  }
+}
+
+// Anzeige des Zeitfahrens oben im Bild (über dem Licht, damit sie lesbar bleibt): laufende Zeit, Bestzeit mit Medaille, Ergebnis
+Moto.drawHud = (ctx) => {
+  const g = W.ents && W.ents.find(e => e instanceof MotoGate && !e.dead); if (!g) return;
+  const cx = View.cx, col = { gold: '#f8d040', silver: '#c8d0dc', bronze: '#d08850' };
+  const medal = (x, y, m) => { ctx.fillStyle = '#000'; ctx.fillRect(x - 5, y - 4, 11, 10); ctx.fillStyle = col[m]; ctx.fillRect(x - 3, y - 4, 7, 9); ctx.fillRect(x - 4, y - 3, 9, 7); ctx.fillStyle = '#fff'; ctx.fillRect(x - 2, y - 2, 2, 2); };
+  if (g.run) {
+    const s = tr('motoTime') + ' ' + MotoRun.fmt(g.run.t);
+    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(cx - 52, 34, 104, 12);
+    Font.draw(ctx, s, cx, 36, g.run.turned ? '#7cf0a8' : '#fce0a8', { align: 'center', shadow: '#000' });
+  }
+  if (g.best) { const s = tr('motoBest') + ' ' + MotoRun.fmt(g.best); Font.draw(ctx, s, View.w - 8, 36, '#bcbcbc', { align: 'right', shadow: '#000' }); if (g.medal) medal(View.w - 16 - Font.width(s), 39, g.medal); }
+  if (g.resT > 0 && g.result) {
+    const r = g.result, s = MotoRun.fmt(r.f) + (r.m ? '  ' + tr('motoM_' + r.m) : '') + (r.newBest ? '  ' + tr('motoNewBest') : ''), w = Font.width(s) + 26;
+    ctx.save(); ctx.globalAlpha = Math.min(1, g.resT / 30); ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(cx - w / 2, 70, w, 16);
+    if (r.m) medal(cx - w / 2 + 10, 78, r.m);
+    Font.draw(ctx, s, cx + 7, 74, r.m ? col[r.m] : '#fcfcfc', { align: 'center', shadow: '#000' }); ctx.restore();
+  }
+};

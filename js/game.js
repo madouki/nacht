@@ -730,6 +730,7 @@ const Game = {
         if (W.cinema > 0) this.drawCinema(ctx);
         if (this.state === 'play' && Castle.on) Castle.drawGuide(ctx); // Schloss: Wegweiser-Pfeil (nach dem Licht, damit er hell bleibt)
         this.drawCombo(ctx);
+        if (Castle.on && typeof Moto !== 'undefined' && Moto.drawHud) Moto.drawHud(ctx); // Zeitfahren (Versuchsstrecke): Uhr, Bestzeit, Medaille
         this.drawHud(ctx);
         if (this.state === 'play' && Castle.on && Castle.overlay) Castle.draw(ctx, this.t, false, true); // Karten-Overlay (Select/Tab)
         if (this.state === 'pause') this.drawPause(ctx);

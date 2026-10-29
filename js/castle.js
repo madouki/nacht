@@ -828,10 +828,10 @@ const Castle = (() => {
       .set(108, 10, 'X')
       .fill(70, 9, 82, 12, '#').fill(74, 6, 77, 6, '=')                              // Absatz mit niedrigem Träger
       .fill(58, 11, 61, 12, '.').fill(50, 11, 53, 12, '.')                           // Doppelgraben
-      .fill(94, 11, 95, 11, '^')                                                     // Stacheln
+      .fill(96, 11, 97, 11, '^')                                                     // Stacheln (Platz zum Landen nach dem Absatz)
       .fill(18, 11, 30, 12, '.').prop('moto', ramp(31, 36, -1)).prop('moto', ramp(12, 17, 1)) // weitester Graben: Dampfstoß
       .fill(0, 6, 1, 10, '#')                                                        // Prellbock
-      .prop('moto', { k: 'bike', x: 186, y: 10, dir: -1 })
+      .prop('moto', { k: 'gate', x: 181, y: 10 }).prop('moto', { k: 'bike', x: 186, y: 10, dir: -1 }) // Start/Ziel-Tor des Zeitfahrens
       .prop('moto', { k: 'post', x: 112, y: 10 }).prop('moto', { k: 'post', x: 64, y: 10 }).prop('moto', { k: 'post', x: 39, y: 10 })
       .prop('pz', { k: 'sign', x: 192, y: 7, title: 'motoTitle', key: 'motoSign', col: '#5c2c14' })
       .prop('pz', { k: 'sign', x: 41, y: 7, title: 'motoBoostT', key: 'motoBoost', col: '#5c2c14', reach: 3 })
@@ -839,7 +839,7 @@ const Castle = (() => {
       .candle(196, 8, 'H').candle(146, 8).candle(112, 7, '$').candle(88, 8, 'H').candle(66, 8).candle(40, 7, 'H').candle(5, 8, 'H')
       .enemy('ghost', 160, 5).enemy('automat', 145, 10).enemy('bat', 114, 5).enemy('bat', 66, 5).enemy('raven', 100, 5).enemy('automat', 44, 10)
       .chest(4, 10, 'big').prop('vessel', { x: 8, y: 10 })
-      .music('stage1').label('VERSUCHSSTRECKE').start(197, 10).done();
+      .music('galopp').label('VERSUCHSSTRECKE').start(197, 10).done();
     add('versuchsstrecke', 0, 3, null, track);
     LINKS.push([['side', 'automatenwerk'], { e: 'L', y: 21 }, ['side', 'versuchsstrecke'], { e: 'R', y: 10 }, {}]); // Automatenwerk (Hallenboden links) → Versuchsstrecke
   }

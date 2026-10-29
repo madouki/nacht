@@ -357,6 +357,8 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   ↑ aufsitzen, in Fahrtrichtung Gas, dagegen bremsen/wenden, Sprung (auf Holzschanzen mit deren Schwung), ↓ ducken unter
   Trägern (32 px Luft), Dash = Dampfstoß für den weitesten Graben, Peitsche vom Sattel (fegt auch Mauerbrocken weg), ↑ Hupe.
   Spielerzustand `ride` (entities.js: update/hurt/sprite rufen `Moto.*`), Gruben → letzter Prüfposten (−3 Energie).
+  Zeitfahren (MotoGate/MotoGhost): Start/Ziel-Tor, Wendemarke am Prellbock, Medaillen Gold ≤ 32 s / Silber ≤ 40 s / Bronze ≤ 52 s
+  (beim ersten Mal Beute), Bestfahrt als Geisterfahrer (`nachtmahr.moto`); eigene Musik „Dampfgalopp“ (audio.js `galopp`).
 - **Karten-Schnelltaste:** Tab oder Q, Ansicht-Taste, auf dem Handy ein Karten-Knopf oben rechts (nur im Schloss-Modus):
   im Spiel die durchscheinende Karte, in der Pause die große Karte.
 - **Offene Aufzugsschächte** (`js/shaft.js`, Raum-Flag `openOut`): statt Blockwänden ein Stahlgitterschacht frei in einer
