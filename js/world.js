@@ -83,6 +83,7 @@ const W = {
         case 'luster': this.spawn(new FallingLuster(d)); break;
         case 'cafe': this.spawn(new PassageCafe(d)); break;
         case 'belt': case 'press': case 'vent': case 'hatch': case 'werkhall': this.spawn(Werk.make(d)); break; // Automatenwerk (js/werk.js)
+        case 'moto': { const e = this.spawn(Moto.make(d)); if (e.isRamp) this.platforms.push(e); break; } // Dampfrad, Rampen, Prüfposten (js/moto.js)
         case 'pz': { const e = this.spawn(Puzzle.make(d)); if (e.kind === 'platform') this.platforms.push(e); if (e.deck) this.platforms.push(e.deck); break; } // Schalterrätsel (js/puzzle.js)
         case 'witchgate': this.spawn(new WitchGate(d)); break;
         case 'armor': this.spawn(new ArmorSuit(d)); break;

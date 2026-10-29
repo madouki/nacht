@@ -234,6 +234,7 @@ class Player {
     Audio8.sfx('hurt'); Input.rumble(0.45, 0.7, 200);
     if (this.hp <= 0) { this.hp = 0; this.die(); return; }
     this.inv = 100;
+    if (this.state === 'ride') return Moto.bump(this, srcX); // vom Dampfrad fällt man nicht, es schlingert nur (js/moto.js)
     this.skiN = 0; this.skiT = 0;
     if (this.state === 'stairs' || this.state === 'toStair') { if (this.state === 'toStair') this.state = 'normal'; if (W.room.iceRamps) this.rampV = (this.rampV || 0) * 0.35; return; }
     const dir = srcX < this.cx ? 1 : -1;
@@ -337,6 +338,7 @@ class Player {
 
     if (this.state === 'swing') return this.updateSwing(I, P);
     if (this.state === 'zip') return this.updateZip(P);
+    if (this.state === 'ride') return Moto.ride(this, I, P); // Dampfrad: das Fahrzeug steuert den Helden (js/moto.js)
     if (this.boostT > 0) this.boostT--; // Eisturm: Boost-Kristall und Schanzen-Serie laufen aus
     if (this.skiT > 0 && --this.skiT === 0) this.skiN = 0;
     if (this.state === 'stairs') return this.updateStairs(I, P);
@@ -935,6 +937,7 @@ class Player {
     if (this.state === 'dead') return this.onGround ? H.dead : H.hurt;
     if (this.state === 'hurt') return H.hurt;
     if (this.state === 'swing' || this.state === 'zip') return H.swing;
+    if (this.state === 'ride') return Moto.pose(this, H, p); // im Sattel: Hockpose, Hiebe aus der Hocke (js/moto.js)
     if (this.state === 'ledge') return H.hang;
     if (this.state === 'climb') return this.climbT <= 10 ? H.climb : H.crouch;
     if (this.slideT > 0) return H.slide ? H.slide[(W.frame >> 2) & 1] : H.crouch;

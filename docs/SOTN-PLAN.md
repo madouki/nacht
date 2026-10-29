@@ -353,6 +353,10 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   den Fensterreihen Kreuzgratjoche mit Sternenkappen, Diagonalrippen und Schlussstein. Anfang und Ende der Röhre drehen sich mit.
 - **Fundbüro** (`js/puzzle.js`, links an der Lichterpassage): Schalterrätsel – Hebel per Peitsche (Gepäckaufzug),
   Schrankkoffer auf die Gepäckwaage schieben, Stempel nach dem Dienstweg; Gelöstes bleibt gelöst (`Castle.setFlag`).
+- **Versuchsstrecke** (`js/moto.js`, links am Automatenwerk durch den Hallenboden): Fahrsequenz auf dem Dampfrad „Krat I“ –
+  ↑ aufsitzen, in Fahrtrichtung Gas, dagegen bremsen/wenden, Sprung (auf Holzschanzen mit deren Schwung), ↓ ducken unter
+  Trägern (32 px Luft), Dash = Dampfstoß für den weitesten Graben, Peitsche vom Sattel (fegt auch Mauerbrocken weg), ↑ Hupe.
+  Spielerzustand `ride` (entities.js: update/hurt/sprite rufen `Moto.*`), Gruben → letzter Prüfposten (−3 Energie).
 - **Karten-Schnelltaste:** Tab oder Q, Ansicht-Taste, auf dem Handy ein Karten-Knopf oben rechts (nur im Schloss-Modus):
   im Spiel die durchscheinende Karte, in der Pause die große Karte.
 - **Offene Aufzugsschächte** (`js/shaft.js`, Raum-Flag `openOut`): statt Blockwänden ein Stahlgitterschacht frei in einer

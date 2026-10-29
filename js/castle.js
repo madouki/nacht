@@ -814,6 +814,34 @@ const Castle = (() => {
       .music('hotel').label('FUNDBÜRO').start(61, 17).done();
     add('fundbuero', 0, 2, null, fund);
     LINKS.push([['side', 'passage'], { e: 'L', y: 17 }, ['side', 'fundbuero'], { e: 'R', y: 17 }, {}]); // Lichterpassage (links unten) → Fundbüro
+    // Versuchsstrecke (links am Automatenwerk, durch den Hallenboden; js/moto.js): die Prüfstrecke des Werks für das Dampfrad „Krat I“.
+    // Am Eingang steht es unter Dampf (↑ aufsitzen), dann nach links: Mauerbrocken (peitschen oder springen), ein Graben, ein Träger
+    // zum Ducken, zwei Holzschanzen über einen breiten Graben (oben auf der Schanze springen), Stacheln, ein Absatz mit niedrigem
+    // Träger, ein Doppelgraben und am Ende der weiteste Graben – nur mit Dampfstoß (Dash) und Schanze. Dahinter Prellbock, Truhe und
+    // Lebensgefäß; zurück fährt man dieselbe Strecke (im Stand gegenlenken = wenden). Prüfposten setzen nach einem Sturz wieder auf
+    const ramp = (x0, x1, up) => ({ k: 'ramp', x0, x1, y: 10, h: 24, up });
+    const track = R(200, 'werk')
+      .ground(0, 199)
+      .fill(164, 11, 167, 12, '.').set(176, 10, 'X')                                 // Graben, Mauerbrocken
+      .fill(150, 8, 155, 8, '=')                                                     // niedriger Träger: ducken
+      .fill(124, 11, 133, 12, '.').prop('moto', ramp(134, 139, -1)).prop('moto', ramp(118, 123, 1)) // breiter Graben mit Schanzen
+      .set(108, 10, 'X')
+      .fill(70, 9, 82, 12, '#').fill(74, 6, 77, 6, '=')                              // Absatz mit niedrigem Träger
+      .fill(58, 11, 61, 12, '.').fill(50, 11, 53, 12, '.')                           // Doppelgraben
+      .fill(94, 11, 95, 11, '^')                                                     // Stacheln
+      .fill(18, 11, 30, 12, '.').prop('moto', ramp(31, 36, -1)).prop('moto', ramp(12, 17, 1)) // weitester Graben: Dampfstoß
+      .fill(0, 6, 1, 10, '#')                                                        // Prellbock
+      .prop('moto', { k: 'bike', x: 186, y: 10, dir: -1 })
+      .prop('moto', { k: 'post', x: 112, y: 10 }).prop('moto', { k: 'post', x: 64, y: 10 }).prop('moto', { k: 'post', x: 39, y: 10 })
+      .prop('pz', { k: 'sign', x: 192, y: 7, title: 'motoTitle', key: 'motoSign', col: '#5c2c14' })
+      .prop('pz', { k: 'sign', x: 41, y: 7, title: 'motoBoostT', key: 'motoBoost', col: '#5c2c14', reach: 3 })
+      .prop('pz', { k: 'sign', x: 8, y: 7, title: 'motoEndT', key: 'motoEnd', col: '#5c2c14' })
+      .candle(196, 8, 'H').candle(146, 8).candle(112, 7, '$').candle(88, 8, 'H').candle(66, 8).candle(40, 7, 'H').candle(5, 8, 'H')
+      .enemy('ghost', 160, 5).enemy('automat', 145, 10).enemy('bat', 114, 5).enemy('bat', 66, 5).enemy('raven', 100, 5).enemy('automat', 44, 10)
+      .chest(4, 10, 'big').prop('vessel', { x: 8, y: 10 })
+      .music('stage1').label('VERSUCHSSTRECKE').start(197, 10).done();
+    add('versuchsstrecke', 0, 3, null, track);
+    LINKS.push([['side', 'automatenwerk'], { e: 'L', y: 21 }, ['side', 'versuchsstrecke'], { e: 'R', y: 10 }, {}]); // Automatenwerk (Hallenboden links) → Versuchsstrecke
   }
   if (on && Levels.room) buildSide();
   // Gefahrenstufe je Region: tiefer im Schloss mehr Lebensenergie, Schaden und EXP der Gegner
