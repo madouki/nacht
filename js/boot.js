@@ -48,6 +48,13 @@ function bootEngine(io) {
     Q: [14, 17, 17, 17, 21, 18, 13], R: [30, 17, 17, 30, 20, 18, 17], S: [15, 16, 16, 14, 1, 1, 30], T: [31, 4, 4, 4, 4, 4, 4],
     U: [17, 17, 17, 17, 17, 17, 14], V: [17, 17, 17, 17, 17, 10, 4], W: [17, 17, 17, 21, 21, 21, 10], X: [17, 17, 10, 4, 10, 17, 17],
     Y: [17, 17, 10, 4, 4, 4, 4], Z: [31, 1, 2, 4, 8, 16, 31], 'Ä': [10, 0, 14, 17, 31, 17, 17], 'Ö': [10, 0, 14, 17, 17, 17, 14], 'Ü': [10, 0, 17, 17, 17, 17, 14],
+    // Akzente wie in der Spielschrift (font.js): FR, ES, IT, RO
+    'À': [8, 4, 14, 17, 31, 17, 17], 'Á': [2, 4, 14, 17, 31, 17, 17], 'Â': [4, 10, 14, 17, 31, 17, 17], 'Ă': [10, 4, 14, 17, 31, 17, 17],
+    'Ç': [14, 17, 16, 17, 14, 4, 12], 'È': [8, 4, 31, 16, 30, 16, 31], 'É': [2, 4, 31, 16, 30, 16, 31], 'Ê': [4, 10, 31, 16, 30, 16, 31],
+    'Ë': [10, 0, 31, 16, 30, 16, 31], 'Ì': [8, 4, 14, 4, 4, 4, 14], 'Í': [2, 4, 14, 4, 4, 4, 14], 'Î': [4, 10, 14, 4, 4, 4, 14],
+    'Ï': [10, 0, 14, 4, 4, 4, 14], 'Ñ': [13, 22, 17, 25, 21, 19, 17], 'Ò': [8, 4, 14, 17, 17, 17, 14], 'Ó': [2, 4, 14, 17, 17, 17, 14],
+    'Ô': [4, 10, 14, 17, 17, 17, 14], 'Ù': [8, 4, 17, 17, 17, 17, 14], 'Ú': [2, 4, 17, 17, 17, 17, 14], 'Û': [4, 10, 17, 17, 17, 17, 14],
+    'Ș': [15, 16, 14, 1, 30, 4, 8], 'Ț': [31, 4, 4, 4, 0, 4, 8],
     0: [14, 17, 19, 21, 25, 17, 14], 1: [4, 12, 4, 4, 4, 4, 14], 2: [14, 17, 1, 2, 4, 8, 31], 3: [31, 2, 4, 2, 1, 17, 14], 4: [2, 6, 10, 18, 31, 2, 2],
     5: [31, 16, 30, 1, 1, 17, 14], 6: [6, 8, 16, 30, 17, 17, 14], 7: [31, 1, 2, 4, 8, 8, 8], 8: [14, 17, 17, 14, 17, 17, 14], 9: [14, 17, 17, 15, 1, 2, 12],
     '.': [0, 0, 0, 0, 0, 12, 12], ',': [0, 0, 0, 0, 12, 4, 8], '!': [4, 4, 4, 4, 4, 0, 4], '?': [14, 17, 1, 2, 4, 0, 4], '-': [0, 0, 0, 31, 0, 0, 0],
@@ -55,8 +62,8 @@ function bootEngine(io) {
     '/': [1, 1, 2, 4, 8, 16, 16], '=': [0, 0, 31, 0, 31, 0, 0], '+': [0, 4, 4, 31, 4, 4, 0], '(': [2, 4, 8, 8, 8, 4, 2], ')': [8, 4, 2, 2, 2, 4, 8],
     ' ': [0, 0, 0, 0, 0, 0, 0],
   };
-  const norm = (s) => { // Großbuchstaben; Akzente fallen weg, Umlaute bleiben
-    s = s.toUpperCase().replace(/ß/g, 'SS').replace(/[–—]/g, '-');
+  const norm = (s) => { // Großbuchstaben; Zeichen ohne Glyphe fallen auf den Grundbuchstaben zurück
+    s = s.toUpperCase().replace(/ß/g, 'SS').replace(/[–—]/g, '-').replace(/’/g, "'").replace(/Ş/g, 'Ș').replace(/Ţ/g, 'Ț');
     let o = ''; for (let c of s) { if (!F5[c] && c.normalize) c = c.normalize('NFD')[0]; o += F5[c] ? c : ' '; } return o;
   };
   const LBL = new Map();
@@ -96,6 +103,12 @@ function bootEngine(io) {
       tips: ['LES BOUGIES CACHENT COEURS, OR ET ARMES.', 'FOUETTE LES ANNEAUX EN DIAGONALE.', 'LE DASH MARCHE AUSSI EN PLEIN SAUT.', 'LE COMTE ATTEND DANS LA SALLE DU TRONE.'] },
     es: { sub: 'UNA SAGA DE CAZAVAMPIROS', load: 'LA NOCHE DESPIERTA', key: 'PULSA UNA TECLA', tap: 'TOCA PARA ENTRAR',
       tips: ['LAS VELAS ESCONDEN CORAZONES, ORO Y ARMAS.', 'AZOTA LOS ANILLOS EN DIAGONAL.', 'EL DASH TAMBIEN FUNCIONA EN EL AIRE.', 'EL CONDE ESPERA EN LA SALA DEL TRONO.'] },
+    it: { sub: 'UNA SAGA DI CACCIATORI DI VAMPIRI', load: 'LA NOTTE SI RISVEGLIA', key: 'PREMI UN TASTO', tap: 'TOCCA PER ENTRARE',
+      tips: ['LE CANDELE NASCONDONO CUORI, ORO E ARMI.', 'TIENI SUB CON 10 CUORI: TEMPESTA SACRA.', 'FRUSTA GLI ANELLI IN DIAGONALE.',
+        'LO SCATTO FUNZIONA ANCHE IN ARIA.', "FRUSTA L'ARGANO E IL PONTE CADE.", 'IL CONTE ATTENDE NELLA SALA DEL TRONO.', 'LA CATTEDRALE DEL SOLE NON CONOSCE NOTTE.'] },
+    ro: { sub: 'O SAGĂ A VÂNĂTORILOR DE VAMPIRI', load: 'NOAPTEA SE TREZEȘTE', key: 'APASĂ O TASTĂ', tap: 'ATINGE CA SĂ INTRI',
+      tips: ['LUMÂNĂRILE ASCUND INIMI, AUR ȘI ARME.', 'ȚINE SUB CU 10 INIMI: FURTUNĂ SFÂNTĂ.', 'BICIUIEȘTE INELELE ÎN DIAGONALĂ.',
+        'DASH-UL MERGE ȘI ÎN AER.', 'BICIUIEȘTE TROLIUL ȘI PODUL CADE.', 'CONTELE AȘTEAPTĂ ÎN SALA TRONULUI.', 'CATEDRALA SOARELUI NU ȘTIE DE NOAPTE.'] },
   };
   const T = TXT[io.lang] || TXT.en;
   ['sub', 'load', 'key', 'tap'].forEach(k => { T[k] = norm(T[k]); }); T.tips = T.tips.map(norm);

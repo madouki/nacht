@@ -1,11 +1,11 @@
 // Sprachausgabe: Studio-Aufnahmen (ElevenLabs, Stimme „Obsidian“) für EN/FR/ES/JA/ZH über WebAudio.
-// Fehlt eine Aufnahme (z. B. Deutsch), spricht die Browser-Stimme (speechSynthesis) denselben Text.
+// Fehlt eine Aufnahme (Deutsch, Italienisch, Rumänisch), spricht die Browser-Stimme (speechSynthesis) denselben Text.
 'use strict';
 
 const Voice = (() => {
   const REC = ['en', 'fr', 'es', 'ja', 'zh'];
   const KEYS = ['title', 'intro', 'henrik', 'ragnor', 'stage1', 'stage2', 'stage3', 'boss1', 'boss2', 'boss3', 'taunt', 'clear', 'gameover', 'ending'];
-  const BCP = { de: 'de-DE', en: 'en-US', fr: 'fr-FR', es: 'es-ES', ja: 'ja-JP', zh: 'zh-CN' };
+  const BCP = { de: 'de-DE', en: 'en-US', fr: 'fr-FR', es: 'es-ES', it: 'it-IT', ro: 'ro-RO', ja: 'ja-JP', zh: 'zh-CN' };
   const cache = new Map(); // 'lang/key' → Promise<AudioBuffer|null>
   let src = null, token = 0, busyUntil = 0, tts = false, queue = [];
 
@@ -67,7 +67,7 @@ const Voice = (() => {
     u.lang = BCP[lang]; u.rate = dark ? 0.85 : 0.92; u.pitch = dark ? 0.4 : 0.65;
     const vs = ss.getVoices().filter(v => v.lang && v.lang.replace('_', '-').toLowerCase().startsWith(lang));
     const nat = vs.filter(v => /natural|online|neural/i.test(v.name));
-    u.voice = nat.find(v => /conrad|killian|guy|christopher|eric|henri|alvaro|keita|yunxi|yunjian|male/i.test(v.name)) || nat[0] || vs[0] || null;
+    u.voice = nat.find(v => /conrad|killian|guy|christopher|eric|henri|alvaro|diego|giuseppe|benigno|emil|keita|yunxi|yunjian|male/i.test(v.name)) || nat[0] || vs[0] || null;
     tts = true; Audio8.duck(true);
     u.onend = u.onerror = () => { if (my !== token) return; tts = false; next(my); };
     ss.speak(u);

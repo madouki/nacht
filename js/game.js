@@ -125,6 +125,7 @@ const Game = {
     document.documentElement.lang = Options.lang;
     const h = document.getElementById('stickHint');
     if (h) h.textContent = tr('stickHint');
+    this.secList = null; // Abschnittsliste neu aufbauen (Stage-Namen in der neuen Sprache)
   },
 
   setCrt(on) {
