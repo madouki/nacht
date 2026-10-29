@@ -2,8 +2,8 @@
 // Kollision: unsichtbar feste Spalten ('G') links und rechts der Kabine, Absätze nur an den Haltestellen (der Raum setzt openOut:
 // außerhalb des schmalen Schachtraums keine Mauer, die Absätze laufen bis an den Bildrand weiter). Dahinter je Aufzug eine eigene
 // Architektur, Geschoss für Geschoss übereinander, um einen Lichthof gebaut – beim Fahren zieht sie mit Tiefenparallaxe vorbei:
-//   hotel – Lichthof des Hotels Krat: Galerien mit Messinggeländer und Kugellampen, gusseiserne Säulen, warm erleuchtete Türen
-//   ice   – Eisdom: Wände aus Gletschereis mit leuchtenden Adern, Simse mit Eiszapfen und Kristallen, durchscheinende Eissäulen
+//   hotel – Maschinenhaus des Hotels Krat: warm erleuchtete Fenster, Messingrohre und -räder, Galerien mit Kugellampen
+//   ice   – vereistes Maschinenhaus: Frostglas im Stahlgerüst, Rohre, Schwungräder, Eiszapfen unter den Rosten
 //   works – Pumpwerk unter der Kuppel: Glaswand im Eisengitter, Ziegel, Gitterroste auf Nietträgern, Schwungräder, Kolben, Rohre
 //   sky   – außen an der Sonnenkathedrale: die Stadt der Kathedralen (PS2.drawCathedral), man sinkt an ihr hinab
 // Gerendert in halber Auflösung (lite: Drittel) und weich hochskaliert, nur neu, wenn sich die Kamera bewegt oder etwas dreht.
@@ -88,18 +88,16 @@ class LiftShaft extends Ent {
       const x = RC + s * 300, z = 240;
       PS.prism(m, x, Y0, z, 34, P, 8, S.pil, { cap: false, rot: Math.PI / 8 });
       PS.prism(m, x, Y0 + P * 0.5, z, 42, 18, 8, S.pilRing, { rot: Math.PI / 8, top: S.pilRing, bottom: true });
-      if (style === 'ice') PS.cone(m, x + s * 20, Y0 + P * 0.5, z - 30, 8, -40, 4, S.icicle);
     }
     // Stilbeigaben
     if (style === 'hotel') { // Kugellampen auf dem Handlauf
       for (let i = 0; i <= 6; i++) { const x = 2 * RC - ex + (ex - (2 * RC - ex)) * i / 6; PS.box(m, x, Y0 + RH + 2, ez, 5, 5, 5, [255, 214, 140], { e: 0.9 }); }
       for (const s of [-1, 1]) for (let j = 1; j < 4; j++) PS.box(m, RC + s * (AW - GD), Y0 + RH + 2, ZF + j * (ez - ZF) / 4, 5, 5, 5, [255, 214, 140], { e: 0.9 });
-    } else if (style === 'ice') { // Eiszapfen unter den Simsen, Kristalle darauf, leuchtende Adern in der Rückwand
-      for (let i = 0; i < 16; i++) { const x = RC - AW + 20 + h(i + 40) * (2 * AW - 40); PS.cone(m, x, Y0 - GT, ZB - 8 - h(i + 60) * 60, 4 + h(i) * 4, -(14 + h(i + 80) * 30), 4, S.icicle); }
-      for (const s of [-1, 1]) for (let i = 0; i < 6; i++) PS.cone(m, RC + s * (AW - 10 - h(i + 90) * 60), Y0 - GT, ZF + 20 + h(i + 99) * (ZB - ZF - 40), 4 + h(i) * 3, -(12 + h(i + 7) * 26), 4, S.icicle);
-      for (let i = 0; i < 7; i++) { const x = RC - AW + 30 + h(i + 120) * (2 * AW - 60), z = ZB - 20 - h(i + 130) * 50; for (let c = 0; c < 3; c++) PS.cone(m, x + (c - 1) * 6, Y0, z + (c % 2) * 6, 3 + c, 10 + h(i + c) * 16, 5, S.crystal, { e: 0.25 }); }
-      for (let i = 0; i < 3; i++) { let x = RC - AW + h(i + 150) * 2 * AW, y = Y0; for (let s = 0; s < 4; s++) { const nx = x + (h(i * 9 + s) - 0.5) * 90, ny = y + P / 4; PS.beam(m, x, y, ZB - 2, nx, ny, ZB - 2, 2, 2, [120, 210, 255], { e: 0.55, open: true }); x = nx; y = ny; } }
-    } else if (style === 'works') { // Nietträger unter dem Rost, Rohre über die Geschosse, Glaswand-Sprossen
+    } else if (style === 'ice') { // Eiszapfen unter den Rosten
+      for (let i = 0; i < 16; i++) { const x = RC - AW + 20 + h(i + 40) * (2 * AW - 40); PS.cone(m, x, Y0 - GT - 10, ZB - 8 - h(i + 60) * 60, 4 + h(i) * 4, -(14 + h(i + 80) * 30), 4, S.icicle); }
+      for (const s of [-1, 1]) for (let i = 0; i < 6; i++) PS.cone(m, RC + s * (AW - 10 - h(i + 90) * 60), Y0 - GT - 10, ZF + 20 + h(i + 99) * (ZB - ZF - 40), 4 + h(i) * 3, -(12 + h(i + 7) * 26), 4, S.icicle);
+    }
+    if (S.machine) { // Maschinenhalle wie im Pumpwerk: Nietträger unter dem Rost, Rohre über die Geschosse, Rohrschellen
       PS.beam(m, 2 * RC - ex, Y0 - GT - 6, ez + 4, ex, Y0 - GT - 6, ez + 4, 8, 10, S.girder);
       for (const s of [-1, 1]) PS.beam(m, RC + s * (AW - GD + 4), Y0 - GT - 6, ZF, RC + s * (AW - GD + 4), Y0 - GT - 6, ez, 8, 10, S.girder);
       for (const [x, z, r] of [[RC - AW + 40, ZB - 30, 7], [RC - AW + 58, ZB - 30, 5], [RC + AW - 50, ZB - 40, 9]]) PS.prism(m, x, Y0, z, r, P, 8, S.pipe, { cap: false });
@@ -157,13 +155,14 @@ LiftShaft.P = 256; LiftShaft.ZB = 720; LiftShaft.AW = 420; // Geschosshöhe, Tie
 LiftShaft.STYLE = (() => {
   const env = (v, sunC, amb, sky, fog, fogD) => { const l = Math.hypot(...v); return { static: true, sun: v.map(c => c / l), sunC, amb, sky, fog, fogD }; };
   return {
-    hotel: { bg: ['#1a0c08', '#2c140c', '#120806'], fogA: 'rgba(18,8,6,0.45)', env: env([-0.3, 0.55, -0.78], [0.98, 0.8, 0.56], [0.34, 0.25, 0.2], [0.14, 0.1, 0.08], [30, 14, 10], 0.0011),
-      wall: [[214, 190, 150], [200, 176, 138]], door: [50, 128], litP: 0.55, lit: [255, 196, 120], litE: 0.75, dark: [46, 24, 18], slab: 12, floor: [112, 66, 38], floorTop: [150, 52, 46],
-      rail: 24, screen: [40, 22, 14], railC: [222, 174, 82], colR: 7, colN: 8, col: [64, 44, 34], cap: [210, 160, 70], pil: [176, 150, 124], pilRing: [214, 166, 74], cage: ['#2c1c10', '#6c4c24', '#c89848'] },
-    ice: { bg: ['#06101c', '#0c2440', '#040a14'], fogA: 'rgba(4,10,22,0.5)', env: env([-0.35, 0.6, -0.72], [0.66, 0.8, 1.0], [0.28, 0.36, 0.5], [0.12, 0.18, 0.26], [10, 26, 52], 0.0012),
-      wall: [[110, 160, 210], [96, 146, 198]], door: [40, 120], litP: 0.4, lit: [150, 220, 255], litE: 0.35, dark: [30, 60, 100], slab: 14, floor: [150, 200, 236], floorTop: [210, 236, 252],
-      rail: 0, colR: 14, colN: 6, col: [140, 196, 236], cap: [190, 228, 252], pil: [120, 176, 222], pilRing: [176, 220, 248], icicle: [196, 232, 252], crystal: [130, 210, 255], cage: ['#1c2c40', '#4c7ca4', '#bce4fc'] },
-    works: { bg: ['#06100c', '#0e2420', '#040a08'], fogA: 'rgba(4,12,10,0.45)', anim: true, env: env([-0.4, 0.55, -0.73], [0.84, 0.9, 0.78], [0.26, 0.3, 0.27], [0.12, 0.16, 0.14], [12, 26, 22], 0.0011),
+    // Hotel und Eis gebaut wie das Pumpwerk (machine: Träger, Rohre, Schwungräder; große erleuchtete Fenster), nur in Messing/warm bzw. Stahl/Frost
+    hotel: { bg: ['#1a0c08', '#2c140c', '#120806'], fogA: 'rgba(18,8,6,0.45)', machine: true, anim: true, env: env([-0.3, 0.55, -0.78], [0.98, 0.8, 0.56], [0.3, 0.22, 0.18], [0.14, 0.1, 0.08], [30, 14, 10], 0.0011),
+      wall: [[132, 84, 56], [118, 74, 48]], door: [60, 150], litP: 0.85, lit: [255, 204, 130], litE: 0.5, dark: [40, 24, 16], slab: 8, floor: [70, 50, 36], floorTop: [96, 70, 48],
+      rail: 20, screen: [36, 22, 14], railC: [222, 174, 82], colR: 8, colN: 8, col: [96, 70, 40], cap: [214, 166, 74], pil: [120, 92, 60], pilRing: [214, 166, 74], girder: [80, 58, 36], pipe: [214, 160, 70], wheel: [200, 150, 60], cage: ['#2c1c10', '#6c4c24', '#c89848'] },
+    ice: { bg: ['#06101c', '#0c2440', '#040a14'], fogA: 'rgba(4,10,22,0.45)', machine: true, anim: true, env: env([-0.35, 0.6, -0.72], [0.74, 0.84, 1.0], [0.26, 0.32, 0.42], [0.12, 0.18, 0.26], [10, 26, 52], 0.0011),
+      wall: [[78, 104, 138], [68, 92, 126]], door: [60, 150], litP: 0.85, lit: [176, 226, 255], litE: 0.42, dark: [24, 40, 60], slab: 8, floor: [60, 76, 96], floorTop: [180, 214, 240],
+      rail: 20, screen: [30, 44, 60], railC: [170, 210, 240], colR: 8, colN: 8, col: [70, 96, 124], cap: [170, 210, 240], pil: [90, 120, 150], pilRing: [170, 210, 240], girder: [60, 78, 98], pipe: [160, 200, 230], wheel: [120, 150, 180], icicle: [196, 232, 252], cage: ['#1c2c40', '#4c7ca4', '#bce4fc'] },
+    works: { bg: ['#06100c', '#0e2420', '#040a08'], fogA: 'rgba(4,12,10,0.45)', machine: true, anim: true, env: env([-0.4, 0.55, -0.73], [0.84, 0.9, 0.78], [0.26, 0.3, 0.27], [0.12, 0.16, 0.14], [12, 26, 22], 0.0011),
       wall: [[120, 66, 50], [108, 58, 44]], door: [60, 150], litP: 0.85, lit: [150, 230, 190], litE: 0.4, dark: [30, 40, 36], slab: 8, floor: [52, 60, 58], floorTop: [76, 86, 82],
       rail: 20, screen: [24, 34, 30], railC: [90, 130, 104], colR: 8, colN: 8, col: [56, 96, 74], cap: [96, 140, 110], pil: [58, 92, 74], pilRing: [40, 56, 50], girder: [48, 64, 58], pipe: [176, 108, 58], wheel: [90, 110, 100], cage: ['#14241c', '#3c6c54', '#8cc4a4'] },
     sky: { cage: ['#241c2c', '#5c4c6c', '#c8a868'] },

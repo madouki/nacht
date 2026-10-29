@@ -6,7 +6,7 @@
 
 class BigPendulum extends Ent { // d: { x, y (Drehpunkt, Kacheln), len (px), amp (rad), speed (rad je Bild), phase }
   constructor(d) {
-    super(0, 0, 64, 64); this.kind = 'platform'; this.d = d; this.R = 32; this.slack = 2; // Messinglinse, 64 px breit
+    super(0, 0, 72, 72); this.kind = 'platform'; this.d = d; this.R = 36; this.slack = 2; // Messinglinse, 72 px breit
     this.px = d.x * T + 8; this.py = d.y * T; this.L = d.len; this.A = d.amp; this.w0 = d.speed || 0.02; this.ph = d.phase || 0;
     this.dx = 0; this.dy = 0; this.place(W.frame || 0);
   }
@@ -197,3 +197,38 @@ class PendulumDeco extends Ent { // d: { x, y (Drehpunkt, Kacheln), z (Tiefe px)
   }
 }
 PendulumDeco.ENV = (() => { const v = [-0.4, 0.5, -0.77], l = Math.hypot(...v); return { sun: v.map(c => c / l), sunC: [0.95, 0.8, 0.56], amb: [0.26, 0.22, 0.28], sky: [0.12, 0.1, 0.16], fog: [16, 14, 26], fogD: 0.0009 }; })();
+
+// Buntglasfenster an der Rückwand der Pendelhalle: die Figurenfenster des Glasturms (König, Georg, Drache …) in Steinlaibungen,
+// weit hinten (Parallaxe wie das Zifferblatt). Mondlicht lässt sie glimmen und wirft farbige Schächte; schlägt der Blitz ein
+// (Gewitter über dem Schloss), gleißen sie auf und werfen helle Lichtbahnen schräg durch die Halle
+class TowerGlass extends Ent { // d: { list: [[x, y, Fenster 0–11], …] (Kacheln: Fenstermitte, Oberkante), s (Maßstab) }
+  constructor(d) { super(0, 0, 1, 1); this.kind = 'prop'; this.noWrap = true; this.list = d.list; this.s = d.s || 0.7; }
+  update() { this.t++; }
+  draw() { }
+  static crops() { // je Fenster ein Bild (Glas) und seine Leuchtebene, einmal aus dem Glasturm geschnitten
+    if (TowerGlass.C) return TowerGlass.C;
+    Tiles.build('glass');
+    const wall = Tiles.layer('glass', 'wall').c, glow = Tiles.layer('glass', 'glassGlow').c, out = [];
+    for (let band = 0; band < 3; band++) for (let wi = 0; wi < 4; wi++) {
+      const sx = 22 + wi * 128 - 6, sy = band * 208, mk = (src) => { const c = document.createElement('canvas'); c.width = 96; c.height = 208; c.getContext('2d').drawImage(src, sx, sy, 96, 208, 0, 0, 96, 208); return c; };
+      out.push({ c: mk(wall), g: mk(glow) });
+    }
+    return (TowerGlass.C = out);
+  }
+  drawBack(ctx) {
+    const C = TowerGlass.crops(), fl = W.storm && FX.stormOn(W.storm), t = this.t, s = this.s, w = 96 * s, h = 208 * s;
+    for (const [tx, ty, i] of this.list) {
+      const x = Math.round(View.w / 2 + (tx * T - View.w / 2 - W.cam.x) * 0.6 - w / 2), y = Math.round(104 + (ty * T - 104 - W.cam.y) * 0.8);
+      if (x + w < -60 || x > View.w + 60 || y > 220 || y + h < -10) continue;
+      const im = C[i % C.length];
+      ctx.fillStyle = 'rgba(8,6,14,0.85)'; ctx.fillRect(x + 4 * s, y + 70 * s, w - 8 * s, h - 76 * s); // Laibung (dunkel hinterlegt)
+      ctx.drawImage(im.c, x, y, w, h);
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = fl ? 0.95 : 0.28 + 0.06 * Math.sin(t * 0.03 + i); ctx.drawImage(im.g, x, y, w, h); // Mondlicht bzw. Blitz durchs Glas
+      const len = fl ? 300 : 170, sl = 0.45, x0 = x + 16 * s, x1 = x + w - 16 * s, y0 = y + h * 0.62, g = ctx.createLinearGradient(0, y0, 0, y0 + len);
+      g.addColorStop(0, fl ? 'rgba(220,214,255,0.4)' : 'rgba(170,150,255,0.08)'); g.addColorStop(1, 'rgba(170,150,255,0)');
+      ctx.globalAlpha = 1; ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y0); ctx.lineTo(x1 + len * sl + 20, y0 + len); ctx.lineTo(x0 + len * sl - 10, y0 + len); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+  }
+}

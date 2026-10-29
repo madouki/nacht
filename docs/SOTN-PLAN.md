@@ -378,6 +378,15 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   Lichterpassage, der Kartograf oben in der Pendelhalle (verzweifelt am ständigen Anbauen, erklärt die Karten-Taste).
 - **Abschnittswahl zeigt Neues:** `RECENT` in castle.js markiert die zuletzt geänderten Räume mit NEU, darunter steht, was sich
   geändert hat; SUB springt zum nächsten markierten Abschnitt. Bei jeder Auslieferung neu füllen.
+- **Hotel- und Eisaufzug wie das Pumpwerk:** Maschinenhalle mit großen erleuchteten Fenstern, Nietträgern, Rohren und drehenden
+  Schwungrädern (`machine`/`anim` in `LiftShaft.STYLE`) – das Hotel in Messing und warmem Licht, der Eisaufzug in Stahl und Frost.
+- **Kaleidoskop gewaltiger:** enge Brennweite (`KZ` 1,7): Fenster 1,7-mal so groß, die Röhre krümmt sich kaum; Trommeln drehen
+  halb so schnell; mehr Lichtschächte; Gewitter wie im übrigen Schloss (`STORMY.kaleido`): beim Blitz gleißen alle Fenster auf.
+- **Pendelhalle:** Figurenfenster des Glasturms an der Rückwand (`TowerGlass`, bei Blitz Lichtbahnen), zwei Kolossalpendel tief
+  hinten, Linsen vorn 72 px (Bot-Test: alle Sprünge).
+- **Wortgeplänkel zu Beginn der Bosskämpfe** (`Game.startBanter`, Texte `banter_<Bossname>` für 13 Bosse in 6 Sprachen): läuft
+  unten im Bild mit, der Kampf beginnt währenddessen; einmal je Boss und Spielstand.
+- **Lichterpassage in 3D:** gestreifte Markisen über den Schaufenstern und Gaslaternen an den Pfeilern (PS2.drawLocal an der Fassade).
 - **Karte:** Pause → **KARTE** zeigt das ganze Schloss (Regionen um die Eingangshalle: Prolog links, Katakomben unten,
   Bergfried oben, Sonnenkathedrale oben rechts, Wintergarten rechts, Thron ganz oben). Angriff zoomt, im Zoom scrollen
   die Pfeile, Sprung/Start schließt. Unten: Erkundungsgrad der Region und des Schlosses, Siegel n/5.

@@ -11,7 +11,8 @@
 const Kaleido = (() => {
   const TW = 512, TH = 1104;                    // Textur: entlang der Achse × um den Umfang (ein Umlauf = drei Fenster- und drei Gewölbereihen)
   const SEC0 = 8, SEC = 20, PIT = 17, N = 5;      // Trommeln ab Kachel 8, je 20 Kacheln: 17 Abgrund + 3 Steinring; fünf Trommeln
-  const SPIN = 0.011;                            // Drehung je Bild (rad)
+  const SPIN = 0.005;                            // Drehung je Bild (rad) – gemächlich, die Fenster sollen wirken
+  const KZ = 1.7;                                // Brennweite: enger Bildwinkel – große Fenster, die Röhre krümmt sich kaum (wirkt gewaltig)
   let T3 = null, tab = null, out = null, rayC = null, rayX = null;
 
   const drum = (wx) => { const k = Math.floor((wx / T - SEC0) / SEC); return k >= 0 && k < N && (wx / T - SEC0) - k * SEC < PIT ? k : -1; }; // Trommel an Welt-x (−1: Steinring/Rand)
@@ -115,7 +116,7 @@ const Kaleido = (() => {
   // (fern in der Bildmitte klein, nah oben und unten groß); light[y] = Mondlicht (oben hell, unten dunkel)
   function table() {
     if (tab) return tab;
-    const H = 208, R = TH / (2 * Math.PI), dd = R * 0.3, f = (H / 2) / Math.tan(1.0) * TH / 624; // Brennweite mit dem Umfang skaliert: Fenster so groß wie im Glasturm
+    const H = 208, R = TH / (2 * Math.PI), dd = R * 0.3, f = (H / 2) / Math.tan(1.0) * TH / 624 * KZ; // Brennweite mit dem Umfang skaliert: Fenster so groß wie im Glasturm
     const v = new Float32Array(H), s = new Float32Array(H), light = new Float32Array(H);
     let smin = 1e9, smax = 0;
     for (let y = 0; y < H; y++) {
@@ -151,18 +152,19 @@ const Kaleido = (() => {
     return (RING = { RW, lv: o });
   }
 
+  const flash = () => typeof W !== 'undefined' && W.storm && FX.stormOn(W.storm); // Gewitter über dem Schloss (world.js STORMY)
   // Hintergrund: die Röhre; jeder Bildpunkt gehört zum Abschnitt an seiner Stelle der Achse (gedreht) oder zu einem Steinring
   function drawTube(ctx, cam, frame) {
     if (!T3) buildTex();
     const w = View.w, H = 208, tb = table(), LV = T3.lv, RG = RING || ringTex(), RL = RG.lv, RW = RG.RW;
     if (!out || out.w !== w) { const c = document.createElement('canvas'); c.width = w; c.height = H; const x = c.getContext('2d'), img = x.createImageData(w, H); out = { w, c, x, img, buf: new Int32Array(img.data.buffer) }; }
-    const buf = out.buf, u0 = cam.x * 0.5, rots = new Float32Array(N + 2);
+    const buf = out.buf, u0 = cam.x * 0.5, rots = new Float32Array(N + 2), fl = flash(); // Blitz: alle Fenster gleißen auf
     for (let k = -1; k <= N; k++) rots[k + 1] = angle(k, frame) / (Math.PI * 2) * TH;
     const a0 = A(SEC0), sec = A(SEC), pit = A(PIT), ringW = A(3), aEnd = A(SEC0 + N * SEC);
     for (let x = 0; x < w; x++) {
       const dx = x - w / 2;
       for (let y = 0, o = x; y < H; y++, o += w) {
-        const a = u0 + dx * tb.s[y], L = tb.light[y], lo = L | 0, hi = BAY4[((y & 3) << 2) | (x & 3)] < (L - lo) * 16;
+        const a = u0 + dx * tb.s[y], L = fl ? 2.99 : tb.light[y], lo = L | 0, hi = BAY4[((y & 3) << 2) | (x & 3)] < (L - lo) * 16;
         let k, ring = -1, ua;
         if (a < a0) { if (a >= a0 - ringW) ring = (a - a0 + ringW) / ringW; k = -1; ua = (a - a0 + ringW) * SC; }
         else if (a >= aEnd) { k = N; ua = (a - aEnd) * SC; }
@@ -175,7 +177,7 @@ const Kaleido = (() => {
     out.x.putImageData(out.img, 0, 0);
     ctx.drawImage(out.c, 0, 0);
     const sh = ctx.createLinearGradient(0, 0, 0, H); // ferne Wand im Dunst, unten der Abgrund dunkel
-    sh.addColorStop(0, 'rgba(8,4,16,0.05)'); sh.addColorStop(0.45, 'rgba(8,4,16,0.32)'); sh.addColorStop(1, 'rgba(4,2,10,0.62)');
+    const dk = fl ? 0.35 : 1; sh.addColorStop(0, 'rgba(8,4,16,0.05)'); sh.addColorStop(0.45, `rgba(8,4,16,${0.32 * dk})`); sh.addColorStop(1, `rgba(4,2,10,${0.62 * dk})`);
     ctx.fillStyle = sh; ctx.fillRect(0, 0, w, H);
   }
 
@@ -183,14 +185,14 @@ const Kaleido = (() => {
   // Spalte (entlang der Achse, mit der Röhrenparallaxe) und die Breite; oben steht es im Mondlicht und wirft einen Schacht
   function beams(cam, frame) {
     if (!T3) buildTex();
-    const out = [], w = View.w, tb = table(), H = 208, u0 = cam.x * 0.5, v0 = tb.v[0], v1 = tb.v[H - 1];
+    const out = [], w = View.w, tb = table(), H = 208, u0 = cam.x * 0.5, v0 = tb.v[0], v1 = tb.v[H - 1], fl = flash();
     const rowOf = (v) => { let lo = 0, hi = H - 1; while (lo < hi) { const m = (lo + hi) >> 1; if (tb.v[m] < v) lo = m + 1; else hi = m; } return lo; };
     for (let k = -1; k <= N; k++) {
       const [A0, A1] = span(k), [aO, uO] = origin(k), rot = angle(k, frame) / (Math.PI * 2) * TH;
       T3.wins.forEach((win, wi) => {
         const vc = ((((win.v0 + win.v1) / 2 - rot - v0) % TH) + TH) % TH + v0; // Fenstermitte relativ zur sichtbaren Wand
         if (vc > v1) return;
-        const y = rowOf(vc), L = tb.light[y]; if (L < 0.9) return;     // unten im Schatten: kein Schacht
+        const y = rowOf(vc), L = fl ? 2.6 : tb.light[y]; if (L < 0.55) return; // ganz unten im Schatten: kein Schacht
         const s = tb.s[y], hw = win.hw / SC / s, xs = w / 2 + (Math.max(A0, u0 - 4000) - u0) / s, xe = w / 2 + (Math.min(A1, u0 + 4000) - u0) / s;
         if (xs > w + 40 || xe < -40) return;
         const uLo = (Math.max(A0, u0 - 600) - aO) * SC + uO, uHi = (Math.min(A1, u0 + 600) - aO) * SC + uO;
@@ -199,7 +201,7 @@ const Kaleido = (() => {
           const x = w / 2 + (a - u0) / s;
           if (x + hw < -20 || x - hw > w + 20) continue;
           const yT = rowOf(Math.min(v1, Math.max(v0, vc - (win.v1 - win.v0) / 2))), yB = rowOf(Math.min(v1, Math.max(v0, vc + (win.v1 - win.v0) / 2)));
-          const kL = Math.min(1, (L - 0.9) / 1.3), rgb = win.col.map((c, j) => Math.round(Math.min(255, c * 0.62 + win.acc[j] * 0.18 + 70)));
+          const kL = fl ? 1.5 : Math.min(1.15, 0.25 + (L - 0.55) / 1.3), rgb = win.col.map((c, j) => Math.round(Math.min(255, c * 0.62 + win.acc[j] * 0.18 + 70)));
           out.push({ x0: x - hw, ww: hw * 2, wy: (yT + y) / 2, yT, yB, len: 200 + hw * 1.6, slant: 0.3 * dirOf(k) + (x / w - 0.5) * 0.35, col: rgb.join(','), k: kL * (0.85 + 0.15 * Math.sin(frame * 0.017 + wi + k)), id: (k + 1) * 16 + wi, cx0: Math.max(-40, xs), cx1: Math.min(w + 40, xe) });
         }
       });

@@ -100,11 +100,55 @@ const Passage = (() => {
     px(x, '#1c1410', 0, 254, W0, 18); for (let X = 0; X < W0; X += 8) px(x, '#2c2018', X, 256, 6, 2); // Sockel
     return c;
   }
+  // ---------------- PS2-3D vor der Fassade: Markisen über den Schaufenstern, Gaslaternen an Eisenarmen ----------------
+  // In Kachel-Perspektive an die gemalte Wand geheftet (PS2.drawLocal): die Markise ragt schräg zum Betrachter, man sieht je nach
+  // Stand ihre Unterseite und die Seitenwangen; die Laterne hängt an einem Arm vor dem Pfeiler zwischen zwei Läden
+  const AWN = ['#a8182c', '#1c6c3c', '#1c3c8c', '#7c1c4c'], hex = (h) => { const n = parseInt(h.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
+  const meshA = [], holders = new Map();
+  function awningMesh(i) { // gestreifte Markise mit Volant (Bogenkante), Seitenwangen, Eisenstangen
+    if (meshA[i]) return meshA[i];
+    const P = PS2, m = P.mesh(), A = hex(AWN[i % AWN.length]), CR = [236, 226, 200], IR = [40, 36, 44], n = 8, W2 = 42, D = -28, Y = -15;
+    for (let k = 0; k < n; k++) { // Streifen von der Wand (z 0) schräg hinab zur Vorderkante
+      const x0 = -W2 + k * 2 * W2 / n, x1 = x0 + 2 * W2 / n, col = k % 2 ? CR : A;
+      P.face(m, [P.vtx(m, x0, 0, 0), P.vtx(m, x1, 0, 0), P.vtx(m, x1, Y, D), P.vtx(m, x0, Y, D)], col, null, { two: true });
+      P.face(m, [P.vtx(m, x0, Y, D), P.vtx(m, x1, Y, D), P.vtx(m, (x0 + x1) / 2, Y - 5, D - 1)], col, null, { two: true }); // Volant (Zacke)
+    }
+    for (const sx of [-W2, W2]) P.face(m, [P.vtx(m, sx, 0, 0), P.vtx(m, sx, Y, D), P.vtx(m, sx, Y, 0)], A.map(v => v * 0.8), null, { two: true }); // Seitenwangen
+    for (const sx of [-W2 + 2, W2 - 2]) P.beam(m, sx, Y - 1, D, sx, -26, 0, 1.4, 1.4, IR); // Eisenstangen zur Wand
+    P.beam(m, -W2, Y, D, W2, Y, D, 1.6, 1.6, [200, 160, 80]); // Messingstange an der Vorderkante
+    return (meshA[i] = m);
+  }
+  let meshL = null;
+  function lanternMesh() { // Gaslaterne: Wandarm mit Volute, sechseckiges Glas, Dach mit Knauf
+    if (meshL) return meshL;
+    const P = PS2, m = P.mesh(), IR = [36, 34, 40], BR = [200, 160, 80];
+    P.beam(m, 0, 0, 0, 0, 0, -18, 2, 2, IR); P.beam(m, 0, -6, 0, 0, 0, -12, 1.4, 1.4, IR);            // Arm, Strebe
+    P.beam(m, 0, 0, -18, 0, -4, -18, 1.2, 1.2, IR);                                                  // Haken
+    P.prism(m, 0, -18, -18, 4.5, 2, 6, IR, { top: BR });                                              // Boden
+    P.prism(m, 0, -16, -18, 4.2, 10, 6, [255, 206, 120], { e: 0.85, cap: false, a: 0.9 });          // Glas mit Flamme
+    P.cone(m, 0, -6, -18, 6, 5, 6, IR); P.prism(m, 0, -1, -18, 1, 3, 6, BR);                           // Dach, Knauf
+    return (meshL = m);
+  }
+  function holder(k) { let o = holders.get(k); if (!o) { o = {}; holders.set(k, o); if (holders.size > 40) holders.clear(); } return o; }
+  function draw3D(ctx, ox, oy, frame) {
+    const w = View.w;
+    for (let X = -ox, n = 0; X < w; X += 512, n++) SHOPS.forEach((S, i) => {
+      const sx = X + i * 128;
+      if (sx + 140 < 0 || sx - 20 > w) return;
+      PS2.drawLocal(ctx, holder('a' + n + '_' + i), [awningMesh(i)], sx + 48, 170 - oy, [-64, -12, 128, 44], 'a' + i);
+      const lx = sx + 2, ly = 186 - oy;
+      PS2.drawLocal(ctx, holder('l' + n + '_' + i), [lanternMesh()], lx, ly, [-16, -8, 32, 40], 'l');
+      const [gx, gy] = PS2.projLocal(lx, ly, 0, -11, -18), r = 13 + Math.sin(frame * 0.07 + i) * 1.5, g = ctx.createRadialGradient(gx, gy, 0, gx, gy, r); // warmer Schein
+      g.addColorStop(0, 'rgba(255,200,120,0.35)'); g.addColorStop(1, 'rgba(255,170,80,0)');
+      ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = g; ctx.fillRect(gx - r, gy - r, r * 2, r * 2); ctx.restore();
+    });
+  }
   function drawHall(ctx, cam, frame) {
     const key = Options.lang;
     if (!wall || wallKey !== key) { wall = paintWall(); wallKey = key; }
     const w = View.w, ox = Math.floor(cam.x * 0.5) % 512, oy = Math.max(0, Math.min(272 - 208, Math.floor(cam.y * 0.5)));
     for (let X = -ox; X < w; X += 512) ctx.drawImage(wall, X, -oy);
+    draw3D(ctx, ox, oy, frame);
     // Regen auf dem Glasdach: Schlieren und Tropfen laufen schräg hinab, im Blitz leuchtet das Glas auf
     const top = -oy, vh = 72;
     if (top + vh > 0) {

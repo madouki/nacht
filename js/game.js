@@ -667,7 +667,8 @@ const Game = {
     if (Castle.on && this.state === 'play') Castle.update(P); // Schloss: Kartenzellen aufdecken, Türen benutzen
     if (!W.cleared) W.stageFrames++;
     if (this.hurryT > 0) this.hurryT--;
-    if (W.boss && this.bossName < 150) { if (this.bossName === 0) Voice.say(W.boss.voice || 'boss' + (W.stage + 1)); this.bossName++; }
+    if (W.boss && this.bossName < 150) { if (this.bossName === 0) { Voice.say(W.boss.voice || 'boss' + (W.stage + 1)); this.startBanter(); } this.bossName++; }
+    if (this.banter) this.tickBanter();
     const p = W.player;
     if (p.alive && p.hp <= p.maxHp / 4 && this.t % 50 === 0) Audio8.sfx('beat');
     if (!Castle.on && p.alive && !W.cleared && W.freeze === 0 && ++W.timeSub >= 40) { // Schloss: kein Zeitlimit
@@ -741,6 +742,7 @@ const Game = {
         if (this.state === 'respawn') this.mosaicFade(ctx, this.t < 30 ? this.t / 28 : 1 - (this.t - 30) / 14);
         if (this.hurryT > 0 && this.state === 'play') this.drawHurry(ctx);
         if (this.state === 'play' && W.boss && this.bossName > 0 && this.bossName < 150) this.drawBossBanner(ctx);
+        if (this.state === 'play' && this.banter) this.drawBanter(ctx);
         if (this.state === 'play' && this.readyT > 0) this.drawReady(ctx);
         if (this.state === 'play' && this.annT > 0) this.drawAnnounce(ctx);
         if (this.state === 'play' && this.restT > 0) this.drawRest(ctx);
@@ -1154,6 +1156,35 @@ const Game = {
     }
   },
 
+  // Schloss: kurzes Wortgeplänkel zu Beginn eines Bosskampfs (einmal je Boss und Spielstand). Es läuft unten im Bild mit, der Kampf
+  // beginnt währenddessen schon (nichts hält an); B = Boss, H = Held, Text banter_<Bossname> in i18n.js
+  startBanter() {
+    this.banter = null;
+    if (!Castle.on || !W.boss) return;
+    const id = W.boss.nameKey || W.stageDef.bossKey, k = 'banter_' + id, raw = tr(k);
+    if (!Array.isArray(raw) || Castle.flags[k]) return;
+    Castle.setFlag(k);
+    this.banter = { id, lines: raw.map(s => ({ who: s[0], text: s.slice(2) })), i: 0, t: -40 }; // erst nach dem Namensband
+  },
+  tickBanter() {
+    const b = this.banter;
+    if (!W.boss || this.state !== 'play') { if (!W.boss) this.banter = null; return; }
+    if (++b.t > 70 + [...b.lines[b.i].text].length * 2.4) { b.i++; b.t = 0; if (b.i >= b.lines.length) this.banter = null; }
+  },
+  drawBanter(ctx) {
+    const b = this.banter; if (b.t < 0) return;
+    const L = b.lines[b.i], hero = L.who === 'H', w = Math.min(View.w - 16, 330), x = Math.round(View.cx - w / 2), rows = [];
+    let cur = '';
+    const put = (tok, sep) => { const tt = cur ? cur + sep + tok : tok; if (!cur || Font.width(tt) <= w - 14) cur = tt; else { rows.push(cur); cur = tok; } };
+    for (const wd of L.text.split(' ')) { if (Font.width(wd) <= w - 14) put(wd, ' '); else { let first = true; for (const ch of wd) { put(ch, first ? ' ' : ''); first = false; } } } // Japanisch/Chinesisch: Zeichen für Zeichen
+    if (cur) rows.push(cur);
+    const lh = I18N.cjk ? 12 : 10, h = 16 + rows.length * lh, y = 236 - h, name = hero ? HEROES.def(Options.character).name : tr(b.id);
+    ctx.fillStyle = 'rgba(4,2,16,0.9)'; ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = hero ? '#3c7cbc' : '#a83c2c'; ctx.fillRect(x, y, w, 1); ctx.fillRect(x, y + h - 1, w, 1); ctx.fillRect(hero ? x + w - 1 : x, y, 1, h);
+    Font.draw(ctx, name, hero ? x + w - 6 : x + 6, y + 3, hero ? '#7cdcfc' : '#fc7460', { align: hero ? 'right' : 'left', shadow: '#000' });
+    let left = Math.floor(b.t * 1.3);
+    rows.forEach((r, i) => { const ch = [...r], s = ch.slice(0, Math.max(0, left)).join(''); left -= ch.length; if (s) Font.draw(ctx, s, x + 6, y + 13 + i * lh, '#fcfcfc', { shadow: '#000' }); });
+  },
   drawBossBanner(ctx) {
     const t = this.bossName, cx = View.cx;
     const slide = t < 20 ? (20 - t) * 12 : t > 130 ? (t - 130) * -12 : 0;
