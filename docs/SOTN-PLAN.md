@@ -380,7 +380,7 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   geändert hat; SUB springt zum nächsten markierten Abschnitt. Bei jeder Auslieferung neu füllen.
 - **Hotel- und Eisaufzug wie das Pumpwerk:** Maschinenhalle mit großen erleuchteten Fenstern, Nietträgern, Rohren und drehenden
   Schwungrädern (`machine`/`anim` in `LiftShaft.STYLE`) – das Hotel in Messing und warmem Licht, der Eisaufzug in Stahl und Frost.
-- **Kaleidoskop gewaltiger:** enge Brennweite (`KZ` 1,7): Fenster 1,7-mal so groß, die Röhre krümmt sich kaum; Trommeln drehen
+- **Kaleidoskop gewaltiger:** enge Brennweite (`KZ` 2,5): Fenster 2,5-mal so groß (eins füllt fast das Bild), die Röhre krümmt sich kaum; Trommeln drehen
   halb so schnell; mehr Lichtschächte; Gewitter wie im übrigen Schloss (`STORMY.kaleido`): beim Blitz gleißen alle Fenster auf.
 - **Pendelhalle:** Figurenfenster des Glasturms an der Rückwand (`TowerGlass`, bei Blitz Lichtbahnen), zwei Kolossalpendel tief
   hinten, Linsen vorn 72 px (Bot-Test: alle Sprünge).

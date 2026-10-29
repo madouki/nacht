@@ -12,7 +12,7 @@ const Kaleido = (() => {
   const TW = 512, TH = 1104;                    // Textur: entlang der Achse × um den Umfang (ein Umlauf = drei Fenster- und drei Gewölbereihen)
   const SEC0 = 8, SEC = 20, PIT = 17, N = 5;      // Trommeln ab Kachel 8, je 20 Kacheln: 17 Abgrund + 3 Steinring; fünf Trommeln
   const SPIN = 0.005;                            // Drehung je Bild (rad) – gemächlich, die Fenster sollen wirken
-  const KZ = 1.7;                                // Brennweite: enger Bildwinkel – große Fenster, die Röhre krümmt sich kaum (wirkt gewaltig)
+  const KZ = 2.5;                                // Brennweite: enger Bildwinkel – riesige Fenster (eins füllt fast das Bild), die Röhre krümmt sich kaum
   let T3 = null, tab = null, out = null, rayC = null, rayX = null;
 
   const drum = (wx) => { const k = Math.floor((wx / T - SEC0) / SEC); return k >= 0 && k < N && (wx / T - SEC0) - k * SEC < PIT ? k : -1; }; // Trommel an Welt-x (−1: Steinring/Rand)
