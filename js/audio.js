@@ -742,7 +742,7 @@ const Audio8 = (() => {
   function schedule() {
     if (!song || !ac) return;
     const stepDur = 60 / (song.bpm * tempoMul) / 4;
-    const horizon = ac.currentTime + 0.15;
+    const now = ac.currentTime, horizon = now + 0.3; // Vorlauf: ein langes Bild (Vorbau, schwerer Raum) bringt den Takt nicht ins Stolpern
     let allDone = true;
     cursors.forEach((c, i) => {
       const tr = song.tracks[i];
@@ -752,7 +752,7 @@ const Audio8 = (() => {
           c.i = 0;
         }
         const ev = tr.ev[c.i++];
-        playEvent(tr.name, ev, c.t, stepDur);
+        if (c.t >= now - 0.03) playEvent(tr.name, ev, c.t, stepDur); // nach einem Hänger verpasste Noten auslassen statt alle auf einmal nachzuholen – der Takt bleibt
         c.t += ev.len * stepDur;
       }
       if (!c.done) allDone = false;

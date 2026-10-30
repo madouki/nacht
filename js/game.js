@@ -186,8 +186,7 @@ const Game = {
     if (Castle.on) Castle.settle(this.arrival);
     Audio8.stop();
     if (this.quickStart) { this.quickStart = false; this.warmJobs = [() => this.warmRoom()]; this.warmTotal = 1; this.warmDoneT = -1; this.warmFor = null; } // Abschnittswahl: Zielraum ist schon vorgebaut
-    else if (Castle.on) this.prewarmStage(s, W.roomIdx); // Schloss: nur den Zielraum – die übrigen Räume der Region (in Region 0 zehn Themen, Sekunden) bauen sich beim Betreten in der Überblendung
-    else this.prewarmStage(s);
+    else if (Castle.on && this.warmedStages && this.warmedStages.has(s)) this.warmJobs = []; else this.prewarmStage(s); // Schloss: Region schon vorgebaut
     this.go('card');
     if (say) Voice.say(Levels.STAGES[s].voice || 'stage' + (s + 1));
   },
@@ -1043,7 +1042,7 @@ const Game = {
     if (rooms.some(r => r.ents.some(e => e.type === 'grand'))) jobs.push(...PS2.chandJobs(54, 2)); // XXL-Kronleuchter: alle Drehstellungen vorab
     [...new Set(rooms.map(r => r.theme))].forEach(th => jobs.push(() => FX.drawFog(this.warmCtx(), th, { x: 0, y: 0 }, 0))); // Bodennebel je Thema
     jobs.push(() => this.warmRoom());
-    this.warmJobs = jobs; this.warmTotal = jobs.length; this.warmDoneT = -1; this.warmFor = only === undefined ? s : null; // nur ein Raum: die Stage gilt nicht als vorgebaut
+    this.warmJobs = jobs; this.warmTotal = jobs.length; this.warmDoneT = -1; this.warmFor = s;
   },
   warming() { return !!(this.warmJobs && this.warmJobs.length); },
   // Vorbau-Schritte: pro gezeichnetem Bild so viele, wie in ~8 ms passen (mindestens einer) – nie mehrere schwere am Stück
@@ -1068,16 +1067,14 @@ const Game = {
     const c = Sprites.canvas(View.w, 240), x = c.getContext('2d'), s = W.stage;
     const quiet = (fn) => () => { const st = this.state, t = this.t; try { fn(); } finally { this.state = st; this.t = t; } }; // Zeichnen ohne Zustandswechsel
     this.prewarmStage(0); const stageJobs = this.warmJobs.filter((j, i, a) => i < a.length - 1); // den Raum gibt es noch nicht
-    this.warmJobs = [() => Audio8.prepare(), () => HEROES.get(Options.character), () => HEROES.ensureMonsters(), // nach Bedarf geordnet: Ton (drückt man früher, schaltet Audio8.init ihn selbst ein),
-      quiet(() => this.drawCharSel(x)), quiet(() => this.drawIntro(x)), quiet(() => { W.stage = 0; try { this.drawCard(x); } finally { W.stage = s; } }), // Heldenwahl, Vorspann, Kapitelkarte,
-      ...stageJobs, () => Mode7.mapData(), () => PS2.prewarmMap(), // Prolog, Weltkarte,
-      () => Tiles.build('courtyard'), () => FX.drawFog(x, 'courtyard', { x: 0, y: 0 }, 0), quiet(() => this.drawSkyScene(x))]; // Burghof (Prolog überspringen, Titel-Demo), Abspann-Kulisse
+    this.warmJobs = [() => HEROES.get(Options.character), () => HEROES.ensureMonsters(), () => Mode7.mapData(), () => PS2.prewarmMap(), ...stageJobs,
+      quiet(() => this.drawCharSel(x)), quiet(() => this.drawIntro(x)), quiet(() => { W.stage = 0; try { this.drawCard(x); } finally { W.stage = s; } })];
     this.warmTotal = this.warmJobs.length; this.warmDoneT = -1;
     const title = quiet(() => { // fertiger Titel (Logo-Einschlag und Ruhe) einmal unter dem Ladebild auf die echte Fläche: Schriftzüge, Feuer und Bilder liegen dann bereit
       const rv = this.revealed, rt = this.revealT;
       try { this.revealed = true; for (const t of [0, 40]) { this.revealT = t; this.drawTitle(this.ctx); } } finally { this.revealed = rv; this.revealT = rt; }
     });
-    return [title]; // „Taste drücken“ wartet nur auf den Titel – der Rest (warmJobs) läuft danach (boot.js)
+    return [() => Audio8.prepare(), () => Tiles.build('courtyard'), () => FX.drawFog(x, 'courtyard', { x: 0, y: 0 }, 0), quiet(() => this.drawSkyScene(x)), title]; // in kleinen Stücken: das Ladebild wartet auf jedes
   },
   big(ctx, text, cx, y, scale, colors, shadow, outline) { // alle Großschriften (Ausrufe, Combo, Titel der Menüs, Boss-Namen): PS2-3D
     return this.text3d(ctx, text, cx, y, scale, colors, { shadow, outline: !!outline, depth: Math.max(2, scale + 1), wobble: 0.2, bob: 0.4 });
@@ -1202,7 +1199,6 @@ const Game = {
     Font.draw(ctx, name, hero ? x + w - 6 : x + 6, y + 3, hero ? '#7cdcfc' : '#fc7460', { align: hero ? 'right' : 'left', shadow: '#000' });
     let left = Math.floor(b.t * 1.3);
     rows.forEach((r, i) => { const ch = [...r], s = ch.slice(0, Math.max(0, left)).join(''); left -= ch.length; if (s) Font.draw(ctx, s, x + 6, y + 13 + i * lh, '#fcfcfc', { shadow: '#000' }); });
-    Font.draw(ctx, tr('banterSkip'), hero ? x + 6 : x + w - 6, y + 3, (this.t >> 4) & 1 ? '#8c8ca4' : '#5c5c74', { align: hero ? 'left' : 'right' }); // Sprung: weiter, Start: überspringen
   },
   drawBossBanner(ctx) {
     const t = this.bossName, cx = View.cx;

@@ -55,8 +55,9 @@ class GolemBoss extends Boss {
   }
   mesh() {
     const P = PS2, m = P.mesh(), arm = P.mesh(), fl = this.flashT > 0;
-    const S = fl ? [240, 240, 240] : [112, 104, 94], S2 = fl ? [220, 220, 220] : [84, 78, 72], D = fl ? [200, 200, 200] : [46, 42, 42];
-    const WARM = fl ? [230, 230, 230] : [120, 104, 86], LIT = fl ? [250, 250, 250] : [142, 134, 122], MOSS = [62, 98, 52], MOSS2 = [84, 124, 60];
+    const S = fl ? [240, 240, 240] : [118, 110, 102], S2 = fl ? [220, 220, 220] : [90, 86, 84], D = fl ? [200, 200, 200] : [50, 46, 52];
+    const WARM = fl ? [230, 230, 230] : [132, 112, 90], LIT = fl ? [250, 250, 250] : [154, 144, 128], MOSS = [62, 104, 52], MOSS2 = [90, 132, 60];
+    const TINT = [[1.05, 1, 0.93], [0.95, 0.98, 1.06], [1, 1, 1]], AO = (y) => 0.72 + 0.28 * Math.min(1, Math.max(0, y / 170)); // Brocken mal wärmer, mal kühler; unten dunkler (Bodenschatten)
     // Felsbrocken statt glatter Quader: jede Kante gefast (26 Flächen), die Ecken leicht verschoben – so fängt jeder Brocken an
     // Kanten und Ecken Licht wie behauener Stein; Steinfarbe wechselt leicht, Oberseiten heller. Selbstleuchtende bleiben Quader
     let nb = 0;
@@ -69,7 +70,8 @@ class GolemBoss extends Boss {
       const vx = (x, y, z) => { x += jit(n++); y += jit(n++); z += jit(n++); return P.vtx(mm, cx + x * cs - z * sn, yc + y, cz + x * sn + z * cs); };
       for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1])
         V[sx + ',' + sy + ',' + sz] = { x: vx(sx * hw, sy * (hh - b), sz * (hd - b)), y: vx(sx * (hw - b), sy * hh, sz * (hd - b)), z: vx(sx * (hw - b), sy * (hh - b), sz * hd) };
-      const v = (sx, sy, sz) => V[sx + ',' + sy + ',' + sz], C = [cx, yc, cz], F = (idx, t) => P.face(mm, idx, col.map(c => Math.min(255, c * kk * t)), C, o);
+      const tn = TINT[id % 3], ao = AO(yc);
+      const v = (sx, sy, sz) => V[sx + ',' + sy + ',' + sz], C = [cx, yc, cz], F = (idx, t) => P.face(mm, idx, col.map((c, j) => Math.min(255, c * kk * t * tn[j] * ao)), C, o);
       for (const sx of [-1, 1]) F([v(sx, -1, -1).x, v(sx, 1, -1).x, v(sx, 1, 1).x, v(sx, -1, 1).x], 1);               // Seiten
       for (const sy of [-1, 1]) F([v(-1, sy, -1).y, v(1, sy, -1).y, v(1, sy, 1).y, v(-1, sy, 1).y], sy > 0 ? 1.14 : 0.9); // oben, unten
       for (const sz of [-1, 1]) F([v(-1, -1, sz).z, v(1, -1, sz).z, v(1, 1, sz).z, v(-1, 1, sz).z], 1);               // vorn, hinten
@@ -87,9 +89,9 @@ class GolemBoss extends Boss {
         const ca = Math.cos(a) * w / 2 * k * jj, sa = Math.sin(a) * h / 2 * k * jj;
         return P.vtx(mm, px + sx * ca + ux * sa, py + uy * sa, pz + sz * ca + uz * sa);
       });
-      const A = ring(x0, y0, z0, 1), E = ring(x1, y1, z1, 0.86), C = [(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2];
-      for (let i = 0; i < 8; i++) { const j = (i + 1) % 8; P.face(mm, [A[i], A[j], E[j], E[i]], col.map(c => c * (i % 2 ? 1 : 0.92)), C); }
-      P.face(mm, A, col, C); P.face(mm, E, col, C);
+      const A = ring(x0, y0, z0, 1), E = ring(x1, y1, z1, 0.86), C = [(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2], ao = AO(C[1]);
+      for (let i = 0; i < 8; i++) { const j = (i + 1) % 8; P.face(mm, [A[i], A[j], E[j], E[i]], col.map(c => c * (i % 2 ? 1 : 0.92) * ao), C); }
+      P.face(mm, A, col.map(c => c * ao), C); P.face(mm, E, col.map(c => c * ao), C);
     };
     const RUNE = [255, 150, 70], ps = this.pose(), k = this.kneel, hip = ps.hip, ch = ps.chest, glowR = 0.3 + 0.25 * Math.sin(this.t * 0.08) + (this.ph2 ? 0.35 : 0);
     // Beine: kurz und breitbeinig – Schienbein, schräger Oberschenkel, keilförmiger Fuß; zwischen den Beinen eine Lücke
@@ -116,7 +118,14 @@ class GolemBoss extends Boss {
     }
     // Runenherz im Bauch: Platten weichen auseinander, glüht stärker beim Laser und im Knien (im Stand mit Sprung, kniend vom Boden)
     const cy = hip + 12, glow = 0.45 + 0.5 * this.open + 0.15 * Math.sin(this.t * 0.2);
-    B(m, 44, cy - 14, 0, 6, 28, 28, RUNE, { e: glow });
+    { // Runenherz: geschliffener Stein (Doppelpyramide), Facetten im Wechsel heller – er funkelt, wenn er sich mit dem Leib dreht
+      const gx = 46, C = [gx, cy, 0], top = P.vtx(m, gx + 2, cy + 17, 0), bot = P.vtx(m, gx + 2, cy - 17, 0);
+      const rim = [[gx + 9, 0], [gx + 4, 11], [gx - 3, 9], [gx - 3, -9], [gx + 4, -11]].map(([x, z]) => P.vtx(m, x, cy, z));
+      for (let i = 0; i < rim.length; i++) {
+        const j = (i + 1) % rim.length, c2 = i % 2 ? [255, 190, 110] : RUNE;
+        P.face(m, [top, rim[i], rim[j]], c2, C, { e: glow * (i % 2 ? 1.1 : 0.85) }); P.face(m, [bot, rim[j], rim[i]], c2, C, { e: glow * (i % 2 ? 0.95 : 0.7) });
+      }
+    }
     for (const s2 of [-1, 1]) B(m, 46, cy - 16, s2 * (16 + 12 * this.open), 6, 32, 14, S2);
     // linker Arm (zum Betrachter hin) hängt bis zum Boden, die Faust stützt sich auf
     L(m, -4, ch - 10, -88, 8, ch - 66, -100, 34, 34, S2); B(m, 8, ch - 84, -100, 32, 26, 32, LIT);
@@ -177,6 +186,7 @@ class GolemBoss extends Boss {
       const sx = Math.round(this.fist.x - W.cam.x), k = clamp(1 - (this.gy - this.fist.y) / 180, 0.2, 1);
       ctx.fillStyle = `rgba(0,0,0,${(0.25 + 0.35 * k).toFixed(2)})`; ctx.beginPath(); ctx.ellipse(sx, Math.round(this.gy - W.cam.y) - 1, 14 + 16 * k, 3, 0, 0, Math.PI * 2); ctx.fill();
     }
+    this.drawGlow(ctx, shake);
     if (this.beam) this.drawBeam(ctx);
     if (this.eye > 0.05) { // Augenglut (auch ohne Strahl)
       const e = this.eyePt(); ctx.save(); ctx.globalCompositeOperation = 'lighter';
@@ -186,6 +196,29 @@ class GolemBoss extends Boss {
     }
   }
   eyePt() { const ps = this.pose(), q = this.rp(ps.eyeX + 2, ps.eyeY, -13); return { x: q[0] + W.cam.x, y: q[1] + W.cam.y }; }
+  // Leuchten über dem Felsleib: Glut um Runenherz und Runenrisse, ein Kreis aus Runenzeichen dreht sich um das Herz (heller, wenn die
+  // Brust offen und das Herz treffbar ist), auf den Kristallspitzen blitzt ab und zu ein Funkeln auf
+  drawGlow(ctx, sx) {
+    if (this.dying) return;
+    const ps = this.pose(), t = this.t, ch = ps.chest, hip = ps.hip, pulse = 0.5 + 0.5 * Math.sin(t * 0.08), op = this.open;
+    const halo = (x, y, r, a, c0, c1) => { const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, c0.replace('A', a.toFixed(2))); g.addColorStop(1, c1); ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); };
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    for (const [x, y, z] of [[43, hip + 50, -22], [43, hip + 64, 20], [52, ch - 28, -40], [52, ch - 16, 30]]) { const q = this.rp(x, y, z); halo(q[0] + sx, q[1], 9, 0.18 + 0.2 * pulse + (this.ph2 ? 0.15 : 0), 'rgba(255,140,60,A)', 'rgba(255,90,30,0)'); }
+    const h = this.rp(48, hip + 12, 0), hx = h[0] + sx, hy = h[1], R = 20 + 6 * op;
+    halo(hx, hy, R + 8, 0.3 + 0.35 * op + 0.1 * pulse, 'rgba(255,190,110,A)', 'rgba(255,100,40,0)');
+    const ra = 0.22 + 0.55 * op; ctx.fillStyle = `rgba(255,170,80,${ra.toFixed(2)})`;
+    for (let i = 0; i < 12; i++) { // Runenkreis, schräg wie die Brust: schmale Ellipse
+      const a = t * 0.025 + i * Math.PI / 6, px = hx + Math.cos(a) * R * 0.62, py = hy + Math.sin(a) * R;
+      const gl = (i * 7) % 4; ctx.fillRect(Math.round(px) - 1, Math.round(py) - (gl === 0 ? 2 : 1), gl === 3 ? 1 : 2, gl === 0 ? 4 : gl === 1 ? 2 : 3);
+    }
+    for (const [i, x, y, z] of [[0, -30, ch + 30, -26], [1, -10, ch + 46, -74], [2, -12, ch + 46, 76], [3, -28, ch + 28, 24], [4, -40, ch + 16, 0]]) { // Funkeln
+      const ph = (t + i * 53) % 170; if (ph > 18) continue;
+      const q = this.rp(x, y, z), k = Math.sin(ph / 18 * Math.PI), s = 2 + 5 * k, X = Math.round(q[0] + sx), Y = Math.round(q[1]);
+      ctx.fillStyle = `rgba(200,235,255,${(0.85 * k).toFixed(2)})`; ctx.fillRect(X - s, Y, s * 2 + 1, 1); ctx.fillRect(X, Y - s, 1, s * 2 + 1);
+      ctx.fillStyle = `rgba(255,255,255,${k.toFixed(2)})`; ctx.fillRect(X - 1, Y - 1, 3, 3);
+    }
+    ctx.restore();
+  }
   drawBeam(ctx) { // Laser: weißer Kern, roter Mantel, Glut am Auftreffpunkt
     const b = this.beam, e = this.eyePt(), x0 = e.x - W.cam.x, y0 = e.y - W.cam.y, x1 = b.x - W.cam.x, y1 = b.y - W.cam.y, fl = (this.t >> 1) & 1;
     ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
@@ -219,6 +252,7 @@ class GolemBoss extends Boss {
     const ps = this.pose(), f = this.fist;
     const hq = this.rp(47, ps.hip + 12, 0); // Runenherz folgt der Pose (wo man es sieht)
     this.w = 26; this.h = 30; this.x = hq[0] + W.cam.x - 13; this.y = hq[1] + W.cam.y - 15;
+    if (!this.dying && this.state !== 'intro' && this.t % (this.open > 0.5 ? 4 : 10) === 0) W.spawn(new Particle(this.cx + rnd(-8, 8), this.cy + rnd(-10, 10), rnd(-0.25, 0.25), rnd(-0.9, -0.3), Math.random() < 0.5 ? '#ffb060' : '#ff7a3c', 36, 1, -0.01)); // Glut steigt aus dem Herzen
     if (this.state !== 'slam' && this.state !== 'hover' && this.state !== 'raise') { f.x = ease(f.x, this.bx + 30, 0.08); f.y = ease(f.y, this.gy - 22 - this.kneel * 4, 0.08); }
     if (this.state === 'intro') { // erwacht: Augen glimmen auf, Steine bröckeln ab, Brüllen
       this.eye = clamp((this.timer - 20) / 40, 0, 1);
@@ -291,4 +325,4 @@ class GolemBoss extends Boss {
   }
 }
 GolemBoss.YAW = -0.78; GolemBoss.CAM_D = 560; // Leib schräg zum Betrachter gedreht (Brust zeigt nach rechts vorn), ferne Kamera
-GolemBoss.ENV = (() => { const v = [0.55, 0.65, -0.55], l = Math.hypot(...v); return { sun: v.map(c => c / l), sunC: [1.05, 0.88, 0.66], amb: [0.15, 0.14, 0.22], sky: [0.22, 0.24, 0.34], fog: [0, 0, 0], fogD: 0 }; })(); // Fackellicht von rechts vorn, harte Schatten
+GolemBoss.ENV = (() => { const n = (v) => { const l = Math.hypot(...v); return v.map(c => c / l); }; return { sun: n([0.55, 0.65, -0.55]), sunC: [1.15, 0.9, 0.64], amb: [0.11, 0.1, 0.17], sky: [0.2, 0.23, 0.36], rim: n([-0.75, 0.5, 0.42]), rimC: [0.42, 0.62, 1.08], fog: [0, 0, 0], fogD: 0 }; })(); // Fackellicht von rechts vorn (harte Schatten), kühles Gegenlicht der Kristalle von hinten links

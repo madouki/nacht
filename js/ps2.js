@@ -80,7 +80,7 @@ const PS2 = (() => {
   function render(x, W, H, list, cam, env) {
     const cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw), cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
     const f = cam.f, hx = cam.cx ?? W / 2, hy = cam.cy ?? H * (cam.hy ?? 0.5), near = cam.near || 4; // cx/cy: Bildmitte verschoben (Ausschnitt eines größeren Bildes)
-    const L = env.sun, S = env.sunC, A = env.amb, K = env.sky, F = env.fog, fd = env.fogD;
+    const L = env.sun, S = env.sunC, A = env.amb, K = env.sky, F = env.fog, fd = env.fogD, R2 = env.rim, RC = env.rimC; // rim: optionales zweites Licht (Gegenlicht)
     let np = 0;
     for (const m of list) {
       const V = m.v, n = V.length / 3, P = m._p && m._p.length === V.length ? m._p : (m._p = new Float32Array(V.length));
@@ -108,6 +108,7 @@ const PS2 = (() => {
         if (!lc) {
           const nn = fc.n, d = Math.max(0, nn[0] * L[0] + nn[1] * L[1] + nn[2] * L[2]), up = 0.5 + 0.5 * nn[1];
           lc = [fc.c[0] * (A[0] + d * S[0] + up * K[0]), fc.c[1] * (A[1] + d * S[1] + up * K[1]), fc.c[2] * (A[2] + d * S[2] + up * K[2])];
+          if (R2) { const d2 = Math.max(0, nn[0] * R2[0] + nn[1] * R2[1] + nn[2] * R2[2]); lc[0] += fc.c[0] * d2 * RC[0]; lc[1] += fc.c[1] * d2 * RC[1]; lc[2] += fc.c[2] * d2 * RC[2]; }
           if (fc.e) { lc[0] += 255 * fc.e; lc[1] += 200 * fc.e; lc[2] += 120 * fc.e; }
           if (env.static) { fc._l = lc; fc._env = env; }
         }
