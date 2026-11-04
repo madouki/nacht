@@ -28,7 +28,7 @@ const W = {
     this.room = { ...def, grid: def.grid.map(r => r.slice()) };
     if (typeof Mirror !== 'undefined') Mirror.reset(); // kein Spiegelbild aus dem vorigen Raum
     this.ents = []; this.platforms = []; this.boss = null;
-    this.camLock = false; this.camTarget = null; this.arenaOn = false; this.arenaX = 0; this.arenaW = 0; this.arenaBoss = null; this.camEase = 0; this.gates = null;
+    this.camLock = false; this.camTarget = null; this.arenaOn = false; this.arenaX = 0; this.arenaW = 0; this.arenaBoss = null; this.camEase = 0; this.gates = null; this.flipA = 0;
     this.tutSign = null; this.exitBlocked = false; this.cleared = false; this.crash = null; this.exiting = false; this.cinema = 0; this.slowmo = 0; this.bossEnraged = false; this.vortexBg = 0; this.stopT = 0;
     if (this.bloodT > 0) { this.bloodT = 0; Audio8.tempo(1); }
     this.sway = { a: 0, v: 0 }; this.zoomFx = null; this.bellCd = 200; this.tubeRot = 0; this.tubeRotS = 0;
@@ -78,6 +78,9 @@ const W = {
         case 'curtain': this.spawn(new TheaterCurtain(d)); break;
         case 'lab': this.spawn(Lab.mk(d)); break; // Galvani-Laboratorium: Lichtbögen, Stromplatten, Schalter, Tisch (js/lab.js)
         case 'automat': this.spawn(new Automat(d.x, d.y, d)); break;
+        case 'trakt': { const e = this.spawn(Trakt.make(d)); if (e.plats) e.plats.forEach(pl => this.platforms.push(pl)); break; } // Behördentrakt: Paternoster, Aktenschränke (js/trakt.js)
+        case 'ordner': this.spawn(new Ordner(d.x, d.y, d)); break;
+        case 'flieger': this.spawn(new Flieger(d.x * T + 8, d.y * T + 8, d)); break;
         case 'mannequin': this.spawn(new Mannequin(d.x, d.y, d)); break; // Lichterpassage (js/passage.js)
         case 'shopwin': this.spawn(new ShopWindow(d)); break;
         case 'luster': this.spawn(new FallingLuster(d)); break;
@@ -175,7 +178,7 @@ const W = {
 
   // SNES-Kamera: Drehung (Schwanken) und Zoom (Boss-Auftritt) des ganzen Spielfelds
   applyCamFx(ctx, vw) {
-    const rot = this.sway.a + this.roll, zf = this.zoomFx;
+    const fa = this.flipA || 0, rot = this.sway.a + this.roll + fa, zf = this.zoomFx; // fa: Paternoster oben – das Bild dreht sich einmal ganz herum
     let z = 1, px = vw / 2, py = 104;
     if (zf) {
       z = 1 + zf.amp * Math.sin(Math.min(1, zf.t / zf.len) * Math.PI);
@@ -183,7 +186,8 @@ const W = {
     }
     const heave = this.heave || 0;
     if (!rot && z === 1 && !heave) return;
-    let cover = 1 + Math.abs(rot) * (vw / 208 + 0.3), hx = 0; // leicht vergrößern, damit keine Ecken frei werden
+    let cover = 1 + Math.abs(rot - fa) * (vw / 208 + 0.3), hx = 0; // leicht vergrößern, damit keine Ecken frei werden
+    if (fa) { const c = Math.abs(Math.cos(fa)), sn = Math.abs(Math.sin(fa)); cover *= Math.max(c + sn * 208 / vw, sn * vw / 208 + c); } // gedrehtes Bild deckt den Schirm
     if (this.room.theme === 'ship') {
       // Mode-7-Affintransformation: Rollen um einen Punkt an der Wasserlinie (oben im Mast schwankt das Bild weiter),
       // dazu Stampfen; die Vergrößerung richtet sich nach dem Ausschlag, nicht nach dem Augenblick – sonst pumpt das Bild

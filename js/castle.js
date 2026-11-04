@@ -874,6 +874,50 @@ const Castle = (() => {
       .music('amt').label('AMT FÜR HELDENTATEN').start(61, 17).done();
     add('heldenamt', 0, 3, null, amt);
     LINKS.push([['side', 'rohrpost'], { e: 'L', y: 17 }, ['side', 'heldenamt'], { e: 'R', y: 17 }, {}]); // Rohrpostamt (links unten) → Amt für Heldentaten
+    // ---- Behördentrakt (js/trakt.js): hinter der Bosskammer des Amtsschimmels links hinaus, hinab in die Untergeschosse ----
+    // Paternoster: zwei Schächte mit offenen Kabinen im Umlauf (links hinauf, rechts hinab), vier Stockwerke. Links steigt man in
+    // den Aufwärts-, rechts in den Abwärtsschacht. EG rechts: Amt; 1. UG links: Kantine; 2. UG: Aktenkeller; 3. UG rechts:
+    // Registratur. Wer links über das EG hinauffährt, nimmt die obere Wende – laut Dienstvorschrift dreht sich dabei nichts
+    const pat = R(32, 'hotel', 56).fill(0, 0, 31, 0, '#');
+    for (const f of [9, 21, 33, 45]) pat.fill(0, f + 1, 12, f + 2, '#').fill(20, f + 1, 31, f + 2, '#');
+    const patDef = pat.fill(0, 48, 12, 53, '#').fill(20, 48, 31, 53, '#').ground(0, 31).fill(16, 6, 16, 47, 'G')       // Kellergrube unter den Schächten, Pfeiler
+      .prop('trakt', { k: 'pater', x: 13, top: 4, bot: 51, pil: [6, 47], speed: 1, floors: [[9, 'patF0'], [21, 'patF1'], [33, 'patF2'], [45, 'patF3']] })
+      .prop('pz', { k: 'sign', x: 25, y: 3, title: 'patSignT', key: 'patSign', col: '#0c1c3c', reach: 3 })
+      .prop('trakt', { k: 'outbox', x: 6, y: 9 })
+      .candle(2, 7, 'H').candle(10, 7).candle(22, 7, '$').candle(29, 7).candle(4, 19).candle(24, 19, 'H').candle(9, 31, 'H').candle(28, 31)
+      .candle(3, 43).candle(23, 43, 'H').candle(29, 43)
+      .enemy('ghost', 26, 15).enemy('ordner', 7, 33).enemy('ordner', 26, 33, { col: 1 }).enemy('ordner', 5, 45, { col: 2 })
+      .chest(1, 33, 'big').prop('vessel', { x: 10, y: 33 })
+      .music('fahrstuhl').label('PATERNOSTER').start(30, 9).done();
+    add('paternoster', 0, 3, null, patDef);
+    // Kantine (1. UG): Essensausgabe, Kaffeekessel und Tische (Blender), Speiseplan mit dem Tagesgericht des echten Wochentags.
+    // Kantinenchefin Schöpfkelle verkauft Essen, das man gleich isst: heilt und stärkt drei Minuten lang. Keine Gegner
+    const kant = R(40, 'hotel', 20).ground(0, 39, 18).fill(0, 0, 39, 1, '#')
+      .prop('trakt', { k: 'menu', x: 4, y: 17 })
+      .candle(2, 15, 'H').candle(21, 14).candle(29, 14, '$').candle(37, 15, 'H')
+      .music('fahrstuhl').label('KANTINE').start(38, 17).done();
+    kant.decor = [D('kcounter', 10.5, 17), D('kurn', 19, 17), D('chair', 24, 17), D('ktable', 26.5, 17), D('chair', 29, 17, true), D('chair', 31, 17), D('ktable', 33.5, 17), D('chair', 36, 17, true)];
+    add('kantine', 0, 3, null, kant);
+    // Registratur (3. UG): Aktenschränke bis unter die Decke. Ein Peitschenhieb zieht die Schubladen heraus – eine Treppe für sieben
+    // Sekunden. Über Schrank A–F aufs Regal, über G–M auf die Galerie mit den Ärmelschonern. Unten die Ablage P und ein Postausgang
+    const reg = R(40, 'library', 32).ground(0, 39, 30).fill(0, 0, 39, 1, '#')
+      .fill(9, 15, 17, 15, '=').fill(17, 5, 38, 5, '=').fill(22, 23, 27, 23, '=').fill(31, 18, 36, 18, '=')  // Regal, Galerie, Ablagebretter
+      .prop('trakt', { k: 'cab', x: 5, y: 29, n: 5, side: 1, lab: 'A-F' })    // Schubladen alle 40 px: eine Treppe für einfache Sprünge
+      .prop('trakt', { k: 'cab', x: 15, y: 14, n: 4, side: -1, lab: 'G-M' })
+      .prop('trakt', { k: 'cab', x: 28, y: 29, n: 1, ablage: true })
+      .prop('trakt', { k: 'outbox', x: 37, y: 29 })
+      .prop('pz', { k: 'sign', x: 2, y: 25, title: 'regSignT', key: 'regSign', col: '#3c2414', reach: 3 })
+      .enemy('ordner', 23, 29).enemy('ordner', 34, 29, { col: 1 }).enemy('ordner', 33, 17, { col: 2 }).enemy('ordner', 24, 22, { col: 3 })
+      .enemy('book', 30, 4).enemy('ghost', 26, 12)
+      .candle(3, 27, 'H').candle(12, 13).candle(20, 3, '$').candle(31, 27).candle(35, 16, 'H').candle(26, 3)
+      .chest(38, 4, 'big').prop('vessel', { x: 33, y: 4 })
+      .music('amt').label('REGISTRATUR').start(1, 29).done();
+    add('registratur', 0, 3, null, reg);
+    LINKS.push(
+      [['side', 'heldenamt'], { e: 'L', y: 17 }, ['side', 'paternoster'], { e: 'R', y: 9 }, { mini: ['side', 'heldenamt'] }], // Bosskammer (hinten links, erst nach dem Amtsschimmel) → Paternoster EG
+      [['side', 'paternoster'], { e: 'L', y: 21 }, ['side', 'kantine'], { e: 'R', y: 17 }, {}],                               // 1. UG links → Kantine
+      [['side', 'paternoster'], { e: 'R', y: 45 }, ['side', 'registratur'], { e: 'L', y: 29 }, {}],                           // 3. UG rechts → Registratur
+    );
   }
   if (on && Levels.room) buildSide();
   // Gefahrenstufe je Region: tiefer im Schloss mehr Lebensenergie, Schaden und EXP der Gegner
@@ -1011,6 +1055,7 @@ const Castle = (() => {
     if (g.seals) return seals() >= sealRooms().length;
     if (g.crack) return !!crack[g.crack];
     if (g.beat) { const a = ref(g.beat); return !!(a && boss[roomKey(a.s, a.r)]); }
+    if (g.mini) { const a = ref(g.mini); return !!(a && mini[roomKey(a.s, a.r)]); } // Zwischengegner besiegt (Amtsschimmel → Behördentrakt)
     if (g.item) return !!inv[g.item];
     if (g.relics) return g.relics.every(k => rel(k)); // Relikte nötig (Eisrutsche: ohne Dash und Enterhaken säße man fest)
     return true;
@@ -1422,7 +1467,7 @@ const Castle = (() => {
   // img/krat3d.png, je Bild: [x, y, w, h, Anker x, Anker y, Zusatzpunkte x/y …]. Anker = Standpunkt (Boden, Gleis) bzw. Aufhängung.
   // Zusatzpunkte: Lok – Schornstein, Zylinderhahn, Dampfdom, Führerhaus; Laterne – Licht; Tresen – Klingel, Lampe;
   // Grammophon – Trichter; Sternlampe – Stern; Aufzug – Stockwerkanzeige. Fehlt das Bild, zeichnet der Raum einfach ohne.
-  const K3 = {"loco":[129,0,237,71,155,68,218,4,203,56,158,13,118,24],"wagon":[0,78,226,70,113,67],"canopy":[0,0,128,77,64,74],"bench":[197,149,31,19,16,18],"lamppost":[269,78,12,57,6,56,6,8],"clock":[181,149,15,23,8,1],"sign":[229,149,46,19,23,1],"desk":[27,149,92,29,46,28,60,8,21,4],"keys":[448,78,44,31,22,30],"gramo":[426,78,21,34,8,32,3,6],"starlamp":[346,78,16,49,8,47,8,10],"chair":[159,149,21,24,10,23],"lift":[282,78,36,52,18,51,18,8],"cart":[399,78,26,35,13,34],"bed":[120,149,38,27,19,26],"crane":[227,78,41,58,7,56],"mirror":[319,78,26,50,13,49,5,12,21,42],"helmet":[0,149,26,30,13,25],"sbell":[363,78,35,38,28,36]};
+  const K3 = {"loco":[129,0,237,71,155,68,218,4,203,56,158,13,118,24],"wagon":[0,78,226,70,113,67],"canopy":[0,0,128,77,64,74],"bench":[197,149,31,19,16,18],"lamppost":[269,78,12,57,6,56,6,8],"clock":[181,149,15,23,8,1],"sign":[229,149,46,19,23,1],"desk":[27,149,92,29,46,28,60,8,21,4],"keys":[448,78,44,31,22,30],"gramo":[426,78,21,34,8,32,3,6],"starlamp":[346,78,16,49,8,47,8,10],"chair":[159,149,21,24,10,23],"lift":[282,78,36,52,18,51,18,8],"cart":[399,78,26,35,13,34],"bed":[120,149,38,27,19,26],"crane":[227,78,41,58,7,56],"mirror":[319,78,26,50,13,49,5,12,21,42],"helmet":[0,149,26,30,13,25],"sbell":[363,78,35,38,28,36],"kcounter":[0,182,100,36,50,35],"kurn":[102,182,21,35,10,34,10,1],"ktable":[125,182,40,17,20,16],"pcabin":[167,182,52,56,26,51]};
   let k3 = null;
   if (on) {
     const img = new Image();
@@ -1478,6 +1523,7 @@ const Castle = (() => {
         if (mirrorHist.length > 15) mirrorHist.shift();
       }
       for (const d of this.list) {
+        if (d[0] === 'kurn' && this.t % 9 === 0) { const c = k3pt('kurn', 0, d[1], d[2], d[3]); W.spawn(new Particle(c.x + rnd(-1, 1), c.y - 1, rnd(-0.1, 0.2), rnd(-0.7, -0.4), (this.t / 9) % 2 ? '#9c98a8' : '#c8c4d4', 60, 2, -0.003)); } // Kaffeekessel dampft
         if (d[0] !== 'loco') continue;
         if (this.t % 6 === 0) { // Dampf aus dem Schornstein: steigt, wird heller, verweht
           const c = k3pt('loco', 0, d[1], d[2], d[3]);
@@ -1496,6 +1542,7 @@ const Castle = (() => {
         else if (d[0] === 'loco') { const p = k3pt('loco', 3, d[1], d[2], d[3]); L.push({ x: p.x - cx, y: p.y - cy, r: 30 + Math.sin(this.t * 0.23) * 4, c: [252, 140, 50], a: 0.5 }); } // Feuerschein im Führerhaus
         else if (d[0] === 'wagon') L.push({ x: d[1] - cx, y: d[2] - 40 - cy, r: 80, c: [252, 170, 90], a: 0.25 });
         else if (d[0] === 'board') L.push({ x: d[1] - cx, y: d[2] + 30 - cy, r: 60, c: [252, 220, 160], a: 0.25 });
+        else if (d[0] === 'kcounter') L.push({ x: d[1] - cx, y: d[2] - 28 - cy, r: 60, c: [252, 180, 100], a: 0.38 }); // Wärmelampen über dem Essen
       }
     }
     draw(ctx) {
@@ -2005,6 +2052,7 @@ const Castle = (() => {
     famTick(); // Begleiter
     if (rpg.frames % 45 === 0) mp = Math.min(mpMax(), mp + 1); // MP füllen sich langsam
     const hero = W.player; // Blutstein: alle vier Sekunden 1 HP
+    if (buff && --buff.t <= 0) { buff = null; Game.note('buffEnd'); } // Mahlzeit verdaut
     if (gear('regen') && rpg.frames % 240 === 0 && hero.alive && hero.hp < hero.maxHp) { hero.hp = Math.min(hero.maxHp, hero.hp + 1); W.popup(hero.cx, hero.y - 6, '+10', '#d81830'); }
     if (!has('jump2')) W.player.canDouble = false; // ohne Rabenfeder kein Doppelsprung
     goalTick(); achTick(); // Wegweiser- und Urkunden-Einblendungen
@@ -2055,7 +2103,7 @@ const Castle = (() => {
       else use = I.right && (p.onGround || p.batForm || p.mistForm) && p.cx > (def.w - 2.5) * T && (!isEdge(d.place) || Math.abs(p.feet - (d.place.y + 1) * T) <= 2 * T) && push >= 6; // Fledermaus und Nebel ziehen durch Seitenausgänge
       if (!use) continue;
       if (!gateOpen(d)) {
-        if (!lockT) { lockT = 90; if (d.gate.seals) Game.note('castleSeals', seals(), sealRooms().length); else if (d.gate.crack) Game.note('castleCrackHard'); else if (d.gate.beat) Game.note('castleBarred'); else if (d.gate.item) Game.note('castleLocked13'); else if (d.gate.relics) Game.note('castleNeedRelic', d.gate.relics.filter(k => !rel(k)).map(k => tr('relic_' + k)).join(' + ')); else Game.note('castleLocked'); Audio8.sfx('select'); }
+        if (!lockT) { lockT = 90; if (d.gate.seals) Game.note('castleSeals', seals(), sealRooms().length); else if (d.gate.crack) Game.note('castleCrackHard'); else if (d.gate.beat || d.gate.mini) Game.note('castleBarred'); else if (d.gate.item) Game.note('castleLocked13'); else if (d.gate.relics) Game.note('castleNeedRelic', d.gate.relics.filter(k => !rel(k)).map(k => tr('relic_' + k)).join(' + ')); else Game.note('castleLocked'); Audio8.sfx('select'); }
         push = 0; break;
       }
       push = 0; Game.castleGo(d.to); return;
@@ -2206,8 +2254,15 @@ const Castle = (() => {
     rec_sea: { rec: 'sea', price: 1500, col: '#3cbcfc' }, rec_boss: { rec: 'boss', price: 3000, col: '#fc3c3c' }, rec_stage2: { rec: 'stage2', col: '#58f898' },
     rec_library: { rec: 'library', col: '#e8b070' }, rec_expo: { rec: 'expo', col: '#88d8a0' }, rec_chapel: { rec: 'chapel', col: '#d880fc' }, rec_sun: { rec: 'sun', col: '#f8b800' },
     rec_ending: { rec: 'ending', col: '#fce0a8' },
+    rec_amtsmarsch: { rec: 'amtsmarsch', col: '#c8182c' }, rec_fahrstuhl: { rec: 'fahrstuhl', price: 2000, col: '#e8a848' }, // Behördentrakt
+    aermel: { slot: 'armor', def: 4, col: '#2c2c38' },                         // Ärmelschoner (Registratur, oben auf der Galerie)
+    // Kantine: wird gleich gegessen (nicht eingepackt) – heilt, das Tagesgericht stärkt drei Minuten lang (food: Werte wie Ausrüstung)
+    linsen: { dish: 1, food: { def: 3 }, heal: 1, price: 1500, col: '#8c6428' }, schnitzel: { dish: 1, food: { atk: 3 }, heal: 1, price: 1500, col: '#d8a040' },
+    currywurst: { dish: 1, food: { atk: 2, luck: 1 }, heal: 1, price: 1500, col: '#c84020' }, erbsen: { dish: 1, food: { def: 2, regen: 1 }, heal: 1, price: 1500, col: '#78a030' },
+    fisch: { dish: 1, food: { luck: 1, greed: 1 }, heal: 1, price: 1500, col: '#e8c870' },
+    kaffee: { dish: 1, mpFull: 1, price: 200, col: '#5c3818' }, kuchen: { dish: 1, heal: 0.5, price: 600, col: '#f0c060' },
   };
-  const RECORDS = ['hotel', 'title', 'stage1', 'sea', 'boss', 'stage2', 'library', 'expo', 'chapel', 'sun', 'kraken', 'ending'];
+  const RECORDS = ['hotel', 'title', 'stage1', 'sea', 'boss', 'stage2', 'library', 'expo', 'chapel', 'sun', 'kraken', 'amtsmarsch', 'fahrstuhl', 'ending'];
   const hasRec = (id) => id === 'hotel' || !!inv['rec_' + id];
   const SLOTS = ['weapon', 'armor', 'acc', 'fam'], DRINKS = ['potion', 'elixir'];
   const STOCK = ['potion', 'elixir', 'leather', 'chain', 'silver', 'heartamulet', 'fairy', 'map', 'book_spirit', 'book_hellfire', 'book_soulsteal'];
@@ -2217,7 +2272,7 @@ const Castle = (() => {
   const FINDS = [ // Einzelstücke: [Raum, Gegenstand, Kachel-x, Standreihe]
     [['side', 'kolosseum'], 'leather', 12, 7], [['side', 'kanal'], 'bloodstone', 43, 7], [['side', 'schatz'], 'greedring', 25, 6],
     [['side', 'verlies'], 'dragonfang', 28, 6], [['side', 'wehrgang'], 'luckcoin', 37, 6], [['side', 'himmel'], 'mirror', 44, 5],
-    [['side', 'attic'], 'chicken', 12, 7],
+    [['side', 'attic'], 'chicken', 12, 7], [['side', 'registratur'], 'aermel', 36, 4], [['side', 'paternoster'], 'rec_amtsmarsch', 3, 9],
     [['side', 'schatz'], 'rec_library', 19, 6], [['side', 'kanal'], 'rec_expo', 81, 7], [['side', 'verlies'], 'rec_chapel', 13, 7],
     [['side', 'himmel'], 'rec_sun', 66, 8], [['side', 'hotel'], 'rec_title', 58, 16], [['side', 'bahnhof'], 'rec_stage2', 66, 10],
     [['side', 'bahnhof'], 'rec_ending', 76, 3],
@@ -2236,7 +2291,18 @@ const Castle = (() => {
   const questHas = (q) => q.items.every(i => inv[i]);
   const questState = (q) => flag['story_' + q.end] ? 'done' : flag['story_' + q.start] || q.items.some(i => inv[i]) ? 'open' : null;
   const DROPS = [['potion', 'potion', 'leather', 'silver'], ['potion', 'potion', 'chain', 'bloodrune', 'elixir'], ['potion', 'elixir', 'elixir', 'chain', 'bloodrune']];
-  function gear(stat) { let n = 0; for (const s of SLOTS) { const g = eq[s] && GEAR[eq[s]]; if (g && g[stat]) n += g[stat]; } return n; }
+  let buff = null; // Kantinenessen: { id, st: Werte, t: Restzeit in Spielschritten }
+  function gear(stat) { let n = buff && buff.st[stat] ? buff.st[stat] : 0; for (const s of SLOTS) { const g = eq[s] && GEAR[eq[s]]; if (g && g[stat]) n += g[stat]; } return n; }
+  const DISHES = [null, 'linsen', 'schnitzel', 'currywurst', 'erbsen', 'fisch', null], BUFF_T = 10800; // So–Sa: Tagesgericht (am Wochenende nur Kaffee und Kuchen); drei Minuten
+  const dishToday = () => DISHES[new Date().getDay()];
+  function eat(id) { // Mahlzeit! Heilt, Kaffee füllt die MP, das Tagesgericht stärkt
+    const g = GEAR[id], p = W.player;
+    if (g.food) buff = { id, st: g.food, t: BUFF_T };
+    if (g.heal) p.hp = Math.min(p.maxHp, p.hp + Math.ceil(p.maxHp * g.heal));
+    if (g.mpFull) mp = mpMax();
+    if (!flag.ate) { flag.ate = 1; save(); }
+    W.popup(p.cx, p.y - 8, tr('eatPop'), '#f8d878'); Audio8.sfx('chomp'); Audio8.sfx('heart');
+  }
   const itemName = (id) => tr('item_' + id), itemDesc = (id) => tr('itemD_' + id);
   if (on) { // Ring der Gier: jedes Gold zählt anderthalbfach
     const add = W.addScore;
@@ -2263,6 +2329,7 @@ const Castle = (() => {
     else if (g.quest === 'case') { R(1, 3, 8, 6, c); R(1, 3, 8, 1, '#e8c088'); R(3, 1, 4, 2, '#3c2410'); R(4, 1, 2, 1, '#c89020'); R(1, 6, 8, 1, '#3c2410'); R(4, 5, 2, 2, '#f8b800'); } // Koffer
     else if (g.quest === 'saucer') { R(0, 5, 10, 2, c); R(1, 7, 8, 1, '#a8a8b8'); R(3, 4, 4, 1, '#d8d8e8'); R(1, 5, 2, 1, '#7c9cd8'); } // Untertasse mit blauem Rand
     else if (g.rec) { R(1, 1, 8, 8, '#141418'); R(0, 2, 10, 6, '#141418'); R(2, 0, 6, 10, '#141418'); R(2, 2, 1, 1, '#4c4c5c'); R(3, 3, 4, 4, c); R(4, 4, 2, 2, '#fcfcfc'); } // Schallplatte
+    else if (g.dish) { R(0, 6, 10, 2, '#e8e4d8'); R(1, 8, 8, 1, '#a8a49c'); R(2, 3, 6, 3, c); R(3, 2, 4, 1, c); R(3, 3, 1, 1, '#fcfcfc'); R(8, 0, 1, 6, '#c8c8d8'); } // Teller
     else if (g.heal) { R(4, 0, 2, 1, '#8c5c2c'); R(4, 1, 2, 2, '#c8d8e8'); R(2, 3, 6, 6, '#c8d8e8'); R(3, 5, 4, 4, c); R(3, 4, 1, 2, '#fcfcfc'); }
     else { R(1, 2, 8, 6, c); R(0, 1, 2, 8, '#a89060'); R(8, 1, 2, 8, '#a89060'); R(3, 4, 4, 1, '#6c4410'); R(3, 6, 3, 1, '#6c4410'); }
   }
@@ -2856,10 +2923,10 @@ const Castle = (() => {
   const sellPrice = (id) => SELL[id] || Math.floor((GEAR[id].price || 1000) / 2);
   const sellable = () => Object.keys(GEAR).filter(id => { const g = GEAR[id]; if (!inv[id] || g.spell || g.key || g.rec || g.quest || g.slot === 'fam') return false; return !(g.slot && eq[g.slot] === id && inv[id] <= 1); });
   // Der Portier im Hotel Krat führt einen eigenen Laden (Texte conc*), das Grammophon zeigt die Schallplatten (gramo*)
-  const STOCKS = { lib: STOCK, conc: ['potion', 'elixir', 'robe', 'rec_stage1', 'rec_sea', 'rec_boss'] };
+  const STOCKS = { lib: STOCK, conc: ['potion', 'elixir', 'robe', 'rec_stage1', 'rec_sea', 'rec_boss'], get cook() { return [dishToday(), 'kaffee', 'kuchen', 'rec_fahrstuhl'].filter(Boolean); } };
   const shop = { sel: 0, say: 'shopHi', mode: 'buy', who: 'lib' };
-  const sayKey = (k) => shop.who === 'conc' ? k.replace('shop', 'conc') : k;
-  function openShop(who = 'lib') { shop.sel = 0; shop.who = who; shop.mode = who === 'gramo' ? 'play' : 'buy'; shop.say = who === 'gramo' ? 'gramoHi' : sayKey('shopHi'); }
+  const sayKey = (k) => shop.who === 'conc' || shop.who === 'cook' ? k.replace('shop', shop.who) : k;
+  function openShop(who = 'lib') { shop.sel = 0; shop.who = who; shop.mode = who === 'gramo' ? 'play' : 'buy'; shop.say = who === 'gramo' ? 'gramoHi' : who === 'cook' && !dishToday() ? 'cookHiWE' : sayKey('shopHi'); }
   function gramoInput(P) { // Grammophon: ↑↓ wählt, Sprung/Angriff legt die Platte auf (sie spielt, bis man die Lobby verlässt)
     if (P.start) return true;
     const n = RECORDS.length;
@@ -2891,6 +2958,7 @@ const Castle = (() => {
       const id = stock[shop.sel], g = GEAR[id];
       if (once(g) && inv[id]) { shop.say = sayKey('shopOwned'); Audio8.sfx('wall'); }
       else if (W.score < g.price) { shop.say = sayKey('shopPoor'); Audio8.sfx('wall'); }
+      else if (g.dish) { W.score -= g.price; saveGold(-g.price); eat(id); shop.say = 'cookEat' + (1 + Math.floor(Math.random() * 3)); } // Kantine: gleich gegessen
       else {
         W.score -= g.price; giveItem(id, false); Audio8.sfx('money');
         saveGold(-g.price); // auch im Spielstand der Speicherkammer bezahlen
@@ -2918,11 +2986,11 @@ const Castle = (() => {
   }
   function drawShop(ctx, t) {
     if (shop.who === 'gramo') return drawGramo(ctx, t);
-    const cx = View.cx, lx = cx - Math.min(130, View.w / 2 - 16), rx = cx + Math.min(130, View.w / 2 - 16), conc = shop.who === 'conc';
-    panel(ctx, tr(conc ? 'concTitle' : 'shopTitle'), conc ? '#58a878' : '#9c6cfc');
-    ctx.save(); ctx.translate(lx + 4, 72); if (conc) drawConcierge(ctx, 0, 0, t, false); else drawLibrarian(ctx, 0, 0, t, false); ctx.restore();
+    const cx = View.cx, lx = cx - Math.min(130, View.w / 2 - 16), rx = cx + Math.min(130, View.w / 2 - 16), conc = shop.who === 'conc', cook = shop.who === 'cook';
+    panel(ctx, tr(cook ? 'cookTitle' : conc ? 'concTitle' : 'shopTitle'), cook ? '#e8a848' : conc ? '#58a878' : '#9c6cfc');
+    ctx.save(); ctx.translate(lx + 4, 72); if (cook) drawCook(ctx, 0, 0, t, false); else if (conc) drawConcierge(ctx, 0, 0, t, false); else drawLibrarian(ctx, 0, 0, t, false); ctx.restore();
     const say = wrap(tr(shop.say), rx - lx - 24);
-    say.slice(0, 3).forEach((l, i) => Font.draw(ctx, l, lx + 20, 36 + i * 10, conc ? '#a8e8c0' : '#c8a0fc', { shadow: '#000' }));
+    say.slice(0, 3).forEach((l, i) => Font.draw(ctx, l, lx + 20, 36 + i * 10, cook ? '#f8d8a0' : conc ? '#a8e8c0' : '#c8a0fc', { shadow: '#000' }));
     const sell = shop.mode === 'sell', list = sell ? sellable() : STOCKS[shop.who] || STOCK;
     ['shopBuy', 'shopSell'].forEach((k, i) => { const on = (i === 1) === sell, x = cx + (i ? 40 : -40); Font.draw(ctx, tr(k), x, 66, on ? '#fcfcfc' : '#5c5c6c', { align: 'center', shadow: '#000' }); if (on) { ctx.fillStyle = '#9c6cfc'; ctx.fillRect(x - Font.width(tr(k)) / 2, 74, Font.width(tr(k)), 1); } });
     Font.draw(ctx, '←', cx - 84, 66, '#7c7c8c'); Font.draw(ctx, '→', cx + 80, 66, '#7c7c8c');
@@ -2944,7 +3012,7 @@ const Castle = (() => {
 
   // ---------------- Bestiarium wie die Gegnerliste in SotN (Status, dritte Seite): Siege je Gegnerart, absurde Einträge ----------------
   const BEASTS = ['Bat', 'Skeleton', 'Ghoul', 'Raven', 'Knight', 'LivingArmor', 'Panther', 'Skull', 'Fishman', 'Ghost', 'Snake', 'FlyBook', 'Tome',
-    'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Automat', 'Mannequin', 'Jelly', 'Conductor', 'Doppel', 'GolemBoss', 'Awakened', 'Amtsschimmel',
+    'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Automat', 'Mannequin', 'Jelly', 'Ordner', 'Flieger', 'Conductor', 'Doppel', 'GolemBoss', 'Awakened', 'Amtsschimmel',
     'TentacleBoss', 'GiantBat', 'IceWitch', 'GiantSkeleton', 'Medusa', 'SunWarden', 'ManTrap', 'Count'];
   const BEAST_BOSS = { TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel', GolemBoss: 'bossGolem', Amtsschimmel: 'bossAmt', Awakened: 'bossAwakened' };
   const BEAST_SET = new Set(BEASTS);
@@ -3044,6 +3112,9 @@ const Castle = (() => {
     { id: 'golem', ok: () => !!best.GolemBoss },
     { id: 'doppel', ok: () => !!best.Doppel },
     { id: 'amt', ok: () => !!best.Amtsschimmel },
+    { id: 'kopf', ok: () => !!flag.pat_flip },  // Paternoster: oben durchgefahren
+    { id: 'mahl', ok: () => !!flag.ate },       // Kantine: gegessen
+    { id: 'ablage', ok: () => !!inv.aermel },   // Registratur: die Ärmelschoner geholt
     { id: 'moto', ok: () => !!(MotoRun.load().medals || {}).gold },
     { id: 'spells', ok: () => SPELL_IDS.every(known), arg: () => SPELL_IDS.length },
     { id: 'quests', ok: () => QUESTS.every(q => questState(q) === 'done') },
@@ -3346,8 +3417,10 @@ const Castle = (() => {
     { id: 'carto', who: 'carto', at: [['side', 'pendelhalle'], 108, 17], when: () => true },           // Pendelhalle oben: der Kartograf
     { id: 'clerk', who: 'clerk', at: [['side', 'heldenamt'], 56, 17], when: () => true },              // Amt für Heldentaten: Oberamtsrat Stempelmann
     { id: 'clerk2', who: 'clerk', at: [['side', 'heldenamt'], 56, 17], when: () => !!best.Amtsschimmel }, // ... nach dem Amtsschimmel
+    { id: 'cook', who: 'cook', at: [['side', 'kantine'], 16, 17], when: () => true },                // Kantine: Kantinenchefin Schöpfkelle (danach ihr Laden)
+    { id: 'cook2', who: 'cook', at: [['side', 'kantine'], 16, 17], when: () => !!flag.pat_flip },    // ... nach der Fahrt durch die obere Wende
   ];
-  const WHO = ['ally', 'lib', 'tent', 'pris', 'conc', 'gramo', 'speed', 'bones', 'chick', 'barber', 'carto', 'clerk'], VOICE = { ally: 'A', lib: 'L', tent: 'T', pris: 'P', conc: 'C', speed: 'S', bones: 'B', chick: 'W', barber: 'F', carto: 'M', clerk: 'O' };
+  const WHO = ['ally', 'lib', 'tent', 'pris', 'conc', 'gramo', 'speed', 'bones', 'chick', 'barber', 'carto', 'clerk', 'cook'], VOICE = { ally: 'A', lib: 'L', tent: 'T', pris: 'P', conc: 'C', speed: 'S', bones: 'B', chick: 'W', barber: 'F', carto: 'M', clerk: 'O', cook: 'K' };
   const allyId = () => { const ids = HEROES.list.map(d => d.id), i = Math.max(0, ids.indexOf(Options.character)); return ids[(i + 1) % ids.length]; };
   const beatDone = (b) => b.lines === false || !!flag['story_' + b.id];
   function beatNow(who) { let b = null; for (const x of BEATS) if (x.who === who && x.when()) b = x; return b; }
@@ -3493,8 +3566,23 @@ const Castle = (() => {
     R(0, -29 + bob, 2, 2, '#c8c8d8'); R(3, -29 + bob, 2, 2, '#c8c8d8'); R(2, -29 + bob, 1, 1, '#c8c8d8'); R(1, -28 + bob, 1, 1, '#1c1c24'); R(4, -28 + bob, 1, 1, '#1c1c24'); // Brille, Augen
     R(1, -26 + bob, 4, 1, '#a89c8c');                                                                  // Mund
   }
-  const EGG = { speed: drawSpeedGhost, bones: drawBones, chick: drawChicken, barber: drawBarber, carto: drawCarto, clerk: drawClerk }; // Figur je Sprecher
-  const EGG_OF = { S: 'speed', B: 'bones', W: 'chick', F: 'barber', M: 'carto', O: 'clerk' };
+  // Kantinenchefin Schöpfkelle: weiße Kochjacke, Haube, Schürze, rote Wangen; rührt mit der Kelle im Topf
+  function drawCook(ctx, cx, feet, t, flip) {
+    const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
+    const bob = (t >> 5) & 1, st = (t >> 3) % 8, SK = '#f0c0a0', sw = [0, 1, 2, 1, 0, -1, -2, -1][st];
+    R(-4, -2, 3, 2, '#e8e8e8'); R(1, -2, 3, 2, '#e8e8e8'); R(-4, -10, 3, 8, '#3c3c58'); R(1, -10, 3, 8, '#3c3c58');                 // Clogs, Beine
+    R(-6, -24 + bob, 12, 15, '#f4f0e8'); R(-5, -22 + bob, 10, 13, '#5c7cc8'); R(-5, -22 + bob, 10, 1, '#f4f0e8');                  // Kochjacke, blaue Schürze
+    R(-1, -21 + bob, 1, 1, '#c8c8d8'); R(-1, -18 + bob, 1, 1, '#c8c8d8');                                                          // Knöpfe
+    R(-8, -22 + bob, 2, 8, '#f4f0e8'); R(-8, -14 + bob, 2, 2, SK);                                                                // linker Arm
+    R(6, -22 + bob, 2, 5, '#f4f0e8'); R(7 + sw, -17 + bob, 2, 2, SK); R(8 + sw, -27 + bob, 1, 11, '#a8a8b8'); R(7 + sw, -17 + bob, 3, 2, '#c8c8d8'); // Kelle
+    R(6, -12, 10, 8, '#8c8c9c'); R(6, -12, 10, 1, '#c8c8d8'); R(7, -13, 8, 1, '#a86c2c'); R(5, -10, 1, 2, '#5c5c6c'); R(16, -10, 1, 2, '#5c5c6c'); // Topf mit Suppe
+    if ((t >> 4) % 3 === 0) { R(9, -16 - ((t >> 2) & 3), 1, 2, '#c8c4d4'); R(12, -15 - ((t >> 3) & 3), 1, 2, '#c8c4d4'); }           // Dampf
+    R(-4, -33 + bob, 8, 8, SK); R(-3, -27 + bob, 1, 1, '#e87c7c'); R(3, -27 + bob, 1, 1, '#e87c7c');                               // Kopf, rote Wangen
+    R(-5, -38 + bob, 10, 6, '#fcfcfc'); R(-4, -40 + bob, 8, 2, '#fcfcfc'); R(-5, -33 + bob, 10, 1, '#d8d8d8');                     // Haube
+    R(0, -30 + bob, 1, 1, '#1c1c24'); R(3, -30 + bob, 1, 1, '#1c1c24'); R(0, -28 + bob, 3, 1, '#a84848');                         // Augen, Lächeln
+  }
+  const EGG = { speed: drawSpeedGhost, bones: drawBones, chick: drawChicken, barber: drawBarber, carto: drawCarto, clerk: drawClerk, cook: drawCook }; // Figur je Sprecher
+  const EGG_OF = { S: 'speed', B: 'bones', W: 'chick', F: 'barber', M: 'carto', O: 'clerk', K: 'cook' };
   const noseOf = (npc) => { if (!talk || talk.npc !== npc) return 0; const pg = talk.pages[talk.i]; return pg && pg.lie ? Math.min(9, (Game.t - (talk.lieAt || 0)) * 0.35) : 0; };
   // Kammern im Hotel: Sternlampe (Speichern) und Aufzug (Schnellreise) statt Steinnische – Blender-Modelle
   function drawHotelChamber(ch, ctx) {
@@ -3653,7 +3741,7 @@ const Castle = (() => {
       W.popup(p.cx, p.y - 8, 'HP MAX', '#58f898'); Audio8.sfx('heart');
       for (let i = 0; i < 14; i++) W.spawn(new Particle(p.cx + rnd(-8, 8), p.y + rnd(0, 28), rnd(-0.4, 0.4), rnd(-1.4, -0.3), i % 2 ? '#58f898' : '#fce0a8', 40, 1, 0));
     }
-    if (b.who === 'lib' || b.who === 'conc') { openShop(b.who); return 'shop'; } // danach sein Laden
+    if (b.who === 'lib' || b.who === 'conc' || b.who === 'cook') { openShop(b.who); return 'shop'; } // danach sein Laden
     return true;
   }
   function talkInput(P) { // true = Gespräch vorbei, 'shop' = weiter in den Laden (Sprung/Angriff/↑: Seite fertig schreiben bzw. weiterblättern, Start: alles überspringen)
@@ -3672,7 +3760,7 @@ const Castle = (() => {
   function portrait(ctx, who, x, y, t) { // 40×40: Figur in doppelter Größe, Kopf und Schultern
     ctx.fillStyle = '#c89020'; ctx.fillRect(x - 2, y - 2, 44, 44);
     ctx.fillStyle = '#000'; ctx.fillRect(x - 1, y - 1, 42, 42);
-    ctx.fillStyle = who === 'L' ? '#24183c' : who === 'H' ? '#0c1c34' : who === 'T' ? '#0c2434' : who === 'C' ? '#0c2418' : { S: '#101c3c', B: '#241414', W: '#2c2010', F: '#2c1018', M: '#20200c', O: '#14241c' }[who] || '#1c1028'; ctx.fillRect(x, y, 40, 40);
+    ctx.fillStyle = who === 'L' ? '#24183c' : who === 'H' ? '#0c1c34' : who === 'T' ? '#0c2434' : who === 'C' ? '#0c2418' : { S: '#101c3c', B: '#241414', W: '#2c2010', F: '#2c1018', M: '#20200c', O: '#14241c', K: '#2c1c10' }[who] || '#1c1028'; ctx.fillRect(x, y, 40, 40);
     ctx.save(); ctx.beginPath(); ctx.rect(x, y, 40, 40); ctx.clip();
     if (who === 'L') { ctx.translate(x + 20, y + 70); ctx.scale(2, 2); drawLibrarian(ctx, 0, 0, t, false); }
     else if (who === 'T') { ctx.translate(x + 18, y + 80); ctx.scale(2, 2); drawTentacle(ctx, 0, 0, t, false); }
@@ -3695,7 +3783,7 @@ const Castle = (() => {
     ctx.fillStyle = '#fce0a8'; for (const [ex, ey] of [[x, y], [x + w - 1, y], [x, y + h - 1], [x + w - 1, y + h - 1]]) { ctx.fillRect(ex - 1, ey, 3, 1); ctx.fillRect(ex, ey - 1, 1, 3); }
     const px = hero ? x + w - 48 : x + 8, tx = hero ? x + 10 : x + 56;
     portrait(ctx, pg.who, px, y + 10, t);
-    const EGN = { S: 'npcSpeed', B: 'npcBones', W: 'npcChicken', F: 'npcBarber', M: 'npcCarto', O: 'npcClerk' }, EGC = { S: '#b8d4ff', B: '#e8e4d0', W: '#fcf4c8', F: '#f0a0a0', M: '#e8dcb8', O: '#c8e0b0' };
+    const EGN = { S: 'npcSpeed', B: 'npcBones', W: 'npcChicken', F: 'npcBarber', M: 'npcCarto', O: 'npcClerk', K: 'npcCook' }, EGC = { S: '#b8d4ff', B: '#e8e4d0', W: '#fcf4c8', F: '#f0a0a0', M: '#e8dcb8', O: '#c8e0b0', K: '#f8d8a0' };
     const name = pg.who === 'L' ? tr('npcLib') : pg.who === 'T' ? tr('bossTentacle') : pg.who === 'P' ? tr('npcPrisoner') : pg.who === 'C' ? tr('npcConcierge') : EGN[pg.who] ? tr(EGN[pg.who]) : HEROES.def(pg.who === 'A' ? allyId() : Options.character).name;
     Font.draw(ctx, name, tx, y + 7, hero ? '#7cdcfc' : pg.who === 'L' ? '#c8a0fc' : pg.who === 'T' ? '#d880fc' : pg.who === 'P' ? '#e8e0c8' : pg.who === 'C' ? '#a8e8c0' : EGC[pg.who] || '#f8b800', { shadow: '#000' });
     let left = Math.floor(talk.n);
@@ -3773,6 +3861,7 @@ const Castle = (() => {
   // Neueste Änderungen (zum Testen): die Abschnittswahl markiert diese Räume mit NEU und zeigt darunter, was sich geändert hat;
   // SUB springt zum nächsten markierten Abschnitt. Bei jeder Auslieferung neu füllen
   const RECENT = [
+    [['side', 'paternoster'], 'chgTrakt'], // Behördentrakt: Paternoster, Kantine, Registratur
     [['side', 'heldenamt'], 'chgAmt'], // Amt für Heldentaten mit dem Amtsschimmel, Fallgitter in allen Bosskammern
     [['side', 'versuchsstrecke'], 'chgMoto'], [['side', 'fundbuero'], 'chgFund'], [['side', 'rohrpost'], 'chgTube'], // Dampfrad-Fahrt (links am Automatenwerk), Schalterrätsel (links an der Passage)
     [['side', 'kaleido'], 'chgKaleido'], [['side', 'pendelhalle'], 'chgPendel'], [['side', 'passage'], 'chgPassage'],
@@ -4129,7 +4218,8 @@ const Castle = (() => {
     for (const [A, , B] of LINKS) if (!ref(A) || !ref(B)) out.push('Verbindung ohne Raum: ' + JSON.stringify([A, B]));
     for (const b of BEATS) { const a = ref(b.at[0]); if (!a) out.push('Szene ohne Raum: ' + b.id); else if (!ground(S()[a.s].rooms[a.r], b.at[1], b.at[2])) out.push('Figur ohne Boden: ' + b.id); }
     for (const [R, id, x, y] of FINDS) { const a = ref(R); if (!a) out.push('Fund ohne Raum: ' + id); else if (SOLID.includes(S()[a.s].rooms[a.r].grid[y][x])) out.push('Fund in der Wand: ' + id); }
-    const need = ['banter_bossAmt', 'bossAmt', 'bossAmtNote', 'bossAmtShout', 'bossAmtRage', 'amtMark', 'npcClerk', 'amtSignT', 'amtSign', 'chgAmt', 'portrait0', 'portrait1', 'portrait2', 'banter_boss1', 'banter_boss2', 'banter_boss3', 'banter_boss4', 'banter_bossKraken', 'banter_bossTentacle', 'banter_bossKnight', 'banter_bossTrap', 'banter_bossWitch', 'banter_bossConductor', 'banter_bossDoppel', 'banter_bossAwakened', 'banter_bossGolem', 'secNew', 'secNewHelp', ...RECENT.map(([, k]) => k), 'chgBanter', 'famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'npcSpeed', 'npcBones', 'npcChicken', 'npcBarber', 'npcCarto', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'mapOverlayHelpT', 'optGuide', 'optGuideH'];
+    const need = ['patF0', 'patF1', 'patF2', 'patF3', 'patSignT', 'patSign', 'patFlip', 'patCellar', 'npcCook', 'cookTitle', 'cookHi', 'cookHiWE', 'cookSold', 'cookOwned', 'cookPoor', 'cookThanks1', 'cookThanks2', 'cookThanks3', 'cookEat1', 'cookEat2', 'cookEat3',
+      'kantMenuT', 'kantMenuWE', 'eatPop', 'buffEnd', 'regSignT', 'regSign', 'ablageP', 'ablageLab', 'outboxLab', 'ordnerDead', 'chgTrakt', 'banter_bossAmt', 'bossAmt', 'bossAmtNote', 'bossAmtShout', 'bossAmtRage', 'amtMark', 'npcClerk', 'amtSignT', 'amtSign', 'chgAmt', 'portrait0', 'portrait1', 'portrait2', 'banter_boss1', 'banter_boss2', 'banter_boss3', 'banter_boss4', 'banter_bossKraken', 'banter_bossTentacle', 'banter_bossKnight', 'banter_bossTrap', 'banter_bossWitch', 'banter_bossConductor', 'banter_bossDoppel', 'banter_bossAwakened', 'banter_bossGolem', 'secNew', 'secNewHelp', ...RECENT.map(([, k]) => k), 'chgBanter', 'famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'npcSpeed', 'npcBones', 'npcChicken', 'npcBarber', 'npcCarto', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'mapOverlayHelpT', 'optGuide', 'optGuideH'];
     for (const id in GEAR) need.push('item_' + id, 'itemD_' + id);
     for (const b of BEATS) { if (b.lines !== false) need.push('story_' + b.id); need.push('story_' + (b.again || b.id) + 'Again'); }
     for (const id of SPELL_IDS) need.push('spell_' + id);
@@ -4213,6 +4303,7 @@ const Castle = (() => {
     toolCount: TOOLS.length, get toolSel() { return tools.sel; }, set toolSel(v) { tools.sel = v; },
     startTest, enterTest, finishTest, drawMilestones, milestones: MILESTONES.length, msLabel: (n) => msName(MILESTONES[n]), msTarget: (n) => { const a = ref(MILESTONES[n].at); return { s: a.s, r: a.r }; }, get testing() { return testing; },
     setFlag: (k) => { flag[k] = 1; save(); }, // z. B. Aufzug als Abkürzung freigeschaltet (lift.js)
+    k3at, dishToday, buffInfo: () => buff && { id: buff.id, k: buff.t / BUFF_T }, // Behördentrakt (js/trakt.js), HUD: Mahlzeit
     toolsInput, drawTools, selfCheck, mapReport, doorsOf, get god() { return god; }, get best() { return best; },
     toggleOverlay, get overlay() { return overlayOn; },
     tier: (s) => (TIER[S()[s].id] || 1) + 2 * (flag.ngp || 0), side: SIDE, startEpilogue, resultsInput, drawResults, ngPlus, ngRestore, drawGoalBanner, drawGoalToast, announceGoal, drawGuide, guidePlan, inPrologue, goal: () => { const g = goal(); return g && { text: goalText(g), where: tr(g.where) }; }, get vessels() { return vessel; }, get relics() { return relic; }, get cracks() { return crack; }, has,

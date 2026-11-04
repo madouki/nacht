@@ -183,6 +183,7 @@ const Audio8 = (() => {
         const f = freq(n); tone('pulse', f, f, len * 0.95, 0.12, 0.25, t + 0.16 + d); tone('pulse', f / 2, f / 2, len * 0.9, 0.06, 0.5, t + 0.16 + d); return d + len;
       }, 0);
     },
+    ding: () => { if (!ac) return; const t = ac.currentTime; tone('triangle', 1318.5, 1318.5, 0.45, 0.1, 0.5, t); tone('triangle', 1046.5, 1046.5, 0.7, 0.09, 0.5, t + 0.16); }, // Paternoster: Stockwerk (Fahrstuhlmusik verlangt das)
     stamp: () => { tone('triangle', 110, 40, 0.35, 0.55); noise(0.3, 0.45, 'lowpass', 2200, 120); arp(['c6', 'g6', 'c7'], 0.05, 'pulse', 0.13, 0.125); },
     step: () => { noise(0.045, 0.07, 'lowpass', 1100, 250); tone('triangle', 120, 70, 0.04, 0.05); },
     chain: () => { if (!ac) return; const t = ac.currentTime; for (let i = 0; i < 4; i++) { noise(0.03, 0.1, 'bandpass', 3400 - i * 200, 2200, t + i * 0.05); tone('square', 1900 - i * 120, 1500, 0.02, 0.025, null, t + i * 0.05); } }, // Kettenrasseln
@@ -359,6 +360,18 @@ const Audio8 = (() => {
     'g6:3 f6:1 d#6:3 d6:1 d#6:4 a#5:4', 'f6:3 d#6:1 d6:3 c6:1 d6:4 a#5:4', 'c6:2 d#6:2 a6:4 g6:2 f#6:2 d#6:2 c6:2', 'd6:4 c6:2 a5:2 f#5:4 d5:4',
   ];
   const AM_DR = ['k:2 h:2 s:2 h:2 k:2 h:2 s:1 s:1 h:2', 'k:2 r:2 s:2 r:2 k:2 r:2 s:1 s:1 s:1 s:1', 'x:2 h:2 s:2 h:2 k:2 h:2 s:1 s:1 h:2', 'k:2 s:1 s:1 t:2 t:2 u:2 u:2 b:4'];
+  // Fahrstuhlmusik (Paternoster, Kantine): Bossa nova in F-Dur – Gitarre als Pulswelle im Bossa-Rhythmus, Bass Grundton/Quinte,
+  // Rim-Clicks im Clave-Muster, Schellen auf Achteln; die Melodie so verbindlich wie ein Formular
+  const FS = { F: ['f3', 'a3', 'c4', 'e4'], Gm: ['g3', 'a#3', 'd4', 'f4'], C7: ['g3', 'a#3', 'c4', 'e4'], Am: ['g3', 'a3', 'c4', 'e4'], D7: ['f#3', 'a3', 'c4', 'd4'], Bb: ['f3', 'a3', 'a#3', 'd4'], Bbm: ['f3', 'g3', 'a#3', 'c#4'] };
+  const FS_B = { F: ['f2', 'c2'], Gm: ['g2', 'd2'], C7: ['c2', 'g1'], Am: ['a1', 'e2'], D7: ['d2', 'a1'], Bb: ['a#1', 'f2'], Bbm: ['a#1', 'f2'] };
+  const FS_C = ['F', 'F', 'Gm', 'C7', 'Am', 'D7', 'Gm', 'C7', 'Bb', 'Bbm', 'Am', 'D7', 'Gm', 'C7', 'F', 'C7'];
+  const FS_L = [
+    'c5:3 a4:3 g4:2 a4:6 -:2', 'c5:3 a4:3 g4:2 a4:2 c5:2 e5:4', 'd5:3 a#4:3 a4:2 a#4:6 -:2', 'd5:3 a#4:3 a4:2 a#4:2 d5:2 g5:4',
+    'e5:3 c5:3 b4:2 c5:6 -:2', 'f#5:3 d5:3 c5:2 a4:4 c5:4', 'a#4:2 d5:2 f5:4 e5:2 d5:2 c5:4', 'g4:4 a4:2 a#4:2 c5:8',
+    'd5:3 f5:3 a5:2 a5:6 -:2', 'c#5:3 f5:3 g5:2 f5:6 -:2', 'e5:3 c5:3 a4:2 g5:4 e5:4', 'f#5:2 a5:2 c6:4 a5:2 f#5:2 d5:4',
+    'f5:3 d5:3 a#4:2 a4:4 g4:4', 'e4:2 g4:2 a#4:2 c5:2 e5:4 g5:4', 'a5:6 g5:2 f5:8', '-:4 c5:2 d5:2 e5:2 g5:2 a#5:4',
+  ];
+  const FS_DR = ['z:2 h:1 c:1 h:2 c:2 z:2 h:1 c:1 h:2 h:2', 'z:2 h:2 c:2 h:2 z:2 c:2 h:2 c:2'];
   const AW = { G: ['g3', 'b3', 'd4'], D7: ['f#3', 'a3', 'c4'], C: ['e3', 'g3', 'c4'], E7: ['g#3', 'b3', 'd4'], Am: ['a3', 'c4', 'e4'], Em: ['e3', 'g3', 'b3'], B7: ['f#3', 'a3', 'd#4'], A7: ['g3', 'c#4', 'e4'] };
   const AW_B = { G: 'g2', D7: 'd2', C: 'c2', E7: 'e2', Am: 'a1', Em: 'e2', B7: 'b1', A7: 'a1' };
   const AW_C = ['G', 'D7', 'G', 'G', 'C', 'G', 'D7', 'G', 'G', 'D7', 'G', 'E7', 'Am', 'D7', 'G', 'G', 'Em', 'B7', 'Em', 'Em', 'C', 'G', 'A7', 'D7', 'G', 'D7', 'G', 'E7', 'Am', 'D7', 'G', 'G'];
@@ -585,6 +598,14 @@ const Audio8 = (() => {
       pad: AM_C.map(c => AM[c].join('+') + ':16').join(' '),
       dr: AM_C.map((c, i) => (i === 0 || i === 8 ? AM_DR[2] : i === 7 || i === 15 ? AM_DR[3] : AM_DR[i % 4 === 3 ? 1 : 0])).join(' '),
     },
+    fahrstuhl: {
+      bpm: 116, loop: true, echo: { delay: 3, vol: 0.2 },
+      p1: FS_L.join(' '),
+      p2: FS_C.map(c => { const n = FS[c]; return `${n[1]}:3 ${n[2]}:3 ${n[3]}:4 ${n[2]}:2 ${n[1]}:4`; }).join(' '),
+      tri: FS_C.map(c => `${FS_B[c][0]}:6 ${FS_B[c][1]}:2 ${FS_B[c][1]}:6 ${FS_B[c][0]}:2`).join(' '),
+      pad: FS_C.map(c => FS[c].join('+') + ':16').join(' '),
+      dr: FS_C.map((c, i) => FS_DR[i % 2]).join(' '),
+    },
     galopp: {
       bpm: 200, loop: true, echo: { delay: 3, vol: 0.3 },
       p1: MO_L.join(' '),
@@ -708,6 +729,7 @@ const Audio8 = (() => {
     if (n === 'x' || n === 'c') noise(0.7, 0.22, 'highpass', 6000, 2500, t, musicBus);
     if (n === 's' || n === 'q') { noise(0.14, 0.3, 'bandpass', 1900, 900, t, musicBus); tone2('triangle', 240, 120, 0.06, 0.19, t); }
     else if (n === 'h') noise(0.03, 0.13, 'highpass', 8000, null, t, pan('hat', musicBus));
+    else if (n === 'c') { tone2('square', 1750, 1600, 0.025, 0.1, t, pan('tomL', musicBus)); noise(0.025, 0.12, 'bandpass', 3200, 2400, t, musicBus); } // Rim-Click (Bossa nova)
     else if (n === 'o') noise(0.12, 0.13, 'highpass', 7000, null, t, pan('hat', musicBus));
     else if (n === 't') tone2('triangle', 300, 120, 0.12, 0.45, t, pan('tomL', musicBus));
     else if (n === 'u') tone2('triangle', 200, 70, 0.15, 0.5, t, pan('tomR', musicBus));

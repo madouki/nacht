@@ -406,6 +406,33 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   treffbar), FORMULARSTURM (Formulare abwechselnd tief/Kopfhöhe), AKTENLAWINE (bäumt sich auf, Akten fallen aus den Regalen); ab halber
   Energie Doppelstempel, schneller, mehr Formulare. Eigenes Lied **Amtsmarsch** (g-Moll, Umtata, Trommelwirbel, Schalterglocke), in
   Phase 2 nur schneller. Lohn: **Dienstsiegel** (Amulett, DEF +1, Urkunden zahlen doppelt – `gear('cert')`), Urkunde „Antrag genehmigt“.
+- **Behördentrakt** (js/trakt.js; hinter der Bosskammer des Amtsschimmels links hinaus, Tür `{ mini: heldenamt }`): ein Trakt, der
+  vom Amt in die Untergeschosse führt.
+  - **Paternoster** (`paternoster`, 32×56): zwei Schächte mit 26 offenen Kabinen im Umlauf (Blender-Modell `pcabin`, Kabinenboden =
+    Plattform). Links fahren sie hinauf, rechts hinab, oben und unten wechseln sie den Schacht.
+    - Stockwerke: EG rechts Amt, 1. UG links Kantine, 2. UG Aktenkeller, 3. UG rechts Registratur.
+    - Ein- und Aussteigen im Vorbeifahren. Neben einer vorbeiziehenden Decke hält die Kabine den Helden fest. Steht sie knapp unter
+      der Stockwerkskante, tritt er beim Drücken zur Öffnung hinüber (Aussteighilfe).
+    - Wer oben durch die Wende fährt, erlebt, was das Schild (Dienstvorschrift Nr. 12) verneint: Das Bild dreht sich einmal ganz
+      herum (`W.flipA` in `applyCamFx`, gedeckt durch Vergrößerung). Dafür gibt es die Urkunde „Kopfüber“.
+    - An jedem Stockwerk ein leises Ding.
+  - **Kantine** (`kantine`): Theke mit Essen, Kaffeekessel (dampft) und Tische als Blender-Modelle. Dazu ein Speiseplan als
+    Kreidetafel mit dem echten Wochentag in der Spielsprache.
+    - Kantinenchefin Schöpfkelle (Sprecher K) verkauft Essen, das man sofort isst. Das Tagesgericht hängt vom Wochentag ab (Mo Linsen
+      DEF +3, Di Schnitzel ATT +3, Mi Currywurst ATT +2 und Glück, Do Erbsensuppe DEF +2 und Nachheilen, Fr Backfisch Glück und Gold).
+      Es heilt ganz und wirkt drei Minuten (`buff`, fließt in `gear()`; Teller mit Restzeit im HUD).
+    - Kaffee füllt die MP, Bienenstich heilt die Hälfte, die Platte „Fahrstuhlmusik“ kostet 2000 G. Am Wochenende gibt es nur Kaffee
+      und Kuchen.
+    - Nach der Fahrt durch die obere Wende hat sie eine zweite Szene. Urkunde „Mahlzeit!“.
+  - **Registratur** (`registratur`): Aktenschränke (`Schrank`, Schubladen alle 40 px, eine Treppe für einfache Sprünge). Ein
+    Peitschenhieb zieht die Schubladen heraus, sieben Sekunden lang. Über A–F geht es aufs Regal, über G–M auf die Galerie mit den
+    **Ärmelschonern** (Rüstung, DEF +4, Urkunde „Ordnungsgemäß abgelegt“).
+    - Die Ablage P spuckt Papierflieger (beim ersten Mal auch einen Goldsack), ein Postausgang startet ebenfalls Papierflieger.
+  - Neue Gegner: **Aktenordner** (steht still im Regal, klappt auf und hüpft schnappend) und **Papierflieger** (gleitet, stößt herab,
+    fängt sich mit einem Looping ab). Beide stehen im Bestiarium.
+  - Neues Lied **Fahrstuhlmusik**: Bossa nova in F-Dur mit Rim-Click (Trommel `c`), Bass Grundton und Quinte, Gitarre im
+    Bossa-Rhythmus.
+  - Das Grammophon kennt jetzt auch „Amtsmarsch“ (die Platte liegt im EG links) und „Fahrstuhlmusik“.
 - **Wischspur der Peitsche** (`drawWhip`): beim Ausschlagen ziehen die letzten fünf Spitzenpunkte einen verblassenden hellen Bogen
   (Lederpeitsche warm, Kette kühl), in Weltlage gemerkt; im Spar-Modus aus.
 - **Staub im Fackelschein** (`FX.drawMotes`): über warmen Lichtern (Kerzen, Fackeln, Leuchter) treiben Staubkörnchen, die nur
