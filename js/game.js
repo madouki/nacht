@@ -98,7 +98,7 @@ const Game = {
     this.canvas.style.height = fit.cssH + 'px';
     const crt = document.getElementById('crt');
     if (crt) { crt.style.setProperty('--s', fit.scale + 'px'); crt.style.setProperty('--a', (fit.scale * 0.55) + 'px'); }
-    if (W.room) W.snapCam();
+    if (W.room && !W.camLock) W.snapCam(); // im Bosskampf bleibt die Kamera auf der Arena (Vollbild, Adressleiste: gleiche Breite, sonst sprang sie zum Helden)
     this.pendingView = null;
   },
 

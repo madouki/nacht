@@ -395,6 +395,17 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   `flag['ach_' + id]`; Einblendung unten mit Wachssiegel, sobald der Wegweiser schweigt, mehr als drei auf einmal (älterer
   Spielstand) als Sammelmeldung. Status → fünfte Seite: Liste mit Siegeln, ↑↓ wählt, darunter die Bedingung. Jede Urkunde
   zahlt 500 Gold Aufwandsentschädigung (`ACH_PAY`, gleich beim Erteilen gutgeschrieben); dazu der Tusch `cert` (Stempel + Fanfare).
+- **Bosskammern wie in SotN** (`World.updateGates`/`drawGates`): schließt eine Arena (Haupt- und Zwischengegner), rasseln an beiden
+  Rändern eiserne Fallgitter herab (Kette, Aufschlag mit Staub und Beben), nach dem Sieg (Miniboss) bzw. dem Siegel (Hauptboss)
+  ziehen sie sich wieder hoch; Höhe von der Decke über der Spalte bis zum Boden unter dem Helden. Nicht in Turmräumen (`wrap`).
+  Dazu: `Game.applyView` setzt die Kamera im Bosskampf nicht mehr auf den Helden zurück (Vollbild/Adressleiste sprengten sonst die Arena).
+- **Amt für Heldentaten, Zimmer 13B** (links am Rohrpostamt, `heldenamt`, Stufe 3; js/amt.js): Aktenarchiv (Thema `library`) mit
+  Oberamtsrat Stempelmann am Stehpult (stellt die Urkunden aus, nach dem Boss zweite Szene) und der Bosskammer des **Amtsschimmels**:
+  ein PS2-Pferd aus Aktenordnern, gerollten Formularen und losen Blättern, Hals wie ein Ziehharmonika-Ordner, Kopf = Holzstempel mit
+  Pferdegesicht. STEMPEL (Kopf hebt sich, folgt dem Helden, knallt herab: „ABGELEHNT!“, roter Abdruck, danach steckt er fest und ist
+  treffbar), FORMULARSTURM (Formulare abwechselnd tief/Kopfhöhe), AKTENLAWINE (bäumt sich auf, Akten fallen aus den Regalen); ab halber
+  Energie Doppelstempel, schneller, mehr Formulare. Eigenes Lied **Amtsmarsch** (g-Moll, Umtata, Trommelwirbel, Schalterglocke), in
+  Phase 2 nur schneller. Lohn: **Dienstsiegel** (Amulett, DEF +1, Urkunden zahlen doppelt – `gear('cert')`), Urkunde „Antrag genehmigt“.
 - **Wischspur der Peitsche** (`drawWhip`): beim Ausschlagen ziehen die letzten fünf Spitzenpunkte einen verblassenden hellen Bogen
   (Lederpeitsche warm, Kette kühl), in Weltlage gemerkt; im Spar-Modus aus.
 - **Staub im Fackelschein** (`FX.drawMotes`): über warmen Lichtern (Kerzen, Fackeln, Leuchter) treiben Staubkörnchen, die nur

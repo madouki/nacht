@@ -347,6 +347,18 @@ const Audio8 = (() => {
 
   // Fundbüro und Rohrpostamt – Amtsstuben-Walzer (G-Dur, 3/4, 150 BPM, 12 Schritte pro Takt): schläfrig-feierliche Melodie über
   // „Bumm-pah-pah“, dazu eine Schreibmaschine (klappernde Tasten); alle vier Takte läutet die Zeilenglocke, dann ratscht der Wagen zurück
+  // Amtsmarsch (Amtsschimmel): Marsch in g-Moll – punktierte Melodie, Umtata (Bass auf den Vierteln, Nachschläge der Begleitung),
+  // Trommelwirbel jeden vierten Takt, am Ende jeder Hälfte Tom-Wirbel und die Schalterglocke
+  const AM = { Gm: ['g3', 'a#3', 'd4'], D7: ['f#3', 'a3', 'c4'], Cm: ['g3', 'c4', 'd#4'], Eb: ['g3', 'a#3', 'd#4'], Bb: ['f3', 'a#3', 'd4'], D: ['f#3', 'a3', 'd4'], Ad: ['a3', 'c4', 'd#4'] };
+  const AM_B = { Gm: ['g2', 'd2'], D7: ['d2', 'a1'], Cm: ['c2', 'g1'], Eb: ['d#2', 'a#1'], Bb: ['a#1', 'f2'], D: ['d2', 'a1'], Ad: ['a1', 'd#2'] };
+  const AM_C = ['Gm', 'Gm', 'D7', 'D7', 'Gm', 'Cm', 'D7', 'Gm', 'Eb', 'Bb', 'Cm', 'D', 'Eb', 'Bb', 'Ad', 'D7'];
+  const AM_L = [
+    'g5:3 g5:1 a#5:3 a#5:1 d6:4 a#5:4', 'g6:6 f6:2 d#6:2 d6:2 c6:2 a#5:2', 'a5:3 a5:1 c6:3 c6:1 f#6:4 a6:4', 'd6:8 -:2 d5:2 e5:2 f#5:2',
+    'g5:3 g5:1 a#5:3 a#5:1 d6:4 g6:4', 'd#6:3 d6:1 c6:3 a#5:1 c6:4 g5:4', 'f#5:2 g5:2 a5:2 c6:2 a5:2 f#5:2 d5:4', 'g5:6 -:2 d5:2 d5:1 d5:1 g4:4',
+    'g5:3 a#5:1 d#6:4 d#6:3 d6:1 c6:4', 'd6:3 c6:1 a#5:4 f5:4 a#5:4', 'c6:3 d6:1 d#6:4 g6:4 d#6:4', 'f#6:6 e6:2 d6:2 c6:2 a5:4',
+    'g6:3 f6:1 d#6:3 d6:1 d#6:4 a#5:4', 'f6:3 d#6:1 d6:3 c6:1 d6:4 a#5:4', 'c6:2 d#6:2 a6:4 g6:2 f#6:2 d#6:2 c6:2', 'd6:4 c6:2 a5:2 f#5:4 d5:4',
+  ];
+  const AM_DR = ['k:2 h:2 s:2 h:2 k:2 h:2 s:1 s:1 h:2', 'k:2 r:2 s:2 r:2 k:2 r:2 s:1 s:1 s:1 s:1', 'x:2 h:2 s:2 h:2 k:2 h:2 s:1 s:1 h:2', 'k:2 s:1 s:1 t:2 t:2 u:2 u:2 b:4'];
   const AW = { G: ['g3', 'b3', 'd4'], D7: ['f#3', 'a3', 'c4'], C: ['e3', 'g3', 'c4'], E7: ['g#3', 'b3', 'd4'], Am: ['a3', 'c4', 'e4'], Em: ['e3', 'g3', 'b3'], B7: ['f#3', 'a3', 'd#4'], A7: ['g3', 'c#4', 'e4'] };
   const AW_B = { G: 'g2', D7: 'd2', C: 'c2', E7: 'e2', Am: 'a1', Em: 'e2', B7: 'b1', A7: 'a1' };
   const AW_C = ['G', 'D7', 'G', 'G', 'C', 'G', 'D7', 'G', 'G', 'D7', 'G', 'E7', 'Am', 'D7', 'G', 'G', 'Em', 'B7', 'Em', 'Em', 'C', 'G', 'A7', 'D7', 'G', 'D7', 'G', 'E7', 'Am', 'D7', 'G', 'G'];
@@ -564,6 +576,14 @@ const Audio8 = (() => {
       tri: AW_C.map(c => `${AW_B[c]}:4 -:8`).join(' '),
       pad: AW_C.map(c => AW[c].join('+') + ':12').join(' '),
       dr: AW_C.map((c, i) => i % 4 === 3 ? 'z:1 z:1 b:2 -:4 r:4' : AW_TYPE[i % 3]).join(' '), // Schreibmaschine, Zeilenglocke, Wagenrücklauf
+    },
+    amtsmarsch: {
+      bpm: 150, loop: true, echo: { delay: 3, vol: 0.25 },
+      p1: AM_L.join(' '),
+      p2: AM_C.map(c => `-:2 ${AM[c][1]}:2 -:2 ${AM[c][2]}:2 -:2 ${AM[c][1]}:2 -:2 ${AM[c][2]}:2`).join(' '),
+      tri: AM_C.map(c => `${AM_B[c][0]}:4 ${AM_B[c][1]}:4 ${AM_B[c][0]}:4 ${AM_B[c][1]}:4`).join(' '),
+      pad: AM_C.map(c => AM[c].join('+') + ':16').join(' '),
+      dr: AM_C.map((c, i) => (i === 0 || i === 8 ? AM_DR[2] : i === 7 || i === 15 ? AM_DR[3] : AM_DR[i % 4 === 3 ? 1 : 0])).join(' '),
     },
     galopp: {
       bpm: 200, loop: true, echo: { delay: 3, vol: 0.3 },

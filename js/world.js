@@ -28,7 +28,7 @@ const W = {
     this.room = { ...def, grid: def.grid.map(r => r.slice()) };
     if (typeof Mirror !== 'undefined') Mirror.reset(); // kein Spiegelbild aus dem vorigen Raum
     this.ents = []; this.platforms = []; this.boss = null;
-    this.camLock = false; this.camTarget = null; this.arenaOn = false; this.arenaX = 0; this.arenaW = 0; this.arenaBoss = null; this.camEase = 0;
+    this.camLock = false; this.camTarget = null; this.arenaOn = false; this.arenaX = 0; this.arenaW = 0; this.arenaBoss = null; this.camEase = 0; this.gates = null;
     this.tutSign = null; this.exitBlocked = false; this.cleared = false; this.crash = null; this.exiting = false; this.cinema = 0; this.slowmo = 0; this.bossEnraged = false; this.vortexBg = 0; this.stopT = 0;
     if (this.bloodT > 0) { this.bloodT = 0; Audio8.tempo(1); }
     this.sway = { a: 0, v: 0 }; this.zoomFx = null; this.bellCd = 200; this.tubeRot = 0; this.tubeRotS = 0;
@@ -423,6 +423,65 @@ const W = {
     this.spawn(new Item('orb', clamp(b.cx, this.cam.x + 24, this.cam.x + View.w - 24), Math.min(b.cy, 140)));
   },
 
+  // ---------------- Bosskammer: Fallgitter wie in SotN ----------------
+  // Sobald eine Arena schließt (Kamera fest, Held auf die Arena begrenzt – entities.js), rasseln an beiden Rändern eiserne
+  // Fallgitter herab und schlagen mit Staub auf; geht die Arena wieder auf (Miniboss besiegt, Siegel geholt), ziehen sie sich an
+  // der Kette hoch. Die Höhe wird beim Schließen einmal gemessen: von der Decke über der Spalte bis zum Boden unter dem Helden
+  updateGates() {
+    const lock = this.camLock && this.arenaW > 0 && !this.room.wrap;
+    if (lock && !this.gates) {
+      const xs = [this.arenaX, this.arenaX + this.arenaW];
+      this.gates = { x: xs, span: xs.map(gx => this.gateSpan(gx)), k: 0, v: 0, close: true, down: false };
+      Audio8.sfx('chain');
+    }
+    const g = this.gates;
+    if (!g) return;
+    if (!lock) g.close = false;
+    if (g.close) {
+      if (g.down) return;
+      g.v = Math.min(0.1, g.v + 0.005); g.k = Math.min(1, g.k + g.v); // fällt immer schneller
+      if (g.k >= 1) {
+        g.down = true; this.shake = Math.max(this.shake, 8); Audio8.sfx('door'); Audio8.sfx('crumble'); Input.rumble(0.5, 0.4, 220);
+        g.x.forEach((gx, i) => { for (let n = 0; n < 9; n++) this.spawn(new Particle(gx + (i ? 1 : -1) * rnd(0, 10), g.span[i][1] - 2, rnd(-1.4, 1.4), rnd(-1.8, -0.3), n % 2 ? '#8c7c6c' : '#5c544c', 28, 1, 0.08)); });
+      }
+    } else {
+      if (g.down) { g.down = false; Audio8.sfx('chain'); }
+      g.k = Math.max(0, g.k - 0.022);
+      if (g.k <= 0) this.gates = null;
+    }
+  },
+  gateSpan(gx) {
+    const r = this.room, c = clamp(Math.floor(gx / T) - (gx >= r.w * T ? 1 : 0), 0, r.w - 1), p = this.player;
+    const r0 = clamp(Math.floor(((p && p.alive ? p.feet : this.cam.y + 150) - 8) / T), 0, r.h - 1);
+    let fy = r0; while (fy < r.h && !Phys.solidTile(c, fy)) fy++;
+    let ty = Math.min(r0, fy - 1); while (ty > 0 && !Phys.solidTile(c, ty - 1)) ty--;
+    return [Math.max(ty * T, this.cam.y - 8), fy * T];
+  },
+  drawGates(ctx) { // Fallgitter: vier Eisenstäbe mit Spitzen vor dunklem Grund, genietete Querriegel, Sturz und Führungsschlitz
+    const g = this.gates;
+    if (!g) return;
+    const W2 = 18, BARS = [1, 5, 9, 13];
+    g.x.forEach((gx, i) => {
+      const [top, floor] = g.span[i], x = Math.round(gx - this.cam.x) + (i ? -3 : -W2 + 3), y0 = Math.round(top - this.cam.y), yf = Math.round(floor - this.cam.y), y1 = Math.round(y0 + (yf - y0) * g.k);
+      ctx.fillStyle = 'rgba(6,4,10,0.6)'; ctx.fillRect(x - 2, y0, W2 + 4, yf - y0);                      // Schlitz in der Wand, in dem das Gitter läuft
+      if (y1 > y0 + 1) {
+        ctx.fillStyle = 'rgba(10,8,16,0.45)'; ctx.fillRect(x, y0, W2, y1 - y0);                           // dunkler Grund zwischen den Stäben
+        for (const bx of BARS) {
+          ctx.fillStyle = '#2c2a34'; ctx.fillRect(x + bx, y0, 3, y1 - y0);
+          ctx.fillStyle = '#7c7a8c'; ctx.fillRect(x + bx, y0, 1, y1 - y0); ctx.fillStyle = '#4c4a58'; ctx.fillRect(x + bx + 1, y0, 1, y1 - y0);
+          ctx.fillStyle = '#2c2a34'; ctx.fillRect(x + bx, y1, 3, 2); ctx.fillRect(x + bx + 1, y1 + 2, 1, 3);  // Spitze
+          ctx.fillStyle = '#c8c4d8'; ctx.fillRect(x + bx + 1, y1 + 2, 1, 1);
+        }
+        for (let yy = y1 - 8; yy > y0 + 3; yy -= 16) {
+          ctx.fillStyle = '#1c1a24'; ctx.fillRect(x - 1, yy, W2 + 2, 4); ctx.fillStyle = '#8c8a9c'; ctx.fillRect(x - 1, yy, W2 + 2, 1); ctx.fillStyle = '#4c4a58'; ctx.fillRect(x - 1, yy + 1, W2 + 2, 1);
+          ctx.fillStyle = '#d8d4e8'; for (const bx of BARS) ctx.fillRect(x + bx + 1, yy + 1, 1, 1);        // Nieten
+        }
+      }
+      ctx.fillStyle = '#2c2830'; ctx.fillRect(x - 4, y0, W2 + 8, 5); ctx.fillStyle = '#6c6470'; ctx.fillRect(x - 4, y0, W2 + 8, 1); ctx.fillStyle = '#141018'; ctx.fillRect(x - 4, y0 + 4, W2 + 8, 1); // Sturz
+    });
+  },
+
+
   // Turmaufstieg: der Raum ist der abgewickelte Turmmantel. Der Held bleibt im Umfang [0, C); jede Figur liegt auf der
   // Kopie, die ihm am nächsten ist – so stimmen Treffer, Verfolgung und Zeichnen auch über die Naht hinweg
   wrapAround() {
@@ -497,6 +556,7 @@ const W = {
     this.player.updateScarf();
     if (this.room.wrap) this.wrapAround();
     this.updateCam();
+    this.updateGates(); // Bosskammer: Fallgitter
     FX.updateAmbient(this.room.theme, this.cam);
     if (this.stopT > 0) this.stopT--;
     if (this.bloodT > 0 && --this.bloodT === 0) Audio8.tempo(this.time <= 60 ? 1.12 : 1);
@@ -516,7 +576,7 @@ const W = {
     if (this.combo.pop > 0) this.combo.pop--;
     const b = this.boss;
     if (b && !b.dying && !this.bossEnraged && b.hp <= b.maxHp / 2) { // Phase 2: Musik eskaliert
-      this.bossEnraged = true; if (b.music === 'chapel' || b.music === 'count') Audio8.tempo(1.1); else { Audio8.stop(); Audio8.play('boss2'); } Audio8.sfx('roar'); // Graf: dasselbe Stück, nur schneller
+      this.bossEnraged = true; if (b.music === 'chapel' || b.music === 'count' || b.music === 'amtsmarsch') Audio8.tempo(b.music === 'amtsmarsch' ? 1.12 : 1.1); else { Audio8.stop(); Audio8.play('boss2'); } Audio8.sfx('roar'); // Graf und Amtsschimmel: dasselbe Stück, nur schneller
       this.zoomFx = { t: 0, len: 46, amp: 0.1, b };
       if (this.room.theme === 'throne') Voice.say('taunt'); // der Graf spottet
       this.flash = 8; this.shake = 18; this.spawn(new Shock(b.cx, b.cy, 110, '#a80020', 5)); Input.rumble(0.7, 0.4, 500);
@@ -573,6 +633,7 @@ const W = {
     FX.drawMotes(ctx, lights, this.cam, this.frame); // Staub tanzt im Fackelschein
     Rays.draw(ctx, this.room, this.cam, this.frame);
     for (const e of this.ents) if (e.drawLit && !e.dead) e.drawLit(ctx); // Riesen (Steingolem): nach Licht und Nebel, mit eigener 3D-Beleuchtung
+    this.drawGates(ctx); // Fallgitter der Bosskammer (nach dem Licht: Eisen bleibt auch im dunklen Stollen sichtbar)
     if (theme === 'mirror') Mirror.capture(ctx); // Spiegelgalerie: dieses Bild spiegelt sich im nächsten (vor Blitz, Blutmond und Warnrand)
     if (this.bloodT > 0) this.drawBloodMoon(ctx, vw);
     if (this.stopT > 0 && (this.stopT > 50 || (this.stopT & 4))) { ctx.fillStyle = 'rgba(120,150,230,0.16)'; ctx.fillRect(0, 0, vw, 208); } // angehaltene Zeit

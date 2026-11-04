@@ -860,6 +860,20 @@ const Castle = (() => {
       .music('amt').label('ROHRPOSTAMT').start(45, 17).done();
     add('rohrpost', 0, 2, null, rohr);
     LINKS.push([['side', 'fundbuero'], { e: 'L', y: 17 }, ['side', 'rohrpost'], { e: 'R', y: 17 }, {}]); // Fundbüro (hinter dem Rückgabeschalter) → Rohrpostamt
+    // Amt für Heldentaten, Zimmer 13B (links am Rohrpostamt; js/amt.js): ein Aktenarchiv mit Regalen bis unter die Decke. Rechts am
+    // Stehpult Oberamtsrat Stempelmann (stellt die Urkunden aus), links die Bosskammer des Amtsschimmels – eines Pferds aus Akten mit
+    // einem Holzstempel als Kopf. Danach liegen Dienstsiegel, Truhe und Lebensgefäß in der Kammer
+    const amt = R(64, 'library', 20)
+      .ground(0, 63, 18).fill(0, 0, 63, 1, '#')
+      .fill(32, 12, 40, 12, '=').fill(44, 9, 50, 9, '=')                                         // Regalbretter im Flur
+      .prop('pz', { k: 'sign', x: 52, y: 10, title: 'amtSignT', key: 'amtSign', col: '#1c3c5c' })
+      .candle(60, 15, 'H').candle(46, 15).candle(36, 9, '$').candle(30, 15, 'H').candle(20, 15).candle(8, 15, 'H')
+      .enemy('ghost', 38, 6).enemy('ghost', 48, 4)
+      .mini('amt', 2, 26, 3, 0)
+      .chest(4, 17, 'big').prop('vessel', { x: 7, y: 17 })
+      .music('amt').label('AMT FÜR HELDENTATEN').start(61, 17).done();
+    add('heldenamt', 0, 3, null, amt);
+    LINKS.push([['side', 'rohrpost'], { e: 'L', y: 17 }, ['side', 'heldenamt'], { e: 'R', y: 17 }, {}]); // Rohrpostamt (links unten) → Amt für Heldentaten
   }
   if (on && Levels.room) buildSide();
   // Gefahrenstufe je Region: tiefer im Schloss mehr Lebensenergie, Schaden und EXP der Gegner
@@ -1771,6 +1785,7 @@ const Castle = (() => {
     }
   }
   if (on && typeof BOSSES !== 'undefined') BOSSES.doppel = Doppel;
+  if (on && typeof BOSSES !== 'undefined' && typeof Amtsschimmel !== 'undefined') BOSSES.amt = Amtsschimmel; // Amtsschimmel im Amt für Heldentaten (js/amt.js)
   if (on && typeof BOSSES !== 'undefined' && typeof GolemBoss !== 'undefined') BOSSES.golem = GolemBoss; // Steingolem im Golemstollen (js/golem.js)
   // Spiegel im Kabinett: zeigen den Helden – solange der Doppelgänger lebt, mit Verzögerung (das Spiegelbild ist nicht ganz
   // bei der Sache), danach wieder brav. Der Doppelgänger selbst hat kein Spiegelbild.
@@ -2166,6 +2181,7 @@ const Castle = (() => {
     fairy: { slot: 'fam', fam: 'fairy', price: 7000, col: '#58f898' },  // Fee im Glas (Laden des Bibliothekars)
     tentling: { slot: 'fam', fam: 'tent', col: '#d880fc' },            // Neffe des Tentakels (Kolosseum, nach der Rabenfeder)
     shadowcard: { slot: 'fam', fam: 'shadow', col: '#8c5cc8' },        // Schatten des Doppelgängers: wiederholt jeden Hieb
+    dienstsiegel: { slot: 'acc', def: 1, cert: 1, col: '#c8182c' },     // Dienstsiegel (Lohn des Amtsschimmels): Urkunden zahlen doppelt
     galvheart: { slot: 'acc', hp: 6, atk: 3, col: '#58f8b0' },          // Glasherz des Erweckten (Galvani-Laboratorium)
     book_spirit: { spell: 'spirit', price: 2500, col: '#a4e4fc' },      // Zauberbücher (Laden): lehren je einen Zauber
     book_hellfire: { spell: 'hellfire', price: 6000, col: '#fc7c1c' },
@@ -2197,7 +2213,7 @@ const Castle = (() => {
   const STOCK = ['potion', 'elixir', 'leather', 'chain', 'silver', 'heartamulet', 'fairy', 'map', 'book_spirit', 'book_hellfire', 'book_soulsteal'];
   const once = (g) => !!(g.slot || g.key || g.spell || g.rec || g.quest); // gibt es nur einmal
   const BOSS_LOOT = [[[0, -1], 'batcard']];
-  const MINI_LOOT = [[['side', 'spiegel'], 'shadowcard', 20, 10], [['side', 'golemstollen'], 'steinhaut', 12, 10], [['side', 'galvani'], 'galvheart', 97, 25]]; // nach dem Doppelgänger: sein Schatten; nach dem Steingolem: Steinhaut; nach dem Erweckten: sein Glasherz
+  const MINI_LOOT = [[['side', 'spiegel'], 'shadowcard', 20, 10], [['side', 'golemstollen'], 'steinhaut', 12, 10], [['side', 'galvani'], 'galvheart', 97, 25], [['side', 'heldenamt'], 'dienstsiegel', 14, 17]]; // nach dem Doppelgänger: sein Schatten; nach dem Steingolem: Steinhaut; nach dem Erweckten: sein Glasherz
   const FINDS = [ // Einzelstücke: [Raum, Gegenstand, Kachel-x, Standreihe]
     [['side', 'kolosseum'], 'leather', 12, 7], [['side', 'kanal'], 'bloodstone', 43, 7], [['side', 'schatz'], 'greedring', 25, 6],
     [['side', 'verlies'], 'dragonfang', 28, 6], [['side', 'wehrgang'], 'luckcoin', 37, 6], [['side', 'himmel'], 'mirror', 44, 5],
@@ -2928,9 +2944,9 @@ const Castle = (() => {
 
   // ---------------- Bestiarium wie die Gegnerliste in SotN (Status, dritte Seite): Siege je Gegnerart, absurde Einträge ----------------
   const BEASTS = ['Bat', 'Skeleton', 'Ghoul', 'Raven', 'Knight', 'LivingArmor', 'Panther', 'Skull', 'Fishman', 'Ghost', 'Snake', 'FlyBook', 'Tome',
-    'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Automat', 'Mannequin', 'Jelly', 'Conductor', 'Doppel', 'GolemBoss', 'Awakened',
+    'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Automat', 'Mannequin', 'Jelly', 'Conductor', 'Doppel', 'GolemBoss', 'Awakened', 'Amtsschimmel',
     'TentacleBoss', 'GiantBat', 'IceWitch', 'GiantSkeleton', 'Medusa', 'SunWarden', 'ManTrap', 'Count'];
-  const BEAST_BOSS = { TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel', GolemBoss: 'bossGolem', Awakened: 'bossAwakened' };
+  const BEAST_BOSS = { TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel', GolemBoss: 'bossGolem', Amtsschimmel: 'bossAmt', Awakened: 'bossAwakened' };
   const BEAST_SET = new Set(BEASTS);
   const beastName = (k) => tr(BEAST_BOSS[k] || 'beast_' + k);
   const beasts = { sel: 0 };
@@ -3027,6 +3043,7 @@ const Castle = (() => {
     { id: 'beasts', ok: () => BEASTS.filter(k => best[k]).length >= 25 },
     { id: 'golem', ok: () => !!best.GolemBoss },
     { id: 'doppel', ok: () => !!best.Doppel },
+    { id: 'amt', ok: () => !!best.Amtsschimmel },
     { id: 'moto', ok: () => !!(MotoRun.load().medals || {}).gold },
     { id: 'spells', ok: () => SPELL_IDS.every(known), arg: () => SPELL_IDS.length },
     { id: 'quests', ok: () => QUESTS.every(q => questState(q) === 'done') },
@@ -3034,16 +3051,17 @@ const Castle = (() => {
   ];
   const ach = { q: [], cur: null, sel: 0 }, ACH_PAY = 500; // je Urkunde zahlt das Amt 500 Gold Aufwandsentschädigung
   const achGot = (a) => !!flag['ach_' + a.id];
+  const achPay = () => ACH_PAY * (gear('cert') ? 2 : 1); // mit dem Dienstsiegel doppelt
   const achDesc = (a) => tr('achD_' + a.id, a.arg ? a.arg() : undefined);
   function achTick() {
     if (rpg.frames % 30 === 0) {
       const fresh = ACH.filter(a => !achGot(a) && a.ok());
       if (fresh.length) {
         for (const a of fresh) flag['ach_' + a.id] = 1;
-        W.addScore(ACH_PAY * fresh.length); // gleich gutschreiben (die Einblendung kommt evtl. erst später)
+        const pay = achPay(); W.addScore(pay * fresh.length); // gleich gutschreiben (die Einblendung kommt evtl. erst später)
         save();
-        if (fresh.length > 3) ach.q.push({ a: tr('achMany', fresh.length) + '  +' + ACH_PAY * fresh.length + ' G', b: tr('achManyB') });
-        else for (const a of fresh) ach.q.push({ a: tr('achToast', tr('ach_' + a.id)) + '  +' + ACH_PAY + ' G', b: achDesc(a) });
+        if (fresh.length > 3) ach.q.push({ a: tr('achMany', fresh.length) + '  +' + pay * fresh.length + ' G', b: tr('achManyB') });
+        else for (const a of fresh) ach.q.push({ a: tr('achToast', tr('ach_' + a.id)) + '  +' + pay + ' G', b: achDesc(a) });
       }
     }
     if (ach.cur && --ach.cur.t <= 0) ach.cur = null;
@@ -3080,7 +3098,7 @@ const Castle = (() => {
     });
     const a = ACH[ach.sel];
     wrap(achDesc(a), rx - lx).slice(0, 2).forEach((l, i) => Font.draw(ctx, l, cx, 176 + i * 10, achGot(a) ? '#fce0a8' : '#8c8c9c', { align: 'center', shadow: '#000' }));
-    Font.draw(ctx, tr('achReward', ACH_PAY), cx, 198, '#c89020', { align: 'center' });
+    Font.draw(ctx, tr('achReward', achPay()), cx, 198, '#c89020', { align: 'center' });
     Font.draw(ctx, tr('achFooter'), cx, 208, '#7c6c4c', { align: 'center' });
   }
 
@@ -3326,8 +3344,10 @@ const Castle = (() => {
     { id: 'chick', who: 'chick', at: [['side', 'fundbuero'], 58, 17], when: () => true },                // Fundbüro: Fundsache Nr. 13
     { id: 'barber', who: 'barber', at: [['side', 'passage'], 22, 17], when: () => true },               // Lichterpassage: Medusas Friseur
     { id: 'carto', who: 'carto', at: [['side', 'pendelhalle'], 108, 17], when: () => true },           // Pendelhalle oben: der Kartograf
+    { id: 'clerk', who: 'clerk', at: [['side', 'heldenamt'], 56, 17], when: () => true },              // Amt für Heldentaten: Oberamtsrat Stempelmann
+    { id: 'clerk2', who: 'clerk', at: [['side', 'heldenamt'], 56, 17], when: () => !!best.Amtsschimmel }, // ... nach dem Amtsschimmel
   ];
-  const WHO = ['ally', 'lib', 'tent', 'pris', 'conc', 'gramo', 'speed', 'bones', 'chick', 'barber', 'carto'], VOICE = { ally: 'A', lib: 'L', tent: 'T', pris: 'P', conc: 'C', speed: 'S', bones: 'B', chick: 'W', barber: 'F', carto: 'M' };
+  const WHO = ['ally', 'lib', 'tent', 'pris', 'conc', 'gramo', 'speed', 'bones', 'chick', 'barber', 'carto', 'clerk'], VOICE = { ally: 'A', lib: 'L', tent: 'T', pris: 'P', conc: 'C', speed: 'S', bones: 'B', chick: 'W', barber: 'F', carto: 'M', clerk: 'O' };
   const allyId = () => { const ids = HEROES.list.map(d => d.id), i = Math.max(0, ids.indexOf(Options.character)); return ids[(i + 1) % ids.length]; };
   const beatDone = (b) => b.lines === false || !!flag['story_' + b.id];
   function beatNow(who) { let b = null; for (const x of BEATS) if (x.who === who && x.when()) b = x; return b; }
@@ -3457,8 +3477,24 @@ const Castle = (() => {
     R(0, -26 + bob, 2, 2, '#c89020'); R(3, -26 + bob, 2, 2, '#c89020'); R(2, -26 + bob, 1, 1, '#c89020'); // Kneifer
     R(0, -25 + bob, 1, 1, '#1c1c24'); R(3, -25 + bob, 1, 1, '#1c1c24'); R(1, -22 + bob, 4, 1, '#e8e8f0'); // Augen, Bart
   }
-  const EGG = { speed: drawSpeedGhost, bones: drawBones, chick: drawChicken, barber: drawBarber, carto: drawCarto }; // Figur je Sprecher
-  const EGG_OF = { S: 'speed', B: 'bones', W: 'chick', F: 'barber', M: 'carto' };
+  // Oberamtsrat Stempelmann (Amt für Heldentaten): blasser Beamter mit grünem Augenschirm, runder Brille, Ärmelschonern und Weste,
+  // am Stehpult – der Stempel saust im Takt auf das Kissen
+  function drawClerk(ctx, cx, feet, t, flip) {
+    const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
+    const bob = (t >> 5) & 1, st = (t >> 3) % 6, up = st < 3 ? st : 6 - st, SK = '#e0d8c8';
+    R(-3, -2, 3, 2, '#1c1418'); R(1, -2, 3, 2, '#1c1418'); R(-3, -12, 2, 10, '#3c3c48'); R(1, -12, 2, 10, '#3c3c48'); // Schuhe, Hose
+    R(-4, -22 + bob, 8, 11, '#f0ece0'); R(-3, -22 + bob, 6, 10, '#5c5c6c'); R(-1, -22 + bob, 2, 8, '#f0ece0'); R(0, -21 + bob, 1, 6, '#8c1c2c'); // Hemd, Weste, Krawatte
+    R(-6, -21 + bob, 2, 8, '#f0ece0'); R(-6, -16 + bob, 2, 4, '#1c1c24'); R(-6, -13 + bob, 2, 2, SK);   // linker Arm mit Ärmelschoner
+    R(4, -21 + bob, 2, 5, '#f0ece0'); R(5, -18 + bob - up, 4, 2, '#1c1c24'); R(8, -19 + bob - up, 2, 2, SK); // rechter Arm hebt den Stempel
+    R(9, -24 + bob - up, 3, 4, '#74482c'); R(8, -20 + bob - up, 5, 2, '#b81e2a'); R(9, -25 + bob - up, 3, 1, '#9c643a'); // Stempel
+    R(7, -12, 8, 1, '#5c3c24'); R(7, -11, 8, 11, '#4c3020'); R(8, -13, 6, 1, '#2c4c8c');               // Stehpult mit Stempelkissen
+    R(-1, -24 + bob, 3, 2, SK); R(-3, -31 + bob, 7, 7, SK); R(-3, -32 + bob, 7, 2, '#c8c4b8');        // Hals, Kopf, schütteres Haar
+    R(-4, -33 + bob, 9, 2, '#2c7c4c'); R(1, -32 + bob, 5, 1, '#58b878');                              // grüner Augenschirm
+    R(0, -29 + bob, 2, 2, '#c8c8d8'); R(3, -29 + bob, 2, 2, '#c8c8d8'); R(2, -29 + bob, 1, 1, '#c8c8d8'); R(1, -28 + bob, 1, 1, '#1c1c24'); R(4, -28 + bob, 1, 1, '#1c1c24'); // Brille, Augen
+    R(1, -26 + bob, 4, 1, '#a89c8c');                                                                  // Mund
+  }
+  const EGG = { speed: drawSpeedGhost, bones: drawBones, chick: drawChicken, barber: drawBarber, carto: drawCarto, clerk: drawClerk }; // Figur je Sprecher
+  const EGG_OF = { S: 'speed', B: 'bones', W: 'chick', F: 'barber', M: 'carto', O: 'clerk' };
   const noseOf = (npc) => { if (!talk || talk.npc !== npc) return 0; const pg = talk.pages[talk.i]; return pg && pg.lie ? Math.min(9, (Game.t - (talk.lieAt || 0)) * 0.35) : 0; };
   // Kammern im Hotel: Sternlampe (Speichern) und Aufzug (Schnellreise) statt Steinnische – Blender-Modelle
   function drawHotelChamber(ch, ctx) {
@@ -3636,7 +3672,7 @@ const Castle = (() => {
   function portrait(ctx, who, x, y, t) { // 40×40: Figur in doppelter Größe, Kopf und Schultern
     ctx.fillStyle = '#c89020'; ctx.fillRect(x - 2, y - 2, 44, 44);
     ctx.fillStyle = '#000'; ctx.fillRect(x - 1, y - 1, 42, 42);
-    ctx.fillStyle = who === 'L' ? '#24183c' : who === 'H' ? '#0c1c34' : who === 'T' ? '#0c2434' : who === 'C' ? '#0c2418' : { S: '#101c3c', B: '#241414', W: '#2c2010', F: '#2c1018', M: '#20200c' }[who] || '#1c1028'; ctx.fillRect(x, y, 40, 40);
+    ctx.fillStyle = who === 'L' ? '#24183c' : who === 'H' ? '#0c1c34' : who === 'T' ? '#0c2434' : who === 'C' ? '#0c2418' : { S: '#101c3c', B: '#241414', W: '#2c2010', F: '#2c1018', M: '#20200c', O: '#14241c' }[who] || '#1c1028'; ctx.fillRect(x, y, 40, 40);
     ctx.save(); ctx.beginPath(); ctx.rect(x, y, 40, 40); ctx.clip();
     if (who === 'L') { ctx.translate(x + 20, y + 70); ctx.scale(2, 2); drawLibrarian(ctx, 0, 0, t, false); }
     else if (who === 'T') { ctx.translate(x + 18, y + 80); ctx.scale(2, 2); drawTentacle(ctx, 0, 0, t, false); }
@@ -3659,7 +3695,7 @@ const Castle = (() => {
     ctx.fillStyle = '#fce0a8'; for (const [ex, ey] of [[x, y], [x + w - 1, y], [x, y + h - 1], [x + w - 1, y + h - 1]]) { ctx.fillRect(ex - 1, ey, 3, 1); ctx.fillRect(ex, ey - 1, 1, 3); }
     const px = hero ? x + w - 48 : x + 8, tx = hero ? x + 10 : x + 56;
     portrait(ctx, pg.who, px, y + 10, t);
-    const EGN = { S: 'npcSpeed', B: 'npcBones', W: 'npcChicken', F: 'npcBarber', M: 'npcCarto' }, EGC = { S: '#b8d4ff', B: '#e8e4d0', W: '#fcf4c8', F: '#f0a0a0', M: '#e8dcb8' };
+    const EGN = { S: 'npcSpeed', B: 'npcBones', W: 'npcChicken', F: 'npcBarber', M: 'npcCarto', O: 'npcClerk' }, EGC = { S: '#b8d4ff', B: '#e8e4d0', W: '#fcf4c8', F: '#f0a0a0', M: '#e8dcb8', O: '#c8e0b0' };
     const name = pg.who === 'L' ? tr('npcLib') : pg.who === 'T' ? tr('bossTentacle') : pg.who === 'P' ? tr('npcPrisoner') : pg.who === 'C' ? tr('npcConcierge') : EGN[pg.who] ? tr(EGN[pg.who]) : HEROES.def(pg.who === 'A' ? allyId() : Options.character).name;
     Font.draw(ctx, name, tx, y + 7, hero ? '#7cdcfc' : pg.who === 'L' ? '#c8a0fc' : pg.who === 'T' ? '#d880fc' : pg.who === 'P' ? '#e8e0c8' : pg.who === 'C' ? '#a8e8c0' : EGC[pg.who] || '#f8b800', { shadow: '#000' });
     let left = Math.floor(talk.n);
@@ -3737,6 +3773,7 @@ const Castle = (() => {
   // Neueste Änderungen (zum Testen): die Abschnittswahl markiert diese Räume mit NEU und zeigt darunter, was sich geändert hat;
   // SUB springt zum nächsten markierten Abschnitt. Bei jeder Auslieferung neu füllen
   const RECENT = [
+    [['side', 'heldenamt'], 'chgAmt'], // Amt für Heldentaten mit dem Amtsschimmel, Fallgitter in allen Bosskammern
     [['side', 'versuchsstrecke'], 'chgMoto'], [['side', 'fundbuero'], 'chgFund'], [['side', 'rohrpost'], 'chgTube'], // Dampfrad-Fahrt (links am Automatenwerk), Schalterrätsel (links an der Passage)
     [['side', 'kaleido'], 'chgKaleido'], [['side', 'pendelhalle'], 'chgPendel'], [['side', 'passage'], 'chgPassage'],
     [['side', 'golemstollen'], 'chgGolem'], [['side', 'galvani'], 'chgLab'],
@@ -4092,7 +4129,7 @@ const Castle = (() => {
     for (const [A, , B] of LINKS) if (!ref(A) || !ref(B)) out.push('Verbindung ohne Raum: ' + JSON.stringify([A, B]));
     for (const b of BEATS) { const a = ref(b.at[0]); if (!a) out.push('Szene ohne Raum: ' + b.id); else if (!ground(S()[a.s].rooms[a.r], b.at[1], b.at[2])) out.push('Figur ohne Boden: ' + b.id); }
     for (const [R, id, x, y] of FINDS) { const a = ref(R); if (!a) out.push('Fund ohne Raum: ' + id); else if (SOLID.includes(S()[a.s].rooms[a.r].grid[y][x])) out.push('Fund in der Wand: ' + id); }
-    const need = ['portrait0', 'portrait1', 'portrait2', 'banter_boss1', 'banter_boss2', 'banter_boss3', 'banter_boss4', 'banter_bossKraken', 'banter_bossTentacle', 'banter_bossKnight', 'banter_bossTrap', 'banter_bossWitch', 'banter_bossConductor', 'banter_bossDoppel', 'banter_bossAwakened', 'banter_bossGolem', 'secNew', 'secNewHelp', ...RECENT.map(([, k]) => k), 'chgBanter', 'famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'npcSpeed', 'npcBones', 'npcChicken', 'npcBarber', 'npcCarto', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'mapOverlayHelpT', 'optGuide', 'optGuideH'];
+    const need = ['banter_bossAmt', 'bossAmt', 'bossAmtNote', 'bossAmtShout', 'bossAmtRage', 'amtMark', 'npcClerk', 'amtSignT', 'amtSign', 'chgAmt', 'portrait0', 'portrait1', 'portrait2', 'banter_boss1', 'banter_boss2', 'banter_boss3', 'banter_boss4', 'banter_bossKraken', 'banter_bossTentacle', 'banter_bossKnight', 'banter_bossTrap', 'banter_bossWitch', 'banter_bossConductor', 'banter_bossDoppel', 'banter_bossAwakened', 'banter_bossGolem', 'secNew', 'secNewHelp', ...RECENT.map(([, k]) => k), 'chgBanter', 'famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'npcSpeed', 'npcBones', 'npcChicken', 'npcBarber', 'npcCarto', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'mapOverlayHelpT', 'optGuide', 'optGuideH'];
     for (const id in GEAR) need.push('item_' + id, 'itemD_' + id);
     for (const b of BEATS) { if (b.lines !== false) need.push('story_' + b.id); need.push('story_' + (b.again || b.id) + 'Again'); }
     for (const id of SPELL_IDS) need.push('spell_' + id);
