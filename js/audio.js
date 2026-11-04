@@ -624,6 +624,20 @@ const Audio8 = (() => {
   let song = null, songName = null, pending = null, timer = null, tempoMul = 1, nextSong = null;
   let cursors = [];
 
+  // Stereo wie beim SNES: jede Stimme hat ihren festen Platz im Panorama – Melodie halb links, Begleitung rechts, das Echo der
+  // Melodie antwortet von der anderen Seite, die beiden Pad-Sägezähne liegen weit links und rechts, Becken und Toms verteilt.
+  // Melodie- und Musikbus werden bei jedem Liedwechsel neu angelegt, darum je Bus ein eigener Satz Panner (bei Bedarf gebaut).
+  const PAN = { p1: -0.45, p2: 0.55, echo: 0.75, pb: -0.3, padL: -0.8, padR: 0.8, hat: 0.45, tomL: -0.5, tomR: 0.5 };
+  let pans = null;
+  function pan(key, bus) {
+    if (!ac.createStereoPanner) return bus;
+    if (!pans || pans.mel !== melBus || pans.mus !== musicBus) pans = { mel: melBus, mus: musicBus };
+    const k = (bus === melBus ? 'm' : 'u') + key;
+    if (!pans[k]) { // davor √2: ein Mono-Ton, der vorher auf beiden Seiten voll lag, verliert im Panner sonst 3 dB gegen Bass und Schlagzeug
+      const p = ac.createStereoPanner(), g = ac.createGain(); p.pan.value = PAN[key]; g.gain.value = Math.SQRT2; g.connect(p); p.connect(bus); pans[k] = g;
+    }
+    return pans[k];
+  }
   // Sidechain: Melodie/Bass kurz absenken, wenn die Kick kommt
   function sidechain(t) {
     melBus.gain.setValueAtTime(0.45, t);
@@ -647,7 +661,7 @@ const Audio8 = (() => {
       return;
     }
     if (n === 'r') { noise(0.06, 0.3, 'bandpass', 2000, 1100, t, musicBus); noise(0.06, 0.34, 'bandpass', 2000, 1100, t + dur / 2, musicBus); return; }
-    if (n === 'z') noise(0.03, 0.1, 'highpass', 8000, null, t, musicBus);
+    if (n === 'z') noise(0.03, 0.1, 'highpass', 8000, null, t, pan('hat', musicBus));
     if (n === 'd') { // Doppel-Kick: kurz und trocken, ohne Sidechain (sonst pumpt die Musik bei 16teln)
       const o = osc('triangle'), g = ac.createGain();
       o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(48, t + 0.07);
@@ -666,20 +680,20 @@ const Audio8 = (() => {
     }
     if (n === 'x' || n === 'c') noise(0.7, 0.22, 'highpass', 6000, 2500, t, musicBus);
     if (n === 's' || n === 'q') { noise(0.14, 0.3, 'bandpass', 1900, 900, t, musicBus); tone2('triangle', 240, 120, 0.06, 0.19, t); }
-    else if (n === 'h') noise(0.03, 0.13, 'highpass', 8000, null, t, musicBus);
-    else if (n === 'o') noise(0.12, 0.13, 'highpass', 7000, null, t, musicBus);
-    else if (n === 't') tone2('triangle', 300, 120, 0.12, 0.45, t);
-    else if (n === 'u') tone2('triangle', 200, 70, 0.15, 0.5, t);
+    else if (n === 'h') noise(0.03, 0.13, 'highpass', 8000, null, t, pan('hat', musicBus));
+    else if (n === 'o') noise(0.12, 0.13, 'highpass', 7000, null, t, pan('hat', musicBus));
+    else if (n === 't') tone2('triangle', 300, 120, 0.12, 0.45, t, pan('tomL', musicBus));
+    else if (n === 'u') tone2('triangle', 200, 70, 0.15, 0.5, t, pan('tomR', musicBus));
     else if (n === 'p') { tone2('triangle', 120, 82, 0.55, 0.55, t); noise(0.18, 0.12, 'lowpass', 500, 120, t, musicBus); } // Pauke
   }
-  function tone2(type, f0, f1, dur, vol, t) {
+  function tone2(type, f0, f1, dur, vol, t, dst) {
     const o = osc(type), g = ac.createGain();
     o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
     g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-    o.connect(g); g.connect(musicBus); o.start(t); o.stop(t + dur + 0.02);
+    o.connect(g); g.connect(dst || musicBus); o.start(t); o.stop(t + dur + 0.02);
   }
 
-  function note(track, f, t, dur, volMul = 1, dutyOverride) {
+  function note(track, f, t, dur, volMul = 1, dutyOverride, side) { // side: eigener Platz im Panorama (Echo)
     const o = track === 'tri' ? osc('triangle') : osc('pulse', dutyOverride || (track === 'p1' ? 0.25 : 0.125));
     const g = ac.createGain();
     const vol = (track === 'p1' ? 0.2 : track === 'p2' ? 0.085 : track === 'pb' ? 0.05 : 0.42) * volMul;
@@ -695,7 +709,7 @@ const Audio8 = (() => {
     g.gain.linearRampToValueAtTime(vol, t + 0.005);
     g.gain.setValueAtTime(vol * (track === 'tri' ? 1 : 0.72), t + Math.min(gate, 0.07));
     g.gain.linearRampToValueAtTime(0, t + gate);
-    o.connect(g); g.connect(melBus);
+    o.connect(g); g.connect(track === 'tri' ? melBus : pan(side || track, melBus)); // Dreiecksbass bleibt in der Mitte
     o.start(t); o.stop(t + gate + 0.02);
   }
 
@@ -716,14 +730,13 @@ const Audio8 = (() => {
 
   // Orgel/Chor: verstimmte Sägezähne durch Tiefpass, langsamer Einsatz
   function padNote(f, t, dur) {
-    const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1400; lp.Q.value = 2;
-    const g = ac.createGain();
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.045, t + 0.5); g.gain.setValueAtTime(0.045, t + dur * 0.8); g.gain.linearRampToValueAtTime(0, t + dur + 0.6);
-    [-7, 7].forEach(cents => {
+    [-7, 7].forEach(cents => { // je Sägezahn eigener Filter und Platz: der tiefere links, der höhere rechts – breit wie ein Chor
+      const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1400; lp.Q.value = 2;
+      const g = ac.createGain();
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.045, t + 0.5); g.gain.setValueAtTime(0.045, t + dur * 0.8); g.gain.linearRampToValueAtTime(0, t + dur + 0.6);
       const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.detune.value = cents;
-      o.connect(lp); o.start(t); o.stop(t + dur + 0.7);
+      o.connect(lp); lp.connect(g); g.connect(pan(cents < 0 ? 'padL' : 'padR', melBus)); o.start(t); o.stop(t + dur + 0.7);
     });
-    lp.connect(g); g.connect(melBus);
   }
 
   function playEvent(track, ev, t, stepDur) {
@@ -736,7 +749,7 @@ const Audio8 = (() => {
     const dur = ev.len * stepDur;
     note(track, f, t, dur);
     if (track === 'tri' && song.loop && dur < 0.2) note('pb', f * 2, t, dur, 1, 0.125); // kratziger Bass
-    if (track === 'p1' && song.echo) note('p1', f, t + song.echo.delay * stepDur, dur, song.echo.vol, 0.125);
+    if (track === 'p1' && song.echo) note('p1', f, t + song.echo.delay * stepDur, dur, song.echo.vol, 0.125, 'echo');
   }
 
   function schedule() {

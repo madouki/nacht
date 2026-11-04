@@ -390,6 +390,14 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   Lichterpassage, der Kartograf oben in der Pendelhalle (verzweifelt am ständigen Anbauen, erklärt die Karten-Taste).
 - **Abschnittswahl zeigt Neues:** `RECENT` in castle.js markiert die zuletzt geänderten Räume mit NEU, darunter steht, was sich
   geändert hat; SUB springt zum nächsten markierten Abschnitt. Bei jeder Auslieferung neu füllen.
+- **Urkunden** (Errungenschaften, `ACH` in castle.js): 15 Urkunden vom „Amt für Heldentaten“ (Zimmer 13B) – Kammerjäger,
+  Steuerprüfung, Kartograph ehrenhalber („der Architekt baut schon an“) usw. Geprüft alle 30 Bilder am Spielstand, erteilt =
+  `flag['ach_' + id]`; Einblendung unten mit Wachssiegel, sobald der Wegweiser schweigt, mehr als drei auf einmal (älterer
+  Spielstand) als Sammelmeldung. Status → fünfte Seite: Liste mit Siegeln, ↑↓ wählt, darunter die Bedingung.
+- **Staub im Fackelschein** (`FX.drawMotes`): über warmen Lichtern (Kerzen, Fackeln, Leuchter) treiben Staubkörnchen, die nur
+  im Lichtkreis aufleuchten; im Spar-Modus aus.
+- **Stereo-Musik wie beim SNES** (`PAN` in audio.js): Melodie links, Begleitung rechts, Echo der Melodie rechts außen, Pads breit,
+  Becken rechts, Toms links/rechts; Panner je Musikbus, √2 davor hält die Lautstärke.
 - **Hotel- und Eisaufzug wie das Pumpwerk:** Maschinenhalle mit großen erleuchteten Fenstern, Nietträgern, Rohren und drehenden
   Schwungrädern (`machine`/`anim` in `LiftShaft.STYLE`) – das Hotel in Messing und warmem Licht, der Eisaufzug in Stahl und Frost.
 - **Kaleidoskop gewaltiger:** enge Brennweite (`KZ` 2,5): Fenster 2,5-mal so groß (eins füllt fast das Bild), die Röhre krümmt sich kaum; Trommeln drehen

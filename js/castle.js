@@ -1992,7 +1992,7 @@ const Castle = (() => {
     const hero = W.player; // Blutstein: alle vier Sekunden 1 HP
     if (gear('regen') && rpg.frames % 240 === 0 && hero.alive && hero.hp < hero.maxHp) { hero.hp = Math.min(hero.maxHp, hero.hp + 1); W.popup(hero.cx, hero.y - 6, '+10', '#d81830'); }
     if (!has('jump2')) W.player.canDouble = false; // ohne Rabenfeder kein Doppelsprung
-    goalTick(); // Wegweiser-Einblendungen
+    goalTick(); achTick(); // Wegweiser- und Urkunden-Einblendungen
     let dirty = false;
     const set = seen[key] || (seen[key] = new Set()), i = c.y * c.cw + c.x;
     if (!set.has(i)) { set.add(i); dirty = true; }
@@ -2952,9 +2952,10 @@ const Castle = (() => {
   }
 
   // Statusbildschirm (Pause → STATUS): Werte wie in SotN in zwei Spalten, darunter EXP-Leiste, Karte, Siegel, Warpkammern
-  let statusPage = 0; // 0 = Werte, 1 = Zauber, 2 = Bestiarium, 3 = Aufträge (←→ blättert, im Bestiarium ↑↓ wählen)
+  let statusPage = 0; // 0 = Werte, 1 = Zauber, 2 = Bestiarium, 3 = Aufträge, 4 = Urkunden (←→ blättert, im Bestiarium und bei den Urkunden ↑↓ wählen)
   function statusInput(P) {
-    if (P.left || P.right) { statusPage = (statusPage + (P.right ? 1 : 3)) % 4; Audio8.sfx('select'); }
+    if (P.left || P.right) { statusPage = (statusPage + (P.right ? 1 : 4)) % 5; Audio8.sfx('select'); }
+    if (statusPage === 4 && (P.up || P.down)) { ach.sel = clamp(ach.sel + (P.down ? 1 : -1), 0, ACH.length - 1); Audio8.sfx('select'); }
     if (statusPage === 2 && (P.up || P.down)) { beasts.sel = clamp(beasts.sel + (P.down ? 1 : -1), 0, BEASTS.length - 1); Audio8.sfx('select'); }
   }
   function drawQuests(ctx, t) { // Auftragsbuch: Name, Auftraggeber, Stücke (gefundene farbig), erledigt
@@ -2975,6 +2976,7 @@ const Castle = (() => {
     if (statusPage === 1) { panel(ctx, tr('spellTitle'), '#7cdcfc'); drawSpells(ctx); Font.draw(ctx, tr('statusHelp'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
     if (statusPage === 2) { panel(ctx, tr('beastTitle'), '#9c6cfc'); drawBeasts(ctx, t); Font.draw(ctx, tr('statusHelp'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
     if (statusPage === 3) { panel(ctx, tr('questTitle'), '#f8b800'); drawQuests(ctx, t); Font.draw(ctx, tr('statusHelp'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
+    if (statusPage === 4) { panel(ctx, tr('achTitle'), '#f8d878'); drawAch(ctx, t); Font.draw(ctx, tr('statusHelp'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
     ctx.fillStyle = 'rgba(2,4,18,0.97)'; ctx.fillRect(0, 0, w, 240);
     ctx.fillStyle = '#c89020';
     ctx.fillRect(6, 6, w - 12, 1); ctx.fillRect(6, 233, w - 12, 1); ctx.fillRect(6, 6, 1, 228); ctx.fillRect(w - 7, 6, 1, 228);
@@ -3007,6 +3009,77 @@ const Castle = (() => {
     Font.draw(ctx, tr('castleRelicCount', own.length, RELICS.length), cx, 198, '#e0d0fc', { align: 'center', shadow: '#000' });
     RELICS.forEach((k, i) => { const x = Math.round(cx - RELICS.length * 7 + i * 14 + 2), y = 208; ctx.fillStyle = '#1c1428'; ctx.fillRect(x - 1, y - 1, 10, 7); ctx.fillStyle = rel(k) ? RELIC_COL[k] : '#3c3448'; ctx.fillRect(x, y, 8, 5); });
     Font.draw(ctx, tr('statusHelp'), cx, 222, '#7c7c8c', { align: 'center' });
+  }
+
+  // ---------------- Urkunden (Errungenschaften): das Amt für Heldentaten stellt sie aus ----------------
+  // Geprüft wird alle 30 Bilder am Spielstand (kein Einhaken in jedes Ereignis); erteilt = flag['ach_' + id] im Karten-Spielstand
+  // (der Testmodus hat seinen eigenen). Neue Urkunde: Einblendung unten, sobald der Wegweiser schweigt; mehr als drei auf einmal
+  // (älterer Spielstand) → eine Sammelmeldung. Liste: Status, fünfte Seite (↑↓ wählt, darunter die Beschreibung).
+  const ACH = [
+    { id: 'kills100', ok: () => rpg.kills >= 100 },
+    { id: 'lv20', ok: () => rpg.lv >= 20 },
+    { id: 'map50', ok: () => +percent() >= 50 },
+    { id: 'map100', ok: () => +percent() >= 100 },
+    { id: 'vessels', ok: () => vessels() >= 5 },
+    { id: 'relics', ok: () => RELICS.every(k => relic[k]), arg: () => RELICS.length },
+    { id: 'seals', ok: () => seals() >= sealRooms().length, arg: () => sealRooms().length },
+    { id: 'gold', ok: () => W.score >= 20000 },
+    { id: 'beasts', ok: () => BEASTS.filter(k => best[k]).length >= 25 },
+    { id: 'golem', ok: () => !!best.GolemBoss },
+    { id: 'doppel', ok: () => !!best.Doppel },
+    { id: 'moto', ok: () => !!(MotoRun.load().medals || {}).gold },
+    { id: 'spells', ok: () => SPELL_IDS.every(known), arg: () => SPELL_IDS.length },
+    { id: 'quests', ok: () => QUESTS.every(q => questState(q) === 'done') },
+    { id: 'count', ok: () => !!best.Count },
+  ];
+  const ach = { q: [], cur: null, sel: 0 };
+  const achGot = (a) => !!flag['ach_' + a.id];
+  const achDesc = (a) => tr('achD_' + a.id, a.arg ? a.arg() : undefined);
+  function achTick() {
+    if (rpg.frames % 30 === 0) {
+      const fresh = ACH.filter(a => !achGot(a) && a.ok());
+      if (fresh.length) {
+        for (const a of fresh) flag['ach_' + a.id] = 1;
+        save();
+        if (fresh.length > 3) ach.q.push({ a: tr('achMany', fresh.length), b: tr('achManyB') });
+        else for (const a of fresh) ach.q.push({ a: tr('achToast', tr('ach_' + a.id)), b: achDesc(a) });
+      }
+    }
+    if (ach.cur && --ach.cur.t <= 0) ach.cur = null;
+    if (!ach.cur && !toast && !goalWait && ach.q.length) { ach.cur = Object.assign(ach.q.shift(), { t: 240 }); Audio8.sfx('oneUp'); }
+  }
+  function achSeal(ctx, x, y, got, t) { // Siegel des Amts: roter Wachstropfen mit Goldrand, ab und zu ein Glanzpunkt (offen: grau)
+    ctx.fillStyle = got ? '#c89020' : '#3c3c4c'; ctx.fillRect(x - 3, y - 4, 7, 9); ctx.fillRect(x - 4, y - 3, 9, 7);
+    ctx.fillStyle = got ? '#b8182c' : '#24242e'; ctx.fillRect(x - 2, y - 3, 5, 7); ctx.fillRect(x - 3, y - 2, 7, 5);
+    if (got) { ctx.fillStyle = '#fc7460'; ctx.fillRect(x - 1, y - 2, 2, 1); if (((t + x) >> 3) % 6 === 0) { ctx.fillStyle = '#fff'; ctx.fillRect(x + 1, y - 1, 1, 1); } }
+  }
+  function drawAchToast(ctx) {
+    const c = ach.cur;
+    if (!c) return;
+    const k = c.t, a = Math.min(1, (240 - k) / 16, k / 24), w = Math.min(View.w - 8, Math.max(Font.width(c.a), Font.width(c.b)) + 32), x = Math.round(View.cx - w / 2), y = 206;
+    ctx.globalAlpha = a;
+    ctx.fillStyle = 'rgba(12,6,0,0.86)'; ctx.fillRect(x, y, w, 24);
+    ctx.fillStyle = '#f8d878'; ctx.fillRect(x, y, w, 1); ctx.fillRect(x, y + 23, w, 1);
+    achSeal(ctx, x + 10, y + 12, true, k);
+    Font.draw(ctx, c.a, View.cx + 8, y + 4, '#f8d878', { align: 'center', shadow: '#000' });
+    Font.draw(ctx, c.b, View.cx + 8, y + 14, '#e0d0b0', { align: 'center', shadow: '#000' });
+    ctx.globalAlpha = 1;
+  }
+  function drawAch(ctx, t) {
+    const cx = View.cx, lx = cx - Math.min(130, View.w / 2 - 16), rx = cx + Math.min(130, View.w / 2 - 16), rows = 10;
+    const top = clamp(ach.sel - 4, 0, ACH.length - rows);
+    Font.draw(ctx, tr('achCount', ACH.filter(achGot).length, ACH.length), cx, 36, '#f8d878', { align: 'center', shadow: '#000' });
+    if (top > 0) Font.draw(ctx, '↑', rx, 36, '#c89020');
+    if (top + rows < ACH.length) Font.draw(ctx, '↓', rx, 48 + rows * 12, '#c89020');
+    ACH.slice(top, top + rows).forEach((a, n) => {
+      const i = top + n, y = 50 + n * 12, on = i === ach.sel, got = achGot(a);
+      if (on) { ctx.fillStyle = 'rgba(200,144,32,0.2)'; ctx.fillRect(lx - 4, y - 2, rx - lx + 8, 11); }
+      achSeal(ctx, lx + 4, y + 3, got, t);
+      Font.draw(ctx, tr('ach_' + a.id), lx + 14, y, got ? '#f8d878' : on ? '#a8a8b8' : '#6c6c7c', { shadow: '#000' });
+    });
+    const a = ACH[ach.sel];
+    wrap(achDesc(a), rx - lx).slice(0, 2).forEach((l, i) => Font.draw(ctx, l, cx, 180 + i * 10, achGot(a) ? '#fce0a8' : '#8c8c9c', { align: 'center', shadow: '#000' }));
+    Font.draw(ctx, tr('achFooter'), cx, 204, '#7c6c4c', { align: 'center' });
   }
 
   // ---------------- Wegweiser: was als Nächstes, und wo ----------------
@@ -3047,7 +3120,7 @@ const Castle = (() => {
     else if (toast && --toast.t <= 0) toast = null;
   }
   function drawGoalToast(ctx) {
-    if (!toast) return;
+    if (!toast) { drawAchToast(ctx); return; }
     const k = toast.t, a = Math.min(1, (330 - k) / 20, k / 30), w = Math.min(View.w - 8, Math.max(Font.width(toast.a), Font.width(toast.b)) + 16), x = Math.round(View.cx - w / 2), y = 206;
     ctx.globalAlpha = a;
     ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(x, y, w, 24);
@@ -4031,6 +4104,7 @@ const Castle = (() => {
       'bossConductor', 'bossConductorNote', 'bossConductorShout', 'bossConductorRage', 'castleLocked13', 'dashKey',
       'liftLocked', 'liftOpen', 'needRelic', 'subNone', 'subNoHearts', 'bossDoppel', 'bossDoppelNote', 'bossDoppelShout', 'bossDoppelRage', 'famSay_shadow', 'questTitle', 'questDone', 'questNone', 'questFrom', 'kaleidoForm', 'bossAwakened', 'bossAwakenedNote', 'bossAwakenedShout', 'bossAwakenedRage', 'labCut', 'bossGolem', 'bossGolemNote', 'bossGolemShout', 'bossGolemRage', 'castleDrown', 'castleDrownTest');
     for (const q of QUESTS) need.push('quest_' + q.id, 'questHint_' + q.id);
+    for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     { // Erreichbarkeit: vom Wald aus über Türen und Ausgänge (alles geöffnet) – kein Raum darf abgeschnitten sein
       const key = (s, r) => s + ':' + r, seenR = new Set(), queue = [], s0 = sIdx('arrival');
       const push = (s, r) => { if (s >= 0 && !seenR.has(key(s, r))) { seenR.add(key(s, r)); queue.push([s, r]); } };

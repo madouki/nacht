@@ -260,6 +260,30 @@ const FX = (() => {
       for (const [px, py] of ((k >> 2) & 1 ? BAT_UP : BAT_DN)) ctx.fillRect(x + px, y + py, 1, 1);
     }
   }
+  // Staub im Fackelschein: über jedem warmen Licht (Kerze, Fackel, Leuchter, Kohlenbecken) treiben ein paar Körnchen langsam
+  // aufwärts und schaukeln zur Seite; sie leuchten nur im Lichtkreis auf (je näher der Mitte, desto heller). Takt und Lage hängen
+  // an der Weltlage des Lichts, so bleiben sie beim Scrollen bei ihrer Flamme. Kalte Lichter, der Held und Blitze bleiben staubfrei.
+  function drawMotes(ctx, L, cam, f) {
+    if (View.lite) return;
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    for (const l of L) {
+      if (!l.c || l.r < 26 || l.r > 90 || l.c[0] < 200 || (l.a || 0) < 0.4) continue;
+      const seed = Math.abs((l.x + cam.x) * 0.173 + (l.y + cam.y) * 0.091), n = l.r > 40 ? 6 : 4, R = l.r * 0.85;
+      const col = Math.min(255, l.c[0] + 7) + ',' + Math.min(255, l.c[1] + 70) + ',' + Math.min(255, l.c[2] + 90);
+      for (let i = 0; i < n; i++) {
+        const ph = seed + i * 2.39, P = 250 + i * 47, u = ((f + ph * 97) | 0) % P / P;
+        const dx = Math.sin(f * 0.017 + ph * 3) * R * 0.55 + Math.sin(f * 0.041 + ph) * 3, dy = R * (0.5 - 1.2 * u);
+        const d = Math.hypot(dx, dy) / R;
+        if (d >= 1) continue;
+        const a = Math.sin(u * Math.PI) * (1 - d);
+        if (a < 0.1) continue;
+        const x = Math.round(l.x + dx), y = Math.round(l.y + dy);
+        ctx.fillStyle = 'rgba(' + col + ',' + (0.9 * a).toFixed(2) + ')'; ctx.fillRect(x, y, 1, 1);
+        if (a > 0.45) { ctx.fillStyle = 'rgba(' + col + ',' + (0.3 * a).toFixed(2) + ')'; ctx.fillRect(x - 1, y, 3, 1); ctx.fillRect(x, y - 1, 1, 3); } // helles Körnchen: kleiner Schimmer
+      }
+    }
+    ctx.restore();
+  }
   function drawAmbient(ctx, cam) {
     for (const p of amb) {
       const x = Math.round(p.x - cam.x), y = Math.round(p.y - cam.y);
@@ -287,5 +311,5 @@ const FX = (() => {
     }
   }
 
-  return { render, drawFog, updateAmbient, drawAmbient, resetAmbient, disc, updateStorm, drawStormSky, stormOn, updateFlock, drawFlock };
+  return { render, drawFog, updateAmbient, drawAmbient, drawMotes, resetAmbient, disc, updateStorm, drawStormSky, stormOn, updateFlock, drawFlock };
 })();
