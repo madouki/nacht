@@ -176,6 +176,13 @@ const Audio8 = (() => {
     raven: () => { tone('pulse', 900, 500, 0.12, 0.08, 0.125); noise(0.1, 0.1, 'bandpass', 2000, 900); },
     go: () => { arp(['g5', 'c6', 'e6', 'g6', 'c7'], 0.035, 'pulse', 0.16, 0.25); noise(0.35, 0.22, 'highpass', 6000, 2500); tone('triangle', 130, 260, 0.3, 0.35); },
     announce: () => { if (!ac) return; const t = ac.currentTime; ['c5', 'e5', 'g5', 'c6'].forEach(n => tone('pulse', freq(n), freq(n), 0.32, 0.07, 0.25, t)); tone('pulse', freq('c6'), freq('c6') * 1.01, 0.4, 0.09, 0.125, t + 0.09); noise(0.2, 0.18, 'highpass', 5000, 2000); },
+    cert: () => { // Urkunde: Stempel aufs Papier, dann ein kleiner Tusch (ta-ta TAA ta TAAA) mit Oktave darunter
+      if (!ac) return; const t = ac.currentTime;
+      tone('triangle', 110, 40, 0.3, 0.5, 0.5, t); noise(0.25, 0.4, 'lowpass', 2000, 120, t);
+      [['g5', 0.14], ['g5', 0.08], ['c6', 0.32], ['e6', 0.12], ['g6', 0.5]].reduce((d, [n, len]) => {
+        const f = freq(n); tone('pulse', f, f, len * 0.95, 0.12, 0.25, t + 0.16 + d); tone('pulse', f / 2, f / 2, len * 0.9, 0.06, 0.5, t + 0.16 + d); return d + len;
+      }, 0);
+    },
     stamp: () => { tone('triangle', 110, 40, 0.35, 0.55); noise(0.3, 0.45, 'lowpass', 2200, 120); arp(['c6', 'g6', 'c7'], 0.05, 'pulse', 0.13, 0.125); },
     step: () => { noise(0.045, 0.07, 'lowpass', 1100, 250); tone('triangle', 120, 70, 0.04, 0.05); },
     chain: () => { if (!ac) return; const t = ac.currentTime; for (let i = 0; i < 4; i++) { noise(0.03, 0.1, 'bandpass', 3400 - i * 200, 2200, t + i * 0.05); tone('square', 1900 - i * 120, 1500, 0.02, 0.025, null, t + i * 0.05); } }, // Kettenrasseln

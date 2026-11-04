@@ -1174,5 +1174,20 @@ class Player {
     }
     if (lvl === 3) ball(tip[0] - 1, tip[1] + 1);
     ctx.restore();
+    // Wischspur: die Spitze der letzten Bilder als verblassender heller Bogen (nur beim Ausschlagen, ein Eintrag je Spielbild,
+    // in Weltlage gemerkt – läuft der Held weiter, bleibt der Bogen in der Luft stehen)
+    const offX = this.x - sx, offY = this.y - sy, wx = (this.face < 0 ? sx * 2 + 16 - tip[0] : tip[0]) + offX, wy = tip[1] + offY;
+    if (p !== 2 || t <= 11) this.smear = [];
+    else if (this.smearF !== W.frame) { this.smearF = W.frame; (this.smear = this.smear || []).push([wx, wy]); if (this.smear.length > 5) this.smear.shift(); }
+    const S = this.smear || [];
+    if (S.length > 1 && !View.lite) {
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      for (let i = 1; i < S.length; i++) {
+        const [x0, y0] = S[i - 1], [x1, y1] = S[i], n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0) / 1.5)), a = i / S.length;
+        ctx.fillStyle = lvl === 1 ? 'rgba(252,200,140,' + (0.6 * a).toFixed(2) + ')' : 'rgba(220,236,252,' + (0.7 * a).toFixed(2) + ')';
+        for (let k = 0; k < n; k++) { const u = k / n; ctx.fillRect(Math.round(x0 + (x1 - x0) * u - offX), Math.round(y0 + (y1 - y0) * u - offY), 2, 2); }
+      }
+      ctx.restore();
+    }
   }
 }

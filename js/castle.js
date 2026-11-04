@@ -3032,7 +3032,7 @@ const Castle = (() => {
     { id: 'quests', ok: () => QUESTS.every(q => questState(q) === 'done') },
     { id: 'count', ok: () => !!best.Count },
   ];
-  const ach = { q: [], cur: null, sel: 0 };
+  const ach = { q: [], cur: null, sel: 0 }, ACH_PAY = 500; // je Urkunde zahlt das Amt 500 Gold Aufwandsentschädigung
   const achGot = (a) => !!flag['ach_' + a.id];
   const achDesc = (a) => tr('achD_' + a.id, a.arg ? a.arg() : undefined);
   function achTick() {
@@ -3040,13 +3040,14 @@ const Castle = (() => {
       const fresh = ACH.filter(a => !achGot(a) && a.ok());
       if (fresh.length) {
         for (const a of fresh) flag['ach_' + a.id] = 1;
+        W.addScore(ACH_PAY * fresh.length); // gleich gutschreiben (die Einblendung kommt evtl. erst später)
         save();
-        if (fresh.length > 3) ach.q.push({ a: tr('achMany', fresh.length), b: tr('achManyB') });
-        else for (const a of fresh) ach.q.push({ a: tr('achToast', tr('ach_' + a.id)), b: achDesc(a) });
+        if (fresh.length > 3) ach.q.push({ a: tr('achMany', fresh.length) + '  +' + ACH_PAY * fresh.length + ' G', b: tr('achManyB') });
+        else for (const a of fresh) ach.q.push({ a: tr('achToast', tr('ach_' + a.id)) + '  +' + ACH_PAY + ' G', b: achDesc(a) });
       }
     }
     if (ach.cur && --ach.cur.t <= 0) ach.cur = null;
-    if (!ach.cur && !toast && !goalWait && ach.q.length) { ach.cur = Object.assign(ach.q.shift(), { t: 240 }); Audio8.sfx('oneUp'); }
+    if (!ach.cur && !toast && !goalWait && ach.q.length) { ach.cur = Object.assign(ach.q.shift(), { t: 240 }); Audio8.sfx('cert'); }
   }
   function achSeal(ctx, x, y, got, t) { // Siegel des Amts: roter Wachstropfen mit Goldrand, ab und zu ein Glanzpunkt (offen: grau)
     ctx.fillStyle = got ? '#c89020' : '#3c3c4c'; ctx.fillRect(x - 3, y - 4, 7, 9); ctx.fillRect(x - 4, y - 3, 9, 7);
@@ -3078,8 +3079,9 @@ const Castle = (() => {
       Font.draw(ctx, tr('ach_' + a.id), lx + 14, y, got ? '#f8d878' : on ? '#a8a8b8' : '#6c6c7c', { shadow: '#000' });
     });
     const a = ACH[ach.sel];
-    wrap(achDesc(a), rx - lx).slice(0, 2).forEach((l, i) => Font.draw(ctx, l, cx, 180 + i * 10, achGot(a) ? '#fce0a8' : '#8c8c9c', { align: 'center', shadow: '#000' }));
-    Font.draw(ctx, tr('achFooter'), cx, 204, '#7c6c4c', { align: 'center' });
+    wrap(achDesc(a), rx - lx).slice(0, 2).forEach((l, i) => Font.draw(ctx, l, cx, 176 + i * 10, achGot(a) ? '#fce0a8' : '#8c8c9c', { align: 'center', shadow: '#000' }));
+    Font.draw(ctx, tr('achReward', ACH_PAY), cx, 198, '#c89020', { align: 'center' });
+    Font.draw(ctx, tr('achFooter'), cx, 208, '#7c6c4c', { align: 'center' });
   }
 
   // ---------------- Wegweiser: was als Nächstes, und wo ----------------

@@ -393,7 +393,10 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
 - **Urkunden** (Errungenschaften, `ACH` in castle.js): 15 Urkunden vom „Amt für Heldentaten“ (Zimmer 13B) – Kammerjäger,
   Steuerprüfung, Kartograph ehrenhalber („der Architekt baut schon an“) usw. Geprüft alle 30 Bilder am Spielstand, erteilt =
   `flag['ach_' + id]`; Einblendung unten mit Wachssiegel, sobald der Wegweiser schweigt, mehr als drei auf einmal (älterer
-  Spielstand) als Sammelmeldung. Status → fünfte Seite: Liste mit Siegeln, ↑↓ wählt, darunter die Bedingung.
+  Spielstand) als Sammelmeldung. Status → fünfte Seite: Liste mit Siegeln, ↑↓ wählt, darunter die Bedingung. Jede Urkunde
+  zahlt 500 Gold Aufwandsentschädigung (`ACH_PAY`, gleich beim Erteilen gutgeschrieben); dazu der Tusch `cert` (Stempel + Fanfare).
+- **Wischspur der Peitsche** (`drawWhip`): beim Ausschlagen ziehen die letzten fünf Spitzenpunkte einen verblassenden hellen Bogen
+  (Lederpeitsche warm, Kette kühl), in Weltlage gemerkt; im Spar-Modus aus.
 - **Staub im Fackelschein** (`FX.drawMotes`): über warmen Lichtern (Kerzen, Fackeln, Leuchter) treiben Staubkörnchen, die nur
   im Lichtkreis aufleuchten; im Spar-Modus aus.
 - **Stereo-Musik wie beim SNES** (`PAN` in audio.js): Melodie links, Begleitung rechts, Echo der Melodie rechts außen, Pads breit,
