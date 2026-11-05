@@ -914,10 +914,31 @@ const Castle = (() => {
       .chest(38, 4, 'big').prop('vessel', { x: 33, y: 4 })
       .music('amt').label('REGISTRATUR').start(1, 29).done();
     add('registratur', 0, 3, null, reg);
+    // Aktenkeller (2. UG, links am Paternoster; js/keller.js): eine Rollregalanlage vor der Registraturwand, dahinter die Kammer
+    // des Reißwolfs. Am Steuerpult schicken die Kurbeln A, B, C die Regale zur Wand; der Größe nach (A hoch, B mittel, C niedrig)
+    // ergeben sie eine Treppe hinauf und hinüber. Auf der Kammerseite führen Bretter zurück hinauf
+    const kel = R(80, 'library', 18).ground(0, 79, 16).fill(0, 0, 79, 1, '#')
+      .fill(30, 8, 31, 15, '#')                                                                         // Registraturwand (oben frei)
+      .fill(27, 14, 29, 14, '=').fill(24, 12, 26, 12, '=').fill(27, 10, 29, 10, '=')                    // Rückweg aus der Kammer
+      .prop('keller', { k: 'rail', x0: 32, x1: 61, base: 16 })
+      .prop('keller', { k: 'roll', id: 'A', x: 44, h: 6, base: 16, to: 32 })
+      .prop('keller', { k: 'roll', id: 'B', x: 50, h: 4, base: 16, to: 34 })
+      .prop('keller', { k: 'roll', id: 'C', x: 56, h: 2, base: 16, to: 36 })
+      .prop('keller', { k: 'crank', id: 'A', x: 64, y: 14 }).prop('keller', { k: 'crank', id: 'B', x: 66, y: 14 }).prop('keller', { k: 'crank', id: 'C', x: 68, y: 14 })
+      .prop('keller', { k: 'socket', x: 2, y: 14 })
+      .prop('pz', { k: 'sign', x: 72, y: 12, title: 'kellerSignT', key: 'kellerSign', col: '#2c3430', reach: 3 })
+      .mini('reiss', 1, 29, 1, 12)
+      .enemy('ordner', 75, 15).enemy('ordner', 40, 15, { col: 1 }).enemy('flieger', 58, 6).enemy('ghost', 70, 8)
+      .candle(78, 13, 'H').candle(71, 13).candle(62, 9, '$').candle(38, 5).candle(22, 13, 'H').candle(9, 13)
+      .chest(76, 15, 'big')
+      .music('amt').label('AKTENKELLER').start(78, 15).done();
+    kel.mapH = 1; // auf der Karte eine Zellenreihe (sonst ragt er in die Zelle der Kantine darüber)
+    add('aktenkeller', 0, 3, null, kel);
     LINKS.push(
       [['side', 'heldenamt'], { e: 'L', y: 17 }, ['side', 'paternoster'], { e: 'R', y: 9 }, { mini: ['side', 'heldenamt'] }], // Bosskammer (hinten links, erst nach dem Amtsschimmel) → Paternoster EG
       [['side', 'paternoster'], { e: 'L', y: 21 }, ['side', 'kantine'], { e: 'R', y: 17 }, {}],                               // 1. UG links → Kantine
       [['side', 'paternoster'], { e: 'R', y: 45 }, ['side', 'registratur'], { e: 'L', y: 29 }, {}],                           // 3. UG rechts → Registratur
+      [['side', 'paternoster'], { e: 'L', y: 33 }, ['side', 'aktenkeller'], { e: 'R', y: 15 }, {}],                           // 2. UG links → Aktenkeller
     );
   }
   if (on && Levels.room) buildSide();
@@ -1468,7 +1489,7 @@ const Castle = (() => {
   // img/krat3d.png, je Bild: [x, y, w, h, Anker x, Anker y, Zusatzpunkte x/y …]. Anker = Standpunkt (Boden, Gleis) bzw. Aufhängung.
   // Zusatzpunkte: Lok – Schornstein, Zylinderhahn, Dampfdom, Führerhaus; Laterne – Licht; Tresen – Klingel, Lampe;
   // Grammophon – Trichter; Sternlampe – Stern; Aufzug – Stockwerkanzeige. Fehlt das Bild, zeichnet der Raum einfach ohne.
-  const K3 = {"loco":[129,0,237,71,155,68,218,4,203,56,158,13,118,24],"wagon":[0,78,226,70,113,67],"canopy":[0,0,128,77,64,74],"bench":[197,149,31,19,16,18],"lamppost":[269,78,12,57,6,56,6,8],"clock":[181,149,15,23,8,1],"sign":[229,149,46,19,23,1],"desk":[27,149,92,29,46,28,60,8,21,4],"keys":[448,78,44,31,22,30],"gramo":[426,78,21,34,8,32,3,6],"starlamp":[346,78,16,49,8,47,8,10],"chair":[159,149,21,24,10,23],"lift":[282,78,36,52,18,51,18,8],"cart":[399,78,26,35,13,34],"bed":[120,149,38,27,19,26],"crane":[227,78,41,58,7,56],"mirror":[319,78,26,50,13,49,5,12,21,42],"helmet":[0,149,26,30,13,25],"sbell":[363,78,35,38,28,36],"kcounter":[0,182,100,36,50,35],"kurn":[102,182,21,35,10,34,10,1],"ktable":[125,182,40,17,20,16],"pcabin":[167,182,52,56,26,51],"hotelier":[221,182,60,80,0,0]};
+  const K3 = {"loco":[129,0,237,71,155,68,218,4,203,56,158,13,118,24],"wagon":[0,78,226,70,113,67],"canopy":[0,0,128,77,64,74],"bench":[197,149,31,19,16,18],"lamppost":[269,78,12,57,6,56,6,8],"clock":[181,149,15,23,8,1],"sign":[229,149,46,19,23,1],"desk":[27,149,92,29,46,28,60,8,21,4],"keys":[448,78,44,31,22,30],"gramo":[426,78,21,34,8,32,3,6],"starlamp":[346,78,16,49,8,47,8,10],"chair":[159,149,21,24,10,23],"lift":[282,78,36,52,18,51,18,8],"cart":[399,78,26,35,13,34],"bed":[120,149,38,27,19,26],"crane":[227,78,41,58,7,56],"mirror":[319,78,26,50,13,49,5,12,21,42],"helmet":[0,149,26,30,13,25],"sbell":[363,78,35,38,28,36],"kcounter":[0,182,100,36,50,35],"kurn":[102,182,21,35,10,34,10,1],"ktable":[125,182,40,17,20,16],"pcabin":[167,182,52,56,26,51],"hotelier":[221,182,60,80,0,0],"rr6":[283,182,33,96,0,96],"rr4":[317,182,33,64,0,64],"rr2":[351,182,33,32,0,32],"rrwheel":[385,182,13,13,6,6]};
   let k3 = null, k3raw = null, k3wait = [];
   if (on) {
     const img = new Image();
@@ -1838,6 +1859,7 @@ const Castle = (() => {
   }
   if (on && typeof BOSSES !== 'undefined') BOSSES.doppel = Doppel;
   if (on && typeof BOSSES !== 'undefined' && typeof Amtsschimmel !== 'undefined') BOSSES.amt = Amtsschimmel; // Amtsschimmel im Amt für Heldentaten (js/amt.js)
+  if (on && typeof BOSSES !== 'undefined' && typeof Reisswolf !== 'undefined') BOSSES.reiss = Reisswolf;     // Reißwolf im Aktenkeller (js/keller.js)
   if (on && typeof BOSSES !== 'undefined' && typeof GolemBoss !== 'undefined') BOSSES.golem = GolemBoss; // Steingolem im Golemstollen (js/golem.js)
   // Spiegel im Kabinett: zeigen den Helden – solange der Doppelgänger lebt, mit Verzögerung (das Spiegelbild ist nicht ganz
   // bei der Sache), danach wieder brav. Der Doppelgänger selbst hat kein Spiegelbild.
@@ -2234,6 +2256,7 @@ const Castle = (() => {
     fairy: { slot: 'fam', fam: 'fairy', price: 7000, col: '#58f898' },  // Fee im Glas (Laden des Bibliothekars)
     tentling: { slot: 'fam', fam: 'tent', col: '#d880fc' },            // Neffe des Tentakels (Kolosseum, nach der Rabenfeder)
     shadowcard: { slot: 'fam', fam: 'shadow', col: '#8c5cc8' },        // Schatten des Doppelgängers: wiederholt jeden Hieb
+    reisszahn: { slot: 'weapon', atk: 6, col: '#c8ccd4' },                // Reißzahn (Lohn des Reißwolfs): Schneidwalze am Stiel
     dienstsiegel: { slot: 'acc', def: 1, cert: 1, col: '#c8182c' },     // Dienstsiegel (Lohn des Amtsschimmels): Urkunden zahlen doppelt
     galvheart: { slot: 'acc', hp: 6, atk: 3, col: '#58f8b0' },          // Glasherz des Erweckten (Galvani-Laboratorium)
     book_spirit: { spell: 'spirit', price: 2500, col: '#a4e4fc' },      // Zauberbücher (Laden): lehren je einen Zauber
@@ -2273,7 +2296,7 @@ const Castle = (() => {
   const STOCK = ['potion', 'elixir', 'leather', 'chain', 'silver', 'heartamulet', 'fairy', 'map', 'book_spirit', 'book_hellfire', 'book_soulsteal'];
   const once = (g) => !!(g.slot || g.key || g.spell || g.rec || g.quest); // gibt es nur einmal
   const BOSS_LOOT = [[[0, -1], 'batcard']];
-  const MINI_LOOT = [[['side', 'spiegel'], 'shadowcard', 20, 10], [['side', 'golemstollen'], 'steinhaut', 12, 10], [['side', 'galvani'], 'galvheart', 97, 25], [['side', 'heldenamt'], 'dienstsiegel', 14, 17]]; // nach dem Doppelgänger: sein Schatten; nach dem Steingolem: Steinhaut; nach dem Erweckten: sein Glasherz
+  const MINI_LOOT = [[['side', 'spiegel'], 'shadowcard', 20, 10], [['side', 'golemstollen'], 'steinhaut', 12, 10], [['side', 'galvani'], 'galvheart', 97, 25], [['side', 'heldenamt'], 'dienstsiegel', 14, 17], [['side', 'aktenkeller'], 'reisszahn', 8, 15]]; // nach dem Doppelgänger: sein Schatten; nach dem Steingolem: Steinhaut; nach dem Erweckten: sein Glasherz
   const FINDS = [ // Einzelstücke: [Raum, Gegenstand, Kachel-x, Standreihe]
     [['side', 'kolosseum'], 'leather', 12, 7], [['side', 'kanal'], 'bloodstone', 43, 7], [['side', 'schatz'], 'greedring', 25, 6],
     [['side', 'verlies'], 'dragonfang', 28, 6], [['side', 'wehrgang'], 'luckcoin', 37, 6], [['side', 'himmel'], 'mirror', 44, 5],
@@ -3017,9 +3040,9 @@ const Castle = (() => {
 
   // ---------------- Bestiarium wie die Gegnerliste in SotN (Status, dritte Seite): Siege je Gegnerart, absurde Einträge ----------------
   const BEASTS = ['Bat', 'Skeleton', 'Ghoul', 'Raven', 'Knight', 'LivingArmor', 'Panther', 'Skull', 'Fishman', 'Ghost', 'Snake', 'FlyBook', 'Tome',
-    'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Automat', 'Mannequin', 'Jelly', 'Ordner', 'Flieger', 'Conductor', 'Doppel', 'GolemBoss', 'Awakened', 'Amtsschimmel',
+    'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Automat', 'Mannequin', 'Jelly', 'Ordner', 'Flieger', 'Conductor', 'Doppel', 'GolemBoss', 'Awakened', 'Amtsschimmel', 'Reisswolf',
     'TentacleBoss', 'GiantBat', 'IceWitch', 'GiantSkeleton', 'Medusa', 'SunWarden', 'ManTrap', 'Count'];
-  const BEAST_BOSS = { TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel', GolemBoss: 'bossGolem', Amtsschimmel: 'bossAmt', Awakened: 'bossAwakened' };
+  const BEAST_BOSS = { TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel', GolemBoss: 'bossGolem', Amtsschimmel: 'bossAmt', Reisswolf: 'bossReiss', Awakened: 'bossAwakened' };
   const BEAST_SET = new Set(BEASTS);
   const beastName = (k) => tr(BEAST_BOSS[k] || 'beast_' + k);
   const beasts = { sel: 0 };
@@ -3117,6 +3140,7 @@ const Castle = (() => {
     { id: 'golem', ok: () => !!best.GolemBoss },
     { id: 'doppel', ok: () => !!best.Doppel },
     { id: 'amt', ok: () => !!best.Amtsschimmel },
+    { id: 'reiss', ok: () => !!best.Reisswolf },
     { id: 'kopf', ok: () => !!flag.pat_flip },  // Paternoster: oben durchgefahren
     { id: 'mahl', ok: () => !!flag.ate },       // Kantine: gegessen
     { id: 'ablage', ok: () => !!inv.aermel },   // Registratur: die Ärmelschoner geholt
@@ -3866,6 +3890,7 @@ const Castle = (() => {
   // Neueste Änderungen (zum Testen): die Abschnittswahl markiert diese Räume mit NEU und zeigt darunter, was sich geändert hat;
   // SUB springt zum nächsten markierten Abschnitt. Bei jeder Auslieferung neu füllen
   const RECENT = [
+    [['side', 'aktenkeller'], 'chgKeller'], // Aktenkeller mit Rollregalen und dem Reißwolf
     [['side', 'paternoster'], 'chgTrakt'], // Behördentrakt: Paternoster, Kantine, Registratur
     [['side', 'heldenamt'], 'chgSchimmel'], // Amtsschimmel setzt sich aus Leitz-Ordnern zusammen, Urschrei mit Wackelwänden (vorher chgAmt)
     [['side', 'versuchsstrecke'], 'chgMoto'], [['side', 'fundbuero'], 'chgFund'], [['side', 'rohrpost'], 'chgTube'], // Dampfrad-Fahrt (links am Automatenwerk), Schalterrätsel (links an der Passage)
@@ -4224,7 +4249,7 @@ const Castle = (() => {
     for (const b of BEATS) { const a = ref(b.at[0]); if (!a) out.push('Szene ohne Raum: ' + b.id); else if (!ground(S()[a.s].rooms[a.r], b.at[1], b.at[2])) out.push('Figur ohne Boden: ' + b.id); }
     for (const [R, id, x, y] of FINDS) { const a = ref(R); if (!a) out.push('Fund ohne Raum: ' + id); else if (SOLID.includes(S()[a.s].rooms[a.r].grid[y][x])) out.push('Fund in der Wand: ' + id); }
     const need = ['patF0', 'patF1', 'patF2', 'patF3', 'patSignT', 'patSign', 'patFlip', 'patCellar', 'npcCook', 'cookTitle', 'cookHi', 'cookHiWE', 'cookSold', 'cookOwned', 'cookPoor', 'cookThanks1', 'cookThanks2', 'cookThanks3', 'cookEat1', 'cookEat2', 'cookEat3',
-      'kantMenuT', 'kantMenuWE', 'eatPop', 'buffEnd', 'regSignT', 'regSign', 'ablageP', 'ablageLab', 'outboxLab', 'ordnerDead', 'chgTrakt', 'chgSchimmel', 'banter_bossAmt', 'amtPile0', 'amtPile1', 'amtPile2', 'amtPile3', 'bossAmt', 'bossAmtNote', 'bossAmtShout', 'bossAmtRage', 'amtMark', 'npcClerk', 'amtSignT', 'amtSign', 'chgAmt', 'portrait0', 'portrait1', 'portrait2', 'banter_boss1', 'banter_boss2', 'banter_boss3', 'banter_boss4', 'banter_bossKraken', 'banter_bossTentacle', 'banter_bossKnight', 'banter_bossTrap', 'banter_bossWitch', 'banter_bossConductor', 'banter_bossDoppel', 'banter_bossAwakened', 'banter_bossGolem', 'secNew', 'secNewHelp', ...RECENT.map(([, k]) => k), 'chgBanter', 'famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'npcSpeed', 'npcBones', 'npcChicken', 'npcBarber', 'npcCarto', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'mapOverlayHelpT', 'optGuide', 'optGuideH'];
+      'kantMenuT', 'kantMenuWE', 'eatPop', 'buffEnd', 'regSignT', 'regSign', 'ablageP', 'ablageLab', 'outboxLab', 'ordnerDead', 'chgTrakt', 'chgSchimmel', 'chgKeller', 'rrStuck', 'kellerSignT', 'kellerSign', 'bossReiss', 'bossReissShout', 'bossReissJam', 'bossReissRage', 'bossReissBonk', 'bossReissCrit', 'bossReissNote', 'banter_bossReiss', 'beastD_Reisswolf', 'ach_reiss', 'achD_reiss', 'item_reisszahn', 'itemD_reisszahn', 'banter_bossAmt', 'amtPile0', 'amtPile1', 'amtPile2', 'amtPile3', 'bossAmt', 'bossAmtNote', 'bossAmtShout', 'bossAmtRage', 'amtMark', 'npcClerk', 'amtSignT', 'amtSign', 'chgAmt', 'portrait0', 'portrait1', 'portrait2', 'banter_boss1', 'banter_boss2', 'banter_boss3', 'banter_boss4', 'banter_bossKraken', 'banter_bossTentacle', 'banter_bossKnight', 'banter_bossTrap', 'banter_bossWitch', 'banter_bossConductor', 'banter_bossDoppel', 'banter_bossAwakened', 'banter_bossGolem', 'secNew', 'secNewHelp', ...RECENT.map(([, k]) => k), 'chgBanter', 'famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'npcSpeed', 'npcBones', 'npcChicken', 'npcBarber', 'npcCarto', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'mapOverlayHelpT', 'optGuide', 'optGuideH'];
     for (const id in GEAR) need.push('item_' + id, 'itemD_' + id);
     for (const b of BEATS) { if (b.lines !== false) need.push('story_' + b.id); need.push('story_' + (b.again || b.id) + 'Again'); }
     for (const id of SPELL_IDS) need.push('spell_' + id);

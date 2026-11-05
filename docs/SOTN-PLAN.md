@@ -423,6 +423,24 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   eine Blender-Büste (Szene `nm_portrait`) mit Zwirbelbart, Monokel, Vatermörder, Fliege und Orden als kleines Ölbild
   (`hotelier` im Atlas, über `Castle.art`/`whenArt` nachträglich in die Tapete gemalt), mit Eckrosetten, Namensschild und
   Bilderleuchte.
+- **Aktenkeller und Reißwolf** (20261105-1323; js/keller.js, 2. UG links am Paternoster, `aktenkeller`, Karte eine Zellenreihe hoch):
+  - Rollregalanlage: drei fahrbare Regale (2, 4 und 6 Kacheln hoch, Blender `rr2/rr4/rr6`) auf einer Schiene. Am Steuerpult
+    stehen die Kurbeln A, B, C mit Lampen (grün = an der Wand). Ein Hieb schickt das Regal zur Registraturwand, an der Wand zurück,
+    während der Fahrt kehrt es um. Es rollt, bis es anstößt, und schiebt den Helden mit, bis er klemmt („KLEMMT!“). Die festen
+    Kacheln ('G') wandern im Raster mit, Mitfahren oben drauf geht. Der Größe nach an der Wand ergibt sich eine Treppe zur
+    Wandkrone, und keine Reihenfolge blockiert.
+  - **Reißwolf** (Zwischengegner): ein Aktenvernichter mit Wolfskopf (Blender-Netz js/rwmesh.js, Szene `nm_reiss`). Er hat
+    Bürostuhlrollen, das Netzkabel ist sein Schwanz.
+    - Auftritt: Er steht stromlos in der Ecke, dann kriecht der Stecker in die Steckdose, LEDs flackern, der Motor dreht hoch, er
+      heult. Erst danach kommen Namensband, Geplänkel und das Lied `reisswolf` (e-Moll-Galopp, 168 BPM).
+    - Angriffe: SCHREDDERN (saugt an, nach drei verschluckten Ordnern PAPIERSTAU mit Schaden ×1,8, sonst nur ×0,4), KONFETTI
+      (Fächer aus Papierstreifen) und ANSTURM (Wandprall: benommen und verwundbar). Ab halber Energie Stufe 5 (Partikelschnitt).
+    - Besiegt platzt er in Konfetti. Lohn: Reißzahn (Waffe, ATK +6) und die Urkunde „Datenschutz gewährleistet“.
+  - Geräusche `howl`/`shred` vorerst als Synth (ElevenLabs war belegt; `Audio8.sample` nimmt Proben, sobald sie in `SAMP` stehen).
+- **Amtsschimmel noch hübscher** (20261105-1323):
+  - Schabracke aus Registerblättern (pastell, mit Reitern), die beim Zuschnüren herabfällt.
+  - Zaumzeug aus Amtsband mit Siegelmedaillon, Glanzlichter in den Augen, Kopf 15 % größer (die Plattenkante bleibt).
+  - Mähne und Schweif aus weiß-lindgrünem Endlospapier, Messingringe an den Hufen, das Amtsband breiter über der Schabracke.
 - **Musik im Amt**: Die Schreibmaschine im Amtsstuben-Walzer nutzt jetzt `y` (nur Klack). `z` schlägt auch die Bassdrum samt
   Ducking, deshalb stolperte der Walzer über unregelmäßige Kicks. Die Schreibmaschine läuft jetzt auf festem Raster, mit weichem
   Bumm auf der Eins, Zeilenglocke und Wagenrücklauf alle vier Takte.

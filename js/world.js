@@ -80,6 +80,7 @@ const W = {
         case 'automat': this.spawn(new Automat(d.x, d.y, d)); break;
         case 'trakt': { const e = this.spawn(Trakt.make(d)); if (e.plats) e.plats.forEach(pl => this.platforms.push(pl)); break; } // Behördentrakt: Paternoster, Aktenschränke (js/trakt.js)
         case 'ordner': this.spawn(new Ordner(d.x, d.y, d)); break;
+        case 'keller': this.spawn(Keller.make(d)); break; // Aktenkeller: Rollregale, Kurbeln, Schiene, Steckdose (js/keller.js)
         case 'amtpile': this.spawn(new AmtPile()); break; // Leitz-Ordner-Haufen in der Bosskammer des Amtsschimmels (js/amt.js)
         case 'flieger': this.spawn(new Flieger(d.x * T + 8, d.y * T + 8, d)); break;
         case 'mannequin': this.spawn(new Mannequin(d.x, d.y, d)); break; // Lichterpassage (js/passage.js)

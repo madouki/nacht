@@ -175,6 +175,16 @@ const Audio8 = (() => {
       tone('triangle', 64, 34, 1.6, 0.5); noise(1.4, 0.32, 'lowpass', 380, 50); noise(0.9, 0.1, 'bandpass', 900, 300, t + 0.2); // Dröhnen, Regale klappern
     },
     neighAmt: () => { if (!sample('neighBig', 0.62, 0, 1.14)) SFX.neigh(); }, // Amtsschimmel im Kampf: dieselbe Probe, kürzer und heller
+    howl: () => { // Reißwolf heult: Motor dreht hoch und kippt in ein Wolfsheulen, darunter knirschen die Schneidwalzen
+      const t = ac.currentTime;
+      if (!sample('howl', 1.0)) {
+        tone('sawtooth', 90, 420, 0.7, 0.12, 0, t); tone('square', 180, 840, 0.7, 0.04, 0, t);              // Motor dreht hoch
+        [[560, 760, 0.5], [760, 900, 0.6], [900, 640, 0.9], [640, 420, 0.6]].forEach(([a, b, d], i) => { const at = t + 0.55 + [0, 0.5, 1.1, 2.0][i]; tone('triangle', a, b, d, 0.16, 0, at); tone('sine', a * 2, b * 2, d, 0.04, 0, at); }); // Heulen
+        noise(2.4, 0.12, 'bandpass', 1800, 900, t + 0.2); noise(0.6, 0.2, 'highpass', 3000, 6000, t);       // Walzen, Papier
+      }
+      tone('triangle', 58, 36, 1.8, 0.4); noise(1.6, 0.24, 'lowpass', 300, 60);
+    },
+    shred: () => { if (!sample('shred', 0.8)) { const t = ac.currentTime; tone('sawtooth', 120, 150, 0.45, 0.06, 0, t); noise(0.45, 0.3, 'bandpass', 2600, 1400, t); noise(0.3, 0.2, 'highpass', 5000, 3000, t + 0.1); } }, // Aktenvernichter frisst Papier
     neighFar: () => { const t = ac.currentTime; [900, 1250, 1150, 1200, 950, 700].forEach((f, i) => tone('triangle', f, f * 0.9, 0.08, 0.035, 0, t + i * 0.06)); noise(0.6, 0.04, 'bandpass', 1400, 600); },
     hooves: () => { const t = ac.currentTime; [0, 0.08, 0.19, 0.26].forEach(d => { noise(0.08, 0.24, 'lowpass', 520, 120, t + d); tone('triangle', 92, 52, 0.09, 0.22, 0, t + d); }); }, // Galopp, Viertakt
     hoovesFar: () => { const t = ac.currentTime; [0, 0.08, 0.19, 0.26].forEach(d => noise(0.07, 0.07, 'lowpass', 320, 100, t + d)); },
@@ -398,6 +408,19 @@ const Audio8 = (() => {
     'f5:3 d5:3 a#4:2 a4:4 g4:4', 'e4:2 g4:2 a#4:2 c5:2 e5:4 g5:4', 'a5:6 g5:2 f5:8', '-:4 c5:2 d5:2 e5:2 g5:2 a#5:4',
   ];
   const FS_DR = ['z:2 h:1 c:1 h:2 c:2 z:2 h:1 c:1 h:2 h:2', 'z:2 h:2 c:2 h:2 z:2 c:2 h:2 c:2'];
+
+  // Reißwolf (Bosskammer im Aktenkeller): treibender Industrial-Galopp in e-Moll, 168 BPM – Bass im Galopp, Akkorde in Achteln,
+  // die Hi-Hat-Lücken füllt das Ratschen des Schneidwerks (r), alle acht Takte ein Tom-Wirbel mit Crash
+  const RWC = { Em: ['e3', 'g3', 'b3'], C: ['e3', 'g3', 'c4'], D: ['f#3', 'a3', 'd4'], Am: ['e3', 'a3', 'c4'], B7: ['d#3', 'f#3', 'a3'] };
+  const RWB = { Em: 'e2', C: 'c2', D: 'd2', Am: 'a1', B7: 'b1' };
+  const RW_C = ['Em', 'Em', 'C', 'D', 'Em', 'Em', 'Am', 'B7', 'C', 'D', 'Em', 'Em', 'Am', 'B7', 'Em', 'B7'];
+  const RW_L = [
+    'e5:2 e5:1 e5:1 g5:2 e5:2 b5:3 a5:1 g5:2 f#5:2', 'e5:2 e5:1 e5:1 g5:2 b5:2 e6:4 d6:2 b5:2', 'c6:3 b5:1 a5:2 g5:2 e5:4 g5:2 a5:2', 'f#5:3 g5:1 a5:2 d6:2 c6:2 b5:2 a5:2 f#5:2',
+    'e5:2 e5:1 e5:1 g5:2 e5:2 b5:3 a5:1 g5:2 f#5:2', 'g5:2 a5:2 b5:2 e6:2 d6:2 b5:2 g5:2 e5:2', 'a5:3 c6:1 e6:4 d6:2 c6:2 b5:2 a5:2', 'b5:4 a5:2 g5:2 f#5:4 d#5:4',
+    'e6:3 d6:1 c6:2 g5:2 e5:2 g5:2 c6:4', 'f#6:3 e6:1 d6:2 a5:2 f#5:2 a5:2 d6:4', 'g6:4 f#6:2 e6:2 b5:4 g5:4', 'e6:2 d6:2 b5:2 g5:2 e5:4 -:4',
+    'a5:2 a5:1 a5:1 c6:2 e6:2 a6:4 g6:2 e6:2', 'f#6:2 f#6:1 f#6:1 d#6:2 b5:2 a5:4 f#5:4', 'e5:2 g5:2 b5:2 e6:2 g6:4 e6:4', 'd#6:4 b5:4 f#5:4 b4:4',
+  ];
+  const RW_DR = ['k:1 h:1 r:1 h:1 s:1 h:1 k:1 h:1 k:1 h:1 r:1 h:1 s:1 h:1 o:1 h:1', 'k:1 s:1 s:1 s:1 t:1 t:1 u:1 u:1 k:1 s:1 r:1 r:1 r:1 r:1 x:2'];
   const AW = { G: ['g3', 'b3', 'd4'], D7: ['f#3', 'a3', 'c4'], C: ['e3', 'g3', 'c4'], E7: ['g#3', 'b3', 'd4'], Am: ['a3', 'c4', 'e4'], Em: ['e3', 'g3', 'b3'], B7: ['f#3', 'a3', 'd#4'], A7: ['g3', 'c#4', 'e4'] };
   const AW_B = { G: 'g2', D7: 'd2', C: 'c2', E7: 'e2', Am: 'a1', Em: 'e2', B7: 'b1', A7: 'a1' };
   const AW_C = ['G', 'D7', 'G', 'G', 'C', 'G', 'D7', 'G', 'G', 'D7', 'G', 'E7', 'Am', 'D7', 'G', 'G', 'Em', 'B7', 'Em', 'Em', 'C', 'G', 'A7', 'D7', 'G', 'D7', 'G', 'E7', 'Am', 'D7', 'G', 'G'];
@@ -617,6 +640,14 @@ const Audio8 = (() => {
       tri: AW_C.map(c => `${AW_B[c]}:4 -:8`).join(' '),
       pad: AW_C.map(c => AW[c].join('+') + ':12').join(' '),
       dr: AW_C.map((c, i) => AW_TYPE[i % 4 === 3 ? 2 : i % 2]).join(' '), // Schreibmaschine, Zeilenglocke, Wagenrücklauf – jede Phrase gleich
+    },
+    reisswolf: {
+      bpm: 168, loop: true, echo: { delay: 3, vol: 0.2 },
+      p1: RW_L.join(' '),
+      p2: RW_C.map(c => `${RWC[c][0]}:2 ${RWC[c][2]}:2 ${RWC[c][1]}:2 ${RWC[c][2]}:2 ${RWC[c][0]}:2 ${RWC[c][2]}:2 ${RWC[c][1]}:2 ${RWC[c][2]}:2`).join(' '),
+      tri: RW_C.map(c => `${RWB[c]}:2 ${RWB[c]}:1 ${RWB[c]}:1 ${RWB[c]}:2 ${RWB[c]}:1 ${RWB[c]}:1 ${RWB[c]}:2 ${RWB[c]}:1 ${RWB[c]}:1 ${RWB[c]}:2 ${RWB[c]}:1 ${RWB[c]}:1`).join(' '),
+      pad: RW_C.map(c => RWC[c].join('+') + ':16').join(' '),
+      dr: RW_C.map((c, i) => RW_DR[i % 8 === 7 ? 1 : 0]).join(' '),
     },
     amtsmarsch: {
       bpm: 150, loop: true, echo: { delay: 3, vol: 0.25 },

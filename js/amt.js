@@ -44,6 +44,7 @@ class AmtFile extends Ent { // Akte aus dem obersten Regalfach: erst rieselt Sta
 // Beim Auftritt liegt jedes Teil auf dem Haufen (PILE) und fliegt im Bogen und mit Drall an seinen Platz.
 const AmtModel = (() => {
   const WH = [238, 234, 224], G1 = [208, 210, 214], G2 = [180, 184, 192], G3 = [150, 154, 164], LAB = [252, 250, 240], INK = [92, 104, 140];
+  const MINT = [206, 236, 206], REG = [[244, 176, 186], [244, 224, 140], [160, 196, 244], [170, 226, 170]]; // Endlospapier-Streifen, Registerblätter
   const HOLE = [40, 36, 44], RIM = [156, 162, 174], RED = [190, 32, 44], REDD = [128, 18, 28], GOLD = [236, 192, 84], WOOD = [116, 76, 44], WOOD2 = [150, 100, 58];
   const HC = { DARK: [40, 36, 44], GREY: [176, 172, 172], PAPER: [240, 236, 222], PAPERB: [222, 216, 198], PAPERC: [250, 248, 240], PINK: [236, 196, 190], PLATE: [200, 26, 40], WOOD, WOOD2 };
   const LEGS = [[40, -18, 0], [40, 18, Math.PI], [-52, -18, Math.PI], [-52, 18, 0]]; // Hüfte x, Seite z (vorn = −), Trabphase
@@ -101,19 +102,27 @@ const AmtModel = (() => {
     decal(m, P, 0, -h * 0.17, z, r, r, F(RIM)); decal(m, P, 0, -h * 0.17, z - 0.15, r * 0.62, r * 0.62, F(HOLE));
     decal(m, P, 0, -h / 2 + 1.3, z, w, 2.4, F(RIM));
   }
-  function head(m, P, F, eye, ink) { // Blender-Netz mit eigenen Normalen; Augen glühen, die Gummiplatte färbt sich mit Tinte
+  const HS = 1.15, HY = 17 * (HS - 1); // Kopf 15 % größer; die Unterkante der Gummiplatte bleibt bei y = -17 (der Stempel trifft wie vorher)
+  const hp = (x, y) => [x * HS, y * HS + HY];
+  function head(m, P, F, eye, ink) { // Blender-Netz mit eigenen Normalen; Augen glühen, die Gummiplatte färbt sich mit Tinte. Dazu Zaumzeug aus Amtsband
     const Hm = AMT_HEAD, base = m.v.length / 3, cr = Math.cos(P.r), sr = Math.sin(P.r), cy = Math.cos(P.y), sy = Math.sin(P.y);
-    for (let i = 0; i < Hm.v.length; i += 3) { const q = xf(P, Hm.v[i], Hm.v[i + 1], Hm.v[i + 2]); m.v.push(q[0], q[1], q[2]); }
+    for (let i = 0; i < Hm.v.length; i += 3) { const q = xf(P, Hm.v[i] * HS, Hm.v[i + 1] * HS + HY, Hm.v[i + 2] * HS); m.v.push(q[0], q[1], q[2]); }
     for (const f of Hm.f) {
       const k = Hm.k[f[0]], X = f[1] * cr - f[2] * sr, Y = f[1] * sr + f[2] * cr, n = [X * cy - f[3] * sy, Y, X * sy + f[3] * cy];
       let col, e = 0;
       if (k === 'EYE') { col = [255, 60 + 140 * eye, 40]; e = 0.3 + eye * 0.9; } else { col = F(HC[k]); if (k === 'PLATE') e = 0.12 + ink * 0.4; }
       m.f.push({ i: f.slice(4).map(j => j + base), c: col, n, e, two: false, a: 1 });
     }
+    // Zaumzeug: Nasenriemen und Genickstück aus rotem Amtsband, Backenriemen, goldenes Siegelmedaillon; Glanzlichter in den Augen
+    const [nx, ny] = hp(18, 2), [gx, gy2] = hp(-5, 7.5), [cx2, cy2] = hp(6.5, 3), [mx, my] = hp(-5, 4), [ex, ey] = hp(2.6, 11.6);
+    fbox(m, P, nx, ny, 0, 3, 23 * HS, 19 * HS, F(RED)); fbox(m, P, gx, gy2, 0, 3.2, 32 * HS, 24.5 * HS, F(RED));
+    for (const s of [-1, 1]) fbox(m, P, cx2, cy2, s * 11.4 * HS, 24 * HS, 2.4, 0.9, F(RED), -0.17);
+    decal(m, P, mx, my, -12.3 * HS, 6, 6, F(GOLD), Math.PI / 4); decal(m, P, mx, my, -12.5 * HS, 2.5, 2.5, F(REDD));
+    if (eye > 0.2) for (const s of [-1, 1]) decal(m, P, ex, ey, s * 11.3 * HS, 1.6, 1.4, [255, 250, 230]);
   }
   function part(m, i, P, F, b, ex) { // ein Teil an seiner Lage zeichnen
     const p = PARTS[i];
-    if (p.t === 'hoof') { fbox(m, P, 0, 1, 0, 16, 7, 16, F(WOOD)); fbox(m, P, 0, -3.5, 0, 17, 2, 17, F(RED)); fbox(m, P, 0, 5.5, 0, 6, 3, 6, F(WOOD2)); }
+    if (p.t === 'hoof') { fbox(m, P, 0, 1, 0, 16, 7, 16, F(WOOD)); fbox(m, P, 0, -3.5, 0, 17, 2, 17, F(RED)); fbox(m, P, 0, 5.5, 0, 6, 3, 6, F(WOOD2)); fbox(m, P, 0, 4.4, 0, 16.8, 1.4, 16.8, F(GOLD)); } // Messingring am Huf
     else if (p.t === 'shin' || p.t === 'thigh') {
       const L = ex ? ex.L : p.t === 'shin' ? 26 : 30;
       if (ex && LEGS[p.leg][1] > 0) fbox(m, P, 0, 0, 0, p.w, L, p.d, F(p.col)); // Beine auf der abgewandten Seite: verdeckt, ohne Etiketten (spart Flächen)
@@ -124,7 +133,10 @@ const AmtModel = (() => {
     else if (p.t === 'neck') {
       const L = ex ? ex.L : 9, u = (p.i + 0.5) / NECK, hh = 26 - 6 * u;
       fbox(m, P, 0, 0, 0, L * 1.06 + 0.5, hh, 22 - 4 * u, F(p.i % 2 ? G2 : WH));
-      if (p.i % 2 === 0) fbox(m, P, -1, hh / 2 + 4, 0, Math.max(6, L * 0.95), 10, 2, F(p.i % 4 ? WH : LAB), Math.sin((b ? b.t : 0) * 0.2 + p.i * 1.3) * 0.45); // Mähne
+      if (ex) for (const s of [-1, 1]) { // Mähne aus Endlospapier (weiß und lindgrün gestreift), zwei Lagen, flattert im Takt
+        const fl = Math.sin((b ? b.t : 0) * 0.2 + p.i * 1.3 + s) * 0.5;
+        fbox(m, P, -1 + s, hh / 2 + 6, s * 3, Math.max(6, L * 0.9), 15 - u * 4, 1.6, F((p.i + (s > 0 ? 1 : 0)) % 2 ? MINT : WH), fl - 0.25);
+      }
     } else if (p.t === 'head') head(m, P, F, b ? b.eye : 0, b ? b.ink : 0);
   }
   // ---- Lagen am fertigen Pferd ----
@@ -160,16 +172,27 @@ const AmtModel = (() => {
       else { const f = finalPose(b, i); part(m, i, mix(PILE[i], f.P, a, i), F, b, f); }
     }
     const done = (i) => !b.asm || b.asm[i] >= 1;
-    if (done(CROUP)) for (let i = 0; i < 5; i++) { // Schweif aus Papierstreifen
-      const wv = Math.sin(b.t * 0.12 + i) * 6, A = b.tf(-102, 90 - i * 3, -8 + i * 4), B2 = b.tf(-118 - i * 2, 44 + wv - i * 4, -10 + i * 5);
-      PS2.beam(m, A[0], A[1], A[2], B2[0], B2[1], B2[2], 3, 1.5, F(i % 2 ? WH : LAB), { open: true });
+    if (done(CROUP)) for (let i = 0; i < 7; i++) { // Schweif aus Endlospapier: sieben Bahnen in zwei Gliedern, die Welle läuft nach hinten
+      const wv = Math.sin(b.t * 0.12 + i * 0.9), A = b.tf(-102, 92 - i * 2.4, -9 + i * 3), M = b.tf(-114 - i * 1.5, 70 + wv * 4 - i * 2, -10 + i * 3.3), B2 = b.tf(-122 - i * 2.5, 38 + Math.sin(b.t * 0.12 + i * 0.9 - 1.2) * 7 - i * 3, -11 + i * 3.6);
+      const col = F(i % 2 ? MINT : WH);
+      PS2.beam(m, A[0], A[1], A[2], M[0], M[1], M[2], 4, 1.5, col, { open: true }); PS2.beam(m, M[0], M[1], M[2], B2[0], B2[1], B2[2], 3.4, 1.4, col, { open: true });
+    }
+    if (b.tie > 0) { // Schabracke aus Registerblättern über dem Rücken (bunte Reiter an der Kante), fällt beim Zuschnüren herab
+      const k = Math.min(1, b.tie * 1.6), drop = (1 - k) * 22;
+      XS.forEach((x, i) => {
+        if (x < -60 || x > 30) return;
+        const P = { c: b.tf(x, TOP[i] + 1.6 + drop, 0), r: b.rear * 0.42, y: YAW() }, c = REG[i % 4];
+        fbox(m, P, 0, 0, 0, 17.6, 3, 55, F(c));
+        fbox(m, P, 0, -5, -27.6, 17.6, 10, 1, F(c));                                             // Lasche an der Flanke
+        fbox(m, P, i % 2 ? -4 : 4, -11.5, -27.8, 6, 3.5, 1, F(TABS[(i + 1) % 4]));               // Reiter
+      });
     }
     if (b.tie > 0) { // rotes Amtsband um den Bauch, Siegel auf der Flanke, Schleife oben
-      const P = { c: b.tf(-8, 75, 0), r: b.rear * 0.42, y: YAW() }, k = b.tie;
-      fbox(m, P, 0, 0, 0, 7, 52 * k, 51, F(RED));
+      const P = { c: b.tf(-8, 77, 0), r: b.rear * 0.42, y: YAW() }, k = b.tie;
+      fbox(m, P, 0, 0, 0, 7, 58 * k, 60, F(RED));
       if (k >= 1) {
-        decal(m, P, 0, 2, -26.3, 12, 12, F(REDD), Math.PI / 4); decal(m, P, 0, 2, -26.6, 7, 7, F(GOLD)); decal(m, P, 0, 2, -26.8, 3, 3, F(REDD), Math.PI / 4);
-        fbox(m, P, -1, 28, -9, 12, 6, 7, F(RED), 0.5); fbox(m, P, -1, 28, 9, 12, 6, 7, F(RED), -0.5); fbox(m, P, -1, 27, 0, 5, 5, 6, F(REDD));
+        decal(m, P, 0, 0, -30.3, 12, 12, F(REDD), Math.PI / 4); decal(m, P, 0, 0, -30.6, 7, 7, F(GOLD)); decal(m, P, 0, 0, -30.8, 3, 3, F(REDD), Math.PI / 4);
+        fbox(m, P, -1, 31, -9, 12, 6, 7, F(RED), 0.5); fbox(m, P, -1, 31, 9, 12, 6, 7, F(RED), -0.5); fbox(m, P, -1, 30, 0, 5, 5, 6, F(REDD));
       }
     }
     return [m];
