@@ -218,6 +218,7 @@ const Audio8 = (() => {
     flap: () => { noise(0.07, 0.14, 'bandpass', 1300, 700); noise(0.05, 0.1, 'bandpass', 1700, 900, ac.currentTime + 0.08); }, // Buchdeckel schlagen
     page: () => noise(0.16, 0.09, 'highpass', 2600, 6000), // Papier raschelt
     klack: () => { tone('triangle', 320, 120, 0.07, 0.3); noise(0.05, 0.22, 'bandpass', 1300, 500); }, // Holzhuf setzt auf
+    phone: () => { if (!ac) return; const t = ac.currentTime; for (let i = 0; i < 16; i++) tone('square', i % 2 ? 1240 : 1480, i % 2 ? 1220 : 1460, 0.035, 0.045, 0.5, t + i * 0.042); noise(0.68, 0.035, 'bandpass', 2900, 2700, t); }, // Wählscheibentelefon: zwei Glocken, schnell im Wechsel
     klack2: () => { tone('triangle', 520, 260, 0.04, 0.18); noise(0.05, 0.16, 'bandpass', 2400, 900); noise(0.08, 0.05, 'highpass', 4000); }, // Leitz-Ordner klackt an seinen Platz
     tome: () => { tone('sine', 196, 98, 0.5, 0.14); tone('triangle', 392, 370, 0.4, 0.06); arp(['e6', 'g6', 'a#6', 'e7'], 0.05, 'pulse', 0.04, 0.125); }, // Zauberbuch schlägt auf
     slime: () => { noise(0.4, 0.18, 'lowpass', 600, 150); tone('sine', 140, 60, 0.4, 0.12); }, // Schleimkokon gluckert
@@ -420,6 +421,26 @@ const Audio8 = (() => {
     'e6:3 d6:1 c6:2 g5:2 e5:2 g5:2 c6:4', 'f#6:3 e6:1 d6:2 a5:2 f#5:2 a5:2 d6:4', 'g6:4 f#6:2 e6:2 b5:4 g5:4', 'e6:2 d6:2 b5:2 g5:2 e5:4 -:4',
     'a5:2 a5:1 a5:1 c6:2 e6:2 a6:4 g6:2 e6:2', 'f#6:2 f#6:1 f#6:1 d#6:2 b5:2 a5:4 f#5:4', 'e5:2 g5:2 b5:2 e6:2 g6:4 e6:4', 'd#6:4 b5:4 f#5:4 b4:4',
   ];
+  // Dienstweg (Schreibtischtäter, Chefetage): Endgegner des Behördentrakts in d-Moll, 176 BPM. Das Stempelmotiv (drei kurze
+  // Schläge auf einem Ton) eröffnet die Phrasen, darunter Oktavbass im Achtelpuls, Schreibmaschinenklicks (y, ohne Kick) und
+  // ein Ratschen (r) als Kurbel am Taktende; am Ende jeder Hälfte Röhrenglocke und Becken
+  const DW = { Dm: ['d3', 'f3', 'a3'], Bb: ['d3', 'f3', 'a#3'], C: ['e3', 'g3', 'c4'], A7: ['c#3', 'e3', 'g3'], Gm: ['d3', 'g3', 'a#3'], Eb: ['d#3', 'g3', 'a#3'], F: ['f3', 'a3', 'c4'] };
+  const DWB = { Dm: 'd2', Bb: 'a#1', C: 'c2', A7: 'a1', Gm: 'g1', Eb: 'd#2', F: 'f2' };
+  const DW_C = ['Dm', 'Dm', 'Bb', 'A7', 'Dm', 'Dm', 'Gm', 'A7', 'Bb', 'C', 'F', 'Dm', 'Gm', 'Eb', 'A7', 'A7'];
+  const DW_L = [
+    'd5:2 d5:1 d5:1 f5:2 d5:2 a5:3 g5:1 f5:2 e5:2', 'd5:2 d5:1 d5:1 f5:2 a5:2 d6:4 c6:2 a5:2', 'a#5:3 a5:1 g5:2 f5:2 d5:4 f5:2 g5:2', 'e5:3 f5:1 g5:2 c#6:2 a5:4 e5:4',
+    'd5:2 d5:1 d5:1 f5:2 d5:2 a5:3 g5:1 f5:2 e5:2', 'f5:2 g5:2 a5:2 d6:2 c6:2 a5:2 f5:2 d5:2', 'g5:3 a#5:1 d6:4 c6:2 a#5:2 a5:2 g5:2', 'a5:4 g5:2 f5:2 e5:4 c#5:4',
+    'd6:3 c6:1 a#5:2 f5:2 d5:2 f5:2 a#5:4', 'e6:3 d6:1 c6:2 g5:2 e5:2 g5:2 c6:4', 'f6:4 e6:2 c6:2 a5:4 f5:4', 'd6:2 c6:2 a5:2 f5:2 d5:4 -:4',
+    'g5:2 g5:1 g5:1 a#5:2 d6:2 g6:4 f6:2 d6:2', 'd#6:2 d#6:1 d#6:1 d6:2 a#5:2 g5:4 d#5:4', 'c#6:2 e6:2 a6:4 g6:2 e6:2 c#6:4', 'a5:4 e5:4 c#5:4 a4:4',
+  ];
+  const DW_DR = ['k:1 y:1 h:1 y:1 s:1 h:1 k:1 y:1 k:1 h:1 y:1 h:1 s:1 y:1 r:1 h:1', 'k:1 s:1 k:1 s:1 t:1 t:1 u:1 u:1 k:1 s:1 s:1 s:1 b:2 x:2'];
+  const up8 = (n) => n.replace(/\d$/, (d) => String(+d + 1)); // eine Oktave höher
+  // Warteschleife (Telefon des Schreibtischtäters): blecherne Wartemusik in C-Dur, 100 BPM – Melodie im Telefonklang, Bossa-Begleitung
+  const WS = { C: ['e3', 'g3', 'c4'], Am: ['e3', 'a3', 'c4'], F: ['f3', 'a3', 'c4'], G: ['d3', 'g3', 'b3'], Dm: ['d3', 'f3', 'a3'] };
+  const WSB = { C: 'c2', Am: 'a1', F: 'f2', G: 'g1', Dm: 'd2' };
+  const WS_C = ['C', 'Am', 'F', 'G', 'C', 'Am', 'Dm', 'G'];
+  const WS_L = ['e5:4 g5:2 c6:4 b5:2 a5:2 g5:2', 'a5:6 c6:2 e5:8', 'f5:4 a5:2 c6:4 a5:2 g5:2 f5:2', 'g5:6 a5:1 g5:1 d5:8', 'e5:4 g5:2 c6:4 d6:2 e6:2 c6:2', 'a5:6 g5:2 e5:8', 'd5:2 e5:2 f5:2 a5:2 d6:4 c6:2 a5:2', 'g5:4 b5:4 d6:4 -:4'];
+  const WS_DR = 'd:2 h:2 c:2 h:2 d:2 c:2 h:2 c:2';
   const RW_DR = ['k:1 h:1 r:1 h:1 s:1 h:1 k:1 h:1 k:1 h:1 r:1 h:1 s:1 h:1 o:1 h:1', 'k:1 s:1 s:1 s:1 t:1 t:1 u:1 u:1 k:1 s:1 r:1 r:1 r:1 r:1 x:2'];
 
   // Posthorn (Hauptpoststelle): flotte Posthorn-Polka in B-Dur, 132 BPM – das Signal (Dreiklang hinauf) eröffnet jede Phrase,
@@ -669,6 +690,22 @@ const Audio8 = (() => {
       tri: RW_C.map(c => `${RWB[c]}:2 ${RWB[c]}:1 ${RWB[c]}:1 ${RWB[c]}:2 ${RWB[c]}:1 ${RWB[c]}:1 ${RWB[c]}:2 ${RWB[c]}:1 ${RWB[c]}:1 ${RWB[c]}:2 ${RWB[c]}:1 ${RWB[c]}:1`).join(' '),
       pad: RW_C.map(c => RWC[c].join('+') + ':16').join(' '),
       dr: RW_C.map((c, i) => RW_DR[i % 8 === 7 ? 1 : 0]).join(' '),
+    },
+    dienstweg: {
+      bpm: 176, loop: true, echo: { delay: 3, vol: 0.2 },
+      p1: DW_L.join(' '),
+      p2: DW_C.map(c => `${DW[c][0]}:2 ${DW[c][2]}:2 ${DW[c][1]}:2 ${DW[c][2]}:2 ${DW[c][0]}:2 ${DW[c][2]}:2 ${DW[c][1]}:2 ${DW[c][2]}:2`).join(' '),
+      tri: DW_C.map(c => { const b = DWB[c], o = up8(b); return `${b}:2 ${o}:2 ${b}:2 ${o}:2 ${b}:2 ${o}:2 ${b}:2 ${o}:2`; }).join(' '),
+      pad: DW_C.map(c => DW[c].join('+') + ':16').join(' '),
+      dr: DW_C.map((c, i) => DW_DR[i % 8 === 7 ? 1 : 0]).join(' '),
+    },
+    warteschleife: {
+      bpm: 100, loop: true, echo: { delay: 2, vol: 0.12 },
+      p1: WS_L.join(' '),
+      p2: WS_C.map(c => `-:2 ${WS[c][1]}:2 ${WS[c][2]}:2 -:2 -:2 ${WS[c][1]}:2 ${WS[c][2]}:2 -:2`).join(' '),
+      tri: WS_C.map(c => { const b = WSB[c]; return `${b}:6 ${b}:2 ${up8(b)}:6 ${b}:2`; }).join(' '),
+      pad: WS_C.map(c => WS[c].join('+') + ':16').join(' '),
+      dr: WS_C.map(() => WS_DR).join(' '),
     },
     amtsmarsch: {
       bpm: 150, loop: true, echo: { delay: 3, vol: 0.25 },

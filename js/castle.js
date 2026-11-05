@@ -938,6 +938,20 @@ const Castle = (() => {
       .music('posthorn').label('HAUPTPOSTSTELLE').start(1, 19).done();
     post.mapH = 1; // eine Zellenreihe auf der Karte
     add('hauptpost', 0, 3, null, post);
+    // Chefetage (rechts an der Frankierstelle; js/chef.js): nur mit vollständig gestempeltem Laufzettel. Vorzimmer mit Wartebank,
+    // Wanduhr, Kaffeekessel und dem verwaisten Sekretariat; dahinter das Büro der Amtsleitung – der Amtsleiter ist zu Tisch,
+    // sein Schreibtisch vertritt ihn: der Schreibtischtäter. Danach liegen der Goldene Stempel und ein Lebensgefäß im Büro
+    const chf = R(76, 'hotel', 22).ground(0, 75, 20).fill(0, 0, 75, 1, '#')
+      .fill(11, 16, 15, 16, '=').fill(19, 13, 25, 13, '=').fill(30, 16, 34, 16, '=')                     // Aktenböcke im Vorzimmer
+      .prop('pz', { k: 'sign', x: 40, y: 16, title: 'chefSignT', key: 'chefSign', col: '#3c1c0c', reach: 3 })
+      .mini('chef', 44, 74, 46, 0)
+      .enemy('ordner', 16, 19).enemy('ordner', 33, 15, { col: 2 }).enemy('flieger', 22, 7).enemy('brief', 30, 11).enemy('ghost', 8, 8)
+      .candle(3, 17, 'H').candle(13, 13).candle(22, 10, '$').candle(32, 13, 'H').candle(52, 16).candle(62, 16, 'H').candle(70, 16)
+      .chest(22, 12, 'big').prop('vessel', { x: 73, y: 19 })
+      .music('fahrstuhl').label('CHEFETAGE').start(1, 19).done();
+    chf.decor = [D('bench', 4.5, 19), D('bench', 7.5, 19), D('clock', 6, 13), D('desk', 26, 19), D('chair', 29.4, 19, true), D('kurn', 36, 19), D('starlamp', 42.5, 19)];
+    chf.mapH = 1; // eine Zellenreihe auf der Karte
+    add('chefetage', 0, 3, null, chf);
     const kel = R(80, 'library', 18).ground(0, 79, 16).fill(0, 0, 79, 1, '#')
       .fill(30, 8, 31, 15, '#')                                                                         // Registraturwand (oben frei)
       .fill(27, 14, 29, 14, '=').fill(24, 12, 26, 12, '=').fill(27, 10, 29, 10, '=')                    // Rückweg aus der Kammer
@@ -962,6 +976,7 @@ const Castle = (() => {
       [['side', 'paternoster'], { e: 'R', y: 45 }, ['side', 'registratur'], { e: 'L', y: 29 }, {}],                           // 3. UG rechts → Registratur
       [['side', 'paternoster'], { e: 'L', y: 33 }, ['side', 'aktenkeller'], { e: 'R', y: 15 }, {}],                           // 2. UG links → Aktenkeller
       [['side', 'registratur'], { e: 'R', y: 29 }, ['side', 'hauptpost'], { e: 'L', y: 19 }, {}],                             // Registratur rechts → Hauptpoststelle
+      [['side', 'hauptpost'], { e: 'R', y: 19 }, ['side', 'chefetage'], { e: 'L', y: 19 }, { laufzettel: 1 }],                // Frankierstelle rechts → Chefetage (Laufzettel)
     );
   }
   if (on && Levels.room) buildSide();
@@ -1094,6 +1109,10 @@ const Castle = (() => {
   const sealRooms = () => { const out = []; S().forEach((st, s) => { if (s < S().length - 1) st.rooms.forEach((d, r) => { if (d.arena) out.push(roomKey(s, r)); }); }); return out; };
   const seals = () => sealRooms().filter(k => boss[k]).length;
   function gateOpen(d) { return gateOk(d.gate, W.stage, W.roomIdx); }
+  // Laufzettel (Behördentrakt): fünf Stempel – Amtsschimmel, Kantine, Reißwolf, Rohrpost-Express, Frankiermaschine. Vollständig
+  // gestempelt öffnet er die Tür zur Chefetage (rechts an der Frankierstelle); jeder neue Stempel wird kurz eingeblendet
+  const LAUF = [() => !!best.Amtsschimmel, () => !!flag.ate, () => !!best.Reisswolf, () => !!flag.express_done, () => !!best.Frankiermaschine];
+  const lauf = () => LAUF.filter(f => f()).length;
   function gateOk(g, s, r) { // Bedingung g einer Tür im Raum (s, r) erfüllt? (boss: der Boss dieses Raums)
     if (!g) return true;
     if (g.boss) return !!boss[roomKey(s, r)];
@@ -1102,6 +1121,7 @@ const Castle = (() => {
     if (g.beat) { const a = ref(g.beat); return !!(a && boss[roomKey(a.s, a.r)]); }
     if (g.mini) { const a = ref(g.mini); return !!(a && mini[roomKey(a.s, a.r)]); } // Zwischengegner besiegt (Amtsschimmel → Behördentrakt)
     if (g.item) return !!inv[g.item];
+    if (g.laufzettel) return lauf() >= LAUF.length;   // Chefetage: Laufzettel vollständig
     if (g.relics) return g.relics.every(k => rel(k)); // Relikte nötig (Eisrutsche: ohne Dash und Enterhaken säße man fest)
     return true;
   }
@@ -1883,6 +1903,7 @@ const Castle = (() => {
   if (on && typeof BOSSES !== 'undefined') BOSSES.doppel = Doppel;
   if (on && typeof BOSSES !== 'undefined' && typeof Amtsschimmel !== 'undefined') BOSSES.amt = Amtsschimmel; // Amtsschimmel im Amt für Heldentaten (js/amt.js)
   if (on && typeof BOSSES !== 'undefined' && typeof Frankiermaschine !== 'undefined') BOSSES.post = Frankiermaschine; // Frankiermaschine in der Hauptpoststelle (js/post.js)
+  if (on && typeof BOSSES !== 'undefined' && typeof Schreibtisch !== 'undefined') BOSSES.chef = Schreibtisch;        // Schreibtischtäter in der Chefetage (js/chef.js)
   if (on && typeof BOSSES !== 'undefined' && typeof Reisswolf !== 'undefined') BOSSES.reiss = Reisswolf;     // Reißwolf im Aktenkeller (js/keller.js)
   if (on && typeof BOSSES !== 'undefined' && typeof GolemBoss !== 'undefined') BOSSES.golem = GolemBoss; // Steingolem im Golemstollen (js/golem.js)
   // Spiegel im Kabinett: zeigen den Helden – solange der Doppelgänger lebt, mit Verzögerung (das Spiegelbild ist nicht ganz
@@ -2154,7 +2175,7 @@ const Castle = (() => {
       else use = I.right && (p.onGround || p.batForm || p.mistForm) && p.cx > (def.w - 2.5) * T && (!isEdge(d.place) || Math.abs(p.feet - (d.place.y + 1) * T) <= 2 * T) && push >= 6; // Fledermaus und Nebel ziehen durch Seitenausgänge
       if (!use) continue;
       if (!gateOpen(d)) {
-        if (!lockT) { lockT = 90; if (d.gate.seals) Game.note('castleSeals', seals(), sealRooms().length); else if (d.gate.crack) Game.note('castleCrackHard'); else if (d.gate.beat || d.gate.mini) Game.note('castleBarred'); else if (d.gate.item) Game.note('castleLocked13'); else if (d.gate.relics) Game.note('castleNeedRelic', d.gate.relics.filter(k => !rel(k)).map(k => tr('relic_' + k)).join(' + ')); else Game.note('castleLocked'); Audio8.sfx('select'); }
+        if (!lockT) { lockT = 90; if (d.gate.seals) Game.note('castleSeals', seals(), sealRooms().length); else if (d.gate.crack) Game.note('castleCrackHard'); else if (d.gate.beat || d.gate.mini) Game.note('castleBarred'); else if (d.gate.laufzettel) Game.note('laufLocked', lauf(), LAUF.length); else if (d.gate.item) Game.note('castleLocked13'); else if (d.gate.relics) Game.note('castleNeedRelic', d.gate.relics.filter(k => !rel(k)).map(k => tr('relic_' + k)).join(' + ')); else Game.note('castleLocked'); Audio8.sfx('select'); }
         push = 0; break;
       }
       push = 0; Game.castleGo(d.to); return;
@@ -2281,7 +2302,8 @@ const Castle = (() => {
     tentling: { slot: 'fam', fam: 'tent', col: '#d880fc' },            // Neffe des Tentakels (Kolosseum, nach der Rabenfeder)
     shadowcard: { slot: 'fam', fam: 'shadow', col: '#8c5cc8' },        // Schatten des Doppelgängers: wiederholt jeden Hieb
     reisszahn: { slot: 'weapon', atk: 6, col: '#c8ccd4' },
-    posthorn: { slot: 'acc', luck: 3, greed: 1, col: '#f8d048' },               // Posthorn (Lohn der Frankiermaschine)                // Reißzahn (Lohn des Reißwolfs): Schneidwalze am Stiel
+    posthorn: { slot: 'acc', luck: 3, greed: 1, col: '#f8d048' },
+    goldstempel: { slot: 'acc', atk: 4, def: 3, luck: 2, col: '#f8d048' },       // Goldener Stempel (Lohn des Schreibtischtäters)               // Posthorn (Lohn der Frankiermaschine)                // Reißzahn (Lohn des Reißwolfs): Schneidwalze am Stiel
     dienstsiegel: { slot: 'acc', def: 1, cert: 1, col: '#c8182c' },     // Dienstsiegel (Lohn des Amtsschimmels): Urkunden zahlen doppelt
     galvheart: { slot: 'acc', hp: 6, atk: 3, col: '#58f8b0' },          // Glasherz des Erweckten (Galvani-Laboratorium)
     book_spirit: { spell: 'spirit', price: 2500, col: '#a4e4fc' },      // Zauberbücher (Laden): lehren je einen Zauber
@@ -2321,7 +2343,7 @@ const Castle = (() => {
   const STOCK = ['potion', 'elixir', 'leather', 'chain', 'silver', 'heartamulet', 'fairy', 'map', 'book_spirit', 'book_hellfire', 'book_soulsteal'];
   const once = (g) => !!(g.slot || g.key || g.spell || g.rec || g.quest); // gibt es nur einmal
   const BOSS_LOOT = [[[0, -1], 'batcard']];
-  const MINI_LOOT = [[['side', 'spiegel'], 'shadowcard', 20, 10], [['side', 'golemstollen'], 'steinhaut', 12, 10], [['side', 'galvani'], 'galvheart', 97, 25], [['side', 'heldenamt'], 'dienstsiegel', 14, 17], [['side', 'aktenkeller'], 'reisszahn', 8, 15], [['side', 'hauptpost'], 'posthorn', 100, 19]]; // nach dem Doppelgänger: sein Schatten; nach dem Steingolem: Steinhaut; nach dem Erweckten: sein Glasherz
+  const MINI_LOOT = [[['side', 'spiegel'], 'shadowcard', 20, 10], [['side', 'golemstollen'], 'steinhaut', 12, 10], [['side', 'galvani'], 'galvheart', 97, 25], [['side', 'heldenamt'], 'dienstsiegel', 14, 17], [['side', 'aktenkeller'], 'reisszahn', 8, 15], [['side', 'hauptpost'], 'posthorn', 100, 19], [['side', 'chefetage'], 'goldstempel', 69, 19]]; // nach dem Doppelgänger: sein Schatten; nach dem Steingolem: Steinhaut; nach dem Erweckten: sein Glasherz
   const FINDS = [ // Einzelstücke: [Raum, Gegenstand, Kachel-x, Standreihe]
     [['side', 'kolosseum'], 'leather', 12, 7], [['side', 'kanal'], 'bloodstone', 43, 7], [['side', 'schatz'], 'greedring', 25, 6],
     [['side', 'verlies'], 'dragonfang', 28, 6], [['side', 'wehrgang'], 'luckcoin', 37, 6], [['side', 'himmel'], 'mirror', 44, 5],
@@ -3065,9 +3087,9 @@ const Castle = (() => {
 
   // ---------------- Bestiarium wie die Gegnerliste in SotN (Status, dritte Seite): Siege je Gegnerart, absurde Einträge ----------------
   const BEASTS = ['Bat', 'Skeleton', 'Ghoul', 'Raven', 'Knight', 'LivingArmor', 'Panther', 'Skull', 'Fishman', 'Ghost', 'Snake', 'FlyBook', 'Tome',
-    'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Automat', 'Mannequin', 'Jelly', 'Ordner', 'Flieger', 'Conductor', 'Doppel', 'GolemBoss', 'Awakened', 'Amtsschimmel', 'Reisswolf', 'Brief', 'Nachnahme', 'Frankiermaschine',
+    'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Automat', 'Mannequin', 'Jelly', 'Ordner', 'Flieger', 'Conductor', 'Doppel', 'GolemBoss', 'Awakened', 'Amtsschimmel', 'Reisswolf', 'Brief', 'Nachnahme', 'Frankiermaschine', 'Schreibtisch',
     'TentacleBoss', 'GiantBat', 'IceWitch', 'GiantSkeleton', 'Medusa', 'SunWarden', 'ManTrap', 'Count'];
-  const BEAST_BOSS = { TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel', GolemBoss: 'bossGolem', Amtsschimmel: 'bossAmt', Reisswolf: 'bossReiss', Frankiermaschine: 'bossFrank', Awakened: 'bossAwakened' };
+  const BEAST_BOSS = { TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel', GolemBoss: 'bossGolem', Amtsschimmel: 'bossAmt', Reisswolf: 'bossReiss', Frankiermaschine: 'bossFrank', Schreibtisch: 'bossChef', Awakened: 'bossAwakened' };
   const BEAST_SET = new Set(BEASTS);
   const beastName = (k) => tr(BEAST_BOSS[k] || 'beast_' + k);
   const beasts = { sel: 0 };
@@ -3167,6 +3189,8 @@ const Castle = (() => {
     { id: 'amt', ok: () => !!best.Amtsschimmel },
     { id: 'reiss', ok: () => !!best.Reisswolf },
     { id: 'post', ok: () => !!best.Frankiermaschine },
+    { id: 'lauf', ok: () => lauf() >= LAUF.length },   // Laufzettel vollständig
+    { id: 'chef', ok: () => !!best.Schreibtisch },     // Schreibtischtäter (Chefetage)
     { id: 'express', ok: () => !!flag.express_perfect }, // Rohrpost-Express ohne Kratzer
     { id: 'kopf', ok: () => !!flag.pat_flip },  // Paternoster: oben durchgefahren
     { id: 'mahl', ok: () => !!flag.ate },       // Kantine: gegessen
@@ -3181,6 +3205,14 @@ const Castle = (() => {
   const achPay = () => ACH_PAY * (gear('cert') ? 2 : 1); // mit dem Dienstsiegel doppelt
   const achDesc = (a) => tr('achD_' + a.id, a.arg ? a.arg() : undefined);
   function achTick() {
+    if (rpg.frames % 30 === 15 && W.player && Game.state === 'play' && !(Game.noteT > 0)) { // Laufzettel: neuer Stempel
+      const n = lauf();
+      if (n > (flag.lauf || 0)) {
+        flag.lauf = n; save();
+        W.popup(W.player.cx, W.player.y - 24, tr('laufStamp', n, LAUF.length), '#fc5c5c'); Audio8.sfx('stamp');
+        if (n >= LAUF.length) Game.note('laufDone');
+      }
+    }
     if (rpg.frames % 30 === 0) {
       const fresh = ACH.filter(a => !achGot(a) && a.ok());
       if (fresh.length) {
@@ -3473,6 +3505,8 @@ const Castle = (() => {
     { id: 'carto', who: 'carto', at: [['side', 'pendelhalle'], 108, 17], when: () => true },           // Pendelhalle oben: der Kartograf
     { id: 'clerk', who: 'clerk', at: [['side', 'heldenamt'], 56, 17], when: () => true },              // Amt für Heldentaten: Oberamtsrat Stempelmann
     { id: 'clerk2', who: 'clerk', at: [['side', 'heldenamt'], 56, 17], when: () => !!best.Amtsschimmel }, // ... nach dem Amtsschimmel
+    { id: 'clerk3', who: 'clerk', at: [['side', 'heldenamt'], 56, 17], when: () => !!flag.story_clerk2 },  // ... erklärt den Laufzettel
+    { id: 'clerk4', who: 'clerk', at: [['side', 'heldenamt'], 56, 17], when: () => !!best.Schreibtisch },  // ... nach dem Schreibtischtäter
     { id: 'cook', who: 'cook', at: [['side', 'kantine'], 16, 17], when: () => true },                // Kantine: Kantinenchefin Schöpfkelle (danach ihr Laden)
     { id: 'cook2', who: 'cook', at: [['side', 'kantine'], 16, 17], when: () => !!flag.pat_flip },    // ... nach der Fahrt durch die obere Wende
   ];
@@ -3917,6 +3951,7 @@ const Castle = (() => {
   // Neueste Änderungen (zum Testen): die Abschnittswahl markiert diese Räume mit NEU und zeigt darunter, was sich geändert hat;
   // SUB springt zum nächsten markierten Abschnitt. Bei jeder Auslieferung neu füllen
   const RECENT = [
+    [['side', 'chefetage'], 'chgChef'], // Laufzettel, Chefetage und der Schreibtischtäter
     [['side', 'hauptpost'], 'chgPost'], // Hauptpoststelle: Förderbänder, Pakete, Frankiermaschine
     [['side', 'rohrpost'], 'chgExpress'], // Rohrpost-Express in Ego-Sicht (Aktenkeller – Rohrpostamt)
     [['side', 'aktenkeller'], 'chgKeller'], // Aktenkeller mit Rollregalen und dem Reißwolf
@@ -4278,7 +4313,7 @@ const Castle = (() => {
     for (const b of BEATS) { const a = ref(b.at[0]); if (!a) out.push('Szene ohne Raum: ' + b.id); else if (!ground(S()[a.s].rooms[a.r], b.at[1], b.at[2])) out.push('Figur ohne Boden: ' + b.id); }
     for (const [R, id, x, y] of FINDS) { const a = ref(R); if (!a) out.push('Fund ohne Raum: ' + id); else if (SOLID.includes(S()[a.s].rooms[a.r].grid[y][x])) out.push('Fund in der Wand: ' + id); }
     const need = ['patF0', 'patF1', 'patF2', 'patF3', 'patSignT', 'patSign', 'patFlip', 'patCellar', 'npcCook', 'cookTitle', 'cookHi', 'cookHiWE', 'cookSold', 'cookOwned', 'cookPoor', 'cookThanks1', 'cookThanks2', 'cookThanks3', 'cookEat1', 'cookEat2', 'cookEat3',
-      'kantMenuT', 'kantMenuWE', 'eatPop', 'buffEnd', 'regSignT', 'regSign', 'ablageP', 'ablageLab', 'outboxLab', 'ordnerDead', 'chgTrakt', 'chgSchimmel', 'chgKeller', 'chgExpress', 'chgPost', 'postSignT', 'postSign', 'paketSignT', 'paketSign', 'paketBack', 'briefDead', 'nachDead', 'portoHit', 'bossFrank', 'bossFrankRoll', 'bossFrankStamp', 'bossFrankRage', 'bossFrankCrit', 'bossFrankNote', 'banter_bossFrank', 'beast_Brief', 'beastD_Brief', 'beast_Nachnahme', 'beastD_Nachnahme', 'beastD_Frankiermaschine', 'item_posthorn', 'itemD_posthorn', 'ach_post', 'achD_post', 'expIn', 'expClosed', 'expSign', 'expStamps', 'expBoost', 'expWait', 'expArrive', 'expDone', 'expPerfect', 'expFlap', 'expGrate', 'expFolder', 'ach_express', 'achD_express', 'rrStuck', 'kellerSignT', 'kellerSign', 'bossReiss', 'bossReissShout', 'bossReissJam', 'bossReissRage', 'bossReissBonk', 'bossReissCrit', 'bossReissNote', 'banter_bossReiss', 'beastD_Reisswolf', 'ach_reiss', 'achD_reiss', 'item_reisszahn', 'itemD_reisszahn', 'banter_bossAmt', 'amtPile0', 'amtPile1', 'amtPile2', 'amtPile3', 'bossAmt', 'bossAmtNote', 'bossAmtShout', 'bossAmtRage', 'amtMark', 'npcClerk', 'amtSignT', 'amtSign', 'chgAmt', 'portrait0', 'portrait1', 'portrait2', 'banter_boss1', 'banter_boss2', 'banter_boss3', 'banter_boss4', 'banter_bossKraken', 'banter_bossTentacle', 'banter_bossKnight', 'banter_bossTrap', 'banter_bossWitch', 'banter_bossConductor', 'banter_bossDoppel', 'banter_bossAwakened', 'banter_bossGolem', 'secNew', 'secNewHelp', ...RECENT.map(([, k]) => k), 'chgBanter', 'famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'npcSpeed', 'npcBones', 'npcChicken', 'npcBarber', 'npcCarto', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'mapOverlayHelpT', 'optGuide', 'optGuideH'];
+      'laufStamp', 'laufLocked', 'laufDone', 'chefSignT', 'chefSign', 'bossChef', 'bossChefCall', 'bossChefWait', 'bossChefHold', 'bossChefPatience', 'bossChefBack', 'bossChefStand', 'bossChefChair', 'bossChefCrit', 'bossChefNote', 'banter_bossChef', 'beastD_Schreibtisch', 'item_goldstempel', 'itemD_goldstempel', 'ach_chef', 'achD_chef', 'ach_lauf', 'achD_lauf', 'kantMenuT', 'kantMenuWE', 'eatPop', 'buffEnd', 'regSignT', 'regSign', 'ablageP', 'ablageLab', 'outboxLab', 'ordnerDead', 'chgTrakt', 'chgSchimmel', 'chgKeller', 'chgExpress', 'chgPost', 'postSignT', 'postSign', 'paketSignT', 'paketSign', 'paketBack', 'briefDead', 'nachDead', 'portoHit', 'bossFrank', 'bossFrankRoll', 'bossFrankStamp', 'bossFrankRage', 'bossFrankCrit', 'bossFrankNote', 'banter_bossFrank', 'beast_Brief', 'beastD_Brief', 'beast_Nachnahme', 'beastD_Nachnahme', 'beastD_Frankiermaschine', 'item_posthorn', 'itemD_posthorn', 'ach_post', 'achD_post', 'expIn', 'expClosed', 'expSign', 'expStamps', 'expBoost', 'expWait', 'expArrive', 'expDone', 'expPerfect', 'expFlap', 'expGrate', 'expFolder', 'ach_express', 'achD_express', 'rrStuck', 'kellerSignT', 'kellerSign', 'bossReiss', 'bossReissShout', 'bossReissJam', 'bossReissRage', 'bossReissBonk', 'bossReissCrit', 'bossReissNote', 'banter_bossReiss', 'beastD_Reisswolf', 'ach_reiss', 'achD_reiss', 'item_reisszahn', 'itemD_reisszahn', 'banter_bossAmt', 'amtPile0', 'amtPile1', 'amtPile2', 'amtPile3', 'bossAmt', 'bossAmtNote', 'bossAmtShout', 'bossAmtRage', 'amtMark', 'npcClerk', 'amtSignT', 'amtSign', 'chgAmt', 'portrait0', 'portrait1', 'portrait2', 'banter_boss1', 'banter_boss2', 'banter_boss3', 'banter_boss4', 'banter_bossKraken', 'banter_bossTentacle', 'banter_bossKnight', 'banter_bossTrap', 'banter_bossWitch', 'banter_bossConductor', 'banter_bossDoppel', 'banter_bossAwakened', 'banter_bossGolem', 'secNew', 'secNewHelp', ...RECENT.map(([, k]) => k), 'chgBanter', 'famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'npcSpeed', 'npcBones', 'npcChicken', 'npcBarber', 'npcCarto', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'mapOverlayHelpT', 'optGuide', 'optGuideH'];
     for (const id in GEAR) need.push('item_' + id, 'itemD_' + id);
     for (const b of BEATS) { if (b.lines !== false) need.push('story_' + b.id); need.push('story_' + (b.again || b.id) + 'Again'); }
     for (const id of SPELL_IDS) need.push('spell_' + id);

@@ -437,6 +437,35 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
       (Fächer aus Papierstreifen) und ANSTURM (Wandprall: benommen und verwundbar). Ab halber Energie Stufe 5 (Partikelschnitt).
     - Besiegt platzt er in Konfetti. Lohn: Reißzahn (Waffe, ATK +6) und die Urkunde „Datenschutz gewährleistet“.
   - Geräusche `howl`/`shred` vorerst als Synth (ElevenLabs war belegt; `Audio8.sample` nimmt Proben, sobald sie in `SAMP` stehen).
+- **Der Dienstweg** (20261105-1934; js/chef.js): Laufzettel, Chefetage und der Endgegner des Behördentrakts.
+  - **Laufzettel**: fünf Stempel – Amtsschimmel, Kantine (gegessen), Reißwolf, Rohrpost-Express (gefahren), Frankiermaschine
+    (`LAUF`/`lauf()` in castle.js). Jeder neue Stempel wird eingeblendet („LAUFZETTEL: STEMPEL 3/5“, sobald keine andere
+    Meldung läuft; `flag.lauf` merkt den Stand). Vollständig: Meldung und Urkunde „Dienstweg eingehalten“.
+  - Neues Tor `{ laufzettel: 1 }` in `gateOk`: Tür rechts an der Frankierstelle (Hauptpoststelle y 19) → **Chefetage**. Zu
+    meldet sie „NUR MIT VOLLSTÄNDIGEM LAUFZETTEL (n/5 STEMPEL)“. Zurück geht es immer.
+  - Oberamtsrat Stempelmann erklärt den Laufzettel (Szene `clerk3`, nach `clerk2`) und gratuliert nach dem Sieg (`clerk4`:
+    „Dann sind Sie jetzt zuständig. Für alles.“).
+  - **Chefetage** (`chefetage`, 76×22, Hotel-Thema, Karte eine Zellenreihe): Vorzimmer mit Wartebank, Wanduhr, Sekretariat,
+    Kaffeekessel und Sternlampe (Blender-Dekor), Aktenböcke mit Truhe, Ordner/Flieger/Brief/Geist. Schild „AMTSLEITUNG –
+    Sprechzeiten donnerstags 11:00–11:15, außer donnerstags“. Raummusik: Fahrstuhlmusik.
+  - **Der Schreibtischtäter** (Zwischengegner `chef`, x 44–74, PS2-3D, gespiegelt): Mahagoni-Schreibtisch mit grünem
+    Lederbezug, Schubladenstöcken mit Messinggriffen, Namensschild, Wählscheibentelefon, Bankerlampe (leuchtet), drehendem
+    Stempelkarussell, Aktenstapel, Brille und Chefsessel mit Ohrenbacken. In der Kniehöhle glühen Augen unter zornigen
+    Brauen (blinzeln; außer Atem halb zu, in der Warteschleife gelangweilt). Die Augen liegen vor der Ebene der
+    Schubladenfronten, weil `PS2.render` ganze Flächen nach mittlerer Tiefe sortiert (sonst verschwindet das hintere Auge
+    hinter der Rückwand der Kniehöhle).
+    - Phase 1: SCHUBLADEN gleiten über den Boden, STEMPELKARUSSELL lässt drei Stempel mit Schattenwarnung fallen (Abdruck am
+      Boden).
+    - Phase 2 (ab zwei Dritteln): Das Telefon klingelt (`phone`), Hörer ab, **Warteschleife**: 10 s unverwundbar,
+      Wartenummern fallen von der Decke, Anzeige „WARTESCHLEIFE – NOCH n S“, „Ihr Anruf ist uns wichtig“. Danach außer Atem.
+    - Phase 3 (ab einem Drittel): „HÖHENVERSTELLBAR!“ – vier Beine fahren aus, er springt und stampft (Bodenwellen
+      `Post.Welle`), der Chefsessel rollt einmal quer durchs Büro (prallt einmal ab). Unter dem stehenden Tisch kann man durch.
+    - Nach jedem Angriff außer Atem: ×1,7 Schaden („ZUR AKTE!“), sonst ×0,45.
+    - Sieg: „Der Amtsleiter kommt vom Mittagessen: Wer hat meinen Schreibtisch aufgeräumt?“ Lohn: **Goldener Stempel**
+      (Amulett, ATK +4, DEF +3, LUCK +2), Lebensgefäß im Büro, Urkunde „Dienstschluss“.
+  - Musik: **Dienstweg** (d-Moll, 176 BPM, Stempelmotiv, Oktavbass, Schreibmaschine `y`, Ratsche) im Kampf, **Warteschleife**
+    (blecherne Wartemusik in C-Dur, 100 BPM) am Telefon. Alle Spuren gleich lang (256 bzw. 128 Sechzehntel).
+  - ElevenLabs war wieder belegt: Telefonklingeln als Synth (`phone`).
 - **Hauptpoststelle** (js/post.js, rechts an der Registratur, `hauptpost`, 110×22, Karte eine Zellenreihe):
   - **Sortierhalle**: Drei Förderbänder (`Band` auf '='-Reihen) laufen über den Briefsackschacht, eines gegen die Laufrichtung.
     Fliegende **Briefe** (Luftpostumschläge, Wellenflug) sind unterwegs.
