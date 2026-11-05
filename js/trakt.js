@@ -88,9 +88,18 @@ const Trakt = (() => {
       const cx = W.cam.x, cy = W.cam.y, xu = Math.round(this.xu - cx), xd = Math.round(this.xd - cx), top = Math.round(this.yt - cy), bot = Math.round(this.yb - cy);
       if (xu > View.w + 60 || xd + 110 < 0) return;
       const y0 = Math.max(-10, top - 70), y1 = Math.min(260, bot + 34);
-      if (y1 > y0) { // Schachtwand: dunkle Vertäfelung, dahinter die Ketten
-        ctx.fillStyle = '#120a0a'; ctx.fillRect(xu - 2, y0, xd - xu + 52, y1 - y0);
-        ctx.fillStyle = '#1e1410'; for (let x = xu + 4; x < xd + 48; x += 12) ctx.fillRect(x, y0, 1, y1 - y0);
+      if (y1 > y0) { // Schachtwand: Ziegel im Halbdunkel (Fugen wandern mit der Welt), Führungsschienen aus Stahl mit Nieten, dahinter die Ketten
+        const sw = xd - xu + 52, ox = xu - 2;
+        ctx.fillStyle = '#160e0c'; ctx.fillRect(ox, y0, sw, y1 - y0);
+        ctx.fillStyle = '#22160f';
+        for (let y = y0 - (((y0 + cy) % 6) + 6) % 6; y < y1; y += 6) {
+          ctx.fillRect(ox, y, sw, 1);
+          const row = Math.round((y + cy) / 6); for (let x = ox + ((row & 1) ? 6 : 0) + 3; x < ox + sw; x += 12) ctx.fillRect(x, y + 1, 1, 5);
+        }
+        for (const gx of [xu, xu + 46, xd, xd + 46]) { // Schienen links und rechts jeder Kabinenbahn
+          ctx.fillStyle = '#34323c'; ctx.fillRect(gx, y0, 2, y1 - y0); ctx.fillStyle = '#6c6a78'; ctx.fillRect(gx, y0, 1, y1 - y0);
+          ctx.fillStyle = '#a8a4b4'; for (let y = y0 - (((y0 + cy) % 24) + 24) % 24; y < y1; y += 24) ctx.fillRect(gx, y, 2, 1);
+        }
         const chain = (x, dir) => { // Glieder wandern mit: hinauf im linken, hinab im rechten Schacht
           ctx.fillStyle = '#2c2a30'; ctx.fillRect(x, y0, 2, y1 - y0);
           const off = ((dir * this.ph) % 8 + 8) % 8;
@@ -107,6 +116,11 @@ const Trakt = (() => {
         ctx.fillStyle = '#5c3820'; ctx.fillRect(xu + 50, py0, 12, py1 - py0);
         ctx.fillStyle = '#c89020'; ctx.fillRect(xu + 48, py0, 1, py1 - py0); ctx.fillRect(xu + 63, py0, 1, py1 - py0);
         for (let y = py0 + 20; y < py1; y += 48) { ctx.fillStyle = '#2c1a0e'; ctx.fillRect(xu + 51, y, 10, 1); }
+      }
+      for (const [row] of this.d.floors) { // gelb-schwarze Warnkante an jeder Stockwerkskante zum Schacht
+        const ey = Math.round((row + 1) * T - cy);
+        if (ey < -4 || ey > 244) continue;
+        for (const ex of [xu - 18, xd + 50]) for (let k = 0; k < 16; k += 4) { ctx.fillStyle = (k >> 2) & 1 ? '#1c1a1e' : '#f0c428'; ctx.fillRect(ex + k, ey, 4, 2); }
       }
       for (const [row, key] of this.d.floors) { // Stockwerksschilder (Emaille) links und rechts über der Schachtöffnung
         const fy = Math.round((row + 1) * T - cy) - 62;
@@ -130,7 +144,7 @@ const Trakt = (() => {
     lightUp(L, cx, cy) {
       for (const c of this.cabs) {
         const sx = c.x + 24 - cx, sy = c.y - 40 - cy;
-        if (sx > -40 && sx < View.w + 40 && sy > -40 && sy < 280) L.push({ x: sx, y: sy, r: 30, c: [252, 210, 150], a: 0.3 });
+        if (sx > -40 && sx < View.w + 40 && sy > -40 && sy < 280) L.push({ x: sx, y: sy, r: 36, c: [255, 214, 150], a: 0.42 }); // Kabinenlampe: warmer Schein im dunklen Schacht
       }
     }
   }

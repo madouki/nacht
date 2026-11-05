@@ -417,6 +417,12 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
       (`W.wobble`: zeilenweiser Versatz wie SNES-HDMA, `drawWobble`). Erst dann folgen Musik, Namensband und Wortgeplänkel
       (`holdIntro`, `lateIntro`, `W.bossEntrance`), danach der Kampf. Beim Wiedersehen geht der Zusammenbau doppelt so schnell.
     - Besiegt fällt er wieder zum Haufen. Peitscht man den Haufen, hüpft der Kopf und antwortet mit Beamtensprüchen (`amtPile0–3`).
+- **Behördentrakt hübscher** (20261105-0209): Die Paternoster-Kabinen sind neu gerendert (helle Eiche, Messing, gelb-schwarze Warnkante,
+  Dienstvorschrift an der Rückwand, Innenlicht). Im Schacht liegen jetzt Ziegelfugen und Stahlschienen mit Nieten, an jeder
+  Stockwerkskante eine Warnkante, und der Lampenschein ist wärmer. Das Gemälde in der Hotel-Tapete zeigt jetzt den Hotelier:
+  eine Blender-Büste (Szene `nm_portrait`) mit Zwirbelbart, Monokel, Vatermörder, Fliege und Orden als kleines Ölbild
+  (`hotelier` im Atlas, über `Castle.art`/`whenArt` nachträglich in die Tapete gemalt), mit Eckrosetten, Namensschild und
+  Bilderleuchte.
 - **Musik im Amt**: Die Schreibmaschine im Amtsstuben-Walzer nutzt jetzt `y` (nur Klack). `z` schlägt auch die Bassdrum samt
   Ducking, deshalb stolperte der Walzer über unregelmäßige Kicks. Die Schreibmaschine läuft jetzt auf festem Raster, mit weichem
   Bumm auf der Eins, Zeilenglocke und Wagenrücklauf alle vier Takte.

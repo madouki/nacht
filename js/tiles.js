@@ -1888,13 +1888,25 @@ const Tiles = (() => {
           const tx = cx0 + 13; px(x, '#f8b800', tx, 143, 3, 4); for (let k = 0; k < 9; k++) px(x, k % 2 ? '#c89020' : '#fce0a8', tx - 1 + (k % 5), 147 + (k >> 1), 1, 3);
         });
       });
-      // Gemälde in Goldrahmen zwischen den Fenstern: ein Herr mit Zwirbelbart (der Hotelier?) und ein Mondschein über dem Schloss
+      // Gemälde in Goldrahmen zwischen den Fenstern: der Hotelier mit Zwirbelbart, Monokel, Vatermörder und Orden – eine Blender-Büste
+      // als kleines Ölbild ('hotelier' in img/krat3d.png; solange der Atlas lädt, eine grobe Skizze) – und ein Mondschein über dem Schloss
       const frame = (fx, fy, fw, fh) => { px(x, '#5c3c10', fx - 4, fy - 4, fw + 8, fh + 8); px(x, '#c89020', fx - 3, fy - 3, fw + 6, fh + 6); px(x, '#f8d878', fx - 3, fy - 3, fw + 6, 1); px(x, '#7c5414', fx - 1, fy - 1, fw + 2, fh + 2); px(x, '#140c08', fx, fy, fw, fh); };
-      frame(40, 70, 54, 70);
-      for (let Y = 0; Y < 70; Y++) for (let X = 0; X < 54; X++) px(x, Y < 40 ? (bay(X, Y) < Y / 50 ? '#2c1c24' : '#1c1018') : '#24140c', 40 + X, 70 + Y); // dunkler Grund
-      px(x, '#d8a070', 58, 86, 18, 20); px(x, '#b07848', 58, 102, 18, 4); px(x, '#1c1410', 56, 80, 22, 8); px(x, '#1c1410', 60, 76, 14, 4); // Gesicht, Haar
-      px(x, '#140c08', 62, 92, 3, 2); px(x, '#140c08', 69, 92, 3, 2); px(x, '#3c1c10', 60, 99, 14, 2); px(x, '#3c1c10', 57, 98, 4, 1); px(x, '#3c1c10', 73, 98, 4, 1); px(x, '#3c1c10', 56, 97, 2, 1); px(x, '#3c1c10', 76, 97, 2, 1); // Augen, Zwirbelbart
-      px(x, '#141018', 48, 108, 38, 32); px(x, '#e8e0d0', 63, 108, 8, 12); px(x, '#a80020', 65, 110, 4, 3); px(x, '#c89020', 66, 116, 2, 2); // Frack, Hemd, Fliege, Orden
+      const PX = 37, PY = 64, PW = 60, PH = 80;
+      frame(PX, PY, PW, PH);
+      for (const [cx2, cy2] of [[PX - 4, PY - 4], [PX + PW + 1, PY - 4], [PX - 4, PY + PH + 1], [PX + PW + 1, PY + PH + 1]]) { px(x, '#f8d878', cx2, cy2, 3, 3); px(x, '#7c5414', cx2 + 1, cy2 + 1, 1, 1); } // Eckrosetten
+      px(x, '#c89020', PX + PW / 2 - 9, PY + PH + 5, 18, 5); px(x, '#5c3c10', PX + PW / 2 - 8, PY + PH + 6, 16, 3); px(x, '#f8d878', PX + PW / 2 - 6, PY + PH + 7, 12, 1); // Namensschild
+      const glow = () => { // Bilderleuchte aus Messing über dem Rahmen, warmer Lichtkegel aufs Bild
+        const g = x.createLinearGradient(0, PY, 0, PY + PH * 0.45); g.addColorStop(0, 'rgba(255,214,150,0.13)'); g.addColorStop(1, 'rgba(255,214,150,0)');
+        x.fillStyle = g; x.fillRect(PX, PY, PW, PH);
+        px(x, '#7c5414', PX + PW / 2 - 1, PY - 12, 2, 8); px(x, '#a87c34', PX + PW / 2 - 13, PY - 7, 26, 3); px(x, '#f8d878', PX + PW / 2 - 13, PY - 7, 26, 1); px(x, '#fcf4d0', PX + PW / 2 - 11, PY - 4, 22, 1);
+      };
+      const sketch = () => {
+        for (let Y = 0; Y < PH; Y++) for (let X = 0; X < PW; X++) px(x, Y < 46 ? (bay(X, Y) < Y / 56 ? '#2c1c24' : '#1c1018') : '#24140c', PX + X, PY + Y); // dunkler Grund
+        px(x, '#d8a070', PX + 20, PY + 18, 20, 24); px(x, '#1c1410', PX + 18, PY + 12, 24, 8); px(x, '#140c08', PX + 24, PY + 27, 3, 2); px(x, '#140c08', PX + 33, PY + 27, 3, 2); px(x, '#3c1c10', PX + 20, PY + 35, 20, 2); // Gesicht, Haar, Augen, Bart
+        px(x, '#141018', PX + 8, PY + 48, 44, 32); px(x, '#e8e0d0', PX + 26, PY + 48, 8, 14); px(x, '#a80020', PX + 27, PY + 49, 6, 3); // Frack, Hemd, Fliege
+      };
+      const paint = () => { const art = typeof Castle !== 'undefined' && Castle.art ? Castle.art('hotelier') : null; if (!art) return false; x.drawImage(art, PX, PY); glow(); return true; };
+      if (!paint()) { sketch(); glow(); if (typeof Castle !== 'undefined' && Castle.whenArt) Castle.whenArt(paint); } // die Tapete wird direkt gezeichnet: das Bild darf nachträglich hinein
       frame(300, 82, 70, 44);
       for (let Y = 0; Y < 44; Y++) for (let X = 0; X < 70; X++) px(x, Y > 32 ? '#0c140c' : bay(X, Y) < Y / 40 ? '#1c2440' : '#141a34', 300 + X, 82 + Y); // Nachthimmel, Hügel
       for (let r = 6; r >= 0; r--) { px(x, r === 0 ? '#fcf4c0' : '#e8d898', 352 - r, 92 - r, 1 + 2 * r, 1); } px(x, '#fcf4c0', 349, 89, 7, 7); // Mond

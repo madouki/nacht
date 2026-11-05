@@ -1468,21 +1468,25 @@ const Castle = (() => {
   // img/krat3d.png, je Bild: [x, y, w, h, Anker x, Anker y, Zusatzpunkte x/y …]. Anker = Standpunkt (Boden, Gleis) bzw. Aufhängung.
   // Zusatzpunkte: Lok – Schornstein, Zylinderhahn, Dampfdom, Führerhaus; Laterne – Licht; Tresen – Klingel, Lampe;
   // Grammophon – Trichter; Sternlampe – Stern; Aufzug – Stockwerkanzeige. Fehlt das Bild, zeichnet der Raum einfach ohne.
-  const K3 = {"loco":[129,0,237,71,155,68,218,4,203,56,158,13,118,24],"wagon":[0,78,226,70,113,67],"canopy":[0,0,128,77,64,74],"bench":[197,149,31,19,16,18],"lamppost":[269,78,12,57,6,56,6,8],"clock":[181,149,15,23,8,1],"sign":[229,149,46,19,23,1],"desk":[27,149,92,29,46,28,60,8,21,4],"keys":[448,78,44,31,22,30],"gramo":[426,78,21,34,8,32,3,6],"starlamp":[346,78,16,49,8,47,8,10],"chair":[159,149,21,24,10,23],"lift":[282,78,36,52,18,51,18,8],"cart":[399,78,26,35,13,34],"bed":[120,149,38,27,19,26],"crane":[227,78,41,58,7,56],"mirror":[319,78,26,50,13,49,5,12,21,42],"helmet":[0,149,26,30,13,25],"sbell":[363,78,35,38,28,36],"kcounter":[0,182,100,36,50,35],"kurn":[102,182,21,35,10,34,10,1],"ktable":[125,182,40,17,20,16],"pcabin":[167,182,52,56,26,51]};
-  let k3 = null;
+  const K3 = {"loco":[129,0,237,71,155,68,218,4,203,56,158,13,118,24],"wagon":[0,78,226,70,113,67],"canopy":[0,0,128,77,64,74],"bench":[197,149,31,19,16,18],"lamppost":[269,78,12,57,6,56,6,8],"clock":[181,149,15,23,8,1],"sign":[229,149,46,19,23,1],"desk":[27,149,92,29,46,28,60,8,21,4],"keys":[448,78,44,31,22,30],"gramo":[426,78,21,34,8,32,3,6],"starlamp":[346,78,16,49,8,47,8,10],"chair":[159,149,21,24,10,23],"lift":[282,78,36,52,18,51,18,8],"cart":[399,78,26,35,13,34],"bed":[120,149,38,27,19,26],"crane":[227,78,41,58,7,56],"mirror":[319,78,26,50,13,49,5,12,21,42],"helmet":[0,149,26,30,13,25],"sbell":[363,78,35,38,28,36],"kcounter":[0,182,100,36,50,35],"kurn":[102,182,21,35,10,34,10,1],"ktable":[125,182,40,17,20,16],"pcabin":[167,182,52,56,26,51],"hotelier":[221,182,60,80,0,0]};
+  let k3 = null, k3raw = null, k3wait = [];
   if (on) {
     const img = new Image();
     img.onload = () => {
-      const out = {};
+      const out = {}, raw = {};
       for (const k in K3) {
         const r = K3[k], c = Sprites.canvas(r[2], r[3]);
         c.getContext('2d').drawImage(img, r[0], r[1], r[2], r[3], 0, 0, r[2], r[3]);
+        raw[k] = c; if (k === 'hotelier') continue; // Gemälde: nur roh (wird in die Hotel-Tapete gemalt, tiles.js)
         out[k] = Sprites.fromCanvas(c, k !== 'canopy'); // das Bahnsteigdach wird aneinandergereiht: ohne Kontur
       }
-      k3 = out;
+      k3 = out; k3raw = raw;
+      const w = k3wait; k3wait = []; w.forEach(f => { try { f(); } catch (e) { console.warn(e); } });
     };
     img.src = 'img/krat3d.png?v=' + (window.BUILD || '');
   }
+  const art = (k) => (k3raw && k3raw[k]) || null; // rohes Bild aus dem Atlas (ohne Kontur), null solange er lädt
+  const whenArt = (f) => { if (k3raw) f(); else k3wait.push(f); };
   function k3at(ctx, k, sx, sy, flip, flash) { // Bildschirmkoordinaten des Ankers
     const s = k3 && k3[k], r = K3[k];
     if (!s) return false;
@@ -4304,7 +4308,7 @@ const Castle = (() => {
     toolCount: TOOLS.length, get toolSel() { return tools.sel; }, set toolSel(v) { tools.sel = v; },
     startTest, enterTest, finishTest, drawMilestones, milestones: MILESTONES.length, msLabel: (n) => msName(MILESTONES[n]), msTarget: (n) => { const a = ref(MILESTONES[n].at); return { s: a.s, r: a.r }; }, get testing() { return testing; },
     setFlag: (k) => { flag[k] = 1; save(); }, // z. B. Aufzug als Abkürzung freigeschaltet (lift.js)
-    k3at, dishToday, buffInfo: () => buff && { id: buff.id, k: buff.t / BUFF_T }, // Behördentrakt (js/trakt.js), HUD: Mahlzeit
+    k3at, art, whenArt, dishToday, buffInfo: () => buff && { id: buff.id, k: buff.t / BUFF_T }, // Behördentrakt (js/trakt.js), HUD: Mahlzeit
     toolsInput, drawTools, selfCheck, mapReport, doorsOf, get god() { return god; }, get best() { return best; },
     toggleOverlay, get overlay() { return overlayOn; },
     tier: (s) => (TIER[S()[s].id] || 1) + 2 * (flag.ngp || 0), side: SIDE, startEpilogue, resultsInput, drawResults, ngPlus, ngRestore, drawGoalBanner, drawGoalToast, announceGoal, drawGuide, guidePlan, inPrologue, goal: () => { const g = goal(); return g && { text: goalText(g), where: tr(g.where) }; }, get vessels() { return vessel; }, get relics() { return relic; }, get cracks() { return crack; }, has,
