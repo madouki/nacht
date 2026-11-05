@@ -421,6 +421,19 @@ const Audio8 = (() => {
     'a5:2 a5:1 a5:1 c6:2 e6:2 a6:4 g6:2 e6:2', 'f#6:2 f#6:1 f#6:1 d#6:2 b5:2 a5:4 f#5:4', 'e5:2 g5:2 b5:2 e6:2 g6:4 e6:4', 'd#6:4 b5:4 f#5:4 b4:4',
   ];
   const RW_DR = ['k:1 h:1 r:1 h:1 s:1 h:1 k:1 h:1 k:1 h:1 r:1 h:1 s:1 h:1 o:1 h:1', 'k:1 s:1 s:1 s:1 t:1 t:1 u:1 u:1 k:1 s:1 r:1 r:1 r:1 r:1 x:2'];
+
+  // Posthorn (Hauptpoststelle): flotte Posthorn-Polka in B-Dur, 132 BPM – das Signal (Dreiklang hinauf) eröffnet jede Phrase,
+  // Bass auf eins und drei, die Begleitung auf den Nachschlägen, Röhrenglocke am Ende jeder Phrase
+  const PH = { Bb: ['f3', 'a#3', 'd4'], F: ['f3', 'a3', 'c4'], Eb: ['g3', 'a#3', 'd#4'] };
+  const PHB = { Bb: ['a#1', 'f2'], F: ['f1', 'c2'], Eb: ['d#2', 'a#1'] };
+  const PH_C = ['Bb', 'Bb', 'F', 'F', 'Bb', 'Bb', 'Eb', 'F', 'Bb', 'Bb', 'F', 'F', 'Eb', 'F', 'Bb', 'Bb'];
+  const PH_L = [
+    'a#4:2 d5:2 f5:2 a#5:4 f5:2 d5:2 f5:2', 'a#5:4 a5:2 g5:2 f5:4 -:4', 'c5:2 f5:2 a5:2 c6:4 a5:2 f5:2 a5:2', 'c6:4 a#5:2 a5:2 g5:4 -:4',
+    'd5:2 f5:2 a#5:2 d6:4 c6:2 a#5:2 a5:2', 'a#5:2 g5:2 f5:2 d5:2 f5:4 a#4:4', 'g5:3 f5:1 d#5:2 g5:2 a#5:4 g5:4', 'f5:2 a5:2 c6:2 f6:2 c6:4 -:4',
+    'a#4:2 d5:2 f5:2 a#5:4 f5:2 d5:2 f5:2', 'd6:4 c6:2 a#5:2 a5:4 f5:4', 'c5:2 f5:2 a5:2 c6:4 d6:2 c6:2 a5:2', 'g5:2 a5:2 a#5:2 c6:2 a5:4 f5:4',
+    'g5:2 a#5:2 d#6:4 d6:2 c6:2 a#5:2 g5:2', 'a5:2 c6:2 f6:4 d#6:2 c6:2 a5:4', 'a#5:2 f5:2 d5:2 f5:2 a#5:2 d6:2 f6:4', 'a#5:4 f5:2 d5:2 a#4:8',
+  ];
+  const PH_DR = ['k:2 h:2 s:2 h:2 k:2 h:2 s:2 h:2', 'k:2 s:1 s:1 s:2 s:1 s:1 t:2 t:2 u:2 b:2'];
   const AW = { G: ['g3', 'b3', 'd4'], D7: ['f#3', 'a3', 'c4'], C: ['e3', 'g3', 'c4'], E7: ['g#3', 'b3', 'd4'], Am: ['a3', 'c4', 'e4'], Em: ['e3', 'g3', 'b3'], B7: ['f#3', 'a3', 'd#4'], A7: ['g3', 'c#4', 'e4'] };
   const AW_B = { G: 'g2', D7: 'd2', C: 'c2', E7: 'e2', Am: 'a1', Em: 'e2', B7: 'b1', A7: 'a1' };
   const AW_C = ['G', 'D7', 'G', 'G', 'C', 'G', 'D7', 'G', 'G', 'D7', 'G', 'E7', 'Am', 'D7', 'G', 'G', 'Em', 'B7', 'Em', 'Em', 'C', 'G', 'A7', 'D7', 'G', 'D7', 'G', 'E7', 'Am', 'D7', 'G', 'G'];
@@ -640,6 +653,14 @@ const Audio8 = (() => {
       tri: AW_C.map(c => `${AW_B[c]}:4 -:8`).join(' '),
       pad: AW_C.map(c => AW[c].join('+') + ':12').join(' '),
       dr: AW_C.map((c, i) => AW_TYPE[i % 4 === 3 ? 2 : i % 2]).join(' '), // Schreibmaschine, Zeilenglocke, Wagenrücklauf – jede Phrase gleich
+    },
+    posthorn: {
+      bpm: 132, loop: true, echo: { delay: 3, vol: 0.22 },
+      p1: PH_L.join(' '),
+      p2: PH_C.map(c => `-:2 ${PH[c][1]}:2 -:2 ${PH[c][2]}:2 -:2 ${PH[c][1]}:2 -:2 ${PH[c][2]}:2`).join(' '),
+      tri: PH_C.map(c => `${PHB[c][0]}:4 ${PHB[c][1]}:4 ${PHB[c][0]}:4 ${PHB[c][1]}:4`).join(' '),
+      pad: PH_C.map(c => PH[c].join('+') + ':16').join(' '),
+      dr: PH_C.map((c, i) => PH_DR[i % 8 === 7 ? 1 : 0]).join(' '),
     },
     reisswolf: {
       bpm: 168, loop: true, echo: { delay: 3, vol: 0.2 },

@@ -80,6 +80,9 @@ const W = {
         case 'automat': this.spawn(new Automat(d.x, d.y, d)); break;
         case 'trakt': { const e = this.spawn(Trakt.make(d)); if (e.plats) e.plats.forEach(pl => this.platforms.push(pl)); break; } // Behördentrakt: Paternoster, Aktenschränke (js/trakt.js)
         case 'ordner': this.spawn(new Ordner(d.x, d.y, d)); break;
+        case 'post': { const e = this.spawn(Post.make(d)); break; } // Hauptpoststelle: Förderbänder, Pakete (js/post.js)
+        case 'brief': this.spawn(new Post.Brief(d.x, d.y, d)); break;
+        case 'nachnahme': this.spawn(new Post.Nachnahme(d.x, d.y)); break;
         case 'express': this.spawn(Express.make(d)); break; // Rohrpost-Express: Station (js/express.js)
         case 'keller': this.spawn(Keller.make(d)); break; // Aktenkeller: Rollregale, Kurbeln, Schiene, Steckdose (js/keller.js)
         case 'amtpile': this.spawn(new AmtPile()); break; // Leitz-Ordner-Haufen in der Bosskammer des Amtsschimmels (js/amt.js)

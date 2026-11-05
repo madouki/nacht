@@ -918,6 +918,26 @@ const Castle = (() => {
     // Aktenkeller (2. UG, links am Paternoster; js/keller.js): eine Rollregalanlage vor der Registraturwand, dahinter die Kammer
     // des Reißwolfs. Am Steuerpult schicken die Kurbeln A, B, C die Regale zur Wand; der Größe nach (A hoch, B mittel, C niedrig)
     // ergeben sie eine Treppe hinauf und hinüber. Auf der Kammerseite führen Bretter zurück hinauf
+    // Hauptpoststelle (rechts an der Registratur; js/post.js): Sortierhalle mit drei Förderbändern über dem Briefsackschacht, das
+    // Paketlager (ein Paket vom Absatz schieben, an die Mauer rücken, hinauf) und die Frankierstelle mit der Frankiermaschine
+    const post = R(110, 'station', 22).fill(0, 0, 109, 1, '#')
+      .ground(0, 15, 20).ground(47, 109, 20)                                                             // Schacht x 16–46 offen
+      .fill(18, 18, 25, 18, '=').fill(28, 16, 35, 16, '=').fill(38, 18, 44, 18, '=')                     // Bandreihen
+      .prop('post', { k: 'band', x0: 18, x1: 25, row: 18, dir: 1, v: 0.8 })
+      .prop('post', { k: 'band', x0: 28, x1: 35, row: 16, dir: -1, v: 0.95 })
+      .prop('post', { k: 'band', x0: 38, x1: 44, row: 18, dir: 1, v: 0.8 })
+      .fill(56, 18, 60, 19, '#')                                                                         // Absatz im Paketlager
+      .prop('post', { k: 'paket', x: 58, row: 17 })
+      .fill(72, 16, 73, 19, '#')                                                                         // Mauer zur Frankierstelle
+      .fill(74, 18, 76, 18, '=')                                                                         // Rückweg aus der Kammer
+      .prop('pz', { k: 'sign', x: 6, y: 16, title: 'postSignT', key: 'postSign', col: '#5c1c14', reach: 3 })
+      .prop('pz', { k: 'sign', x: 50, y: 16, title: 'paketSignT', key: 'paketSign', col: '#5c3c14', reach: 3 })
+      .mini('post', 75, 108, 75, 14)
+      .enemy('brief', 22, 12).enemy('brief', 32, 9, { dir: 1 }).enemy('brief', 41, 12).enemy('nachnahme', 52, 19)
+      .candle(3, 17, 'H').candle(12, 17).candle(31, 11, '$').candle(49, 13).candle(66, 17, 'H').candle(84, 17).candle(100, 17, 'H')
+      .music('posthorn').label('HAUPTPOSTSTELLE').start(1, 19).done();
+    post.mapH = 1; // eine Zellenreihe auf der Karte
+    add('hauptpost', 0, 3, null, post);
     const kel = R(80, 'library', 18).ground(0, 79, 16).fill(0, 0, 79, 1, '#')
       .fill(30, 8, 31, 15, '#')                                                                         // Registraturwand (oben frei)
       .fill(27, 14, 29, 14, '=').fill(24, 12, 26, 12, '=').fill(27, 10, 29, 10, '=')                    // Rückweg aus der Kammer
@@ -941,6 +961,7 @@ const Castle = (() => {
       [['side', 'paternoster'], { e: 'L', y: 21 }, ['side', 'kantine'], { e: 'R', y: 17 }, {}],                               // 1. UG links → Kantine
       [['side', 'paternoster'], { e: 'R', y: 45 }, ['side', 'registratur'], { e: 'L', y: 29 }, {}],                           // 3. UG rechts → Registratur
       [['side', 'paternoster'], { e: 'L', y: 33 }, ['side', 'aktenkeller'], { e: 'R', y: 15 }, {}],                           // 2. UG links → Aktenkeller
+      [['side', 'registratur'], { e: 'R', y: 29 }, ['side', 'hauptpost'], { e: 'L', y: 19 }, {}],                             // Registratur rechts → Hauptpoststelle
     );
   }
   if (on && Levels.room) buildSide();
@@ -1861,6 +1882,7 @@ const Castle = (() => {
   }
   if (on && typeof BOSSES !== 'undefined') BOSSES.doppel = Doppel;
   if (on && typeof BOSSES !== 'undefined' && typeof Amtsschimmel !== 'undefined') BOSSES.amt = Amtsschimmel; // Amtsschimmel im Amt für Heldentaten (js/amt.js)
+  if (on && typeof BOSSES !== 'undefined' && typeof Frankiermaschine !== 'undefined') BOSSES.post = Frankiermaschine; // Frankiermaschine in der Hauptpoststelle (js/post.js)
   if (on && typeof BOSSES !== 'undefined' && typeof Reisswolf !== 'undefined') BOSSES.reiss = Reisswolf;     // Reißwolf im Aktenkeller (js/keller.js)
   if (on && typeof BOSSES !== 'undefined' && typeof GolemBoss !== 'undefined') BOSSES.golem = GolemBoss; // Steingolem im Golemstollen (js/golem.js)
   // Spiegel im Kabinett: zeigen den Helden – solange der Doppelgänger lebt, mit Verzögerung (das Spiegelbild ist nicht ganz
@@ -2258,7 +2280,8 @@ const Castle = (() => {
     fairy: { slot: 'fam', fam: 'fairy', price: 7000, col: '#58f898' },  // Fee im Glas (Laden des Bibliothekars)
     tentling: { slot: 'fam', fam: 'tent', col: '#d880fc' },            // Neffe des Tentakels (Kolosseum, nach der Rabenfeder)
     shadowcard: { slot: 'fam', fam: 'shadow', col: '#8c5cc8' },        // Schatten des Doppelgängers: wiederholt jeden Hieb
-    reisszahn: { slot: 'weapon', atk: 6, col: '#c8ccd4' },                // Reißzahn (Lohn des Reißwolfs): Schneidwalze am Stiel
+    reisszahn: { slot: 'weapon', atk: 6, col: '#c8ccd4' },
+    posthorn: { slot: 'acc', luck: 3, greed: 1, col: '#f8d048' },               // Posthorn (Lohn der Frankiermaschine)                // Reißzahn (Lohn des Reißwolfs): Schneidwalze am Stiel
     dienstsiegel: { slot: 'acc', def: 1, cert: 1, col: '#c8182c' },     // Dienstsiegel (Lohn des Amtsschimmels): Urkunden zahlen doppelt
     galvheart: { slot: 'acc', hp: 6, atk: 3, col: '#58f8b0' },          // Glasherz des Erweckten (Galvani-Laboratorium)
     book_spirit: { spell: 'spirit', price: 2500, col: '#a4e4fc' },      // Zauberbücher (Laden): lehren je einen Zauber
@@ -2298,7 +2321,7 @@ const Castle = (() => {
   const STOCK = ['potion', 'elixir', 'leather', 'chain', 'silver', 'heartamulet', 'fairy', 'map', 'book_spirit', 'book_hellfire', 'book_soulsteal'];
   const once = (g) => !!(g.slot || g.key || g.spell || g.rec || g.quest); // gibt es nur einmal
   const BOSS_LOOT = [[[0, -1], 'batcard']];
-  const MINI_LOOT = [[['side', 'spiegel'], 'shadowcard', 20, 10], [['side', 'golemstollen'], 'steinhaut', 12, 10], [['side', 'galvani'], 'galvheart', 97, 25], [['side', 'heldenamt'], 'dienstsiegel', 14, 17], [['side', 'aktenkeller'], 'reisszahn', 8, 15]]; // nach dem Doppelgänger: sein Schatten; nach dem Steingolem: Steinhaut; nach dem Erweckten: sein Glasherz
+  const MINI_LOOT = [[['side', 'spiegel'], 'shadowcard', 20, 10], [['side', 'golemstollen'], 'steinhaut', 12, 10], [['side', 'galvani'], 'galvheart', 97, 25], [['side', 'heldenamt'], 'dienstsiegel', 14, 17], [['side', 'aktenkeller'], 'reisszahn', 8, 15], [['side', 'hauptpost'], 'posthorn', 100, 19]]; // nach dem Doppelgänger: sein Schatten; nach dem Steingolem: Steinhaut; nach dem Erweckten: sein Glasherz
   const FINDS = [ // Einzelstücke: [Raum, Gegenstand, Kachel-x, Standreihe]
     [['side', 'kolosseum'], 'leather', 12, 7], [['side', 'kanal'], 'bloodstone', 43, 7], [['side', 'schatz'], 'greedring', 25, 6],
     [['side', 'verlies'], 'dragonfang', 28, 6], [['side', 'wehrgang'], 'luckcoin', 37, 6], [['side', 'himmel'], 'mirror', 44, 5],
@@ -3042,9 +3065,9 @@ const Castle = (() => {
 
   // ---------------- Bestiarium wie die Gegnerliste in SotN (Status, dritte Seite): Siege je Gegnerart, absurde Einträge ----------------
   const BEASTS = ['Bat', 'Skeleton', 'Ghoul', 'Raven', 'Knight', 'LivingArmor', 'Panther', 'Skull', 'Fishman', 'Ghost', 'Snake', 'FlyBook', 'Tome',
-    'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Automat', 'Mannequin', 'Jelly', 'Ordner', 'Flieger', 'Conductor', 'Doppel', 'GolemBoss', 'Awakened', 'Amtsschimmel', 'Reisswolf',
+    'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Automat', 'Mannequin', 'Jelly', 'Ordner', 'Flieger', 'Conductor', 'Doppel', 'GolemBoss', 'Awakened', 'Amtsschimmel', 'Reisswolf', 'Brief', 'Nachnahme', 'Frankiermaschine',
     'TentacleBoss', 'GiantBat', 'IceWitch', 'GiantSkeleton', 'Medusa', 'SunWarden', 'ManTrap', 'Count'];
-  const BEAST_BOSS = { TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel', GolemBoss: 'bossGolem', Amtsschimmel: 'bossAmt', Reisswolf: 'bossReiss', Awakened: 'bossAwakened' };
+  const BEAST_BOSS = { TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel', GolemBoss: 'bossGolem', Amtsschimmel: 'bossAmt', Reisswolf: 'bossReiss', Frankiermaschine: 'bossFrank', Awakened: 'bossAwakened' };
   const BEAST_SET = new Set(BEASTS);
   const beastName = (k) => tr(BEAST_BOSS[k] || 'beast_' + k);
   const beasts = { sel: 0 };
@@ -3143,6 +3166,7 @@ const Castle = (() => {
     { id: 'doppel', ok: () => !!best.Doppel },
     { id: 'amt', ok: () => !!best.Amtsschimmel },
     { id: 'reiss', ok: () => !!best.Reisswolf },
+    { id: 'post', ok: () => !!best.Frankiermaschine },
     { id: 'express', ok: () => !!flag.express_perfect }, // Rohrpost-Express ohne Kratzer
     { id: 'kopf', ok: () => !!flag.pat_flip },  // Paternoster: oben durchgefahren
     { id: 'mahl', ok: () => !!flag.ate },       // Kantine: gegessen
@@ -3893,6 +3917,7 @@ const Castle = (() => {
   // Neueste Änderungen (zum Testen): die Abschnittswahl markiert diese Räume mit NEU und zeigt darunter, was sich geändert hat;
   // SUB springt zum nächsten markierten Abschnitt. Bei jeder Auslieferung neu füllen
   const RECENT = [
+    [['side', 'hauptpost'], 'chgPost'], // Hauptpoststelle: Förderbänder, Pakete, Frankiermaschine
     [['side', 'rohrpost'], 'chgExpress'], // Rohrpost-Express in Ego-Sicht (Aktenkeller – Rohrpostamt)
     [['side', 'aktenkeller'], 'chgKeller'], // Aktenkeller mit Rollregalen und dem Reißwolf
     [['side', 'paternoster'], 'chgTrakt'], // Behördentrakt: Paternoster, Kantine, Registratur
@@ -4253,7 +4278,7 @@ const Castle = (() => {
     for (const b of BEATS) { const a = ref(b.at[0]); if (!a) out.push('Szene ohne Raum: ' + b.id); else if (!ground(S()[a.s].rooms[a.r], b.at[1], b.at[2])) out.push('Figur ohne Boden: ' + b.id); }
     for (const [R, id, x, y] of FINDS) { const a = ref(R); if (!a) out.push('Fund ohne Raum: ' + id); else if (SOLID.includes(S()[a.s].rooms[a.r].grid[y][x])) out.push('Fund in der Wand: ' + id); }
     const need = ['patF0', 'patF1', 'patF2', 'patF3', 'patSignT', 'patSign', 'patFlip', 'patCellar', 'npcCook', 'cookTitle', 'cookHi', 'cookHiWE', 'cookSold', 'cookOwned', 'cookPoor', 'cookThanks1', 'cookThanks2', 'cookThanks3', 'cookEat1', 'cookEat2', 'cookEat3',
-      'kantMenuT', 'kantMenuWE', 'eatPop', 'buffEnd', 'regSignT', 'regSign', 'ablageP', 'ablageLab', 'outboxLab', 'ordnerDead', 'chgTrakt', 'chgSchimmel', 'chgKeller', 'chgExpress', 'expIn', 'expClosed', 'expSign', 'expStamps', 'expBoost', 'expWait', 'expArrive', 'expDone', 'expPerfect', 'expFlap', 'expGrate', 'expFolder', 'ach_express', 'achD_express', 'rrStuck', 'kellerSignT', 'kellerSign', 'bossReiss', 'bossReissShout', 'bossReissJam', 'bossReissRage', 'bossReissBonk', 'bossReissCrit', 'bossReissNote', 'banter_bossReiss', 'beastD_Reisswolf', 'ach_reiss', 'achD_reiss', 'item_reisszahn', 'itemD_reisszahn', 'banter_bossAmt', 'amtPile0', 'amtPile1', 'amtPile2', 'amtPile3', 'bossAmt', 'bossAmtNote', 'bossAmtShout', 'bossAmtRage', 'amtMark', 'npcClerk', 'amtSignT', 'amtSign', 'chgAmt', 'portrait0', 'portrait1', 'portrait2', 'banter_boss1', 'banter_boss2', 'banter_boss3', 'banter_boss4', 'banter_bossKraken', 'banter_bossTentacle', 'banter_bossKnight', 'banter_bossTrap', 'banter_bossWitch', 'banter_bossConductor', 'banter_bossDoppel', 'banter_bossAwakened', 'banter_bossGolem', 'secNew', 'secNewHelp', ...RECENT.map(([, k]) => k), 'chgBanter', 'famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'npcSpeed', 'npcBones', 'npcChicken', 'npcBarber', 'npcCarto', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'mapOverlayHelpT', 'optGuide', 'optGuideH'];
+      'kantMenuT', 'kantMenuWE', 'eatPop', 'buffEnd', 'regSignT', 'regSign', 'ablageP', 'ablageLab', 'outboxLab', 'ordnerDead', 'chgTrakt', 'chgSchimmel', 'chgKeller', 'chgExpress', 'chgPost', 'postSignT', 'postSign', 'paketSignT', 'paketSign', 'paketBack', 'briefDead', 'nachDead', 'portoHit', 'bossFrank', 'bossFrankRoll', 'bossFrankStamp', 'bossFrankRage', 'bossFrankCrit', 'bossFrankNote', 'banter_bossFrank', 'beast_Brief', 'beastD_Brief', 'beast_Nachnahme', 'beastD_Nachnahme', 'beastD_Frankiermaschine', 'item_posthorn', 'itemD_posthorn', 'ach_post', 'achD_post', 'expIn', 'expClosed', 'expSign', 'expStamps', 'expBoost', 'expWait', 'expArrive', 'expDone', 'expPerfect', 'expFlap', 'expGrate', 'expFolder', 'ach_express', 'achD_express', 'rrStuck', 'kellerSignT', 'kellerSign', 'bossReiss', 'bossReissShout', 'bossReissJam', 'bossReissRage', 'bossReissBonk', 'bossReissCrit', 'bossReissNote', 'banter_bossReiss', 'beastD_Reisswolf', 'ach_reiss', 'achD_reiss', 'item_reisszahn', 'itemD_reisszahn', 'banter_bossAmt', 'amtPile0', 'amtPile1', 'amtPile2', 'amtPile3', 'bossAmt', 'bossAmtNote', 'bossAmtShout', 'bossAmtRage', 'amtMark', 'npcClerk', 'amtSignT', 'amtSign', 'chgAmt', 'portrait0', 'portrait1', 'portrait2', 'banter_boss1', 'banter_boss2', 'banter_boss3', 'banter_boss4', 'banter_bossKraken', 'banter_bossTentacle', 'banter_bossKnight', 'banter_bossTrap', 'banter_bossWitch', 'banter_bossConductor', 'banter_bossDoppel', 'banter_bossAwakened', 'banter_bossGolem', 'secNew', 'secNewHelp', ...RECENT.map(([, k]) => k), 'chgBanter', 'famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'npcSpeed', 'npcBones', 'npcChicken', 'npcBarber', 'npcCarto', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'mapOverlayHelpT', 'optGuide', 'optGuideH'];
     for (const id in GEAR) need.push('item_' + id, 'itemD_' + id);
     for (const b of BEATS) { if (b.lines !== false) need.push('story_' + b.id); need.push('story_' + (b.again || b.id) + 'Again'); }
     for (const id of SPELL_IDS) need.push('spell_' + id);

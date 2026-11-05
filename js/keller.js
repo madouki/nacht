@@ -114,8 +114,8 @@ const Keller = (() => {
   // ---------------- PS2-Bausteine für den Reißwolf ----------------
   const BEIGE = [218, 208, 186], GRAPH = [64, 64, 72], GRAPHD = [40, 40, 46], STEEL = [186, 192, 204], RUBBER = [26, 24, 30], CHROME = [210, 214, 222];
   const PAL = { BEIGE, BEIGED: [176, 166, 146], BLACK: [24, 22, 26], C1: [236, 230, 210], C2: [190, 60, 60], C3: [70, 110, 190], C4: [240, 200, 70], GLASS: [52, 70, 92], GRAPH, GRAPHD, GREEN: [60, 190, 90], LED: [255, 60, 40], PLATE: [244, 240, 228], RED: [200, 34, 40], STEEL };
-  function xf(P, x, y, z) { // Teil-Rahmen → Boss-Raum (Rollen um z, dann Gieren um y)
-    const cr = Math.cos(P.r), sr = Math.sin(P.r), cy = Math.cos(P.y), sy = Math.sin(P.y), X = x * cr - y * sr, Y = x * sr + y * cr;
+  function xf(P, x, y, z) { // Teil-Rahmen → Boss-Raum (Rollen um z, Spiegeln in x (P.m = Blickrichtung), dann Gieren um y)
+    const cr = Math.cos(P.r), sr = Math.sin(P.r), cy = Math.cos(P.y), sy = Math.sin(P.y), X = (x * cr - y * sr) * (P.m || 1), Y = x * sr + y * cr;
     return [P.c[0] + X * cy - z * sy, P.c[1] + Y, P.c[2] + X * sy + z * cy];
   }
   function fbox(m, P, ox, oy, oz, w, h, d, col) {
@@ -128,7 +128,7 @@ const Keller = (() => {
     const base = m.v.length / 3, cr = Math.cos(P.r), sr = Math.sin(P.r), cy = Math.cos(P.y), sy = Math.sin(P.y);
     for (let i = 0; i < part.v.length; i += 3) { const q = xf(P, part.v[i], part.v[i + 1], part.v[i + 2]); m.v.push(q[0], q[1], q[2]); }
     for (const f of part.f) {
-      const X = f[1] * cr - f[2] * sr, Y = f[1] * sr + f[2] * cr, [c, e] = col(RW_MESH.k[f[0]]);
+      const X = (f[1] * cr - f[2] * sr) * (P.m || 1), Y = f[1] * sr + f[2] * cr, [c, e] = col(RW_MESH.k[f[0]]);
       m.f.push({ i: f.slice(4).map(j => j + base), c, n: [X * cy - f[3] * sy, Y, X * sy + f[3] * cy], e, two: false, a: 1 });
     }
   }
@@ -166,7 +166,7 @@ class Reisswolf extends Boss {
     const gy = (W.room.h - 2) * T;
     super(ax + 80, gy - 100, 112, 92, 48, 3);
     this.ax = ax; this.aw = aw; this.gy = gy; this.mini = true; this.score = 12000; this.nameKey = 'bossReiss'; this.music = 'reisswolf';
-    this.bx = ax + 116; this.face = 1; this.yaw = 0.35; this.lootY = gy - 40;
+    this.bx = ax + 116; this.face = 1; this.yaw = -0.35; this.lootY = gy - 40;
     this.state = 'off'; this.timer = 0; this.ph2 = false; this.lateIntro = true; this.holdIntro = true;
     this.sock = { x: ax + 14, y: gy - 24 }; this.plug = 0; this.led = 0; this.rev = 0; this.jaw = 0; this.wheel = 0; this.eat = 0; this.vx = 0;
     this.dashes = 0; this.buf = null; this.fast = !!(Castle.flags && Castle.flags.reiss_seen); // beim Wiedersehen kürzerer Auftritt
@@ -178,19 +178,19 @@ class Reisswolf extends Boss {
   }
   mesh() {
     const KM = Keller, m = PS2.mesh(), fl = this.flashT > 0, F = (c) => (fl ? [240, 240, 240] : c), bob = this.state === 'off' ? 0 : Math.sin(this.t * (0.3 + this.rev * 0.9)) * (0.4 + this.rev);
-    const P = { c: [0, bob, 0], r: this.state === 'bonk' ? Math.sin(this.timer * 0.6) * 0.04 : 0, y: this.yaw };
+    const P = { c: [0, bob, 0], r: this.state === 'bonk' ? Math.sin(this.timer * 0.6) * 0.04 : 0, y: this.yaw, m: this.face };
     const jam = this.state === 'jam', led = this.led, LED = [255, 40 + 120 * led, 30];
     const col = (k) => k === 'LED' ? [led > 0.05 ? LED : [70, 20, 20], led * 1.1] : k === 'GREEN' ? [F(this.led > 0.3 && !jam ? [80, 240, 110] : [30, 70, 40]), this.led > 0.3 && !jam ? 0.5 : 0] : k === 'RED' ? [F(jam && (this.t >> 2) & 1 ? [255, 70, 60] : PAL_RED), jam ? 0.6 : 0] : [F(KM.PAL[k] || [200, 0, 200]), 0];
     const PAL_RED = KM.PAL.RED;
     KM.imp(m, RW_MESH.body, P, col);
     KM.imp(m, RW_MESH.head, P, col);
     const ja = -this.jaw * 0.55, hinge = [30, 64]; // Unterkiefer klappt um das Gelenk
-    const PJ = { c: Keller.xf(P, hinge[0], hinge[1], 0), r: ja, y: P.y };
+    const PJ = { c: Keller.xf(P, hinge[0], hinge[1], 0), r: ja, y: P.y, m: P.m };
     const jawPart = { v: RW_MESH.jaw.v.map((v, i) => (i % 3 === 0 ? v - hinge[0] : i % 3 === 1 ? v - hinge[1] : v)), f: RW_MESH.jaw.f };
     KM.imp(m, jawPart, PJ, col);
     for (const [lx, lz] of [[-26, -16], [-26, 16], [22, -16], [22, 16]]) { // Beine: Chromrohr, Bürostuhlrolle
       KM.fbox(m, P, lx, 10, lz, 4, 8, 4, F(KM.CHROME));
-      const PW = { c: Keller.xf(P, lx, 5, lz), r: this.wheel, y: P.y };
+      const PW = { c: Keller.xf(P, lx, 5, lz), r: this.wheel, y: P.y, m: P.m };
       KM.fbox(m, PW, 0, 0, 0, 10, 10, 5, F(KM.RUBBER)); KM.fbox(m, PW, 0, 0, 0, 4, 4, 5.6, F(KM.CHROME));
     }
     if (jam) for (let k = 0; k < 3; k++) KM.fbox(m, P, 40 + k * 7, 60 + ((this.timer * 0.6 + k * 5) % 6), 0, 5, 7, 14, F([236, 230, 210])); // Papier steckt im Maul fest
@@ -253,7 +253,7 @@ class Reisswolf extends Boss {
     }
     const turn = this.state === 'idle' || this.state === 'wind';
     if (turn) this.face = p.cx < this.bx ? -1 : 1;
-    this.yaw = ease(this.yaw, this.face > 0 ? 0.35 : Math.PI - 0.35, 0.14);
+    this.yaw = ease(this.yaw, -0.35 * this.face, 0.14); // gespiegelt statt umgedreht: Fenster und Typenschild bleiben vorn
     this.hitbox();
     if (this.vulnerable() && this.state !== 'jam' && this.state !== 'bonk') this.touch();
     if (this.state === 'off') { // stromlos in der Ecke; der Held kommt herein

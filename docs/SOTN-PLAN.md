@@ -437,6 +437,24 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
       (Fächer aus Papierstreifen) und ANSTURM (Wandprall: benommen und verwundbar). Ab halber Energie Stufe 5 (Partikelschnitt).
     - Besiegt platzt er in Konfetti. Lohn: Reißzahn (Waffe, ATK +6) und die Urkunde „Datenschutz gewährleistet“.
   - Geräusche `howl`/`shred` vorerst als Synth (ElevenLabs war belegt; `Audio8.sample` nimmt Proben, sobald sie in `SAMP` stehen).
+- **Hauptpoststelle** (js/post.js, rechts an der Registratur, `hauptpost`, 110×22, Karte eine Zellenreihe):
+  - **Sortierhalle**: Drei Förderbänder (`Band` auf '='-Reihen) laufen über den Briefsackschacht, eines gegen die Laufrichtung.
+    Fliegende **Briefe** (Luftpostumschläge, Wellenflug) sind unterwegs.
+  - **Paketlager**: Ein `Paket` (2×2, 'G') wird vom Absatz geschoben, fällt und wird an die Mauer gerückt, dann geht es hinauf.
+    Es fällt kachelweise; stürzt es in den Schacht, kommt es als „RETOUR“ zurück. Bänder schieben Pakete mit. Dazu die
+    **Nachnahme**, ein Paket mit Zähnen, das aufklappt und hüpft.
+  - **Frankiermaschine** (Zwischengegner, PS2-3D, gespiegelt statt umgedreht): grün emaillierte Gusseisenmaschine mit Goldrahmen,
+    Typenschild, Posthorn-Emblem, Kurbel, Zählwerk, Manometer-Augen, Frankierhebel und Druckwalze.
+    - ROLLSTEMPEL: Die Walze rollt durch die Stelle, stempelt PORTO auf den Boden und kehrt zurück. Solange sie fort ist, liegt
+      das Druckwerk offen.
+    - BRIEFSALVE: Umschläge im Bogen.
+    - FRANKIEREN: Sie springt auf den Helden, schickt zwei Bodenwellen los und steckt danach fest.
+    - Offen oder steckend nimmt sie ×1,7 Schaden, sonst ×0,45. Jeder Treffer kostet obendrein NACHPORTO (100, ab Phase 2
+      200 Gold). Phase 2 heißt Expresszuschlag.
+    - Lohn: Posthorn (LUCK +3, GREED +1) und die Urkunde „Porto bezahlt“. Raummusik ist die Posthorn-Polka (B-Dur), der Boss
+      spielt den Amtsmarsch.
+- Reißwolf und Frankiermaschine spiegeln sich beim Umdrehen (`P.m` in `Keller.xf`/`imp`), statt sich um 180° zu drehen. So
+  bleiben Fenster, Typenschild und Kurbel zum Betrachter.
 - **Rohrpost-Express** (20261105-1430; js/express.js): Eilzustellung in Ego-Sicht zwischen der Kammer des Reißwolfs (Aktenkeller, erst
   nach dem Sieg) und dem Rohrpostamt (Rückweg erst nach der ersten Fahrt, sonst Abkürzung am Amtsschimmel vorbei).
   - An der Station ↑ drücken. Die Röhre ist ein Tunnel aus einer Nachschlagetabelle (213×104, Winkel und Tiefe je Bildpunkt) mit
