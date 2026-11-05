@@ -670,7 +670,7 @@ const Game = {
     if (Castle.on && this.state === 'play') Castle.update(P); // Schloss: Kartenzellen aufdecken, Türen benutzen
     if (!W.cleared) W.stageFrames++;
     if (this.hurryT > 0) this.hurryT--;
-    if (W.boss && this.bossName < 150) { if (this.bossName === 0) { Voice.say(W.boss.voice || 'boss' + (W.stage + 1)); this.startBanter(); } this.bossName++; }
+    if (W.boss && this.bossName < 150 && !W.boss.holdIntro) { if (this.bossName === 0) { Voice.say(W.boss.voice || 'boss' + (W.stage + 1)); this.startBanter(); } this.bossName++; }
     if (this.banter) this.tickBanter();
     const p = W.player;
     if (p.alive && p.hp <= p.maxHp / 4 && this.t % 50 === 0) Audio8.sfx('beat');

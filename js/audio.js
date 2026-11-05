@@ -46,6 +46,7 @@ const Audio8 = (() => {
     musicBus = ac.createGain(); musicBus.gain.value = MUSIC_VOL * musicLevel; musicBus.connect(muffleF);
     melBus = ac.createGain(); melBus.connect(musicBus);
     sfxBus = ac.createGain(); sfxBus.gain.value = 0.7; sfxBus.connect(master);
+    loadSamples();
     noiseBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
     const d = noiseBuf.getChannelData(0);
     let lfsr = 1;
@@ -164,6 +165,16 @@ const Audio8 = (() => {
       seq.forEach((f, i) => tone('pulse', f, f * (i % 2 ? 0.88 : 1.1), 0.075, 0.07, 0.25, t + i * 0.055));
       noise(0.8, 0.12, 'bandpass', 2000, 600); noise(0.25, 0.14, 'lowpass', 700, 200, t + 0.72); tone('sawtooth', 180, 90, 0.3, 0.05, 0, t + 0.72);
     },
+    neighBig: () => { // Urschrei des Amtsschimmels (ElevenLabs-Probe; sonst Synth): langes, sich überschlagendes Wiehern, dazu Brustdröhnen – die Wände wackeln
+      const t = ac.currentTime;
+      if (!sample('neighBig', 1.15)) {
+        const seq = [520, 760, 1080, 1420, 1680, 1560, 1700, 1520, 1640, 1440, 1540, 1320, 1400, 1180, 1240, 1020, 1080, 860, 900, 700, 560];
+        seq.forEach((f, i) => { const d = i < 4 ? 0.11 : 0.07, at = t + (i < 4 ? i * 0.1 : 0.4 + (i - 4) * 0.062); tone('sawtooth', f, f * (i % 2 ? 0.9 : 1.08), d + 0.02, 0.06, 0, at); tone('pulse', f * 1.005, f * (i % 2 ? 0.88 : 1.1), d, 0.05, 0.25, at); });
+        noise(1.6, 0.16, 'bandpass', 2400, 900); noise(0.35, 0.18, 'lowpass', 800, 180, t + 1.5); tone('sawtooth', 160, 80, 0.35, 0.06, 0, t + 1.5);
+      }
+      tone('triangle', 64, 34, 1.6, 0.5); noise(1.4, 0.32, 'lowpass', 380, 50); noise(0.9, 0.1, 'bandpass', 900, 300, t + 0.2); // Dröhnen, Regale klappern
+    },
+    neighAmt: () => { if (!sample('neighBig', 0.62, 0, 1.14)) SFX.neigh(); }, // Amtsschimmel im Kampf: dieselbe Probe, kürzer und heller
     neighFar: () => { const t = ac.currentTime; [900, 1250, 1150, 1200, 950, 700].forEach((f, i) => tone('triangle', f, f * 0.9, 0.08, 0.035, 0, t + i * 0.06)); noise(0.6, 0.04, 'bandpass', 1400, 600); },
     hooves: () => { const t = ac.currentTime; [0, 0.08, 0.19, 0.26].forEach(d => { noise(0.08, 0.24, 'lowpass', 520, 120, t + d); tone('triangle', 92, 52, 0.09, 0.22, 0, t + d); }); }, // Galopp, Viertakt
     hoovesFar: () => { const t = ac.currentTime; [0, 0.08, 0.19, 0.26].forEach(d => noise(0.07, 0.07, 'lowpass', 320, 100, t + d)); },
@@ -196,6 +207,8 @@ const Audio8 = (() => {
     clank: () => { tone('square', 340, 300, 0.07, 0.1); tone('square', 520, 470, 0.05, 0.07); noise(0.12, 0.2, 'bandpass', 2600, 1600); }, // Rüstung scheppert
     flap: () => { noise(0.07, 0.14, 'bandpass', 1300, 700); noise(0.05, 0.1, 'bandpass', 1700, 900, ac.currentTime + 0.08); }, // Buchdeckel schlagen
     page: () => noise(0.16, 0.09, 'highpass', 2600, 6000), // Papier raschelt
+    klack: () => { tone('triangle', 320, 120, 0.07, 0.3); noise(0.05, 0.22, 'bandpass', 1300, 500); }, // Holzhuf setzt auf
+    klack2: () => { tone('triangle', 520, 260, 0.04, 0.18); noise(0.05, 0.16, 'bandpass', 2400, 900); noise(0.08, 0.05, 'highpass', 4000); }, // Leitz-Ordner klackt an seinen Platz
     tome: () => { tone('sine', 196, 98, 0.5, 0.14); tone('triangle', 392, 370, 0.4, 0.06); arp(['e6', 'g6', 'a#6', 'e7'], 0.05, 'pulse', 0.04, 0.125); }, // Zauberbuch schlägt auf
     slime: () => { noise(0.4, 0.18, 'lowpass', 600, 150); tone('sine', 140, 60, 0.4, 0.12); }, // Schleimkokon gluckert
     splat: () => { noise(0.3, 0.35, 'bandpass', 900, 200); tone('sine', 220, 50, 0.25, 0.18); }, // Kokon platzt
@@ -207,6 +220,19 @@ const Audio8 = (() => {
     chug: () => { noise(0.09, 0.14, 'lowpass', 900, 160); tone('triangle', 82, 52, 0.08, 0.1); }, // Dampfrad: Tschuff der Maschine
     horn: () => { tone('square', 330, 300, 0.26, 0.07, 0.5); tone('square', 249, 230, 0.26, 0.05, 0.5); noise(0.2, 0.04, 'bandpass', 1200, 900); }, // Ballhupe: Tröööt
   };
+  // Studio-Geräusche (ElevenLabs Sound Effects) als Proben: beim Start geladen; solange eine fehlt, spielt die Synth-Fassung
+  const SAMP = { neighBig: 'voice/neigh_big.mp3' }, sbuf = {};
+  function loadSamples() {
+    for (const [k, f] of Object.entries(SAMP)) if (!(k in sbuf)) {
+      sbuf[k] = null;
+      fetch(f + '?v=' + (window.BUILD || 1)).then(r => (r.ok ? r.arrayBuffer() : null)).then(b => { if (b) ac.decodeAudioData(b, d => { sbuf[k] = d; }, () => {}); }).catch(() => {});
+    }
+  }
+  function sample(k, vol, t, rate) { // true = gespielt
+    const b = sbuf[k]; if (!b) return false;
+    const s = ac.createBufferSource(), g = ac.createGain(); s.buffer = b; if (rate) s.playbackRate.value = rate; g.gain.value = vol; s.connect(g); g.connect(outBus || sfxBus); s.start(t || 0);
+    return true;
+  }
   // x (optional): Weltposition der Quelle → Stereo-Position relativ zur Bildmitte
   function sfx(name, x) {
     if (!ac || !SFX[name]) return;
@@ -379,7 +405,9 @@ const Audio8 = (() => {
     'g5:6 f#5:3 g5:3', 'a5:6 g5:3 f#5:3', 'g5:4 b5:4 d6:4', 'd6:6 b5:6', 'c6:6 a5:3 e5:3', 'f#5:4 a5:4 c6:4', 'b5:6 a5:3 g5:3', 'g5:9 -:3',
     'e5:6 g5:3 b5:3', 'a5:6 f#5:3 d#5:3', 'e5:4 g5:4 e5:4', 'b4:12', 'c5:6 e5:3 g5:3', 'b5:6 g5:3 d5:3', 'c#5:4 e5:4 g5:4', 'f#5:6 -:6',
     'd5:6 b4:3 g4:3', 'c5:6 a4:3 f#4:3', 'b4:4 d5:4 g5:4', 'g#5:6 b5:6', 'a5:6 c6:3 a5:3', 'f#5:4 d5:4 a4:4', 'g5:6 d5:3 b4:3', 'g4:6 -:6'];
-  const AW_TYPE = ['z:1 -:1 z:1 z:1 -:2 z:1 -:1 z:1 z:1 z:1 -:1', 'z:1 z:1 -:1 z:1 z:1 -:1 z:1 -:2 z:1 z:1 -:1', '-:1 z:1 z:1 z:1 -:1 z:1 z:1 -:1 z:1 -:1 z:1 z:1'];
+  // Schreibmaschine im Takt: y = Tastenanschlag (nur Klack, kein Kick – mit z, das auch die Bassdrum schlägt, stolperte der Walzer
+  // über unregelmäßige Kicks samt Ducking), d = weicher Bumm auf der Eins; alle vier Takte Zeilenglocke auf 2, Wagenrücklauf auf 3
+  const AW_TYPE = ['d:2 y:2 y:2 y:1 y:1 y:2 y:2', 'd:2 y:1 y:1 y:2 y:2 y:2 y:2', 'd:2 y:2 b:4 r:4'];
 
   const SONGS = {
     title: {
@@ -588,7 +616,7 @@ const Audio8 = (() => {
       p2: AW_C.map(c => `-:4 ${AW[c][1]}:4 ${AW[c][2]}:4`).join(' '),
       tri: AW_C.map(c => `${AW_B[c]}:4 -:8`).join(' '),
       pad: AW_C.map(c => AW[c].join('+') + ':12').join(' '),
-      dr: AW_C.map((c, i) => i % 4 === 3 ? 'z:1 z:1 b:2 -:4 r:4' : AW_TYPE[i % 3]).join(' '), // Schreibmaschine, Zeilenglocke, Wagenrücklauf
+      dr: AW_C.map((c, i) => AW_TYPE[i % 4 === 3 ? 2 : i % 2]).join(' '), // Schreibmaschine, Zeilenglocke, Wagenrücklauf – jede Phrase gleich
     },
     amtsmarsch: {
       bpm: 150, loop: true, echo: { delay: 3, vol: 0.25 },
@@ -709,6 +737,7 @@ const Audio8 = (() => {
       return;
     }
     if (n === 'r') { noise(0.06, 0.3, 'bandpass', 2000, 1100, t, musicBus); noise(0.06, 0.34, 'bandpass', 2000, 1100, t + dur / 2, musicBus); return; }
+    if (n === 'y') { noise(0.022, 0.1, 'highpass', 6500, null, t, pan('hat', musicBus)); tone2('square', 2600, 2300, 0.008, 0.035, t, pan('hat', musicBus)); return; } // Schreibmaschinentaste
     if (n === 'z') noise(0.03, 0.1, 'highpass', 8000, null, t, pan('hat', musicBus));
     if (n === 'd') { // Doppel-Kick: kurz und trocken, ohne Sidechain (sonst pumpt die Musik bei 16teln)
       const o = osc('triangle'), g = ac.createGain();

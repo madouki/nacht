@@ -28,7 +28,7 @@ const W = {
     this.room = { ...def, grid: def.grid.map(r => r.slice()) };
     if (typeof Mirror !== 'undefined') Mirror.reset(); // kein Spiegelbild aus dem vorigen Raum
     this.ents = []; this.platforms = []; this.boss = null;
-    this.camLock = false; this.camTarget = null; this.arenaOn = false; this.arenaX = 0; this.arenaW = 0; this.arenaBoss = null; this.camEase = 0; this.gates = null; this.flipA = 0;
+    this.camLock = false; this.camTarget = null; this.arenaOn = false; this.arenaX = 0; this.arenaW = 0; this.arenaBoss = null; this.camEase = 0; this.gates = null; this.flipA = 0; this.wobble = 0;
     this.tutSign = null; this.exitBlocked = false; this.cleared = false; this.crash = null; this.exiting = false; this.cinema = 0; this.slowmo = 0; this.bossEnraged = false; this.vortexBg = 0; this.stopT = 0;
     if (this.bloodT > 0) { this.bloodT = 0; Audio8.tempo(1); }
     this.sway = { a: 0, v: 0 }; this.zoomFx = null; this.bellCd = 200; this.tubeRot = 0; this.tubeRotS = 0;
@@ -80,6 +80,7 @@ const W = {
         case 'automat': this.spawn(new Automat(d.x, d.y, d)); break;
         case 'trakt': { const e = this.spawn(Trakt.make(d)); if (e.plats) e.plats.forEach(pl => this.platforms.push(pl)); break; } // Behördentrakt: Paternoster, Aktenschränke (js/trakt.js)
         case 'ordner': this.spawn(new Ordner(d.x, d.y, d)); break;
+        case 'amtpile': this.spawn(new AmtPile()); break; // Leitz-Ordner-Haufen in der Bosskammer des Amtsschimmels (js/amt.js)
         case 'flieger': this.spawn(new Flieger(d.x * T + 8, d.y * T + 8, d)); break;
         case 'mannequin': this.spawn(new Mannequin(d.x, d.y, d)); break; // Lichterpassage (js/passage.js)
         case 'shopwin': this.spawn(new ShopWindow(d)); break;
@@ -412,6 +413,15 @@ const W = {
     return a;
   },
 
+  bossEntrance(b, o = {}) { // Auftritt eines Bosses: Musik, Brüllen, Kamerafahrt, Kinobalken, Blitz, Schockwelle
+    if (o.music !== false) Audio8.play(b.music || 'boss');
+    if (o.sfx !== null) Audio8.sfx(o.sfx || 'roar');
+    Input.rumble(0.8, 0.5, 700);
+    this.zoomFx = { t: 0, len: 84, amp: 0.16, b }; // Kamera fährt auf den Boss zu
+    this.cinema = 110; this.flash = 8; this.shake = 26;
+    this.spawn(new Shock(b.cx, b.cy, 120, '#d82800', 5));
+  },
+
   bossDefeated(b) {
     this.boss = null;
     Input.rumble(1, 1, 700);
@@ -527,10 +537,7 @@ const W = {
       if (Math.abs(d) < 0.5) {
         this.cam.x = this.camTarget; this.camTarget = null;
         this.boss = this.spawn(new BOSSES[this.arenaBoss](this.arenaX, this.arenaW));
-        Audio8.play(this.boss.music || 'boss'); Audio8.sfx('roar'); Input.rumble(0.8, 0.5, 700);
-        this.zoomFx = { t: 0, len: 84, amp: 0.16, b: this.boss }; // Kamera fährt auf den Boss zu
-        this.cinema = 110; this.flash = 8; this.shake = 26;
-        this.spawn(new Shock(this.boss.cx, this.boss.cy, 120, '#d82800', 5));
+        if (!this.boss.lateIntro) this.bossEntrance(this.boss); // Amtsschimmel: Auftritt erst, wenn er sich zusammengesetzt hat
       }
     } else if (!this.camLock) {
       const want = Math.abs(p.vx) > 0.1 ? p.face * 28 : p.face * 10;
@@ -551,6 +558,7 @@ const W = {
     this.frame++;
     if (this.hitstop > 0) { this.hitstop--; return; }
     if (this.shake > 0) this.shake--;
+    if (this.wobble > 0) this.wobble = this.wobble > 0.25 ? this.wobble * 0.975 : 0; // Wackelwände klingen aus
     if (this.flash > 0) this.flash--;
     if (this.lifeT > 0) this.lifeT--;
     if (this.freeze > 0) { this.freeze--; this.player.powerT = Math.max(this.player.powerT - 1, 0); return; }
@@ -644,6 +652,21 @@ const W = {
     const p = this.player;
     if (p.alive && p.hp <= p.maxHp / 4) Drama.drawDanger(ctx, vw, 0.35 + Math.sin(this.frame * 0.14) * 0.2);
     if (this.flash > 0 && (this.flash % 6) < 3) { ctx.fillStyle = 'rgba(252,252,252,0.45)'; ctx.fillRect(-4, -4, vw + 8, 216); }
+    ctx.restore();
+    if (this.wobble > 0) this.drawWobble(ctx, vw);
+  },
+
+  // Wackelnde Wände (Urschrei des Amtsschimmels): das Spielfeld schwingt zeilenweise wie Wackelpudding – wie SNES-HDMA,
+  // je Doppelzeile ein eigener Versatz aus zwei Sinuswellen, die gegeneinander laufen
+  drawWobble(ctx, vw) {
+    const cv = ctx.canvas, a = this.wobble, f = this.frame;
+    const off = this._wob && this._wob.width === cv.width && this._wob.height === cv.height ? this._wob : (this._wob = Sprites.canvas(cv.width, cv.height));
+    const o = off.getContext('2d'); o.clearRect(0, 0, off.width, off.height); o.drawImage(cv, 0, 0);
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+    for (let y = 0; y < 208; y += 2) {
+      const dx = Math.round(a * Math.sin(y * 0.085 + f * 0.55) * (0.65 + 0.35 * Math.sin(y * 0.023 - f * 0.17)));
+      if (dx) ctx.drawImage(off, 0, 32 + y, vw, 2, dx, 32 + y, vw, 2);
+    }
     ctx.restore();
   },
 

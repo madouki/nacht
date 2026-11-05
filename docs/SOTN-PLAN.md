@@ -406,6 +406,20 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
   treffbar), FORMULARSTURM (Formulare abwechselnd tief/Kopfhöhe), AKTENLAWINE (bäumt sich auf, Akten fallen aus den Regalen); ab halber
   Energie Doppelstempel, schneller, mehr Formulare. Eigenes Lied **Amtsmarsch** (g-Moll, Umtata, Trommelwirbel, Schalterglocke), in
   Phase 2 nur schneller. Lohn: **Dienstsiegel** (Amulett, DEF +1, Urkunden zahlen doppelt – `gear('cert')`), Urkunde „Antrag genehmigt“.
+  - **Neuer Amtsschimmel** (20261105): ein Schimmel aus Leitz-Ordnern (`AmtModel` in js/amt.js). Rumpf, Kruppe, Brust und
+    Beine sind einzelne Ordner (Rücken mit Etikett im Rahmen, farbigem Reiter, Griffloch im Metallring, Metallkante), Hufe sind
+    Holzstempel, der Hals eine Fächermappe mit Papiermähne. Der Kopf ist ein Pferdekopf aus gefaltetem Papier als Stempelgriff
+    (Blender-Low-Poly, Szene `nm_schimmel`, als Netz mit Normalen in js/amtmesh.js).
+    - Auftritt: In der Kammer liegt ein Haufen Ordner (`AmtPile`). Betritt der Held die Kammer, fliegen die Teile der Reihe nach im
+      Bogen an ihren Platz (Hufe, Beine, Rumpf, Kruppe, Brust, Hals, Kopf). Dann schnürt sich das Amtsband zu, das Siegel klatscht
+      drauf, die Augen glühen.
+    - Danach der **Urschrei**: ElevenLabs-Probe `voice/neigh_big.mp3` plus Dröhnen. Er bäumt sich auf, die Wände wackeln
+      (`W.wobble`: zeilenweiser Versatz wie SNES-HDMA, `drawWobble`). Erst dann folgen Musik, Namensband und Wortgeplänkel
+      (`holdIntro`, `lateIntro`, `W.bossEntrance`), danach der Kampf. Beim Wiedersehen geht der Zusammenbau doppelt so schnell.
+    - Besiegt fällt er wieder zum Haufen. Peitscht man den Haufen, hüpft der Kopf und antwortet mit Beamtensprüchen (`amtPile0–3`).
+- **Musik im Amt**: Die Schreibmaschine im Amtsstuben-Walzer nutzt jetzt `y` (nur Klack). `z` schlägt auch die Bassdrum samt
+  Ducking, deshalb stolperte der Walzer über unregelmäßige Kicks. Die Schreibmaschine läuft jetzt auf festem Raster, mit weichem
+  Bumm auf der Eins, Zeilenglocke und Wagenrücklauf alle vier Takte.
 - **Behördentrakt** (js/trakt.js; hinter der Bosskammer des Amtsschimmels links hinaus, Tür `{ mini: heldenamt }`): ein Trakt, der
   vom Amt in die Untergeschosse führt.
   - **Paternoster** (`paternoster`, 32×56): zwei Schächte mit 26 offenen Kabinen im Umlauf (Blender-Modell `pcabin`, Kabinenboden =
