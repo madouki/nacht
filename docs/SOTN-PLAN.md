@@ -437,6 +437,15 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
       (Fächer aus Papierstreifen) und ANSTURM (Wandprall: benommen und verwundbar). Ab halber Energie Stufe 5 (Partikelschnitt).
     - Besiegt platzt er in Konfetti. Lohn: Reißzahn (Waffe, ATK +6) und die Urkunde „Datenschutz gewährleistet“.
   - Geräusche `howl`/`shred` vorerst als Synth (ElevenLabs war belegt; `Audio8.sample` nimmt Proben, sobald sie in `SAMP` stehen).
+- **Rohrpost-Express** (20261105-1430; js/express.js): Eilzustellung in Ego-Sicht zwischen der Kammer des Reißwolfs (Aktenkeller, erst
+  nach dem Sieg) und dem Rohrpostamt (Rückweg erst nach der ersten Fahrt, sonst Abkürzung am Amtsschimmel vorbei).
+  - An der Station ↑ drücken. Die Röhre ist ein Tunnel aus einer Nachschlagetabelle (213×104, Winkel und Tiefe je Bildpunkt) mit
+    gemalter Messingtextur (Ringfugen, Nieten, Signallampen).
+  - Steuerung: ← → kreist die Kapsel an der Wand entlang, Sprung = Druckstoß, Angriff = Peitsche nach vorn.
+  - Hindernisse: Weichenklappen (Halbscheibe), Gitter mit grün markierter Lücke, entgegenfliegende Leitz-Ordner (zerschlagbar);
+    dazu Briefmarken im Bogen (Gold). Die Strecke ist 6400 Einheiten lang und wird schneller und dichter.
+  - Treffer kosten 2 HP (nie unter 1) und Tempo. Ohne Treffer gibt es die Urkunde „Eilzustellung“ (`express_perfect`).
+  - Ankunft: weiß überblendet, der Held steigt an der Gegenstation aus.
 - **Amtsschimmel noch hübscher** (20261105-1323):
   - Schabracke aus Registerblättern (pastell, mit Reitern), die beim Zuschnüren herabfällt.
   - Zaumzeug aus Amtsband mit Siegelmedaillon, Glanzlichter in den Augen, Kopf 15 % größer (die Plattenkante bleibt).

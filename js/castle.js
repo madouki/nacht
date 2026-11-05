@@ -853,6 +853,7 @@ const Castle = (() => {
         outs: { back: { x: 45.5, y: 14.5, say: 'pzTubeBack' }, bin: { x: 25.5, y: 13, say: 'pzTubeBin', sack: true }, porto: { x: 16.5, y: 13.5, say: 'pzTubePorto' }, prize: { x: 6.5, y: 6, say: 'pzTubePrize', prize: true } } })
       .prop('pz', { k: 'lever', x: 33, y: 17, g: 'tA', label: 'A' }).prop('pz', { k: 'lever', x: 36, y: 17, g: 'tB', label: 'B' }).prop('pz', { k: 'lever', x: 39, y: 17, g: 'tC', label: 'C' })
       .prop('pz', { k: 'tubeboard', x: 9, y: 11, w: 12, h: 5 })
+      .prop('express', { x: 27, y: 17, dest: 'aktenkeller', need: 'flag' })                            // Rohrpost-Express in den Aktenkeller (erst nach der ersten Fahrt)
       .prop('pz', { k: 'sign', x: 38, y: 9, title: 'pzTubeT', key: 'pzTubeHint', col: '#5c2c14', reach: 4 })
       .candle(46, 15, 'H').candle(30, 15).candle(20, 15, '$').candle(5, 6, 'H')
       .enemy('bat', 30, 8)
@@ -926,6 +927,7 @@ const Castle = (() => {
       .prop('keller', { k: 'roll', id: 'C', x: 56, h: 2, base: 16, to: 36 })
       .prop('keller', { k: 'crank', id: 'A', x: 64, y: 14 }).prop('keller', { k: 'crank', id: 'B', x: 66, y: 14 }).prop('keller', { k: 'crank', id: 'C', x: 68, y: 14 })
       .prop('keller', { k: 'socket', x: 2, y: 14 })
+      .prop('express', { x: 7, y: 15, dest: 'rohrpost', need: 'mini' })                                // Rohrpost-Express ins Rohrpostamt (nach dem Reißwolf)
       .prop('pz', { k: 'sign', x: 72, y: 12, title: 'kellerSignT', key: 'kellerSign', col: '#2c3430', reach: 3 })
       .mini('reiss', 1, 29, 1, 12)
       .enemy('ordner', 75, 15).enemy('ordner', 40, 15, { col: 1 }).enemy('flieger', 58, 6).enemy('ghost', 70, 8)
@@ -3141,6 +3143,7 @@ const Castle = (() => {
     { id: 'doppel', ok: () => !!best.Doppel },
     { id: 'amt', ok: () => !!best.Amtsschimmel },
     { id: 'reiss', ok: () => !!best.Reisswolf },
+    { id: 'express', ok: () => !!flag.express_perfect }, // Rohrpost-Express ohne Kratzer
     { id: 'kopf', ok: () => !!flag.pat_flip },  // Paternoster: oben durchgefahren
     { id: 'mahl', ok: () => !!flag.ate },       // Kantine: gegessen
     { id: 'ablage', ok: () => !!inv.aermel },   // Registratur: die Ärmelschoner geholt
@@ -3890,6 +3893,7 @@ const Castle = (() => {
   // Neueste Änderungen (zum Testen): die Abschnittswahl markiert diese Räume mit NEU und zeigt darunter, was sich geändert hat;
   // SUB springt zum nächsten markierten Abschnitt. Bei jeder Auslieferung neu füllen
   const RECENT = [
+    [['side', 'rohrpost'], 'chgExpress'], // Rohrpost-Express in Ego-Sicht (Aktenkeller – Rohrpostamt)
     [['side', 'aktenkeller'], 'chgKeller'], // Aktenkeller mit Rollregalen und dem Reißwolf
     [['side', 'paternoster'], 'chgTrakt'], // Behördentrakt: Paternoster, Kantine, Registratur
     [['side', 'heldenamt'], 'chgSchimmel'], // Amtsschimmel setzt sich aus Leitz-Ordnern zusammen, Urschrei mit Wackelwänden (vorher chgAmt)
@@ -4249,7 +4253,7 @@ const Castle = (() => {
     for (const b of BEATS) { const a = ref(b.at[0]); if (!a) out.push('Szene ohne Raum: ' + b.id); else if (!ground(S()[a.s].rooms[a.r], b.at[1], b.at[2])) out.push('Figur ohne Boden: ' + b.id); }
     for (const [R, id, x, y] of FINDS) { const a = ref(R); if (!a) out.push('Fund ohne Raum: ' + id); else if (SOLID.includes(S()[a.s].rooms[a.r].grid[y][x])) out.push('Fund in der Wand: ' + id); }
     const need = ['patF0', 'patF1', 'patF2', 'patF3', 'patSignT', 'patSign', 'patFlip', 'patCellar', 'npcCook', 'cookTitle', 'cookHi', 'cookHiWE', 'cookSold', 'cookOwned', 'cookPoor', 'cookThanks1', 'cookThanks2', 'cookThanks3', 'cookEat1', 'cookEat2', 'cookEat3',
-      'kantMenuT', 'kantMenuWE', 'eatPop', 'buffEnd', 'regSignT', 'regSign', 'ablageP', 'ablageLab', 'outboxLab', 'ordnerDead', 'chgTrakt', 'chgSchimmel', 'chgKeller', 'rrStuck', 'kellerSignT', 'kellerSign', 'bossReiss', 'bossReissShout', 'bossReissJam', 'bossReissRage', 'bossReissBonk', 'bossReissCrit', 'bossReissNote', 'banter_bossReiss', 'beastD_Reisswolf', 'ach_reiss', 'achD_reiss', 'item_reisszahn', 'itemD_reisszahn', 'banter_bossAmt', 'amtPile0', 'amtPile1', 'amtPile2', 'amtPile3', 'bossAmt', 'bossAmtNote', 'bossAmtShout', 'bossAmtRage', 'amtMark', 'npcClerk', 'amtSignT', 'amtSign', 'chgAmt', 'portrait0', 'portrait1', 'portrait2', 'banter_boss1', 'banter_boss2', 'banter_boss3', 'banter_boss4', 'banter_bossKraken', 'banter_bossTentacle', 'banter_bossKnight', 'banter_bossTrap', 'banter_bossWitch', 'banter_bossConductor', 'banter_bossDoppel', 'banter_bossAwakened', 'banter_bossGolem', 'secNew', 'secNewHelp', ...RECENT.map(([, k]) => k), 'chgBanter', 'famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'npcSpeed', 'npcBones', 'npcChicken', 'npcBarber', 'npcCarto', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'mapOverlayHelpT', 'optGuide', 'optGuideH'];
+      'kantMenuT', 'kantMenuWE', 'eatPop', 'buffEnd', 'regSignT', 'regSign', 'ablageP', 'ablageLab', 'outboxLab', 'ordnerDead', 'chgTrakt', 'chgSchimmel', 'chgKeller', 'chgExpress', 'expIn', 'expClosed', 'expSign', 'expStamps', 'expBoost', 'expWait', 'expArrive', 'expDone', 'expPerfect', 'expFlap', 'expGrate', 'expFolder', 'ach_express', 'achD_express', 'rrStuck', 'kellerSignT', 'kellerSign', 'bossReiss', 'bossReissShout', 'bossReissJam', 'bossReissRage', 'bossReissBonk', 'bossReissCrit', 'bossReissNote', 'banter_bossReiss', 'beastD_Reisswolf', 'ach_reiss', 'achD_reiss', 'item_reisszahn', 'itemD_reisszahn', 'banter_bossAmt', 'amtPile0', 'amtPile1', 'amtPile2', 'amtPile3', 'bossAmt', 'bossAmtNote', 'bossAmtShout', 'bossAmtRage', 'amtMark', 'npcClerk', 'amtSignT', 'amtSign', 'chgAmt', 'portrait0', 'portrait1', 'portrait2', 'banter_boss1', 'banter_boss2', 'banter_boss3', 'banter_boss4', 'banter_bossKraken', 'banter_bossTentacle', 'banter_bossKnight', 'banter_bossTrap', 'banter_bossWitch', 'banter_bossConductor', 'banter_bossDoppel', 'banter_bossAwakened', 'banter_bossGolem', 'secNew', 'secNewHelp', ...RECENT.map(([, k]) => k), 'chgBanter', 'famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'npcSpeed', 'npcBones', 'npcChicken', 'npcBarber', 'npcCarto', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'mapOverlayHelpT', 'optGuide', 'optGuideH'];
     for (const id in GEAR) need.push('item_' + id, 'itemD_' + id);
     for (const b of BEATS) { if (b.lines !== false) need.push('story_' + b.id); need.push('story_' + (b.again || b.id) + 'Again'); }
     for (const id of SPELL_IDS) need.push('spell_' + id);
