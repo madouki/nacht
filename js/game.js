@@ -1048,7 +1048,7 @@ const Game = {
     if (rooms.some(r => r.theme === 'ballroom')) jobs.push(() => Ball.prewarm());
     if (rooms.some(r => r.ents.some(e => e.type === 'grand'))) jobs.push(...PS2.chandJobs(54, 2)); // XXL-Kronleuchter: alle Drehstellungen vorab
     rooms.forEach(r => { if (r.wrap && PS2.Tower.prewarm) jobs.push(() => PS2.Tower.prewarm(r)); }); // Turmmäntel (Eisturm, Eisrutsche, Sonnenturm …)
-    if (rooms.some(r => r.ents.some(e => e.type === 'pendglass'))) jobs.push(() => Tiles.glassHi()); // Buntglas der Pendelhalle (doppelt aufgelöst, ~1 s Rechenzeit): sonst Hänger beim ersten Bild
+    if (rooms.some(r => r.ents.some(e => e.type === 'pendglass'))) for (let i = 0; i < 13; i++) jobs.push(() => Tiles.glassHiStep()); // Buntglas der Pendelhalle (doppelt aufgelöst, ~1,2 s): Fenster für Fenster vorbauen, sonst Hänger beim ersten Bild
     [...new Set(rooms.map(r => r.theme))].forEach(th => jobs.push(() => FX.drawFog(this.warmCtx(), th, { x: 0, y: 0 }, 0))); // Bodennebel je Thema
     jobs.push(() => this.warmRoom());
     this.warmJobs = jobs; this.warmTotal = jobs.length; this.warmDoneT = -1; this.warmFor = s;
