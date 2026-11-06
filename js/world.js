@@ -85,6 +85,8 @@ const W = {
         case 'brief': this.spawn(new Post.Brief(d.x, d.y, d)); break;
         case 'stern': { const e = this.spawn(Stern.make(d)); if (e.plats) e.plats.forEach(pl => this.platforms.push(this.spawn(pl))); break; } // Sternwarte: Himmel, Orrery (js/stern.js)
         case 'schnuppe': this.spawn(new Stern.Sternschnuppe(d.x, d.y)); break;
+        case 'mond': this.spawn(Mond.make(d)); break; // Mondkanone, Rückkehrkapsel, Erde am Himmel (js/mond.js)
+        case 'mondkalb': this.spawn(new Mond.Mondkalb(d.x, d.y)); break;
         case 'astrolab': this.spawn(new Stern.Astrolab(d.x, d.y)); break;
         case 'nachnahme': this.spawn(new Post.Nachnahme(d.x, d.y)); break;
         case 'express': this.spawn(Express.make(d)); break; // Rohrpost-Express: Station (js/express.js)
@@ -308,17 +310,18 @@ const W = {
   },
 
   // box: ein Rechteck oder eine Liste (Peitsche im Winkel = Kette kleiner Trefferzonen)
-  whipAt(box, dmg, id) {
+  whipAt(box, dmg, id) { // gibt die Zahl der Treffer zurück (federnder Abwärtshieb)
     const boxes = Array.isArray(box) ? box : [box];
-    const hits = (r) => boxes.some(b => Phys.overlap(b, r));
+    let n = 0;
+    const hits = (r) => { const h = boxes.some(b => Phys.overlap(b, r)); return h; };
     for (const e of this.ents) {
       if (e.dead) continue;
-      if (e.kind === 'candle') { if (hits(e)) e.hit(); }
+      if (e.kind === 'candle') { if (hits(e)) { e.hit(); n++; } }
       else if (e.kind === 'enemy' || e.kind === 'boss') {
         if (e.kind === 'enemy' && e.rise !== undefined && e.rise < 12) continue;
         const vul = e.hurtBoxes ? e.hurtBoxes().some(hits) : hits(e.hurtBox ? e.hurtBox() : e);
-        if (vul) { if (e.hit(dmg, id)) Input.rumble(0.15, 0.35, 60); }
-        else if (e.armorBoxes) { const ab = e.armorBoxes().find(hits); if (ab) e.deflect(id, ab); } // Panzerung: prallt ab
+        if (vul) { n++; if (e.hit(dmg, id)) Input.rumble(0.15, 0.35, 60); }
+        else if (e.armorBoxes) { const ab = e.armorBoxes().find(hits); if (ab) { e.deflect(id, ab); n++; } } // Panzerung: prallt ab (zählt für den federnden Abwärtshieb)
       } else if (e.kind === 'eproj' && !e.reflected && !e.unstoppable && hits(e)) { // Konter: Geschosse zerschlagen bzw. zurückschleudern
         if (e instanceof EProj) { // seit 20261106: jedes gewöhnliche Geschoss (Feuer, Knochen, Stein, Buchseite, Eis) fliegt zurück
           const p = this.player, arc = e.type === 'rock' || e.type === 'bone';
@@ -327,7 +330,7 @@ const W = {
           this.spawn(new Shock(e.cx, e.cy, 16, '#a4e4fc', 2));
           if (typeof Castle !== 'undefined' && Castle.on && Castle.flags) Castle.flags.konter = (Castle.flags.konter || 0) + 1;
         } else { e.dead = true; this.addScore(50); }
-        this.spawn(new Spark(e.cx, e.cy)); Audio8.sfx('hit', e.cx); Input.rumble(0.2, 0.4, 80);
+        this.spawn(new Spark(e.cx, e.cy)); Audio8.sfx('hit', e.cx); Input.rumble(0.2, 0.4, 80); n++;
       }
     }
     for (const b of boxes) {
@@ -337,6 +340,7 @@ const W = {
         if (ch === 'X' || ch === 'Y') this.breakTile(cx, cy, ch);
       }
     }
+    return n;
   },
 
   subHit(sub) {
@@ -656,7 +660,13 @@ const W = {
     if (flashOn && dark && theme !== 'glass') this.drawCastShadows(ctx); // Blitz in dunklen Sälen: alles wirft harte Schlagschatten an die Wand
     if (!this.room.wrap) this.drawDoor(ctx);
     const bend = theme === 'glass' || this.room.mtower; // Glasturm und Spiegelschacht von innen: Plattformen wölben sich zu den Rändern hin zum Betrachter
-    if (bend) this.drawTilesBent(ctx); else Tiles.drawTiles(ctx, this.room, this.cam, this.frame);
+    if (bend) this.drawTilesBent(ctx);
+    else if (this.room.mono) { // Mond: Kacheln des Themas als graues Mondgestein (eigener Puffer, einmal entsättigt aufgetragen)
+      const vw2 = View.w; if (!this.monoC || this.monoC.width !== vw2) this.monoC = Sprites.canvas(vw2, 208);
+      const mx = this.monoC.getContext('2d'); mx.setTransform(1, 0, 0, 1, 0, 0); mx.clearRect(0, 0, vw2, 208);
+      Tiles.drawTiles(mx, this.room, this.cam, this.frame);
+      ctx.save(); ctx.filter = this.room.mono; ctx.drawImage(this.monoC, 0, 0); ctx.restore();
+    } else Tiles.drawTiles(ctx, this.room, this.cam, this.frame);
     const order = ['prop', 'candle', 'platform', 'item', 'enemy', 'boss', 'sub', 'eproj', 'fx'];
     if (this.room.wrap) this.drawOnTower(ctx, order);
     else if (bend) this.drawBent(ctx, order);
@@ -671,11 +681,11 @@ const W = {
     if (flashOn) { this.drawStormShafts(ctx); ctx.fillStyle = `rgba(220,214,255,${dark ? 0.24 : 0.16})`; ctx.fillRect(0, 0, vw, 208); }
     const tl = (theme === 'cathedral' || theme === 'spire') && PS2.dayNight(this.frame); // Zeitraffer: nachts dunkel und blau, Kerzen leuchten
     const lights = this.collectLights();
-    FX.render(ctx, lights, theme, theme === 'ballroom' ? Ball.amb() : dark ? (flashOn ? dark[1] : dark[0]) : tl ? 0.05 + tl.night * 0.5 : undefined, tl && tl.night > 0.2 ? '6,8,34' : undefined); // zwischen den Blitzen dunkel, im Blitz taghell
+    FX.render(ctx, lights, theme, this.room.amb !== undefined ? this.room.amb : theme === 'ballroom' ? Ball.amb() : dark ? (flashOn ? dark[1] : dark[0]) : tl ? 0.05 + tl.night * 0.5 : undefined, tl && tl.night > 0.2 ? '6,8,34' : undefined); // zwischen den Blitzen dunkel, im Blitz taghell
     FX.drawMotes(ctx, lights, this.cam, this.frame); // Staub tanzt im Fackelschein
     Rays.draw(ctx, this.room, this.cam, this.frame);
     for (const e of this.ents) if (e.drawLit && !e.dead) e.drawLit(ctx); // Riesen (Steingolem): nach Licht und Nebel, mit eigener 3D-Beleuchtung
-    if (Options.bloom) FX.bloom(ctx, BLOOM[theme] ?? 1); // Glühen über allem, was leuchtet
+    if (Options.bloom) FX.bloom(ctx, this.room.bloom ?? BLOOM[theme] ?? 1); // Glühen über allem, was leuchtet (je Raum dämpfbar)
     this.drawGates(ctx); // Fallgitter der Bosskammer (nach dem Licht: Eisen bleibt auch im dunklen Stollen sichtbar)
     if (theme === 'mirror') Mirror.capture(ctx); // Spiegelgalerie: dieses Bild spiegelt sich im nächsten (vor Blitz, Blutmond und Warnrand)
     if (this.bloodT > 0) this.drawBloodMoon(ctx, vw);

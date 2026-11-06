@@ -29,6 +29,7 @@ const Castle = (() => {
   // Lage der Regionen auf der Schlosskarte (Zellen; jede Region ordnet ihre Räume selbst an, erster Raum bei 0,0). Die Übergänge
   // liegen Rand an Rand: unter der Eingangshalle die Katakomben (Kellerschacht), über ihr links der Bergfried (Turmschacht über dem
   // Sims), rechts der Thron (Siegelschacht unter der Decke); rechts der Großen Halle der Wintergarten, rechts der Marmorgalerie die Kathedrale
+  const MOON_AT = [-25, -12]; // Mond: Kartenplatz hoch über der Sternwarte (Mondmeer; der Krater legt sich rechts an)
   const REGION_AT = { arrival: [-18, 0], 0: [0, 0], 1: [7, 1], 2: [2, -2], sun: [15, -11], expo: [20, -3], 3: [9, -2] };
   // Verbindungen zwischen den Regionen: [Raum A, Stelle A, Raum B, Stelle B, Bedingung]. Raum = [Kapitel-id, Index] (-1 = letzter),
   // Stelle: 'start' | 'exit' | 'right' (rechter Rand hinter der Bossarena) | { x, y } (Tür mit ↑, Kachel links unten, y = Standreihe)
@@ -973,10 +974,31 @@ const Castle = (() => {
       .prop('stern', { k: 'sky', moon: false })
       .mini('stern', 6, 38, 8, 0)
       .candle(2, 19, 'H').candle(41, 19, 'H')
-      .chest(3, 21, 'big').prop('vessel', { x: 41, y: 21 })
+      .chest(3, 21, 'big').prop('vessel', { x: 42, y: 21 })
+      .prop('mond', { k: 'cannon', x: 40, y: 21, dest: 'mondmeer' })                                  // Mondkanone (nach dem Sternbild)
       .music('sternwarte').label('STERNKUPPEL').start(1, 21).done();
     kup.mapH = 1; kup.openSky = true;
     add('sternkuppel', 0, 3, null, kup);
+    // Mond (js/mond.js): Mondmeer mit geringer Schwerkraft (grav), Erde am Himmel, Mondkälber; dahinter der Krater mit dem
+    // Mann im Mond. Erreichbar nur mit der Mondkanone (kein Randausgang zum Schloss); auf der Karte hoch über allem
+    const mm = R(96, 'cave', 30).ground(0, 95, 26)
+      .fill(40, 26, 50, 27, '.').fill(66, 26, 73, 27, '.')                                              // Krater im Mondboden
+      .fill(14, 21, 17, 25, '#').fill(29, 19, 32, 25, '#').fill(56, 20, 60, 25, '#').fill(84, 22, 87, 25, '#') // Felsnadeln
+      .fill(20, 16, 25, 16, '=').fill(35, 12, 40, 12, '=').fill(48, 14, 53, 14, '=').fill(63, 10, 69, 10, '=').fill(76, 16, 81, 16, '=') // schwebende Mondbrocken
+      .prop('stern', { k: 'sky', moon: false }).prop('mond', { k: 'earth' })
+      .prop('mond', { k: 'capsule', x: 3, y: 25, dest: 'sternkuppel' })
+      .prop('pz', { k: 'sign', x: 9, y: 22, title: 'mondSignT', key: 'mondSign', col: '#2c2c3c', reach: 3 })
+      .enemy('mondkalb', 22, 25).enemy('mondkalb', 36, 25).enemy('mondkalb', 53, 25).enemy('mondkalb', 79, 25).enemy('schnuppe', 46, 5).enemy('schnuppe', 72, 3)
+      .chest(66, 9, 'big').prop('vessel', { x: 37, y: 11 })
+      .music('mondmeer').label('MONDMEER').start(6, 25).done();
+    mm.mapH = 1; mm.openSky = true; mm.grav = 0.42; mm.amb = 0.16; mm.mono = 'grayscale(0.88) brightness(1.18) contrast(1.05)'; mm.bloom = 0.7;
+    add('mondmeer', 0, 3, MOON_AT, mm);
+    const kr = R(44, 'cave', 22).ground(0, 43, 20).fill(0, 17, 4, 19, '#').fill(39, 17, 43, 19, '#')       // Kraterrand links und rechts
+      .prop('stern', { k: 'sky', moon: false }).prop('mond', { k: 'earth' })
+      .mini('mond', 5, 38, 7, 0)
+      .music('mondmeer').label('KRATER').start(1, 16).done();
+    kr.mapH = 1; kr.openSky = true; kr.grav = 0.42; kr.amb = 0.2; kr.mono = 'grayscale(0.88) brightness(1.18) contrast(1.05)'; kr.bloom = 0.4;
+    add('krater', 0, 3, null, kr);
     const kel = R(80, 'library', 18).ground(0, 79, 16).fill(0, 0, 79, 1, '#')
       .fill(30, 8, 31, 15, '#')                                                                         // Registraturwand (oben frei)
       .fill(27, 14, 29, 14, '=').fill(24, 12, 26, 12, '=').fill(27, 10, 29, 10, '=')                    // Rückweg aus der Kammer
@@ -1004,6 +1026,7 @@ const Castle = (() => {
       [['side', 'hauptpost'], { e: 'R', y: 19 }, ['side', 'chefetage'], { e: 'L', y: 19 }, { laufzettel: 1 }],                // Frankierstelle rechts → Chefetage (Laufzettel)
       [['side', 'chefetage'], { e: 'T', x: 2 }, ['side', 'planetarium'], { e: 'B', x: 2 }, { mini: ['side', 'chefetage'] }],   // Luke im Vorzimmer → Sternwarte (nach dem Schreibtischtäter)
       [['side', 'planetarium'], { e: 'R', y: 7 }, ['side', 'sternkuppel'], { e: 'L', y: 21 }, {}],                            // Balkon → Sternkuppel
+      [['side', 'mondmeer'], { e: 'R', y: 25 }, ['side', 'krater'], { e: 'L', y: 16 }, {}],                                   // Mondmeer → Krater
     );
   }
   if (on && Levels.room) buildSide();
@@ -1932,6 +1955,7 @@ const Castle = (() => {
   if (on && typeof BOSSES !== 'undefined' && typeof Frankiermaschine !== 'undefined') BOSSES.post = Frankiermaschine; // Frankiermaschine in der Hauptpoststelle (js/post.js)
   if (on && typeof BOSSES !== 'undefined' && typeof Schreibtisch !== 'undefined') BOSSES.chef = Schreibtisch;        // Schreibtischtäter in der Chefetage (js/chef.js)
   if (on && typeof BOSSES !== 'undefined' && typeof Sternbild !== 'undefined') BOSSES.stern = Sternbild;             // Sternbild in der Sternkuppel (js/stern.js)
+  if (on && typeof BOSSES !== 'undefined' && typeof MannImMond !== 'undefined') BOSSES.mond = MannImMond;           // Mann im Mond im Krater (js/mond.js)
   if (on && typeof BOSSES !== 'undefined' && typeof Reisswolf !== 'undefined') BOSSES.reiss = Reisswolf;     // Reißwolf im Aktenkeller (js/keller.js)
   if (on && typeof BOSSES !== 'undefined' && typeof GolemBoss !== 'undefined') BOSSES.golem = GolemBoss; // Steingolem im Golemstollen (js/golem.js)
   // Spiegel im Kabinett: zeigen den Helden – solange der Doppelgänger lebt, mit Verzögerung (das Spiegelbild ist nicht ganz
@@ -2332,7 +2356,8 @@ const Castle = (() => {
     reisszahn: { slot: 'weapon', atk: 6, col: '#c8ccd4' },
     posthorn: { slot: 'acc', luck: 3, greed: 1, col: '#f8d048' },
     goldstempel: { slot: 'acc', atk: 4, def: 3, luck: 2, col: '#f8d048' },       // Goldener Stempel (Lohn des Schreibtischtäters)
-    orrery: { slot: 'acc', mp: 12, luck: 2, def: 1, col: '#c8dcff' },              // Taschen-Orrery (Lohn des Sternbilds)               // Posthorn (Lohn der Frankiermaschine)                // Reißzahn (Lohn des Reißwolfs): Schneidwalze am Stiel
+    orrery: { slot: 'acc', mp: 12, luck: 2, def: 1, col: '#c8dcff' },              // Taschen-Orrery (Lohn des Sternbilds)
+    mondstein: { slot: 'acc', float: 1, luck: 1, col: '#e8e4d0' },                 // Mondstein (Lohn des Mannes im Mond): Schwerkraft −15 %               // Posthorn (Lohn der Frankiermaschine)                // Reißzahn (Lohn des Reißwolfs): Schneidwalze am Stiel
     dienstsiegel: { slot: 'acc', def: 1, cert: 1, col: '#c8182c' },     // Dienstsiegel (Lohn des Amtsschimmels): Urkunden zahlen doppelt
     galvheart: { slot: 'acc', hp: 6, atk: 3, col: '#58f8b0' },          // Glasherz des Erweckten (Galvani-Laboratorium)
     book_spirit: { spell: 'spirit', price: 2500, col: '#a4e4fc' },      // Zauberbücher (Laden): lehren je einen Zauber
@@ -2372,7 +2397,7 @@ const Castle = (() => {
   const STOCK = ['potion', 'elixir', 'leather', 'chain', 'silver', 'heartamulet', 'fairy', 'map', 'book_spirit', 'book_hellfire', 'book_soulsteal'];
   const once = (g) => !!(g.slot || g.key || g.spell || g.rec || g.quest); // gibt es nur einmal
   const BOSS_LOOT = [[[0, -1], 'batcard']];
-  const MINI_LOOT = [[['side', 'spiegel'], 'shadowcard', 20, 10], [['side', 'golemstollen'], 'steinhaut', 12, 10], [['side', 'galvani'], 'galvheart', 97, 25], [['side', 'heldenamt'], 'dienstsiegel', 14, 17], [['side', 'aktenkeller'], 'reisszahn', 8, 15], [['side', 'hauptpost'], 'posthorn', 100, 19], [['side', 'chefetage'], 'goldstempel', 69, 19], [['side', 'sternkuppel'], 'orrery', 30, 21]]; // nach dem Doppelgänger: sein Schatten; nach dem Steingolem: Steinhaut; nach dem Erweckten: sein Glasherz
+  const MINI_LOOT = [[['side', 'spiegel'], 'shadowcard', 20, 10], [['side', 'golemstollen'], 'steinhaut', 12, 10], [['side', 'galvani'], 'galvheart', 97, 25], [['side', 'heldenamt'], 'dienstsiegel', 14, 17], [['side', 'aktenkeller'], 'reisszahn', 8, 15], [['side', 'hauptpost'], 'posthorn', 100, 19], [['side', 'chefetage'], 'goldstempel', 69, 19], [['side', 'sternkuppel'], 'orrery', 30, 21], [['side', 'krater'], 'mondstein', 30, 19]]; // nach dem Doppelgänger: sein Schatten; nach dem Steingolem: Steinhaut; nach dem Erweckten: sein Glasherz
   const FINDS = [ // Einzelstücke: [Raum, Gegenstand, Kachel-x, Standreihe]
     [['side', 'kolosseum'], 'leather', 12, 7], [['side', 'kanal'], 'bloodstone', 43, 7], [['side', 'schatz'], 'greedring', 25, 6],
     [['side', 'verlies'], 'dragonfang', 28, 6], [['side', 'wehrgang'], 'luckcoin', 37, 6], [['side', 'himmel'], 'mirror', 44, 5],
@@ -3137,9 +3162,9 @@ const Castle = (() => {
 
   // ---------------- Bestiarium wie die Gegnerliste in SotN (Status, dritte Seite): Siege je Gegnerart, absurde Einträge ----------------
   const BEASTS = ['Bat', 'Skeleton', 'Ghoul', 'Raven', 'Knight', 'LivingArmor', 'Panther', 'Skull', 'Fishman', 'Ghost', 'Snake', 'FlyBook', 'Tome',
-    'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Automat', 'Mannequin', 'Jelly', 'Ordner', 'Flieger', 'Conductor', 'Doppel', 'GolemBoss', 'Awakened', 'Amtsschimmel', 'Reisswolf', 'Brief', 'Nachnahme', 'Frankiermaschine', 'Schreibtisch', 'Sternschnuppe', 'Astrolab', 'Sternbild',
+    'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Automat', 'Mannequin', 'Jelly', 'Ordner', 'Flieger', 'Conductor', 'Doppel', 'GolemBoss', 'Awakened', 'Amtsschimmel', 'Reisswolf', 'Brief', 'Nachnahme', 'Frankiermaschine', 'Schreibtisch', 'Sternschnuppe', 'Astrolab', 'Sternbild', 'Mondkalb', 'MannImMond',
     'TentacleBoss', 'GiantBat', 'IceWitch', 'GiantSkeleton', 'Medusa', 'SunWarden', 'ManTrap', 'Count'];
-  const BEAST_BOSS = { TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel', GolemBoss: 'bossGolem', Amtsschimmel: 'bossAmt', Reisswolf: 'bossReiss', Frankiermaschine: 'bossFrank', Schreibtisch: 'bossChef', Sternbild: 'bossStern', Awakened: 'bossAwakened' };
+  const BEAST_BOSS = { TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel', GolemBoss: 'bossGolem', Amtsschimmel: 'bossAmt', Reisswolf: 'bossReiss', Frankiermaschine: 'bossFrank', Schreibtisch: 'bossChef', Sternbild: 'bossStern', MannImMond: 'bossMond', Awakened: 'bossAwakened' };
   const BEAST_SET = new Set(BEASTS);
   const beastName = (k) => tr(BEAST_BOSS[k] || 'beast_' + k);
   const beasts = { sel: 0 };
@@ -3246,6 +3271,8 @@ const Castle = (() => {
     { id: 'takt', ok: () => !!flag.takt_s },              // Taktduell mit Wertung S
     { id: 'stern', ok: () => !!best.Sternbild },          // Sternbild (Sternkuppel)
     { id: 'orrery', ok: () => [0, 1, 2, 3].every(i => flag['planet' + i]) }, // auf allen vier Planeten gestanden
+    { id: 'landung', ok: () => !!flag.mond_landed },     // mit der Mondkanone auf dem Mond gelandet
+    { id: 'mond', ok: () => !!best.MannImMond },         // Mann im Mond (Krater)
     { id: 'express', ok: () => !!flag.express_perfect }, // Rohrpost-Express ohne Kratzer
     { id: 'kopf', ok: () => !!flag.pat_flip },  // Paternoster: oben durchgefahren
     { id: 'mahl', ok: () => !!flag.ate },       // Kantine: gegessen
@@ -4006,6 +4033,7 @@ const Castle = (() => {
   // Neueste Änderungen (zum Testen): die Abschnittswahl markiert diese Räume mit NEU und zeigt darunter, was sich geändert hat;
   // SUB springt zum nächsten markierten Abschnitt. Bei jeder Auslieferung neu füllen
   const RECENT = [
+    [['side', 'mondmeer'], 'chgMond'], // Mondkanone, Mondmeer (geringe Schwerkraft), Mann im Mond; Abwärtshieb federt
     [['side', 'planetarium'], 'chgStern'], // Sternwarte: Orrery, Sternschnuppen, Astrolabien, Sternbild
     [['side', 'rohrpost'], 'chgExpress2'], // Rohrpost-Express: schöner und gnädiger (früher sichtbar, Lenkhilfe, Countdown)
     [['side', 'hotel'], 'chgFeel'],        // Taktduell am Grammophon; Glühen, Konter, Perfekt-Ausweichen, adaptive Musik
@@ -4371,7 +4399,7 @@ const Castle = (() => {
     for (const b of BEATS) { const a = ref(b.at[0]); if (!a) out.push('Szene ohne Raum: ' + b.id); else if (!ground(S()[a.s].rooms[a.r], b.at[1], b.at[2])) out.push('Figur ohne Boden: ' + b.id); }
     for (const [R, id, x, y] of FINDS) { const a = ref(R); if (!a) out.push('Fund ohne Raum: ' + id); else if (SOLID.includes(S()[a.s].rooms[a.r].grid[y][x])) out.push('Fund in der Wand: ' + id); }
     const need = ['patF0', 'patF1', 'patF2', 'patF3', 'patSignT', 'patSign', 'patFlip', 'patCellar', 'npcCook', 'cookTitle', 'cookHi', 'cookHiWE', 'cookSold', 'cookOwned', 'cookPoor', 'cookThanks1', 'cookThanks2', 'cookThanks3', 'cookEat1', 'cookEat2', 'cookEat3',
-      'sternSignT', 'sternSign', 'bossStern', 'bossSternBear', 'bossSternScorp', 'bossSternStamp', 'bossSternOk', 'bossSternNote', 'banter_bossStern', 'beast_Sternschnuppe', 'beastD_Sternschnuppe', 'beast_Astrolab', 'beastD_Astrolab', 'beastD_Sternbild', 'item_orrery', 'itemD_orrery', 'ach_stern', 'achD_stern', 'ach_orrery', 'achD_orrery', 'optSpeed', 'optSpeedH', 'taktTitle', 'taktHi', 'taktHelp', 'taktPerfect', 'taktGood', 'taktMiss', 'taktScore', 'taktCombo', 'taktBest', 'taktAcc', 'taktMax', 'taktNewBest', 'taktS', 'taktA', 'taktB', 'taktC', 'ach_takt', 'achD_takt', 'optBloom', 'optBloomH', 'chgFeel', 'chgExpress2', 'dodgePerfect', 'ach_konter', 'achD_konter', 'ach_dodge', 'achD_dodge', 'laufStamp', 'laufLocked', 'laufDone', 'chefSignT', 'chefSign', 'bossChef', 'bossChefCall', 'bossChefWait', 'bossChefHold', 'bossChefPatience', 'bossChefBack', 'bossChefStand', 'bossChefChair', 'bossChefCrit', 'bossChefNote', 'banter_bossChef', 'beastD_Schreibtisch', 'item_goldstempel', 'itemD_goldstempel', 'ach_chef', 'achD_chef', 'ach_lauf', 'achD_lauf', 'kantMenuT', 'kantMenuWE', 'eatPop', 'buffEnd', 'regSignT', 'regSign', 'ablageP', 'ablageLab', 'outboxLab', 'ordnerDead', 'chgTrakt', 'chgSchimmel', 'chgKeller', 'chgExpress', 'chgPost', 'postSignT', 'postSign', 'paketSignT', 'paketSign', 'paketBack', 'briefDead', 'nachDead', 'portoHit', 'bossFrank', 'bossFrankRoll', 'bossFrankStamp', 'bossFrankRage', 'bossFrankCrit', 'bossFrankNote', 'banter_bossFrank', 'beast_Brief', 'beastD_Brief', 'beast_Nachnahme', 'beastD_Nachnahme', 'beastD_Frankiermaschine', 'item_posthorn', 'itemD_posthorn', 'ach_post', 'achD_post', 'expIn', 'expClosed', 'expSign', 'expStamps', 'expBoost', 'expWait', 'expArrive', 'expDone', 'expPerfect', 'expFlap', 'expGrate', 'expFolder', 'ach_express', 'achD_express', 'rrStuck', 'kellerSignT', 'kellerSign', 'bossReiss', 'bossReissShout', 'bossReissJam', 'bossReissRage', 'bossReissBonk', 'bossReissCrit', 'bossReissNote', 'banter_bossReiss', 'beastD_Reisswolf', 'ach_reiss', 'achD_reiss', 'item_reisszahn', 'itemD_reisszahn', 'banter_bossAmt', 'amtPile0', 'amtPile1', 'amtPile2', 'amtPile3', 'bossAmt', 'bossAmtNote', 'bossAmtShout', 'bossAmtRage', 'amtMark', 'npcClerk', 'amtSignT', 'amtSign', 'chgAmt', 'portrait0', 'portrait1', 'portrait2', 'banter_boss1', 'banter_boss2', 'banter_boss3', 'banter_boss4', 'banter_bossKraken', 'banter_bossTentacle', 'banter_bossKnight', 'banter_bossTrap', 'banter_bossWitch', 'banter_bossConductor', 'banter_bossDoppel', 'banter_bossAwakened', 'banter_bossGolem', 'secNew', 'secNewHelp', ...RECENT.map(([, k]) => k), 'chgBanter', 'famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'npcSpeed', 'npcBones', 'npcChicken', 'npcBarber', 'npcCarto', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'mapOverlayHelpT', 'optGuide', 'optGuideH'];
+      'mondIn', 'mondClosed', 'mondBack', 'mondLand', 'mondSignT', 'mondSign', 'bossMond', 'bossMondHalf', 'bossMondNew', 'bossMondNote', 'banter_bossMond', 'beast_Mondkalb', 'beastD_Mondkalb', 'beastD_MannImMond', 'item_mondstein', 'itemD_mondstein', 'ach_landung', 'achD_landung', 'ach_mond', 'achD_mond', 'sternSignT', 'sternSign', 'bossStern', 'bossSternBear', 'bossSternScorp', 'bossSternStamp', 'bossSternOk', 'bossSternNote', 'banter_bossStern', 'beast_Sternschnuppe', 'beastD_Sternschnuppe', 'beast_Astrolab', 'beastD_Astrolab', 'beastD_Sternbild', 'item_orrery', 'itemD_orrery', 'ach_stern', 'achD_stern', 'ach_orrery', 'achD_orrery', 'optSpeed', 'optSpeedH', 'taktTitle', 'taktHi', 'taktHelp', 'taktPerfect', 'taktGood', 'taktMiss', 'taktScore', 'taktCombo', 'taktBest', 'taktAcc', 'taktMax', 'taktNewBest', 'taktS', 'taktA', 'taktB', 'taktC', 'ach_takt', 'achD_takt', 'optBloom', 'optBloomH', 'chgFeel', 'chgExpress2', 'dodgePerfect', 'ach_konter', 'achD_konter', 'ach_dodge', 'achD_dodge', 'laufStamp', 'laufLocked', 'laufDone', 'chefSignT', 'chefSign', 'bossChef', 'bossChefCall', 'bossChefWait', 'bossChefHold', 'bossChefPatience', 'bossChefBack', 'bossChefStand', 'bossChefChair', 'bossChefCrit', 'bossChefNote', 'banter_bossChef', 'beastD_Schreibtisch', 'item_goldstempel', 'itemD_goldstempel', 'ach_chef', 'achD_chef', 'ach_lauf', 'achD_lauf', 'kantMenuT', 'kantMenuWE', 'eatPop', 'buffEnd', 'regSignT', 'regSign', 'ablageP', 'ablageLab', 'outboxLab', 'ordnerDead', 'chgTrakt', 'chgSchimmel', 'chgKeller', 'chgExpress', 'chgPost', 'postSignT', 'postSign', 'paketSignT', 'paketSign', 'paketBack', 'briefDead', 'nachDead', 'portoHit', 'bossFrank', 'bossFrankRoll', 'bossFrankStamp', 'bossFrankRage', 'bossFrankCrit', 'bossFrankNote', 'banter_bossFrank', 'beast_Brief', 'beastD_Brief', 'beast_Nachnahme', 'beastD_Nachnahme', 'beastD_Frankiermaschine', 'item_posthorn', 'itemD_posthorn', 'ach_post', 'achD_post', 'expIn', 'expClosed', 'expSign', 'expStamps', 'expBoost', 'expWait', 'expArrive', 'expDone', 'expPerfect', 'expFlap', 'expGrate', 'expFolder', 'ach_express', 'achD_express', 'rrStuck', 'kellerSignT', 'kellerSign', 'bossReiss', 'bossReissShout', 'bossReissJam', 'bossReissRage', 'bossReissBonk', 'bossReissCrit', 'bossReissNote', 'banter_bossReiss', 'beastD_Reisswolf', 'ach_reiss', 'achD_reiss', 'item_reisszahn', 'itemD_reisszahn', 'banter_bossAmt', 'amtPile0', 'amtPile1', 'amtPile2', 'amtPile3', 'bossAmt', 'bossAmtNote', 'bossAmtShout', 'bossAmtRage', 'amtMark', 'npcClerk', 'amtSignT', 'amtSign', 'chgAmt', 'portrait0', 'portrait1', 'portrait2', 'banter_boss1', 'banter_boss2', 'banter_boss3', 'banter_boss4', 'banter_bossKraken', 'banter_bossTentacle', 'banter_bossKnight', 'banter_bossTrap', 'banter_bossWitch', 'banter_bossConductor', 'banter_bossDoppel', 'banter_bossAwakened', 'banter_bossGolem', 'secNew', 'secNewHelp', ...RECENT.map(([, k]) => k), 'chgBanter', 'famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'npcSpeed', 'npcBones', 'npcChicken', 'npcBarber', 'npcCarto', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'mapOverlayHelpT', 'optGuide', 'optGuideH'];
     for (const id in GEAR) need.push('item_' + id, 'itemD_' + id);
     for (const b of BEATS) { if (b.lines !== false) need.push('story_' + b.id); need.push('story_' + (b.again || b.id) + 'Again'); }
     for (const id of SPELL_IDS) need.push('spell_' + id);
@@ -4395,6 +4423,7 @@ const Castle = (() => {
         if (r + 1 < rooms.length && !rooms[r + 1].side) push(s, r + 1); // Ausgang in den nächsten Raum
         for (const d of doorsOf(s, r)) push(d.to.s, d.to.r);
         for (const [A, pa, B] of LINKS) { const a = ref(A), b = ref(B); if (a && b && same(a, s, r) && pa === 'exit') push(b.s, b.r); }
+        for (const e of rooms[r].ents || []) if ((e.type === 'mond' || e.type === 'express') && e.dest && SIDE[e.dest]) push(SIDE[e.dest].s, SIDE[e.dest].r); // Reisen per Mondkanone / Rohrpost-Express
       }
       S().forEach((st, s) => st.rooms.forEach((def, r) => { if (!seenR.has(key(s, r))) out.push('Raum unerreichbar: ' + roomKey(s, r) + (def.label ? ' (' + def.label + ')' : '')); }));
     }
@@ -4451,7 +4480,7 @@ const Castle = (() => {
     hasSave: () => !!readSave(), loadSave: readSave, applySave, chambers: allChambers, writeResume, dropResume,
     newRun, drawStatus, expProgress, gainExp, get rpg() { return rpg; }, talkInput, drawTalk, get talk() { return talk; }, get flags() { return flag; },
     openEquip, equipInput, drawEquip, openShop, shopInput, drawShop, get inv() { return inv; }, get eq() { return eq; }, giveItem,
-    preUpdate, statusInput, mpMax, get mp() { return mp; }, set mp(v) { mp = v; },
+    preUpdate, statusInput, mpMax, get mp() { return mp; }, set mp(v) { mp = v; }, get floaty() { return gear('float') > 0; },
     toolCount: TOOLS.length, get toolSel() { return tools.sel; }, set toolSel(v) { tools.sel = v; },
     startTest, enterTest, finishTest, drawMilestones, milestones: MILESTONES.length, msLabel: (n) => msName(MILESTONES[n]), msTarget: (n) => { const a = ref(MILESTONES[n].at); return { s: a.s, r: a.r }; }, get testing() { return testing; },
     setFlag: (k) => { flag[k] = 1; save(); }, // z. B. Aufzug als Abkürzung freigeschaltet (lift.js)

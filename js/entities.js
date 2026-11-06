@@ -210,10 +210,17 @@ class Player {
     return out;
   }
 
+  // Schwerkraft je Raum (Mond: W.room.grav) und mit dem Mondstein (−15 %); fallen langsamer, wo es leichter ist
+  g() { return GRAV * ((W.room && W.room.grav) || 1) * (typeof Castle !== 'undefined' && Castle.on && Castle.floaty ? 0.85 : 1); }
+  mf() { return W.room && W.room.grav ? MAXFALL * 0.7 : MAXFALL; }
   whipHits() {
     const box = this.whipBox();
     const dmg = (this.whip >= 2 ? 2 : 1) * Options.dmgMul * (this.rageT > 0 ? 2 : 1);
-    W.whipAt(box, dmg, this.atkId, this.face);
+    const n = W.whipAt(box, dmg, this.atkId, this.face);
+    if (n && !this.onGround && (this.atkDir === 'down' || this.atkDir === 'downd') && !(this.pogoT > 0)) { // Abwärtshieb federt: Treffer nach unten schleudert den Helden hoch
+      this.vy = JUMP * 0.85; this.pogoT = 14; this.canDouble = true; this.canAirDash = true; this.jumping = false;
+      Audio8.sfx('tink'); W.spawn(new Shock(this.cx, this.feet, 14, '#fce0a8', 2));
+    }
   }
 
   throwSub() {
@@ -223,6 +230,7 @@ class Player {
   }
 
   hurt(dmg, srcX) {
+    if (this.state === 'cannon') return; // im Flug zum Mond
     if (this.inv > 0 || !this.alive || W.cleared || Game.state === 'demo' || Options.god) return; // Demo und Testhilfe: unverwundbar
     if (W.dodgeCd <= 0 && W.perfectDodge && this.state === 'normal' && ((this.dashT > 0 && this.dashT > (this.airDash ? AIRDASH_LEN : DASH_LEN) - 10) || this.slideT > 15)) { W.perfectDodge(this); return; } // Perfekt-Ausweichen
     if (this.stoneT > 0) this.breakStone(false); // ein Treffer sprengt den Stein
@@ -271,7 +279,7 @@ class Player {
     if (this.stoneShake > 0) this.stoneShake--;
     if (--this.stoneT <= 0) return this.breakStone(true);
     if (this.state === 'stairs') return;
-    this.vx = 0; this.vy = Math.min(this.vy + GRAV, MAXFALL);
+    this.vx = 0; this.vy = Math.min(this.vy + this.g(), this.mf());
     const r = Phys.moveY(this, this.vy);
     this.onGround = r === 1; if (r) this.vy = 0;
     this.checkPlatforms(); this.hazards();
@@ -341,7 +349,9 @@ class Player {
     if (this.state === 'swing') return this.updateSwing(I, P);
     if (this.state === 'zip') return this.updateZip(P);
     if (this.state === 'ride') return Moto.ride(this, I, P); // Dampfrad: das Fahrzeug steuert den Helden (js/moto.js)
+    if (this.pogoT > 0) this.pogoT--;
     if (this.state === 'express') return Express.ride(this, I, P); // Rohrpost-Express: Ego-Fahrt durch die Röhre (js/express.js)
+    if (this.state === 'cannon') return Mond.ride(this); // Mondkanone: Flug durchs All (js/mond.js)
     if (this.boostT > 0) this.boostT--; // Eisturm: Boost-Kristall und Schanzen-Serie laufen aus
     if (this.skiT > 0 && --this.skiT === 0) this.skiN = 0;
     if (this.state === 'stairs') return this.updateStairs(I, P);
@@ -356,7 +366,7 @@ class Player {
     }
 
     if (this.state === 'hurt') {
-      this.vy = Math.min(this.vy + GRAV, MAXFALL);
+      this.vy = Math.min(this.vy + this.g(), this.mf());
       Phys.moveX(this, this.vx);
       const r = Phys.moveY(this, this.vy);
       if (r === 1) { this.state = 'normal'; this.vx = 0; this.vy = 0; this.onGround = true; }
@@ -442,7 +452,7 @@ class Player {
     }
     if (this.vx !== 0 && this.onGround) { this.walkT++; if (this.walkT % 20 === 1) { W.dust(this.cx - this.face * 4, this.feet, 1); this.footstep(); } } else if (this.onGround) this.walkT = 0;
 
-    this.vy = Math.min(this.vy + GRAV, this.wallSlide ? 1.25 : MAXFALL);
+    this.vy = Math.min(this.vy + this.g(), this.wallSlide ? 1.25 : this.mf());
     Phys.moveX(this, this.vx);
     const wasGround = this.onGround;
     const r = Phys.moveY(this, this.vy);
@@ -488,7 +498,7 @@ class Player {
       return;
     }
     if (mx === -this.face) this.dashT = 0; // Gegenrichtung bricht ab
-    this.vy = this.airDash ? 0 : Math.min(this.vy + GRAV, MAXFALL);
+    this.vy = this.airDash ? 0 : Math.min(this.vy + this.g(), this.mf());
     if (Phys.moveX(this, this.vx) && !(typeof IceWall !== 'undefined' && IceWall.dashBreak(this))) this.dashT = 0; // Eiswand: der Dash bricht hindurch
     const was = this.onGround, r = Phys.moveY(this, this.vy);
     this.onGround = r === 1; if (r) this.vy = 0;
@@ -896,7 +906,7 @@ class Player {
     this.vx = this.face * Math.max(roof ? 1.7 : 0.8, this.slideV || 3.6 * this.slideT / 26 + 0.4);
     if (this.slideT % 3 === 0) W.dust(this.cx - this.face * 5, this.feet, 1);
     if (W.frame % 2 === 0) W.spawn(new Particle(this.cx + this.face * 7, this.feet - 1, this.face * rnd(0.4, 1.4), -rnd(0.4, 1.2), W.room.ice ? (Math.random() < 0.5 ? '#e8f8ff' : '#8cd4f4') : Math.random() < 0.5 ? '#b8a890' : '#7c6c58', 12, 1, 0.12)); // Staub vor dem Fuß (auf Eis: Schnee und Eissplitter)
-    this.vy = Math.min(this.vy + GRAV, MAXFALL);
+    this.vy = Math.min(this.vy + this.g(), this.mf());
     if (Phys.moveX(this, this.vx)) { if (roof) this.face *= -1; else this.slideT = 0; } // in der Röhre an der Wand: umkehren
     const r = Phys.moveY(this, this.vy);
     this.onGround = r === 1;
@@ -941,7 +951,7 @@ class Player {
     if (this.state === 'hurt') return H.hurt;
     if (this.state === 'swing' || this.state === 'zip') return H.swing;
     if (this.state === 'ride') return Moto.pose(this, H, p); // im Sattel: Hockpose, Hiebe aus der Hocke (js/moto.js)
-    if (this.state === 'express') return H.crouch;
+    if (this.state === 'express' || this.state === 'cannon') return H.crouch;
     if (this.state === 'ledge') return H.hang;
     if (this.state === 'climb') return this.climbT <= 10 ? H.climb : H.crouch;
     if (this.slideT > 0) return H.slide ? H.slide[(W.frame >> 2) & 1] : H.crouch;
@@ -968,7 +978,7 @@ class Player {
   }
 
   draw(ctx, cam) {
-    if (this.state === 'express') return; // sitzt in der Kapsel
+    if (this.state === 'express' || this.state === 'cannon') return; // sitzt in der Kapsel
     if (this.hidden) return;
     if (this.inv > 0 && this.alive && (W.frame & 2)) return;
     if (this.stoneT > 0 && this.stoneSpr) { // versteinert: graue Statue, zittert beim Freistrampeln

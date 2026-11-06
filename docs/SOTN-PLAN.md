@@ -437,6 +437,38 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
       (Fächer aus Papierstreifen) und ANSTURM (Wandprall: benommen und verwundbar). Ab halber Energie Stufe 5 (Partikelschnitt).
     - Besiegt platzt er in Konfetti. Lohn: Reißzahn (Waffe, ATK +6) und die Urkunde „Datenschutz gewährleistet“.
   - Geräusche `howl`/`shred` vorerst als Synth (ElevenLabs war belegt; `Audio8.sample` nimmt Proben, sobald sie in `SAMP` stehen).
+- **Mond** (20261106; js/mond.js): In der Sternkuppel steht nach dem Sternbild die Mondkanone des Amtsleiters (Jules Verne
+  lässt grüßen).
+  - **Mondkanone** (`Mond.Cannon`, k 'cannon'): ↑ davor → Zustand 'cannon'. Mündungsblitz, Bildschirmbeben, Flug durchs All
+    (Sternstreifen, der Mond wächst in der Bildmitte, Kapsel mit Feuerschweif), Weißblende, Landung. Die Rückkehrkapsel
+    (k 'capsule') steckt schräg im Mondboden und fliegt zurück (die Erde wächst). Die Ankunft wickelt die Kanone/Kapsel im
+    Zielraum ab, wie beim Rohrpost-Express. Der Selbsttest zählt Reisen per Kanone und Express als Verbindung.
+  - **Mondmeer** (`mondmeer`, 96×30, Karte `MOON_AT` [-25, -12] hoch über der Sternwarte): geringe Schwerkraft
+    (`room.grav = 0.42`, Sprung 100 statt 44 px, langsameres Fallen). Dazu die Erde am Himmel mit Kontinenten, Wolken,
+    Nachtseite und Atmosphäre (`Mond.EarthSky`) über dem Sternenhimmel aus js/stern.js.
+    - Das Höhlen-Thema erscheint als graues Mondgestein: `room.mono` ist ein Filter, die Kacheln werden in einen Puffer
+      gezeichnet und einmal gefiltert aufgetragen. `room.amb` überschreibt die Dunkelheit, `room.bloom` das Glühen.
+    - Felsnadeln, schwebende Mondbrocken, zwei Krater im Boden, Truhe, Lebensgefäß. Schild „Außenstelle Mond – geöffnet bei
+      Vollmond, Wartenummern bitte festhalten, sie schweben“.
+    - Gegner: **Mondkälber** (hüpfen in hohen, weichen Bögen auf den Helden) und Sternschnuppen.
+  - **Krater** (`krater`, 44×22): **Der Mann im Mond** (Zwischengegner `mond`, 100 HP). Eine große Mondscheibe mit Gesicht,
+    gezeichnet hinter den Kacheln: Sie geht beim Auftritt hinter dem Kraterrand auf. Die Augen folgen dem Helden, er blinzelt.
+    Treffbar sind nur die offenen Augen; nach jedem Angriff ist er müde (Schaden ×1,5).
+    - **Vollmond**: Pusten (Backen blähen sich, schiebt den Helden zum Kraterrand, Staub fliegt) und Käsebrocken im weichen Bogen
+      (`Mond.Kaese`, ein `EProj`, also per Konter zurückschlagbar).
+    - **Halbmond** (ab zwei Dritteln): Der Schatten wandert über die linke Gesichtshälfte, das linke Auge ist nicht zu treffen.
+      Dazu die Mondsichel als Bumerang: erst tief (drüberspringen), dann hoch zurück (drunter durch); sie lässt sich nicht
+      zerschlagen.
+    - **Neumond** (ab einem Drittel): fast dunkel, der ganze Krater wird finster (`room.amb` 0,62), die Augen glühen rot. Dazu
+      Mondbeben (fällt auf den Boden, Bodenwellen) und Sternregen.
+    - Sieg: Er versinkt hinter dem Kraterrand und weint Mondstaub. „Er hinterlässt einen Mondstein und einen Hauch von Käse.“
+      Lohn: **Mondstein** (Amulett: Schwerkraft −15 % überall, `Castle.floaty`, LUCK +1) und die Urkunden „Ein kleiner Schritt“
+      (gelandet) und „Mondfinsternis“.
+  - **Musik**: „Mondmeer“ (a-Moll mit neapolitanischem B, 84 BPM, lange Melodietöne mit Vibrato wie ein Theremin, Sci-Fi-Piepser)
+    und „Mann im Mond“ (a-Moll, 168 BPM).
+  - **Abwärtshieb federt** (überall): Trifft der Hieb nach unten (↓ + Angriff in der Luft) einen Gegner, eine Panzerung, ein
+    Geschoss oder eine Kerze, schnellt der Held hoch wie auf einem Pogo-Stab (Doppelsprung und Luft-Dash wieder frei).
+    `W.whipAt` zählt dafür die Treffer.
 - **Sternwarte des Amtsleiters** (20261106; js/stern.js): Der Amtsleiter ist Hobby-Astronom, und auch Sternbilder müssen genehmigt werden.
   - **Zugang**: Im Vorzimmer der Chefetage führt eine Wendeltreppe (zwei Läufe mit Absatz) zu einer Deckenluke (x 2–3, Tor
     `{ mini: chefetage }`, erst nach dem Schreibtischtäter). Vom Tritt unter der Luke springt man hinauf ins Planetarium und kommt

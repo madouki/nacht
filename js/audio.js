@@ -464,6 +464,28 @@ const Audio8 = (() => {
     'b5:2 d6:2 f#6:4 e6:2 d6:2 b5:4', 'b5:2 d6:2 g6:4 f#6:2 d6:2 b5:4', 'c#6:4 f6:4 g#6:4 b6:4', 'c#7:4 g#6:4 f6:4 c#6:4',
   ];
   const SB_DR = ['k:2 h:1 h:1 s:2 h:1 k:1 k:2 h:1 h:1 s:2 h:2', 'k:1 s:1 s:1 s:1 t:2 t:2 u:2 u:2 s:1 s:1 x:2'];
+  // Mondmeer: schwebend und ein wenig unheimlich, a-Moll mit neapolitanischem B, 84 BPM – lange Melodietöne (das Vibrato macht
+  // daraus ein Theremin), Sci-Fi-Piepser in den Lücken, tiefer Liegebass, sparsames Schlagzeug, Röhrenglocke alle acht Takte
+  const MM = { Am: ['a3', 'c4', 'e4'], F: ['a3', 'c4', 'f4'], Dm: ['a3', 'd4', 'f4'], E: ['g#3', 'b3', 'e4'], Bb: ['a#3', 'd4', 'f4'], C: ['g3', 'c4', 'e4'] };
+  const MMB = { Am: 'a1', F: 'f1', Dm: 'd2', E: 'e2', Bb: 'a#1', C: 'c2' };
+  const MM_C = ['Am', 'Am', 'F', 'E', 'Am', 'Am', 'Bb', 'E', 'Dm', 'Am', 'F', 'C', 'Dm', 'Bb', 'E', 'E'];
+  const MM_L = [
+    'e5:8 a5:4 g5:4', 'e5:12 -:4', 'f5:8 a5:4 c6:4', 'b5:12 g#5:4',
+    'a5:6 c6:2 e6:8', 'd6:4 c6:4 a5:8', 'a#5:8 d6:4 f6:4', 'e6:12 -:4',
+    'f6:6 e6:2 d6:8', 'c6:4 e6:4 a6:8', 'a6:6 g6:2 f6:8', 'e6:4 g6:4 c6:8',
+    'd6:6 f6:2 a6:8', 'a#6:8 f6:4 d6:4', 'g#6:6 e6:2 b5:8', 'e6:12 -:4',
+  ];
+  // Mann im Mond (Bosskampf im Krater): a-Moll, 168 BPM – fallende Linien, Sechzehntel-Arpeggien, Galopp-Bass, Becken am Ende
+  const MB = { Am: ['a3', 'c4', 'e4'], G: ['g3', 'b3', 'd4'], F: ['f3', 'a3', 'c4'], E: ['g#3', 'b3', 'e4'], Dm: ['f3', 'a3', 'd4'], Bb: ['f3', 'a#3', 'd4'] };
+  const MBB = { Am: 'a1', G: 'g1', F: 'f1', E: 'e2', Dm: 'd2', Bb: 'a#1' };
+  const MB_C = ['Am', 'G', 'F', 'E', 'Am', 'G', 'F', 'E', 'Dm', 'E', 'Am', 'Am', 'Bb', 'F', 'E', 'E'];
+  const MB_L = [
+    'a5:2 e6:2 a6:4 g6:2 e6:2 c6:4', 'b5:2 d6:2 g6:4 f6:2 d6:2 b5:4', 'a5:2 c6:2 f6:4 e6:2 c6:2 a5:4', 'g#5:4 b5:4 e6:4 g#6:4',
+    'a6:3 g6:1 e6:2 c6:2 a5:4 c6:2 e6:2', 'g6:3 f6:1 d6:2 b5:2 g5:4 b5:2 d6:2', 'f6:4 e6:2 c6:2 a5:4 c6:4', 'b5:2 c6:2 d6:2 e6:2 g#6:8',
+    'f6:2 f6:1 f6:1 e6:2 d6:2 a5:4 d6:4', 'e6:2 e6:1 e6:1 d6:2 b5:2 g#5:4 b5:4', 'a5:2 c6:2 e6:2 a6:2 c7:4 a6:4', 'e7:4 c7:4 a6:4 e6:4',
+    'f6:2 d6:2 a#5:4 d6:2 f6:2 a#6:4', 'a6:2 f6:2 c6:4 f6:2 a6:2 c7:4', 'b6:4 g#6:4 e6:4 b5:4', 'e6:4 g#6:4 b6:4 e7:4',
+  ];
+  const MB_DR = ['k:2 h:1 h:1 s:2 h:2 k:2 k:1 h:1 s:2 h:2', 'k:1 s:1 s:1 s:1 t:2 u:2 t:1 t:1 u:1 u:1 s:1 s:1 x:2'];
   const RW_DR = ['k:1 h:1 r:1 h:1 s:1 h:1 k:1 h:1 k:1 h:1 r:1 h:1 s:1 h:1 o:1 h:1', 'k:1 s:1 s:1 s:1 t:1 t:1 u:1 u:1 k:1 s:1 r:1 r:1 r:1 r:1 x:2'];
 
   // Posthorn (Hauptpoststelle): flotte Posthorn-Polka in B-Dur, 132 BPM – das Signal (Dreiklang hinauf) eröffnet jede Phrase,
@@ -745,6 +767,22 @@ const Audio8 = (() => {
       tri: SB_C.map(c => { const b = SBB[c], o = up8(b); return [0, 1, 2, 3].map(() => `${b}:2 ${o}:1 ${b}:1`).join(' '); }).join(' '),
       org: SB_C.map(c => SB[c].join('+') + ':16').join(' '),
       dr: SB_C.map((c, i) => SB_DR[i % 8 === 7 ? 1 : 0]).join(' '),
+    },
+    mondmeer: {
+      bpm: 84, loop: true, echo: { delay: 4, vol: 0.38 },
+      p1: MM_L.join(' '),
+      p2: MM_C.map(c => { const n = MM[c]; return `-:3 ${n[2]}:1 -:3 ${up8(n[0])}:1 -:3 ${n[1]}:1 -:3 ${n[2]}:1`; }).join(' '),
+      tri: MM_C.map(c => `${MMB[c]}:12 ${up8(MMB[c])}:4`).join(' '),
+      pad: MM_C.map(c => MM[c].join('+') + ':16').join(' '),
+      dr: MM_C.map((c, i) => (i % 8 === 7 ? 'b:8 h:4 o:4' : 'd:4 h:4 c:4 h:2 h:2')).join(' '),
+    },
+    mondboss: {
+      bpm: 168, loop: true, echo: { delay: 3, vol: 0.25 },
+      p1: MB_L.join(' '),
+      p2: MB_C.map(c => { const n = MB[c]; return [0, 1, 2, 3].map(() => `${n[0]}:1 ${n[1]}:1 ${n[2]}:1 ${n[1]}:1`).join(' '); }).join(' '),
+      tri: MB_C.map(c => { const b = MBB[c], o = up8(b); return [0, 1, 2, 3].map(() => `${b}:2 ${o}:1 ${b}:1`).join(' '); }).join(' '),
+      pad: MB_C.map(c => MB[c].join('+') + ':16').join(' '),
+      dr: MB_C.map((c, i) => MB_DR[i % 8 === 7 ? 1 : 0]).join(' '),
     },
     amtsmarsch: {
       bpm: 150, loop: true, echo: { delay: 3, vol: 0.25 },
