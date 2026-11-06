@@ -2433,6 +2433,12 @@ const Castle = (() => {
     W.popup(p.cx, p.y - 8, tr('eatPop'), '#f8d878'); Audio8.sfx('chomp'); Audio8.sfx('heart');
   }
   const itemName = (id) => tr('item_' + id), itemDesc = (id) => tr('itemD_' + id);
+  // Beschreibung unter einer Liste: eine Zeile, auf schmalen Schirmen (Handy quer mit Daumenrändern ~310, hoch 256) zwei Zeilen
+  // statt über den Bildrand hinaus; up = wie weit die erste Zeile dann über y beginnt
+  function drawDesc(ctx, s, cx, y, col, up = 5) {
+    if (Font.width(s) <= View.w - 16) { Font.draw(ctx, s, cx, y, col, { align: 'center', shadow: '#000' }); return; }
+    wrap(s, View.w - 16).slice(0, 2).forEach((l, i) => Font.draw(ctx, l, cx, y - up + i * 10, col, { align: 'center', shadow: '#000' }));
+  }
   if (on) { // Ring der Gier: jedes Gold zählt anderthalbfach
     const add = W.addScore;
     W.addScore = function (n, ...a) { return add.call(this, n > 0 && gear('greed') ? Math.round(n * 1.5) : n, ...a); };
@@ -2964,8 +2970,8 @@ const Castle = (() => {
       Font.draw(ctx, s.mp + ' MP', rx, y, k ? '#7cdcfc' : '#5c5c6c', { align: 'right', shadow: '#000' });
       if (k) {
         Font.draw(ctx, s.cmd.map(c => ARROW[c]).join(' ') + '  + ' + tr('spellAttack'), lx + 8, y + 9, '#fcfcfc', { shadow: '#000' });
-        Font.draw(ctx, itemDesc('book_' + id), lx + 8, y + 18, '#b0a080');
-      } else Font.draw(ctx, tr('spellUnknown'), lx + 8, y + 9, '#5c5c6c');
+        Font.draw(ctx, itemDesc('book_' + id), lx + 8, y + 18, '#b0a080', { fit: rx - lx - 8 });
+      } else Font.draw(ctx, tr('spellUnknown'), lx + 8, y + 9, '#5c5c6c', { fit: rx - lx - 8 });
     });
     const J = ' + ' + tr('spellJump'), forms = [['bat', '↓ ↑' + J, BAT_COST], ['mist', '↑ ↓' + J, MIST_COST], ['wolf', '↓ ↘ →' + J, WOLF_COST], ['boots', '↑ + ' + tr('dashKey'), 0]].filter(([k]) => rel(k));
     forms.forEach(([k, cmd, cost], i) => { // Verwandlungen und Supersprung: eine Zeile je Relikt (Befehl, MP)
@@ -3037,7 +3043,7 @@ const Castle = (() => {
     });
     const row = rows[menu.sel], id = SLOTS.includes(row) ? eq[row] : row;
     ctx.fillStyle = '#c89020'; ctx.fillRect(lx - 6, 156, rx - lx + 12, 1);
-    if (id && GEAR[id]) Font.draw(ctx, itemDesc(id), cx, 162, '#fce0a8', { align: 'center', shadow: '#000' });
+    if (id && GEAR[id]) drawDesc(ctx, itemDesc(id), cx, 162, '#fce0a8', 2);
     const att = Math.round((p.whip >= 2 ? 2 : 1) * 10 * Options.dmgMul);
     Font.draw(ctx, 'ATT ' + att + '    DEF ' + Math.round(10 * conDiv()) + '    HP ' + Math.ceil(Math.max(0, p.hp)) + '/' + p.maxHp, cx, 180, '#fcfcfc', { align: 'center', shadow: '#000' });
     Font.draw(ctx, tr('item_map') + ': ' + (inv.map ? '✓' : '-') + '    GOLD ' + W.score, cx, 196, inv.map ? '#e8d8a8' : '#7c7c8c', { align: 'center', shadow: '#000' });
@@ -3131,7 +3137,7 @@ const Castle = (() => {
       if (now) Font.draw(ctx, tr('gramoNow'), rx, y, '#f8b800', { align: 'right', shadow: '#000' });
     });
     const id = RECORDS[shop.sel];
-    if (hasRec(id)) Font.draw(ctx, itemDesc('rec_' + id), cx, 190, '#fce0a8', { align: 'center', shadow: '#000' });
+    if (hasRec(id)) drawDesc(ctx, itemDesc('rec_' + id), cx, 190, '#fce0a8');
     Font.draw(ctx, tr('gramoHelp'), cx, 218, '#7c7c8c', { align: 'center' });
   }
   function drawShop(ctx, t) {
@@ -3155,7 +3161,7 @@ const Castle = (() => {
       Font.draw(ctx, itemName(id) + ((sell || DRINKS.includes(id)) && inv[id] ? '  ×' + inv[id] : ''), lx + 22, y, own ? '#5c5c6c' : on ? '#fcfcfc' : '#c8c8d8', { shadow: '#000' });
       Font.draw(ctx, sell ? '+' + sellPrice(id) + ' G' : own ? tr('equipOwned') : g.price + ' G', rx, y, own ? '#5c5c6c' : poor ? '#a84848' : sell ? '#58f898' : '#f8b800', { align: 'right', shadow: '#000' });
     });
-    if (list[shop.sel]) Font.draw(ctx, itemDesc(list[shop.sel]), cx, 186, '#fce0a8', { align: 'center', shadow: '#000' });
+    if (list[shop.sel]) drawDesc(ctx, itemDesc(list[shop.sel]), cx, 186, '#fce0a8');
     Font.draw(ctx, 'GOLD ' + W.score, cx, 202, '#f8b800', { align: 'center', shadow: '#000' });
     Font.draw(ctx, tr('shopHelp'), cx, 218, '#7c7c8c', { align: 'center' });
   }
@@ -3182,7 +3188,7 @@ const Castle = (() => {
       if (got) Font.draw(ctx, '×' + got, rx, y, '#7cdcfc', { align: 'right', shadow: '#000' });
     });
     const k = BEASTS[beasts.sel];
-    wrap(best[k] ? tr('beastD_' + k) : tr('beastUnknown'), rx - lx).slice(0, 2).forEach((l, i) => Font.draw(ctx, l, cx, 180 + i * 10, best[k] ? '#fce0a8' : '#5c5c6c', { align: 'center', shadow: '#000' }));
+    wrap(best[k] ? tr('beastD_' + k) : tr('beastUnknown'), rx - lx).slice(0, 3).forEach((l, i) => Font.draw(ctx, l, cx, 180 + i * 10, best[k] ? '#fce0a8' : '#5c5c6c', { align: 'center', shadow: '#000' }));
   }
 
   // Statusbildschirm (Pause → STATUS): Werte wie in SotN in zwei Spalten, darunter EXP-Leiste, Karte, Siegel, Warpkammern
@@ -3338,7 +3344,8 @@ const Castle = (() => {
       Font.draw(ctx, tr('ach_' + a.id), lx + 14, y, got ? '#f8d878' : on ? '#a8a8b8' : '#6c6c7c', { shadow: '#000' });
     });
     const a = ACH[ach.sel];
-    wrap(achDesc(a), rx - lx).slice(0, 2).forEach((l, i) => Font.draw(ctx, l, cx, 176 + i * 10, achGot(a) ? '#fce0a8' : '#8c8c9c', { align: 'center', shadow: '#000' }));
+    const al = wrap(achDesc(a), rx - lx).slice(0, 3), a3 = al.length > 2; // schmal: drei Zeilen, etwas enger
+    al.forEach((l, i) => Font.draw(ctx, l, cx, (a3 ? 172 : 176) + i * (a3 ? 9 : 10), achGot(a) ? '#fce0a8' : '#8c8c9c', { align: 'center', shadow: '#000' }));
     Font.draw(ctx, tr('achReward', achPay()), cx, 198, '#c89020', { align: 'center' });
     Font.draw(ctx, tr('achFooter'), cx, 208, '#7c6c4c', { align: 'center' });
   }
@@ -3948,7 +3955,8 @@ const Castle = (() => {
   }
   function drawTalk(ctx, t) {
     if (!talk) return;
-    const pg = page(), { x, y, w, h } = talkBox(), hero = pg.who === 'H';
+    const pg = page(), B = talkBox(), hero = pg.who === 'H';
+    const { x, w } = B, h = Math.max(B.h, 24 + pg.lines.length * 11), y = Math.min(B.y, 236 - h); // schmal: mehr Zeilen – der Kasten wächst nach oben mit
     ctx.fillStyle = 'rgba(4,2,16,0.94)'; ctx.fillRect(x, y, w, h);
     ctx.fillStyle = '#c89020'; ctx.fillRect(x, y, w, 1); ctx.fillRect(x, y + h - 1, w, 1); ctx.fillRect(x, y, 1, h); ctx.fillRect(x + w - 1, y, 1, h);
     ctx.fillStyle = '#5c3c10'; ctx.fillRect(x + 2, y + 2, w - 4, 1); ctx.fillRect(x + 2, y + h - 3, w - 4, 1);

@@ -381,7 +381,8 @@ const Game = {
   // kleine Nachricht oben im Bild (z. B. Gruß an Infernax)
   note(key, ...args) { this.noteT = 240; this.noteKey = key; this.noteArgs = args; },
   drawNote(ctx) {
-    const s = tr(this.noteKey, ...(this.noteArgs || [])), y = 48;
+    const band = W.boss && this.bossName > 0 && this.bossName < 150; // Namensband des Bosses (y 40–62) steht: Hinweis darunter
+    const s = tr(this.noteKey, ...(this.noteArgs || [])), y = band ? 66 : 48;
     let lines = [s];
     const max = View.w - 20;
     if (Font.width(s) > max) { // zu breit (schmaler Bildschirm): am Gedankenstrich, wenn beide Teile passen, sonst wortweise umbrechen
@@ -974,6 +975,10 @@ const Game = {
   // und ab; ein Glanzstreifen läuft über die Vorderseiten. Erst alle Umrisse, dann alle Flanken, dann alle Fronten –
   // so verdeckt keine Flanke den Nachbarbuchstaben.
   text3d(ctx, text, cx, y, scale, colors, o = {}) {
+    if (!o.fitted) { // breiter als der Schirm (Handy: 256–310 px): waagerecht stauchen statt abschneiden (Boss-Namen, Ausrufe, Regionsnamen)
+      const tw = (Font.width(text) + 1) * scale * (o.zoom || 1), mw = View.w - 12;
+      if (tw > mw) { ctx.save(); ctx.translate(cx, 0); ctx.scale(Math.max(0.55, mw / tw), 1); ctx.translate(-cx, 0); const r = this.text3d(ctx, text, cx, y, scale, colors, Object.assign({}, o, { fitted: true })); ctx.restore(); return r; }
+    }
     const fbk = Font.hasFB(text), top = fbk ? 3 : 0, H = fbk ? 12 : 7, w = Math.min(this.bigCanvas.width, Font.width(text) + 1);
     const T = performance.now() / 16.667, ang = o.ang || 0, zoom = o.zoom || 1, lite = View.lite;
     const depth = Math.max(1, Math.round((o.depth ?? Math.max(2, scale + 1)) * (lite ? 0.6 : 1))), wob = o.wobble ?? 0.2, bob = o.bob ?? 0.4;
@@ -1121,7 +1126,8 @@ const Game = {
       if (bf && !(bf.k < 0.06 && (W.frame & 8))) { const by = Castle.testing ? 44 : 35; R('#000', 3, by, 44, 9); R('#e8e4d8', 4, by + 5, 10, 2); R('#a8a49c', 5, by + 7, 8, 1); R('#d8a040', 6, by + 2, 6, 3); R('#fce0a8', 7, by + 2, 2, 1); R('#2c1c08', 16, by + 3, 29, 3); R('#f8d878', 16, by + 3, Math.round(29 * bf.k), 3); }
       const mm = Castle.mpMax(); // MP, sobald ein Zauber gelernt ist
       if (mm) { const m = clamp(Castle.mp / mm, 0, 1); Font.draw(ctx, 'MP', 108, 3, label); R('#000', 120, 4, 28, 5); R('#0c1c34', 121, 5, 26, 3); R('#3cbcfc', 121, 5, Math.round(26 * m), 3); R('#a4e4fc', 121, 5, Math.round(26 * m), 1); }
-      Font.draw(ctx, pad(this.dispScore || 0, 6), boxCx, 3, this.dispScore < W.score ? '#fce0a8' : '#f8b800', { align: 'center', shadow: '#000' });
+      const gs = pad(this.dispScore || 0, 6), gx = mm ? Math.max(boxCx, 150 + Math.ceil(Font.width(gs) / 2)) : boxCx; // schmal (Handy): Gold rückt aus der MP-Leiste
+      Font.draw(ctx, gs, gx, 3, this.dispScore < W.score ? '#fce0a8' : '#f8b800', { align: 'center', shadow: '#000' });
     } else {
       Font.draw(ctx, tr('hudScore'), 36, 3, label, { align: 'right' }); Font.draw(ctx, pad(this.dispScore || 0, 6), 40, 3, this.dispScore < W.score ? '#fce0a8' : val, { shadow: '#000' });
       if (Options.easy) Font.draw(ctx, tr('tagEasy'), 82, 3, '#58f898');
