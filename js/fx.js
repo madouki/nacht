@@ -311,5 +311,26 @@ const FX = (() => {
     }
   }
 
-  return { render, drawFog, updateAmbient, drawAmbient, drawMotes, resetAmbient, disc, updateStorm, drawStormSky, stormOn, updateFlock, drawFlock };
+  // Glühen (Bloom, seit 20261106): helle Stellen – Kerzen, Lampen, Magie, Blitze, Fenster – strahlen weich über ihre Ränder.
+  // Billig genug für die Xbox: das Spielfeld wird auf ein Viertel verkleinert und zweimal mit sich selbst multipliziert (x³: nur
+  // Helles bleibt), noch einmal halbiert und weich vergrößert additiv darübergelegt. Optionen → GLÜHEN schaltet es ab.
+  let bA = null, bB = null, bT = null, bN = 0;
+  function bloom(ctx, amt) {
+    if (!(amt > 0)) return;
+    const vw = View.w, cv = ctx.canvas, w1 = Math.ceil(vw / 4), h1 = 52, w2 = Math.ceil(w1 / 2), h2 = 26;
+    if (!bA || bA.width !== w1) { bA = Sprites.canvas(w1, h1); bT = Sprites.canvas(w1, h1); bB = Sprites.canvas(w2, h2); bN = 0; }
+    if (!View.lite || (bN++ & 1) === 0) { // Spar-Modus: Puffer nur jedes zweite Bild neu (das Abgreifen der Leinwand kostet am meisten)
+      const a = bA.getContext('2d'), t = bT.getContext('2d'), b = bB.getContext('2d');
+      a.imageSmoothingEnabled = true; a.globalCompositeOperation = 'copy'; a.drawImage(cv, 0, 32, vw, 208, 0, 0, w1, h1);
+      t.globalCompositeOperation = 'copy'; t.drawImage(bA, 0, 0);
+      a.globalCompositeOperation = 'multiply'; a.drawImage(bT, 0, 0); a.drawImage(bT, 0, 0);
+      b.imageSmoothingEnabled = true; b.globalCompositeOperation = 'copy'; b.drawImage(bA, 0, 0, w2, h2);
+    }
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.beginPath(); ctx.rect(0, 32, vw, 208); ctx.clip();
+    ctx.imageSmoothingEnabled = true; ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = Math.min(1, amt * 0.62); ctx.drawImage(bA, 0, 0, w1, h1, 0, 32, vw, 208);
+    ctx.globalAlpha = Math.min(1, amt * 0.9); ctx.drawImage(bB, 0, 0, w2, h2, -6, 26, vw + 12, 220);
+    ctx.restore();
+  }
+  return { bloom, render, drawFog, updateAmbient, drawAmbient, drawMotes, resetAmbient, disc, updateStorm, drawStormSky, stormOn, updateFlock, drawFlock };
 })();

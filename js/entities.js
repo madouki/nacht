@@ -224,6 +224,7 @@ class Player {
 
   hurt(dmg, srcX) {
     if (this.inv > 0 || !this.alive || W.cleared || Game.state === 'demo' || Options.god) return; // Demo und Testhilfe: unverwundbar
+    if (W.dodgeCd <= 0 && W.perfectDodge && this.state === 'normal' && ((this.dashT > 0 && this.dashT > (this.airDash ? AIRDASH_LEN : DASH_LEN) - 10) || this.slideT > 15)) { W.perfectDodge(this); return; } // Perfekt-Ausweichen
     if (this.stoneT > 0) this.breakStone(false); // ein Treffer sprengt den Stein
     this.dangle = false; W.combo.n = 0; W.combo.t = 0; W.stats.hits++;
     if (this.state === 'swing') { this.state = 'normal'; this.ring = null; }

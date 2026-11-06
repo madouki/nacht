@@ -5,6 +5,7 @@
 // Licht fürs 3D-Tor: warm von vorn links (Fackeln), dazu kühles Umgebungslicht
 const DOOR_ENV = (() => { const v = [-0.35, 0.55, -0.75], l = Math.hypot(...v); return { static: true, sun: v.map(c => c / l), sunC: [0.85, 0.66, 0.46], amb: [0.36, 0.34, 0.44], sky: [0.16, 0.14, 0.22], fog: [0, 0, 0], fogD: 0 }; })();
 const STORMY = { courtyard: null, ship: null, bridge: null, glass: [0.44, 0.12], foyer: [0.88, 0.02], library: [0.52, 0.08], hall: [0.5, 0.1], tower: [0.5, 0.1], throne: [0.46, 0.1], lab: [0.5, 0.06], werk: [0.5, 0.12], passage: [0.6, 0.06], kaleido: [0.5, 0.06] };
+const BLOOM = { ice: 0.55, expo: 0.6, glass: 0.7, courtyard: 0.8, kaleido: 0.7, sun: 0.7, cathedral: 0.85, spire: 0.85 }; // Glühen je Gebiet (helle Säle weniger)
 // Fenster in der Wandebene (x, Oberkante, Breite, Höhe): werfen im Blitz Lichtbahnen in den Raum
 const STORM_WINS = { foyer: [[44, 20, 56, 216], [300, 20, 56, 216]], library: [[296, 24, 48, 98]], hall: [[64, 40, 32, 88], [320, 40, 32, 88]], throne: [[59, 24, 32, 108], [315, 24, 32, 108]] };
 const W = {
@@ -15,7 +16,7 @@ const W = {
   freeze: 0, hitstop: 0, shake: 0, flash: 0, cleared: false, lightning: 0, lightningCD: 300,
   checkpoint: null, crash: null, exiting: false, storm: { cd: 100, flash: 0, bolt: null },
   sail: 0, sailX: 0, roll: 0, rollAmp: 0, heave: 0, docked: 0, dockT: 0, rogue: null, kraken: null, gust: 0,
-  combo: { n: 0, t: 0, best: 0 }, look: 0, cinema: 0, slowmo: 0, bossEnraged: false, vortexBg: 0,
+  combo: { n: 0, t: 0, best: 0 }, look: 0, cinema: 0, slowmo: 0, slowT: 0, dodgeCd: 0, dangerT: 0, bossEnraged: false, vortexBg: 0,
 
   get stageDef() { return Levels.STAGES[this.stage]; },
 
@@ -29,7 +30,7 @@ const W = {
     if (typeof Mirror !== 'undefined') Mirror.reset(); // kein Spiegelbild aus dem vorigen Raum
     this.ents = []; this.platforms = []; this.boss = null;
     this.camLock = false; this.camTarget = null; this.arenaOn = false; this.arenaX = 0; this.arenaW = 0; this.arenaBoss = null; this.camEase = 0; this.gates = null; this.flipA = 0; this.wobble = 0;
-    this.tutSign = null; this.exitBlocked = false; this.cleared = false; this.crash = null; this.exiting = false; this.cinema = 0; this.slowmo = 0; this.bossEnraged = false; this.vortexBg = 0; this.stopT = 0;
+    this.tutSign = null; this.exitBlocked = false; this.cleared = false; this.crash = null; this.exiting = false; this.cinema = 0; this.slowmo = 0; this.bossEnraged = false; this.vortexBg = 0; this.stopT = 0; if (this.slowT) Audio8.slow(false); this.slowT = 0; this.dodgeCd = 0;
     if (this.bloodT > 0) { this.bloodT = 0; Audio8.tempo(1); }
     this.sway = { a: 0, v: 0 }; this.zoomFx = null; this.bellCd = 200; this.tubeRot = 0; this.tubeRotS = 0;
     this.sail = def.dock || def.atSea ? 1 : 0; this.roll = 0; this.rollAmp = 0; this.heave = 0; this.docked = 0; this.dockT = 0; this.rogue = null; this.kraken = null; this.gust = 0;
@@ -316,10 +317,12 @@ const W = {
         if (vul) { if (e.hit(dmg, id)) Input.rumble(0.15, 0.35, 60); }
         else if (e.armorBoxes) { const ab = e.armorBoxes().find(hits); if (ab) e.deflect(id, ab); } // Panzerung: prallt ab
       } else if (e.kind === 'eproj' && !e.reflected && !e.unstoppable && hits(e)) { // Konter: Geschosse zerschlagen bzw. zurückschleudern
-        if (e.type === 'fire') {
-          const p = this.player;
-          e.reflected = true; e.vx = p.face * Math.max(2.6, Math.abs(e.vx) * 1.5); e.vy = -0.3; e.grav = 0;
+        if (e instanceof EProj) { // seit 20261106: jedes gewöhnliche Geschoss (Feuer, Knochen, Stein, Buchseite, Eis) fliegt zurück
+          const p = this.player, arc = e.type === 'rock' || e.type === 'bone';
+          e.reflected = true; e.vx = p.face * Math.max(2.6, Math.abs(e.vx) * 1.5); e.vy = arc ? -2.6 : -0.3; e.grav = arc ? 0.12 : 0;
           this.popup(e.cx, e.cy - 6, tr('riposte'), '#a4e4fc'); this.addScore(200); this.hitstop = Math.max(this.hitstop || 0, 4);
+          this.spawn(new Shock(e.cx, e.cy, 16, '#a4e4fc', 2));
+          if (typeof Castle !== 'undefined' && Castle.on && Castle.flags) Castle.flags.konter = (Castle.flags.konter || 0) + 1;
         } else { e.dead = true; this.addScore(50); }
         this.spawn(new Spark(e.cx, e.cy)); Audio8.sfx('hit', e.cx); Input.rumble(0.2, 0.4, 80);
       }
@@ -425,6 +428,16 @@ const W = {
     this.zoomFx = { t: 0, len: 84, amp: 0.16, b }; // Kamera fährt auf den Boss zu
     this.cinema = 110; this.flash = 8; this.shake = 26;
     this.spawn(new Shock(b.cx, b.cy, 120, '#d82800', 5));
+  },
+
+  // Perfekt-Ausweichen: wer im ersten Drittel eines Dashs (oder am Anfang einer Rutschpartie) getroffen würde, weicht aus –
+  // kein Schaden, dafür knapp zwei Sekunden Zeitlupe für alle anderen (Musik dumpf, blauer Schimmer). Abklingzeit gut drei Sekunden
+  perfectDodge(p) {
+    this.slowT = 110; this.dodgeCd = 200; p.inv = Math.max(p.inv, 50); this.hitstop = Math.max(this.hitstop, 5);
+    this.popup(p.cx, p.y - 14, tr('dodgePerfect'), '#a4e4fc'); Audio8.sfx('tink'); Audio8.sfx('charge'); Audio8.slow(true); Input.rumble(0.3, 0.5, 120);
+    this.spawn(new Shock(p.cx, p.cy, 60, '#a4e4fc', 3));
+    this.stats.dodges = (this.stats.dodges || 0) + 1;
+    if (typeof Castle !== 'undefined' && Castle.on && Castle.flags) Castle.flags.dodge = (Castle.flags.dodge || 0) + 1;
   },
 
   bossDefeated(b) {
@@ -576,6 +589,14 @@ const W = {
     this.updateGates(); // Bosskammer: Fallgitter
     FX.updateAmbient(this.room.theme, this.cam);
     if (this.stopT > 0) this.stopT--;
+    if (this.slowT > 0 && --this.slowT === 0) Audio8.slow(false);
+    if (this.dodgeCd > 0) this.dodgeCd--;
+    if (this.frame % 12 === 0 && this.player) { // adaptive Musik: Boss oder Gegner in der Nähe → Schlagzeug voll
+      const p = this.player; let d = this.boss && !this.boss.dying ? 1 : 0;
+      if (!d) for (const e of this.ents) if (e.kind === 'enemy' && !e.dead && Math.abs(e.cx - p.cx) < 180 && Math.abs(e.cy - p.cy) < 120) { d = 1; break; }
+      if (d) this.dangerT = 90; else if (this.dangerT > 0) this.dangerT -= 12; // nach dem Kampf noch kurz nachklingen
+      Audio8.intensity(this.dangerT > 0 ? 1 : 0);
+    }
     if (this.bloodT > 0 && --this.bloodT === 0) Audio8.tempo(this.time <= 60 ? 1.12 : 1);
     if (this.room.bell && --this.bellCd <= 0) this.tollBell();
     if (this.room.theme === 'ship') this.updateShip();
@@ -584,8 +605,9 @@ const W = {
     if (this.zoomFx && ++this.zoomFx.t > this.zoomFx.len) this.zoomFx = null;
     if (this.player.rageT > 0) this.player.rageT--;
     const stopped = this.stopT > 0;
-    if (!stopped) this.spawners.forEach(s => s.update());
-    for (const e of this.ents) if (!e.dead && e.kind !== 'platform' && !(stopped && (e.kind === 'enemy' || e.kind === 'eproj'))) e.update();
+    const slowSkip = this.slowT > 0 && (this.frame & 1); // Zeitlupe (Perfekt-Ausweichen): nur der Held läuft in voller Geschwindigkeit
+    if (!stopped && !slowSkip) this.spawners.forEach(s => s.update());
+    for (const e of this.ents) if (!e.dead && e.kind !== 'platform' && !(stopped && (e.kind === 'enemy' || e.kind === 'eproj')) && !(slowSkip && (e.kind === 'enemy' || e.kind === 'eproj' || e.kind === 'boss'))) e.update();
     if (this.crash) this.updateCrash();
     if (this.cinema > 0) this.cinema--;
     if (this.bossEnraged && this.room.theme === 'throne') this.vortexBg++;
@@ -650,10 +672,17 @@ const W = {
     FX.drawMotes(ctx, lights, this.cam, this.frame); // Staub tanzt im Fackelschein
     Rays.draw(ctx, this.room, this.cam, this.frame);
     for (const e of this.ents) if (e.drawLit && !e.dead) e.drawLit(ctx); // Riesen (Steingolem): nach Licht und Nebel, mit eigener 3D-Beleuchtung
+    if (Options.bloom) FX.bloom(ctx, BLOOM[theme] ?? 1); // Glühen über allem, was leuchtet
     this.drawGates(ctx); // Fallgitter der Bosskammer (nach dem Licht: Eisen bleibt auch im dunklen Stollen sichtbar)
     if (theme === 'mirror') Mirror.capture(ctx); // Spiegelgalerie: dieses Bild spiegelt sich im nächsten (vor Blitz, Blutmond und Warnrand)
     if (this.bloodT > 0) this.drawBloodMoon(ctx, vw);
     if (this.stopT > 0 && (this.stopT > 50 || (this.stopT & 4))) { ctx.fillStyle = 'rgba(120,150,230,0.16)'; ctx.fillRect(0, 0, vw, 208); } // angehaltene Zeit
+    if (this.slowT > 0) { // Zeitlupe: blauer Schimmer, an den Rändern ziehen Zeitlinien vorbei
+      const a = Math.min(1, this.slowT / 24, (110 - this.slowT) / 6 + 0.3);
+      ctx.fillStyle = `rgba(70,120,255,${(0.12 * a).toFixed(3)})`; ctx.fillRect(0, 0, vw, 208);
+      ctx.fillStyle = `rgba(190,215,255,${(0.35 * a).toFixed(3)})`;
+      for (let k = 0; k < 10; k++) { const y = (k * 23 + this.frame * 3) % 208, len = 20 + (k * 17) % 40; ctx.fillRect(0, y, len, 1); ctx.fillRect(vw - len, (y + 101) % 208, len, 1); }
+    }
     const p = this.player;
     if (p.alive && p.hp <= p.maxHp / 4) Drama.drawDanger(ctx, vw, 0.35 + Math.sin(this.frame * 0.14) * 0.2);
     if (this.flash > 0 && (this.flash % 6) < 3) { ctx.fillStyle = 'rgba(252,252,252,0.45)'; ctx.fillRect(-4, -4, vw + 8, 216); }

@@ -437,6 +437,44 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
       (Fächer aus Papierstreifen) und ANSTURM (Wandprall: benommen und verwundbar). Ab halber Energie Stufe 5 (Partikelschnitt).
     - Besiegt platzt er in Konfetti. Lohn: Reißzahn (Waffe, ATK +6) und die Urkunde „Datenschutz gewährleistet“.
   - Geräusche `howl`/`shred` vorerst als Synth (ElevenLabs war belegt; `Audio8.sample` nimmt Proben, sobald sie in `SAMP` stehen).
+- **Feinschliff für alles** (20261106; Grafik, Gameplay, Musik, neue Idee):
+  - **Glühen (Bloom)** über allen Räumen (`FX.bloom`, js/fx.js): Das Spielfeld wird auf ein Viertel verkleinert, zweimal mit sich
+    selbst multipliziert (x³, nur Helles bleibt), noch einmal halbiert und weich vergrößert additiv darübergelegt. Stärke je Gebiet
+    `BLOOM` in world.js (helle Säle weniger). Im Spar-Modus (Xbox) wird der Puffer nur jedes zweite Bild neu berechnet.
+    Optionen → GLÜHEN schaltet es ab. Kosten auf dem PC etwa 2,5 ms je Bild vor der Optimierung, 60 fps bleiben.
+  - **Konter für alle Geschosse**: Jedes gewöhnliche `EProj` (Feuer, Knochen, Stein, Buchseite, Eis) fliegt nach einem Peitschenhieb
+    zurück und trifft Gegner und Bosse (Stein und Knochen im Bogen, blauer Schimmer). Sondergeschosse der Bosse zerbrechen wie
+    bisher. Urkunde „Retour an Absender“ nach 25 Kontern (`flag.konter`).
+  - **Perfekt-Ausweichen**: Wer in den ersten zehn Bildern eines Dashs (oder am Anfang einer Rutschpartie) getroffen würde, nimmt
+    keinen Schaden. Stattdessen läuft knapp zwei Sekunden Zeitlupe: Gegner, Geschosse und Bosse bewegen sich nur jedes zweite Bild, der
+    Held in voller Geschwindigkeit. Dazu blauer Schimmer mit Zeitlinien und dumpfe Musik (`Audio8.slow`). Abklingzeit gut drei
+    Sekunden. Urkunde „Knapp daneben ist auch vorbei“ nach zehnmal (`flag.dodge`).
+  - **Musik**: Die Melodie hat eine zweite, 9 Cent verstimmte Stimme (Chorus, rechts im Panorama, weich gefiltert). Der Bass
+    bekommt eine Sinus-Sub-Oktave (ab 90 Hz Grundton). **Adaptive Musik**: Das Schlagzeug läuft über einen eigenen Bus, beim
+    Erkunden mit 60 %. Sind Gegner in der Nähe oder kämpft ein Boss, schwillt es schnell auf 100 % an und klingt danach langsam
+    ab (`Audio8.intensity`, die Welt setzt es alle 12 Bilder).
+  - **Rohrpost-Express überarbeitet** (der Wunsch: „sieht besser aus und überfordert nicht“):
+    - Hindernisse sind schon aus 900 Einheiten Entfernung zu sehen und ab 300 voll deckend (vorher war das Ausblenden quadratisch:
+      klar erst etwa eine Drittelsekunde vor dem Aufprall).
+    - Abstände etwa doppelt so groß, Gitterlücken breiter, Ordner einzeln oder zu zweit, Tempo 2,0 bis 3,3 (vorher bis 4,4),
+      Lenkung schneller, Treffer kosten 1 HP.
+    - Countdown 3-2-1 vor der Abfahrt.
+    - Lenkhilfe an der Peilmarke: grün heißt sicher, rot blinkend heißt Kollisionskurs. Ein Pfeil zeigt die Richtung, dazu ein
+      Warnton und kurz vor dem Aufprall ein roter Rand.
+    - Grafik: Lampenringe alle 512 Einheiten hellen die Wand warm auf, warmer Dunst statt Schwarz, Licht am Ende der Röhre (wächst
+      bis zur Ankunft), weich gefilterte Wand, Bullauge mit Messingrand, Nieten und Haltegriff, Funken an der Kufe, Konfetti aus
+      zerschlagenen Ordnern. Weichenklappen haben Warnstreifen, Scharnier und Warnlampe, Gitterlücken leuchten grün, Ordner haben
+      Etikett und Griffloch, Briefmarken einen gezähnten Rand.
+    - Der Wegweiser-Pfeil ist während der Fahrt aus.
+  - **Taktduell am Grammophon** (js/takt.js, Hotel Krat): Angriff auf eine Platte startet ein Rhythmusspiel zum Lied.
+    - Die Noten entstehen aus der Melodiestimme (p1): mindestens zwei Sechzehntel Abstand, die Bahn nach Tonhöhe
+      (← tief, ↑/Sprung mittel, → hoch). Kurze Lieder laufen zweimal.
+    - Wertung: PERFEKT ≤ 70 ms, GUT ≤ 140 ms. Verpasste Noten und leeres Drücken brechen die Serie.
+    - Rang S/A/B/C mit Kommentar des Grammophons. Bestwert je Platte (`flag.takt_<lied>`), Gold für jede Verbesserung
+      (Differenz / 20), Urkunde „Ohrwurm“ für Rang S.
+    - Die Uhr folgt der laufenden Musik (`Audio8.steps`), ohne Ton zählen die Bilder.
+    - Grafik: doppelt großes Grammophon, Spotlight im Takt, Schellackplatten mit Glanzlicht, Notensymbole steigen aus dem
+      Trichter, goldene Bahnränder ab einer Serie von 10.
 - **Der Dienstweg** (20261105-1934; js/chef.js): Laufzettel, Chefetage und der Endgegner des Behördentrakts.
   - **Laufzettel**: fünf Stempel – Amtsschimmel, Kantine (gegessen), Reißwolf, Rohrpost-Express (gefahren), Frankiermaschine
     (`LAUF`/`lauf()` in castle.js). Jeder neue Stempel wird eingeblendet („LAUFZETTEL: STEMPEL 3/5“, sobald keine andere

@@ -792,12 +792,25 @@ const Audio8 = (() => {
   // Stereo wie beim SNES: jede Stimme hat ihren festen Platz im Panorama – Melodie halb links, Begleitung rechts, das Echo der
   // Melodie antwortet von der anderen Seite, die beiden Pad-Sägezähne liegen weit links und rechts, Becken und Toms verteilt.
   // Melodie- und Musikbus werden bei jedem Liedwechsel neu angelegt, darum je Bus ein eigener Satz Panner (bei Bedarf gebaut).
-  const PAN = { p1: -0.45, p2: 0.55, echo: 0.75, pb: -0.3, padL: -0.8, padR: 0.8, hat: 0.45, tomL: -0.5, tomR: 0.5 };
+  const PAN = { p1: -0.45, p1c: 0.3, p2: 0.55, echo: 0.75, pb: -0.3, padL: -0.8, padR: 0.8, hat: 0.45, tomL: -0.5, tomR: 0.5 };
   let pans = null;
+  // Adaptive Musik: das Schlagzeug läuft über einen eigenen Bus. Beim Erkunden spielt es zurückhaltend (60 %), sobald Gegner in
+  // der Nähe sind oder ein Boss kämpft, schwillt es auf volle Stärke an (Audio8.intensity, von der Welt alle paar Bilder gesetzt)
+  let drumBus = null, drumLvl = 1;
+  function drumOut() {
+    if (!drumBus || drumBus._to !== musicBus) { drumBus = ac.createGain(); drumBus.gain.value = drumLvl; drumBus.connect(musicBus); drumBus._to = musicBus; }
+    return drumBus;
+  }
+  function intensity(x) {
+    const v = 0.6 + 0.4 * Math.max(0, Math.min(1, x));
+    if (Math.abs(v - drumLvl) < 0.01) return;
+    drumLvl = v;
+    if (ac && drumBus) drumBus.gain.setTargetAtTime(v, ac.currentTime, v > drumBus.gain.value ? 0.25 : 1.2); // schnell hinauf, langsam zurück
+  }
   function pan(key, bus) {
     if (!ac.createStereoPanner) return bus;
-    if (!pans || pans.mel !== melBus || pans.mus !== musicBus) pans = { mel: melBus, mus: musicBus };
-    const k = (bus === melBus ? 'm' : 'u') + key;
+    if (!pans || pans.mel !== melBus || pans.mus !== musicBus || pans.dr !== drumBus) pans = { mel: melBus, mus: musicBus, dr: drumBus };
+    const k = (bus === melBus ? 'm' : bus === drumBus && drumBus ? 'd' : 'u') + key;
     if (!pans[k]) { // davor √2: ein Mono-Ton, der vorher auf beiden Seiten voll lag, verliert im Panner sonst 3 dB gegen Bass und Schlagzeug
       const p = ac.createStereoPanner(), g = ac.createGain(); p.pan.value = PAN[key]; g.gain.value = Math.SQRT2; g.connect(p); p.connect(bus); pans[k] = g;
     }
@@ -810,6 +823,7 @@ const Audio8 = (() => {
   }
   let cueQ = [], songT0 = 0; // geplante Pauken-/Beckenschläge (Audiozeit) fürs Bild; Startzeit des laufenden Stücks
   function drum(n, t, dur) {
+    const musicBus = drumOut(); // eigener Bus (adaptive Lautstärke)
     if (n === 'p' || n === 'x') { cueQ.push(t); if (cueQ.length > 32) cueQ.shift(); } // Pauke und Becken: Taktmarken fürs Bild (Ballsaal-Blitze)
     if (n === 'w') { // Riser: Rauschen schwillt an und steigt
       const src = ac.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
@@ -845,13 +859,13 @@ const Audio8 = (() => {
       noise(0.02, 0.25, 'lowpass', 2500, null, t, musicBus);
     }
     if (n === 'x' || n === 'c') noise(0.7, 0.22, 'highpass', 6000, 2500, t, musicBus);
-    if (n === 's' || n === 'q') { noise(0.14, 0.3, 'bandpass', 1900, 900, t, musicBus); tone2('triangle', 240, 120, 0.06, 0.19, t); }
+    if (n === 's' || n === 'q') { noise(0.14, 0.3, 'bandpass', 1900, 900, t, musicBus); tone2('triangle', 240, 120, 0.06, 0.19, t, musicBus); }
     else if (n === 'h') noise(0.03, 0.13, 'highpass', 8000, null, t, pan('hat', musicBus));
     else if (n === 'c') { tone2('square', 1750, 1600, 0.025, 0.1, t, pan('tomL', musicBus)); noise(0.025, 0.12, 'bandpass', 3200, 2400, t, musicBus); } // Rim-Click (Bossa nova)
     else if (n === 'o') noise(0.12, 0.13, 'highpass', 7000, null, t, pan('hat', musicBus));
     else if (n === 't') tone2('triangle', 300, 120, 0.12, 0.45, t, pan('tomL', musicBus));
     else if (n === 'u') tone2('triangle', 200, 70, 0.15, 0.5, t, pan('tomR', musicBus));
-    else if (n === 'p') { tone2('triangle', 120, 82, 0.55, 0.55, t); noise(0.18, 0.12, 'lowpass', 500, 120, t, musicBus); } // Pauke
+    else if (n === 'p') { tone2('triangle', 120, 82, 0.55, 0.55, t, musicBus); noise(0.18, 0.12, 'lowpass', 500, 120, t, musicBus); } // Pauke
   }
   function tone2(type, f0, f1, dur, vol, t, dst) {
     const o = osc(type), g = ac.createGain();
@@ -878,7 +892,20 @@ const Audio8 = (() => {
     g.gain.linearRampToValueAtTime(0, t + gate);
     o.connect(g); g.connect(track === 'tri' ? melBus : pan(side || track, melBus)); // Dreiecksbass bleibt in der Mitte
     o.start(t); o.stop(t + gate + 0.02);
+    if (track === 'p1' && !side && RICH) { // Chorus: zweite Stimme 9 Cent höher, halbe Pulsbreite, auf der anderen Seite, weich gefiltert
+      const o2 = osc('pulse', 0.125), g2 = ac.createGain(), lp = ac.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = Math.min(9000, f * 6); lp.Q.value = 0.5;
+      o2.frequency.setValueAtTime(f, t); o2.detune.value = 9;
+      g2.gain.setValueAtTime(0, t); g2.gain.linearRampToValueAtTime(vol * 0.42, t + 0.02); g2.gain.setValueAtTime(vol * 0.32, t + Math.min(gate, 0.09)); g2.gain.linearRampToValueAtTime(0, t + gate);
+      o2.connect(lp); lp.connect(g2); g2.connect(pan('p1c', melBus)); o2.start(t); o2.stop(t + gate + 0.02);
+    }
+    if (track === 'tri' && RICH && f >= 90 && f < 420) { // Sub-Oktave: Sinus eine Oktave tiefer, trägt auf Fernsehlautsprechern
+      const o3 = ac.createOscillator(), g3 = ac.createGain(); o3.type = 'sine'; o3.frequency.setValueAtTime(f / 2, t);
+      g3.gain.setValueAtTime(0, t); g3.gain.linearRampToValueAtTime(vol * 0.38, t + 0.01); g3.gain.linearRampToValueAtTime(0, t + gate);
+      o3.connect(g3); g3.connect(melBus); o3.start(t); o3.stop(t + gate + 0.02);
+    }
   }
+  const RICH = true; // volle Klangfarben (Chorus, Sub-Oktave)
 
   // Pfeifenorgel (Bosslied des Grafen): Register 16', 8', 4', 2 2/3', 2' – Grundton, Oktaven und Quinte, schnelle Ansprache,
   // Tremulant, kurzer Nachklang; Akkorde wie beim Pad als „a+b+c:Länge"
@@ -1131,10 +1158,14 @@ const Audio8 = (() => {
 
   function tempo(m) { tempoMul = m; }
   const openFreq = () => Math.min(18000, ac.sampleRate / 2 - 100);
-  function muffle(on) { if (muffleF && ac) muffleF.frequency.setTargetAtTime(on ? 650 : openFreq(), ac.currentTime, on ? 0.04 : 0.12); }
+  let slowOn = false;
+  function slow(on) { slowOn = !!on; if (muffleF && ac) muffleF.frequency.setTargetAtTime(on ? 1500 : openFreq(), ac.currentTime, on ? 0.05 : 0.3); }
+  function muffle(on) { if (muffleF && ac) muffleF.frequency.setTargetAtTime(on ? 650 : slowOn ? 1500 : openFreq(), ac.currentTime, on ? 0.04 : 0.12); }
   function duck(on) { if (duckBus && ac) duckBus.gain.setTargetAtTime(on ? 0.45 : 1, ac.currentTime, on ? 0.06 : 0.5); }
 
-  return { init, prepare, sfx, play, stop, ambience, drip, toggleMute, setMusicVolume, setMusicLevel, ready, duck, muffle, tempo,
+  return { init, prepare, sfx, play, stop, ambience, drip, toggleMute, setMusicVolume, setMusicLevel, ready, duck, muffle, tempo, intensity, slow,
+    get drumLevel() { return drumLvl; },
+    steps: () => (ac && song ? Math.max(0, ac.currentTime - songT0) * song.bpm * tempoMul / 15 : null), // Sechzehntel seit Liedbeginn (Taktduell)
     context: () => ac, voiceOut: () => voiceBus,
     beat: () => (ac && song ? Math.max(0, ac.currentTime - songT0) * song.bpm * tempoMul / 60 : null), // Schlag im laufenden Stück
     cues: () => { if (!ac) return 0; const now = ac.currentTime; let n = 0; while (cueQ.length && cueQ[0] <= now) { cueQ.shift(); n++; } return n; }, // fällige Stakkato-Schläge

@@ -14,6 +14,7 @@ const OPTION_ITEMS = [ // label/hint sind Schlüssel für tr()
   { key: 'voice', label: 'optVoice', hint: 'optVoiceH' },
   { key: 'lang', label: 'optLang', hint: 'optLangH' },
   { key: 'crt', label: 'optCrt', hint: 'optCrtH' },
+  { key: 'bloom', label: 'optBloom', hint: 'optBloomH' }, // Glühen (Bloom) um helle Stellen
   { key: 'fullscreen', label: 'optFull', hint: 'optFullH' },
   { key: 'back', label: 'optBack', hint: '' },
 ].filter(it => !['guide', 'allRelics', 'maxLevel'].includes(it.key) || Castle.on);

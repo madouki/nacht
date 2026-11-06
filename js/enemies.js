@@ -553,6 +553,7 @@ class EProj extends Ent {
   }
   draw(ctx) {
     const S = Sprites.S, x = Math.round(this.x - 1 - W.cam.x), y = Math.round(this.y - 1 - W.cam.y);
+    if (this.reflected && this.type !== 'fire') { ctx.fillStyle = (this.t & 2) ? 'rgba(164,228,252,0.75)' : 'rgba(88,160,252,0.5)'; ctx.fillRect(x - 3, y - 3, 13, 13); } // zurückgeschleudert: blauer Schimmer
     if (this.type === 'fire') Sprites.draw(ctx, S.fire[Math.floor(this.t / 4) % 2], x, y, this.vx < 0, this.reflected && (this.t & 2));
     else if (this.type === 'rock') {
       ctx.fillStyle = PAL.G; ctx.fillRect(x - 1, y - 1, 9, 8);

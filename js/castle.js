@@ -3002,13 +3002,26 @@ const Castle = (() => {
   const shop = { sel: 0, say: 'shopHi', mode: 'buy', who: 'lib' };
   const sayKey = (k) => shop.who === 'conc' || shop.who === 'cook' ? k.replace('shop', shop.who) : k;
   function openShop(who = 'lib') { shop.sel = 0; shop.who = who; shop.mode = who === 'gramo' ? 'play' : 'buy'; shop.say = who === 'gramo' ? 'gramoHi' : who === 'cook' && !dishToday() ? 'cookHiWE' : sayKey('shopHi'); }
-  function gramoInput(P) { // Grammophon: ↑↓ wählt, Sprung/Angriff legt die Platte auf (sie spielt, bis man die Lobby verlässt)
+  function gramoInput(P) { // Grammophon: ↑↓ wählt, Sprung legt die Platte auf (sie spielt, bis man die Lobby verlässt), Angriff: Taktduell
+    if (typeof Takt !== 'undefined' && Takt.active()) { // Taktduell (js/takt.js): Bestwert je Platte, Gold für jede Verbesserung
+      const live = Takt.result();
+      if (live && !live.paid) {
+        live.paid = true; const k = 'takt_' + live.id, old = flag[k] || 0;
+        if (live.score > old) { flag[k] = live.score; live.gold = Math.max(10, Math.floor((live.score - old) / 20)); W.score += live.gold; saveGold(live.gold); }
+        if (live.rank === 'S') flag.takt_s = 1;
+        save();
+      }
+      const r = Takt.input(P);
+      if (r) shop.say = r.quit ? 'gramoHi' : 'takt' + r.rank;
+      return false;
+    }
     if (P.start) return true;
     const n = RECORDS.length;
     if (P.up || P.down) { shop.sel = (shop.sel + (P.down ? 1 : n - 1)) % n; Audio8.sfx('select'); }
     if (P.jump || P.attack) {
       const id = RECORDS[shop.sel];
       if (!hasRec(id)) { shop.say = 'gramoMissing'; Audio8.sfx('wall'); }
+      else if (P.attack && typeof Takt !== 'undefined') { if (Takt.start(id)) shop.say = 'taktHi'; }
       else { Audio8.play(id); shop.say = 'gramoPlay'; Audio8.sfx('tink'); }
     }
     return false;
@@ -3044,6 +3057,14 @@ const Castle = (() => {
   }
   function drawGramo(ctx, t) { // Plattenliste: unbekannte Platten als ???, die aufgelegte leuchtet
     const cx = View.cx, lx = cx - Math.min(130, View.w / 2 - 16), rx = cx + Math.min(130, View.w / 2 - 16);
+    if (typeof Takt !== 'undefined' && Takt.active()) { // Taktduell: Bahnen statt Liste, das Grammophon schaut zu
+      panel(ctx, tr('taktTitle'), '#c89020');
+      const gx = Math.max(24, lx - 4), gy = 170 + Math.round(Math.sin(t * 0.25) * 2);
+      ctx.save(); ctx.translate(gx, gy); ctx.scale(2, 2); k3at(ctx, 'gramo', 0, 0); ctx.restore(); // Grammophon doppelt so groß, wippt im Takt
+      Takt.draw(ctx, t, flag['takt_' + Takt.state().id] || 0, gx + 6, gy - 58);
+      Font.draw(ctx, tr('taktHelp'), cx, 218, '#7c7c8c', { align: 'center' });
+      return;
+    }
     panel(ctx, tr('gramoTitle'), '#c89020');
     k3at(ctx, 'gramo', lx + 8, 70);
     wrap(tr(shop.say), rx - lx - 28).slice(0, 2).forEach((l, i) => Font.draw(ctx, l, lx + 24, 38 + i * 10, '#fce0a8', { shadow: '#000' }));
@@ -3191,6 +3212,9 @@ const Castle = (() => {
     { id: 'post', ok: () => !!best.Frankiermaschine },
     { id: 'lauf', ok: () => lauf() >= LAUF.length },   // Laufzettel vollständig
     { id: 'chef', ok: () => !!best.Schreibtisch },     // Schreibtischtäter (Chefetage)
+    { id: 'konter', ok: () => (flag.konter || 0) >= 25 }, // 25 Geschosse zurückgeschleudert
+    { id: 'dodge', ok: () => (flag.dodge || 0) >= 10 },   // zehnmal perfekt ausgewichen
+    { id: 'takt', ok: () => !!flag.takt_s },              // Taktduell mit Wertung S
     { id: 'express', ok: () => !!flag.express_perfect }, // Rohrpost-Express ohne Kratzer
     { id: 'kopf', ok: () => !!flag.pat_flip },  // Paternoster: oben durchgefahren
     { id: 'mahl', ok: () => !!flag.ate },       // Kantine: gegessen
@@ -3438,7 +3462,7 @@ const Castle = (() => {
   }
   function drawGuide(ctx) { // Bildkoordinaten: das Spielfeld beginnt bei y = 32
     const p = W.player, s = W.stage, r = W.roomIdx, st = S()[s], def = st && st.rooms[r], room = W.room;
-    if (!on || Options.guide === false || !p || !p.alive || !def || !room || !W.cam || W.arenaOn || W.cinema > 0 || overlayOn || inPrologue()) return;
+    if (!on || Options.guide === false || !p || !p.alive || !def || !room || !W.cam || W.arenaOn || W.cinema > 0 || overlayOn || inPrologue() || p.state === 'express') return; // im Rohrpost-Express: kein Wegweiser über dem Bullauge
     const sp = guideSpot(s, r, def, p);
     if (!sp) return;
     const wx = p.cx + seamDx(def, sp.x - p.cx), vw = View.w, t = W.frame || 0, bob = 2 + 2 * Math.sin(t * 0.15); // wippt zur Spitze hin
@@ -3951,6 +3975,8 @@ const Castle = (() => {
   // Neueste Änderungen (zum Testen): die Abschnittswahl markiert diese Räume mit NEU und zeigt darunter, was sich geändert hat;
   // SUB springt zum nächsten markierten Abschnitt. Bei jeder Auslieferung neu füllen
   const RECENT = [
+    [['side', 'rohrpost'], 'chgExpress2'], // Rohrpost-Express: schöner und gnädiger (früher sichtbar, Lenkhilfe, Countdown)
+    [['side', 'hotel'], 'chgFeel'],        // Taktduell am Grammophon; Glühen, Konter, Perfekt-Ausweichen, adaptive Musik
     [['side', 'chefetage'], 'chgChef'], // Laufzettel, Chefetage und der Schreibtischtäter
     [['side', 'hauptpost'], 'chgPost'], // Hauptpoststelle: Förderbänder, Pakete, Frankiermaschine
     [['side', 'rohrpost'], 'chgExpress'], // Rohrpost-Express in Ego-Sicht (Aktenkeller – Rohrpostamt)
@@ -4313,7 +4339,7 @@ const Castle = (() => {
     for (const b of BEATS) { const a = ref(b.at[0]); if (!a) out.push('Szene ohne Raum: ' + b.id); else if (!ground(S()[a.s].rooms[a.r], b.at[1], b.at[2])) out.push('Figur ohne Boden: ' + b.id); }
     for (const [R, id, x, y] of FINDS) { const a = ref(R); if (!a) out.push('Fund ohne Raum: ' + id); else if (SOLID.includes(S()[a.s].rooms[a.r].grid[y][x])) out.push('Fund in der Wand: ' + id); }
     const need = ['patF0', 'patF1', 'patF2', 'patF3', 'patSignT', 'patSign', 'patFlip', 'patCellar', 'npcCook', 'cookTitle', 'cookHi', 'cookHiWE', 'cookSold', 'cookOwned', 'cookPoor', 'cookThanks1', 'cookThanks2', 'cookThanks3', 'cookEat1', 'cookEat2', 'cookEat3',
-      'laufStamp', 'laufLocked', 'laufDone', 'chefSignT', 'chefSign', 'bossChef', 'bossChefCall', 'bossChefWait', 'bossChefHold', 'bossChefPatience', 'bossChefBack', 'bossChefStand', 'bossChefChair', 'bossChefCrit', 'bossChefNote', 'banter_bossChef', 'beastD_Schreibtisch', 'item_goldstempel', 'itemD_goldstempel', 'ach_chef', 'achD_chef', 'ach_lauf', 'achD_lauf', 'kantMenuT', 'kantMenuWE', 'eatPop', 'buffEnd', 'regSignT', 'regSign', 'ablageP', 'ablageLab', 'outboxLab', 'ordnerDead', 'chgTrakt', 'chgSchimmel', 'chgKeller', 'chgExpress', 'chgPost', 'postSignT', 'postSign', 'paketSignT', 'paketSign', 'paketBack', 'briefDead', 'nachDead', 'portoHit', 'bossFrank', 'bossFrankRoll', 'bossFrankStamp', 'bossFrankRage', 'bossFrankCrit', 'bossFrankNote', 'banter_bossFrank', 'beast_Brief', 'beastD_Brief', 'beast_Nachnahme', 'beastD_Nachnahme', 'beastD_Frankiermaschine', 'item_posthorn', 'itemD_posthorn', 'ach_post', 'achD_post', 'expIn', 'expClosed', 'expSign', 'expStamps', 'expBoost', 'expWait', 'expArrive', 'expDone', 'expPerfect', 'expFlap', 'expGrate', 'expFolder', 'ach_express', 'achD_express', 'rrStuck', 'kellerSignT', 'kellerSign', 'bossReiss', 'bossReissShout', 'bossReissJam', 'bossReissRage', 'bossReissBonk', 'bossReissCrit', 'bossReissNote', 'banter_bossReiss', 'beastD_Reisswolf', 'ach_reiss', 'achD_reiss', 'item_reisszahn', 'itemD_reisszahn', 'banter_bossAmt', 'amtPile0', 'amtPile1', 'amtPile2', 'amtPile3', 'bossAmt', 'bossAmtNote', 'bossAmtShout', 'bossAmtRage', 'amtMark', 'npcClerk', 'amtSignT', 'amtSign', 'chgAmt', 'portrait0', 'portrait1', 'portrait2', 'banter_boss1', 'banter_boss2', 'banter_boss3', 'banter_boss4', 'banter_bossKraken', 'banter_bossTentacle', 'banter_bossKnight', 'banter_bossTrap', 'banter_bossWitch', 'banter_bossConductor', 'banter_bossDoppel', 'banter_bossAwakened', 'banter_bossGolem', 'secNew', 'secNewHelp', ...RECENT.map(([, k]) => k), 'chgBanter', 'famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'npcSpeed', 'npcBones', 'npcChicken', 'npcBarber', 'npcCarto', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'mapOverlayHelpT', 'optGuide', 'optGuideH'];
+      'taktTitle', 'taktHi', 'taktHelp', 'taktPerfect', 'taktGood', 'taktMiss', 'taktScore', 'taktCombo', 'taktBest', 'taktAcc', 'taktMax', 'taktNewBest', 'taktS', 'taktA', 'taktB', 'taktC', 'ach_takt', 'achD_takt', 'optBloom', 'optBloomH', 'chgFeel', 'chgExpress2', 'dodgePerfect', 'ach_konter', 'achD_konter', 'ach_dodge', 'achD_dodge', 'laufStamp', 'laufLocked', 'laufDone', 'chefSignT', 'chefSign', 'bossChef', 'bossChefCall', 'bossChefWait', 'bossChefHold', 'bossChefPatience', 'bossChefBack', 'bossChefStand', 'bossChefChair', 'bossChefCrit', 'bossChefNote', 'banter_bossChef', 'beastD_Schreibtisch', 'item_goldstempel', 'itemD_goldstempel', 'ach_chef', 'achD_chef', 'ach_lauf', 'achD_lauf', 'kantMenuT', 'kantMenuWE', 'eatPop', 'buffEnd', 'regSignT', 'regSign', 'ablageP', 'ablageLab', 'outboxLab', 'ordnerDead', 'chgTrakt', 'chgSchimmel', 'chgKeller', 'chgExpress', 'chgPost', 'postSignT', 'postSign', 'paketSignT', 'paketSign', 'paketBack', 'briefDead', 'nachDead', 'portoHit', 'bossFrank', 'bossFrankRoll', 'bossFrankStamp', 'bossFrankRage', 'bossFrankCrit', 'bossFrankNote', 'banter_bossFrank', 'beast_Brief', 'beastD_Brief', 'beast_Nachnahme', 'beastD_Nachnahme', 'beastD_Frankiermaschine', 'item_posthorn', 'itemD_posthorn', 'ach_post', 'achD_post', 'expIn', 'expClosed', 'expSign', 'expStamps', 'expBoost', 'expWait', 'expArrive', 'expDone', 'expPerfect', 'expFlap', 'expGrate', 'expFolder', 'ach_express', 'achD_express', 'rrStuck', 'kellerSignT', 'kellerSign', 'bossReiss', 'bossReissShout', 'bossReissJam', 'bossReissRage', 'bossReissBonk', 'bossReissCrit', 'bossReissNote', 'banter_bossReiss', 'beastD_Reisswolf', 'ach_reiss', 'achD_reiss', 'item_reisszahn', 'itemD_reisszahn', 'banter_bossAmt', 'amtPile0', 'amtPile1', 'amtPile2', 'amtPile3', 'bossAmt', 'bossAmtNote', 'bossAmtShout', 'bossAmtRage', 'amtMark', 'npcClerk', 'amtSignT', 'amtSign', 'chgAmt', 'portrait0', 'portrait1', 'portrait2', 'banter_boss1', 'banter_boss2', 'banter_boss3', 'banter_boss4', 'banter_bossKraken', 'banter_bossTentacle', 'banter_bossKnight', 'banter_bossTrap', 'banter_bossWitch', 'banter_bossConductor', 'banter_bossDoppel', 'banter_bossAwakened', 'banter_bossGolem', 'secNew', 'secNewHelp', ...RECENT.map(([, k]) => k), 'chgBanter', 'famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'npcSpeed', 'npcBones', 'npcChicken', 'npcBarber', 'npcCarto', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'mapOverlayHelpT', 'optGuide', 'optGuideH'];
     for (const id in GEAR) need.push('item_' + id, 'itemD_' + id);
     for (const b of BEATS) { if (b.lines !== false) need.push('story_' + b.id); need.push('story_' + (b.again || b.id) + 'Again'); }
     for (const id of SPELL_IDS) need.push('spell_' + id);
