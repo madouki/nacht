@@ -2040,6 +2040,7 @@ const Tiles = (() => {
       range(pk, hp, { face: ['#28163e', '#382252', '#52366c'], deep: '#2c1844', rim: '#5c4478', rimLit: '#b49cd4', snow: ['#6c5c8c', '#8c7cac', '#d0c0e8'] }, 84, { from: 120, len: 56, col: '#2c1642' });
       add('peaks2d', pk, 0.06, { hidden: true }); // ersetzt durch die Low-Poly-Berge
       L.push({ name: 'peaks', custom: drawMountains3D, par: 0.06, c: C(1, 1) });
+      if (!mtnBands) { mtnBands = MTN.map(buildMtnBand); mtnMist = buildMtnMist(); } // beim Vorladen bauen, nicht im ersten Bild (~0,1 s)
       const mt = C(512, 208), mx = mt.getContext('2d'), hm = peaks(8, 92, 176, 0.45, 0.85, 14);
       range(mt, hm, { face: ['#10061a', '#1a0a26', '#2a1238'], deep: '#14081e', rim: '#30163e', rimLit: '#6c2a58' }, 0, { from: 162, len: 46, col: '#2a1238' });
       for (let i = 0; i < 80; i++) { // Tannen auf den unteren Hängen
@@ -2082,6 +2083,7 @@ const Tiles = (() => {
       for (let i = 0; i < 22; i++) { const wx = 160 + ri(0, 280), wy = 125 + ri(0, 50); px(x2, '#f8b800', wx, wy, 1, 2); }
       add('castle2d', cs, 0.25, { hidden: true }); // ersetzt durch die Low-Poly-Burg
       L.push({ name: 'castle', custom: drawCastle3D, par: 0.25, c: cs });
+      if (!castleArt) castleArt = buildCastleArt(); // beim Vorladen bauen
       const nr = C(512, 208), x3 = nr.getContext('2d');
       // knorrige, tote Bäume: sich verjüngende, verzweigte Äste mit Zweigen, Wurzeln und Moosbärten; die zum Mond gewandte
       // Kante leuchtet rötlich-violett, auf den Ästen sitzen eine Eule mit glühenden Augen und ein Rabe
@@ -2318,6 +2320,7 @@ const Tiles = (() => {
       add('sky', sky, 0, { wrap: false });
       L.push({ name: 'moon', custom: (c2, cam, f) => PS2.drawMoon(c2, View.w - 128, 74, 42, f), par: 0, c: C(1, 1) }); // Blutmond wie im Titelbild, groß hinter der Burg
       L.push({ name: 'castle', custom: drawCastle3D, par: 0.25, c: C(1, 1) });
+      if (!castleArt) castleArt = buildCastleArt(); // beim Vorladen bauen
       L.push({ name: 'clouds', custom: drawCloudStream, par: 0, c: C(1, 1) });
       L.push({ name: 'piers', custom: drawBridgePiers, par: 1, c: C(1, 1) });
     } else if (theme === 'tower') {

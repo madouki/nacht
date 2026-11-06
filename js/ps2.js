@@ -440,9 +440,18 @@ const PS2 = (() => {
     const wrap = (v, n) => ((v % n) + n) % n;
     // Welt-x → Winkel relativ zur Bildmitte
     function angleOf(room, cam, wx) { const C = room.w * T, rel = wrap(wx - (cam.x + View.w / 2) + C / 2, C) - C / 2; return rel / C * Math.PI * 2; }
+    // Mantel-Texturen je Raum merken (bis zu vier): Eisturm, Eisrutsche & Co. wechseln sonst bei jedem Betreten den Mantel und
+    // rechnen ihn im ersten Bild neu (~0,15–0,3 s Hänger); prewarm baut sie schon während der Regionskarte
+    const texC = new Map(), keyOf = (room) => room.w + 'x' + room.h + room.theme + (room.towerTex || '');
+    function texFor(room, key = keyOf(room)) {
+      let c = texC.get(key);
+      if (!c) { c = buildTex(room); texC.set(key, c); if (texC.size > 4) texC.delete(texC.keys().next().value); }
+      return c;
+    }
+    function prewarm(room) { texFor(room); }
     function draw(ctx, room, cam, frame, t) {
-      const key = room.w + 'x' + room.h + room.theme + (room.towerTex || ''), ice = room.theme === 'ice';
-      if (!tex || texKey !== key) { tex = buildTex(room); texKey = key; }
+      const key = keyOf(room), ice = room.theme === 'ice';
+      if (!tex || texKey !== key) { tex = texFor(room, key); texKey = key; }
       const w = View.w, r = R(room), cx = w / 2, C = room.w * T, camC = cam.x + w / 2;
       if (!shade || shadeW !== w || shadeKey !== key) { shadeFor(w, r, ice); shadeKey = key; }
       // Turmmantel: jede Spalte aus der abgewickelten Wand, zum Rand hin perspektivisch gestaucht (Ober- und Unterkante wölben sich)
@@ -521,7 +530,7 @@ const PS2 = (() => {
       Tower.k = persp(R(room), c); // vertikale Stauchung an dieser Stelle (für die Figur)
       return View.w / 2 + (R(room) + 12) * Math.sin(a);
     }
-    const Tower = { draw, place, angleOf, radius: R, k: 1, H0 };
+    const Tower = { draw, place, angleOf, radius: R, k: 1, H0, prewarm };
     return Tower;
   })();
 
