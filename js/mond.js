@@ -12,7 +12,7 @@ const Mond = (() => {
   // ---------------- Flug ----------------
   function start(p, d) {
     F = { t: 0, dest: d.dest, back: d.k === 'capsule' };
-    p.state = 'cannon'; p.vx = p.vy = 0;
+    p.state = 'cannon'; p.vx = p.vy = 0; Game.noteT = 0; // Stationshinweis ausblenden
     W.shake = 24; W.flash = 10; Audio8.sfx('boom'); Audio8.sfx('whoosh'); Input.rumble(1, 0.8, 500);
     W.spawn(new FlightView());
   }

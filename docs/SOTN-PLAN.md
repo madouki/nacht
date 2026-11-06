@@ -437,6 +437,24 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
       (Fächer aus Papierstreifen) und ANSTURM (Wandprall: benommen und verwundbar). Ab halber Energie Stufe 5 (Partikelschnitt).
     - Besiegt platzt er in Konfetti. Lohn: Reißzahn (Waffe, ATK +6) und die Urkunde „Datenschutz gewährleistet“.
   - Geräusche `howl`/`shred` vorerst als Synth (ElevenLabs war belegt; `Audio8.sample` nimmt Proben, sobald sie in `SAMP` stehen).
+- **Feinschliff über das ganze Spiel** (20261106, zweite Runde):
+  - **Rundgang durch alle 86 Räume** (test_sweep.js): jeder Raum betreten, 3 s laufen lassen, ein Bild je Raum, Fehler je Raum.
+    Ergebnis: keine Fehler, Selbsttest sauber.
+  - **Glühen nachgeschärft**: In hellen Gebieten (Zwinger bei Blitz, Sonnenkathedrale bei Tag, Himmelsaufzug, Ballsaal,
+    Theaterfoyer) wusch das Glühen das Bild weiß aus. Die Schwelle ist jetzt x⁵ statt x³ (nur wirklich Helles glüht), dazu
+    niedrigere Stärken für helle Themen in `BLOOM` (sun, cathedral, spire, theater, courtyard, ballroom …).
+  - **Texte pixelgenau geprüft** (test_text.js, alle 1040 Schlüssel in allen acht Sprachen mit der Spielschrift):
+    - Bestiarium und Urkunden höchstens 2 Zeilen à 260 px, Gegenstandsbeschreibungen 1 Zeile ≤ 402 px, Namen ≤ 200 px.
+    - Dialoge höchstens 4 Zeilen à 298 px, Grammophon-Sprüche 2 Zeilen à 232 px.
+    - 13 Überlängen gekürzt (Pointen erhalten): u. a. Erweckter, Steingolem, Schaufensterpuppe, Taschenuhr, Prisma,
+      Entenschirm, Sternbild (es), Gummihuhn (fr), Taktduell-Spruch.
+    - Die Herausforderung des Grammophons (`taktHi`) erscheint jetzt im Countdown des Taktduells; vorher war sie nie zu sehen.
+  - **Lautstärke der Lieder angeglichen** (`SONG_GAIN` in audio.js, eigener Gain-Knoten `songGain` zwischen Musikbus und
+    Pausenfilter): drei Echtzeit-Messläufe (RMS). Die Messung schwankt je nach Rechnerlast um ±2 dB, deshalb ist nur korrigiert,
+    was in allen Läufen übereinstimmte: Amtsstuben-Walzer ×1,6, Sonnenkathedrale ×1,2, Fahrstuhlmusik ×1,15; Dienstweg, Graf und
+    stage2 ×0,8.
+  - Stationshinweise („Mondkanone: ↑ einsteigen …“, Rohrpost) verschwinden beim Start der Fahrt, statt über dem Flug stehen zu
+    bleiben.
 - **Mond** (20261106; js/mond.js): In der Sternkuppel steht nach dem Sternbild die Mondkanone des Amtsleiters (Jules Verne
   lässt grüßen).
   - **Mondkanone** (`Mond.Cannon`, k 'cannon'): ↑ davor → Zustand 'cannon'. Mündungsblitz, Bildschirmbeben, Flug durchs All

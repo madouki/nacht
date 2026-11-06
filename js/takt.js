@@ -118,6 +118,7 @@ const Takt = (() => {
     if (best) Font.draw(ctx, tr('taktBest', best), rx, 88, '#8c8c9c', { shadow: '#000' });
     const prog = Math.max(0, Math.min(1, s / D.end)); ctx.fillStyle = '#3c2c14'; ctx.fillRect(rx, 102, 60, 4); ctx.fillStyle = '#f8d048'; ctx.fillRect(rx, 102, 60 * prog, 4);
     if (D.wait > 0) { const n = Math.ceil(D.wait / 50); ctx.save(); ctx.translate(cx, 100); ctx.scale(3, 3); Font.draw(ctx, String(n), 0, -3, '#fcf4c0', { align: 'center', shadow: '#000' }); ctx.restore(); }
+    if (D.wait > 0) wrapText(tr('taktHi'), View.w - 40).slice(0, 2).forEach((l, i) => Font.draw(ctx, l, cx, 194 + i * 10, '#fce0a8', { align: 'center', shadow: '#000' })); // die Herausforderung des Grammophons
     if (D.res) { // Ergebnis
       const r = D.res, a = Math.min(1, r.t / 20);
       const bw = Math.min(View.w - 24, 340); ctx.fillStyle = `rgba(8,6,14,${(0.86 * a).toFixed(2)})`; ctx.fillRect(cx - bw / 2, 60, bw, 124); ctx.fillStyle = '#c89020'; ctx.fillRect(cx - bw / 2, 60, bw, 1); ctx.fillRect(cx - bw / 2, 183, bw, 1);

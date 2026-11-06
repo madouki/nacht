@@ -312,7 +312,7 @@ const FX = (() => {
   }
 
   // Glühen (Bloom, seit 20261106): helle Stellen – Kerzen, Lampen, Magie, Blitze, Fenster – strahlen weich über ihre Ränder.
-  // Billig genug für die Xbox: das Spielfeld wird auf ein Viertel verkleinert und zweimal mit sich selbst multipliziert (x³: nur
+  // Billig genug für die Xbox: das Spielfeld wird auf ein Viertel verkleinert und viermal mit sich selbst multipliziert (x⁵: nur
   // Helles bleibt), noch einmal halbiert und weich vergrößert additiv darübergelegt. Optionen → GLÜHEN schaltet es ab.
   let bA = null, bB = null, bT = null, bN = 0;
   function bloom(ctx, amt) {
@@ -323,7 +323,7 @@ const FX = (() => {
       const a = bA.getContext('2d'), t = bT.getContext('2d'), b = bB.getContext('2d');
       a.imageSmoothingEnabled = true; a.globalCompositeOperation = 'copy'; a.drawImage(cv, 0, 32, vw, 208, 0, 0, w1, h1);
       t.globalCompositeOperation = 'copy'; t.drawImage(bA, 0, 0);
-      a.globalCompositeOperation = 'multiply'; a.drawImage(bT, 0, 0); a.drawImage(bT, 0, 0);
+      a.globalCompositeOperation = 'multiply'; a.drawImage(bT, 0, 0); a.drawImage(bT, 0, 0); a.drawImage(bT, 0, 0); a.drawImage(bT, 0, 0); // x⁵: nur wirklich Helles glüht (helle Säle waschen sonst aus)
       b.imageSmoothingEnabled = true; b.globalCompositeOperation = 'copy'; b.drawImage(bA, 0, 0, w2, h2);
     }
     ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.beginPath(); ctx.rect(0, 32, vw, 208); ctx.clip();

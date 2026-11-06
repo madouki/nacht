@@ -2,6 +2,10 @@
 'use strict';
 
 const Audio8 = (() => {
+  let songGain = null; // Lautheitsausgleich je Lied
+  // gemessen 2026-11-06 in drei Echtzeit-Läufen (RMS, Ziel: Median aller Lieder). Die Messung schwankt je nach Rechnerlast um
+  // ±2 dB – korrigiert ist nur, was in allen Läufen übereinstimmte (Amtsstuben-Walzer rund 5 dB zu leise, Dienstweg, Graf, stage2 zu laut)
+  const SONG_GAIN = { amt: 1.6, sun: 1.2, amtsmarsch: 1.1, posthorn: 1.1, fahrstuhl: 1.15, mondmeer: 1.1, library: 0.92, chapel: 0.88, dienstweg: 0.8, galopp: 0.9, count: 0.82, stage2: 0.8 };
   let ac = null, master, comp, musicBus, melBus, sfxBus, duckBus, voiceBus, muffleF, noiseBuf, pulseWaves = {};
   let muted = false;
   const MUSIC_VOL = 0.28; // ≈ bisher gehörter Pegel: früher 0.82, aber ab der ersten Kick ungewollt × 0.3 (Sidechain rief duck(on) auf)
@@ -43,7 +47,8 @@ const Audio8 = (() => {
     voiceBus = ac.createGain(); voiceBus.gain.value = 1.3; voiceBus.connect(master);
     // Pause: Musik klingt wie hinter einer Tür (Tiefpass, sonst ganz offen)
     muffleF = ac.createBiquadFilter(); muffleF.type = 'lowpass'; muffleF.frequency.value = openFreq(); muffleF.Q.value = 0.8; muffleF.connect(duckBus);
-    musicBus = ac.createGain(); musicBus.gain.value = MUSIC_VOL * musicLevel; musicBus.connect(muffleF);
+    songGain = ac.createGain(); songGain.connect(muffleF); // Lautheitsausgleich je Lied (SONG_GAIN)
+    musicBus = ac.createGain(); musicBus.gain.value = MUSIC_VOL * musicLevel; musicBus.connect(songGain || muffleF);
     melBus = ac.createGain(); melBus.connect(musicBus);
     sfxBus = ac.createGain(); sfxBus.gain.value = 0.7; sfxBus.connect(master);
     loadSamples();
@@ -1051,6 +1056,7 @@ const Audio8 = (() => {
     if (!parsed[name]) return;
     stop(song ? fade : 0);
     song = parsed[name]; songName = name; nextSong = then;
+    if (songGain) songGain.gain.setTargetAtTime(SONG_GAIN[name] || 1, ac.currentTime, 0.08);
     const t0 = ac.currentTime + 0.05 + (fade ? fade * 2 : 0);
     cursors = song.tracks.map(() => ({ i: 0, t: t0, done: false }));
     songT0 = t0;
@@ -1064,7 +1070,7 @@ const Audio8 = (() => {
       const old = musicBus, t = ac.currentTime, level = MUSIC_VOL * musicLevel;
       old.gain.setTargetAtTime(0, t, fade || 0.02);
       setTimeout(() => old.disconnect(), fade ? fade * 9000 : 300);
-      musicBus = ac.createGain(); musicBus.connect(muffleF);
+      musicBus = ac.createGain(); musicBus.connect(songGain || muffleF);
       if (fade) { musicBus.gain.setValueAtTime(0.0001, t); musicBus.gain.linearRampToValueAtTime(level, t + fade * 5); } else musicBus.gain.value = level;
       melBus = ac.createGain(); melBus.connect(musicBus);
     }

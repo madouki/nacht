@@ -53,7 +53,7 @@ const Express = (() => {
   function start(p, st) {
     if (!lut) makeLut(); if (!tex) makeTex();
     R = { t: 0, z: 0, sp: 0, th: -Math.PI / 2, vth: 0, boost: 0, cool: 0, whip: 0, obs: course(st.dest === 'rohrpost' ? 4242 : 1717), stamps: 0, hits: 0, dest: st.dest, end: 0, flash: 24, shake: 0, go: GO, warn: null, sparks: [] };
-    p.state = 'express'; p.vx = p.vy = 0;
+    p.state = 'express'; p.vx = p.vy = 0; Game.noteT = 0; // Stationshinweis ausblenden
     Audio8.sfx('whoosh'); Audio8.sfx('hiss'); Audio8.play('galopp'); Input.rumble(0.5, 0.4, 300);
     W.spawn(new ExpressView());
   }

@@ -5,7 +5,7 @@
 // Licht fürs 3D-Tor: warm von vorn links (Fackeln), dazu kühles Umgebungslicht
 const DOOR_ENV = (() => { const v = [-0.35, 0.55, -0.75], l = Math.hypot(...v); return { static: true, sun: v.map(c => c / l), sunC: [0.85, 0.66, 0.46], amb: [0.36, 0.34, 0.44], sky: [0.16, 0.14, 0.22], fog: [0, 0, 0], fogD: 0 }; })();
 const STORMY = { courtyard: null, ship: null, bridge: null, glass: [0.44, 0.12], foyer: [0.88, 0.02], library: [0.52, 0.08], hall: [0.5, 0.1], tower: [0.5, 0.1], throne: [0.46, 0.1], lab: [0.5, 0.06], werk: [0.5, 0.12], passage: [0.6, 0.06], kaleido: [0.5, 0.06] };
-const BLOOM = { ice: 0.55, expo: 0.6, glass: 0.7, courtyard: 0.8, kaleido: 0.7, sun: 0.7, cathedral: 0.85, spire: 0.85 }; // Glühen je Gebiet (helle Säle weniger)
+const BLOOM = { ice: 0.5, expo: 0.6, glass: 0.6, courtyard: 0.55, bridge: 0.7, kaleido: 0.6, sun: 0.45, cathedral: 0.5, spire: 0.5, ballroom: 0.6, theater: 0.5, vortex: 0.7 }; // Glühen je Gebiet (helle Säle weniger)
 // Fenster in der Wandebene (x, Oberkante, Breite, Höhe): werfen im Blitz Lichtbahnen in den Raum
 const STORM_WINS = { foyer: [[44, 20, 56, 216], [300, 20, 56, 216]], library: [[296, 24, 48, 98]], hall: [[64, 40, 32, 88], [320, 40, 32, 88]], throne: [[59, 24, 32, 108], [315, 24, 32, 108]] };
 const W = {
