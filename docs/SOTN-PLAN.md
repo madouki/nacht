@@ -437,6 +437,40 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
       (Fächer aus Papierstreifen) und ANSTURM (Wandprall: benommen und verwundbar). Ab halber Energie Stufe 5 (Partikelschnitt).
     - Besiegt platzt er in Konfetti. Lohn: Reißzahn (Waffe, ATK +6) und die Urkunde „Datenschutz gewährleistet“.
   - Geräusche `howl`/`shred` vorerst als Synth (ElevenLabs war belegt; `Audio8.sample` nimmt Proben, sobald sie in `SAMP` stehen).
+- **Sternwarte des Amtsleiters** (20261106; js/stern.js): Der Amtsleiter ist Hobby-Astronom, und auch Sternbilder müssen genehmigt werden.
+  - **Zugang**: Im Vorzimmer der Chefetage führt eine Wendeltreppe (zwei Läufe mit Absatz) zu einer Deckenluke (x 2–3, Tor
+    `{ mini: chefetage }`, erst nach dem Schreibtischtäter). Vom Tritt unter der Luke springt man hinauf ins Planetarium und kommt
+    dort durch eine Bodenluke heraus. Auf der Karte liegt die Sternwarte über der Chefetage (rechts daneben lagen schon die
+    Ankunfts-Räume). `Castle.mapLayout()` gibt die Kartenlage für Tests aus.
+  - **Planetarium** (`planetarium`, 72×34, Galerie-Thema ohne Säulen-Silhouetten `openSky`, keine Decke): offener Sternenhimmel
+    (`Stern.Sky`: Verlauf, Milchstraße, 280 funkelnde Sterne in zwei Parallaxe-Schichten, Mond mit Kratern und Hof,
+    Sternschnuppen). Darin ein riesiges Messing-Orrery (`Stern.Orrery`): Sonne mit Korona (leuchtet), Zahnkranz, Sockel,
+    gestrichelte Bahnen, Ausleger mit Gegengewicht.
+    - Vier Planeten als Plattformen mit gewölbter Oberseite (`surfaceAt`, tragen mit): Merkur, Venus, Erde mit Mond und
+      Kontinenten, Saturn mit Ringen.
+    - Der Saturn (Radius 22, Bahn 198) taucht am Tiefpunkt in einen Bodenschlitz und steht dort nur 16 px über dem Boden. Man
+      springt auf und reitet hinauf zum Balkon (Ausgang zur Sternkuppel).
+    - Gegner: **Sternschnuppe** (schwebt, glüht mit Zielstrahl auf, stürzt sich auf den Helden, formt sich oben neu) und
+      **Astrolabium** (drei drehende Messingringe, schießt Sternbolzen `Stern.Bolt`, ein `EProj`, also per Konter
+      zurückschlagbar).
+    - Truhe am Balkon, Lebensgefäß auf dem Sims, Schild „Planetarium des Amtsleiters“.
+  - **Sternkuppel** (`sternkuppel`, 44×24): **Das Sternbild** (Zwischengegner `stern`, x 6–38, 96 HP). Zehn Sterne mit
+    Verbindungslinien, nur die Sterne nehmen Schaden (`hurtBoxes`). Dahinter eine zarte Fläche wie in einem alten Sternatlas.
+    Auftritt: Die Sterne fallen von oben an ihren Platz.
+    - **Großer Bär**: Prankenwirbel (dreht sich einmal und rückt heran, die Linien verletzen) und Ansturm quer durch die Kuppel.
+      Vor jedem Angriff werden die Linien rot.
+    - Ab zwei Dritteln: Die Sterne fliegen im Bogen auseinander und werden zum **Skorpion**. Stachel (Zielmarke am Boden, dann
+      sticht er zu) und Sternbolzen-Salve.
+    - Ab einem Drittel wird er zum **Großen Stempel** (kleiner, damit er im Bild bleibt): Stempelschlag mit Bodenwellen
+      („GENEHMIGT!“) und Sternregen mit Schattenwarnung.
+    - Nach jedem Angriff Atempause (Schaden ×1,5).
+    - Sieg: „Der Himmel ist wieder ordnungsgemäß abgelegt.“ Lohn: Taschen-Orrery (Amulett, MP +12, LUCK +2, DEF +1) und die
+      Urkunden „Sternstunde“ und „Planetenhüpfer“ (auf allen vier Planeten gestanden, `flag.planet0–3`).
+  - **Musik**: „Sternwarte“ (E-Dur, lydisch, 92 BPM, Celesta-Melodie mit langem Echo, Harfen-Arpeggien) und „Sternbild“
+    (fis-Moll, 160 BPM, Sechzehntel-Arpeggien, Galopp-Oktavbass, Pfeifenorgel).
+  - Bosse mit eigenem Lied behalten es jetzt bei halber Energie (`boss.keepMusic`, nur schneller). Vorher ersetzte die Welt
+    „Dienstweg“ und „Reißwolf“ ab der Hälfte durch das allgemeine Bosslied.
+  - **Spieltempo** (Optionen): 100 / 85 / 70 % – langsamer heißt mehr Zeit zum Reagieren. Die Musik bleibt im Takt.
 - **Feinschliff für alles** (20261106; Grafik, Gameplay, Musik, neue Idee):
   - **Glühen (Bloom)** über allen Räumen (`FX.bloom`, js/fx.js): Das Spielfeld wird auf ein Viertel verkleinert, zweimal mit sich
     selbst multipliziert (x³, nur Helles bleibt), noch einmal halbiert und weich vergrößert additiv darübergelegt. Stärke je Gebiet

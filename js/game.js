@@ -15,6 +15,7 @@ const OPTION_ITEMS = [ // label/hint sind Schlüssel für tr()
   { key: 'lang', label: 'optLang', hint: 'optLangH' },
   { key: 'crt', label: 'optCrt', hint: 'optCrtH' },
   { key: 'bloom', label: 'optBloom', hint: 'optBloomH' }, // Glühen (Bloom) um helle Stellen
+  { key: 'speed', label: 'optSpeed', hint: 'optSpeedH' }, // Spieltempo 100 / 85 / 70 %
   { key: 'fullscreen', label: 'optFull', hint: 'optFullH' },
   { key: 'back', label: 'optBack', hint: '' },
 ].filter(it => !['guide', 'allRelics', 'maxLevel'].includes(it.key) || Castle.on);
@@ -60,7 +61,7 @@ const Game = {
     const seen = new Set();
     const loop = (now) => {
       requestAnimationFrame(loop); // zuerst neu anmelden: ein Fehler darf die Schleife nicht beenden
-      acc += Math.min(100, now - last); last = now;
+      acc += Math.min(100, now - last) * (Options.speed / 100); last = now; // Spieltempo (Optionen): langsamer = mehr Zeit zum Reagieren
       let n = 0;
       const t0 = performance.now();
       try {
@@ -642,7 +643,7 @@ const Game = {
     if (it.key === 'music') {
       Options.set('music', clamp(Options.music + (left ? -1 : 1), 0, 10));
       Audio8.setMusicLevel(Options.music / 8);
-    } else if (it.key === 'lang') this.cycleLang(left); else if (it.key === 'voice') {
+    } else if (it.key === 'speed') { const L = [100, 85, 70], i = L.indexOf(Options.speed); Options.set('speed', L[(i + (left ? L.length - 1 : 1)) % L.length]); } else if (it.key === 'lang') this.cycleLang(left); else if (it.key === 'voice') {
       Options.toggle('voice');
       if (Options.voice) Voice.say('title'); else Voice.stop();
     } else if (it.key === 'crt') this.toggleCrt();
@@ -1464,6 +1465,7 @@ const Game = {
       if (it.key === 'music') {
         for (let k = 0; k < 10; k++) { ctx.fillStyle = k < Options.music ? '#f8b800' : '#3c3c3c'; ctx.fillRect(cx + 54 + k * 6, y, 4, 7); }
       } else if (it.key === 'lang') { val = '< ' + I18N.NAMES[Options.lang] + ' >'; good = true; }
+      else if (it.key === 'speed') { val = '< ' + Options.speed + ' % >'; good = Options.speed === 100; }
       else if (it.key !== 'back') {
         good = it.key === 'crt' ? this.crt : !!Options[it.key];
         val = tr(good ? 'on' : 'off');

@@ -165,7 +165,7 @@ class Reisswolf extends Boss {
   constructor(ax, aw) {
     const gy = (W.room.h - 2) * T;
     super(ax + 80, gy - 100, 112, 92, 48, 3);
-    this.ax = ax; this.aw = aw; this.gy = gy; this.mini = true; this.score = 12000; this.nameKey = 'bossReiss'; this.music = 'reisswolf';
+    this.ax = ax; this.aw = aw; this.gy = gy; this.mini = true; this.score = 12000; this.nameKey = 'bossReiss'; this.music = 'reisswolf'; this.keepMusic = true;
     this.bx = ax + 116; this.face = 1; this.yaw = -0.35; this.lootY = gy - 40;
     this.state = 'off'; this.timer = 0; this.ph2 = false; this.lateIntro = true; this.holdIntro = true;
     this.sock = { x: ax + 14, y: gy - 24 }; this.plug = 0; this.led = 0; this.rev = 0; this.jaw = 0; this.wheel = 0; this.eat = 0; this.vx = 0;

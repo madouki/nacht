@@ -5,14 +5,14 @@ const Options = (() => {
   const KEY = 'nachtmahr.opts';
   const nav = ((navigator.languages && navigator.languages[0]) || navigator.language || 'de').slice(0, 2).toLowerCase();
   const o = { easy: false, maxWhip: false, infHearts: false, crt: true, music: 8, character: 'henrik', fullscreen: true,
-    lang: ['de', 'en', 'fr', 'es', 'it', 'ro', 'ja', 'zh'].includes(nav) ? nav : 'en', voice: false, bloom: true, guide: true, allRelics: false, maxLevel: false, god: false, skin: '' }; // skin: zweiter Look des Helden ('adv' = Abenteurer, nur Henrik) // die letzten drei: Testhilfen // guide: Wegweiser-Pfeil im Schloss
+    lang: ['de', 'en', 'fr', 'es', 'it', 'ro', 'ja', 'zh'].includes(nav) ? nav : 'en', voice: false, bloom: true, speed: 100, guide: true, allRelics: false, maxLevel: false, god: false, skin: '' }; // skin: zweiter Look des Helden ('adv' = Abenteurer, nur Henrik) // die letzten drei: Testhilfen // guide: Wegweiser-Pfeil im Schloss
   try { Object.assign(o, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { /* privat */ }
   if (o.optVer !== 2) { o.voice = false; o.optVer = 2; } // Sprachausgabe standardmäßig aus (auch für alte Speicherstände)
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (e) { /* privat */ } };
   return {
     get easy() { return o.easy; }, get maxWhip() { return o.maxWhip; }, get infHearts() { return o.infHearts; },
     get crt() { return o.crt; }, get music() { return o.music; }, get character() { return o.character; }, get fullscreen() { return o.fullscreen; },
-    get lang() { return o.lang; }, get voice() { return o.voice; }, get guide() { return o.guide !== false; }, get bloom() { return o.bloom !== false; },
+    get lang() { return o.lang; }, get voice() { return o.voice; }, get guide() { return o.guide !== false; }, get bloom() { return o.bloom !== false; }, get speed() { return [100, 85, 70].includes(o.speed) ? o.speed : 100; },
     get skin() { return o.skin || ''; },
     get allRelics() { return !!o.allRelics; }, get maxLevel() { return !!o.maxLevel; }, get god() { return !!o.god; },
     get maxHp() { return o.easy ? 32 : 16; },

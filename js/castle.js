@@ -941,7 +941,8 @@ const Castle = (() => {
     // Chefetage (rechts an der Frankierstelle; js/chef.js): nur mit vollständig gestempeltem Laufzettel. Vorzimmer mit Wartebank,
     // Wanduhr, Kaffeekessel und dem verwaisten Sekretariat; dahinter das Büro der Amtsleitung – der Amtsleiter ist zu Tisch,
     // sein Schreibtisch vertritt ihn: der Schreibtischtäter. Danach liegen der Goldene Stempel und ein Lebensgefäß im Büro
-    const chf = R(76, 'hotel', 22).ground(0, 75, 20).fill(0, 0, 75, 1, '#')
+    const chf = R(76, 'hotel', 22).ground(0, 75, 20).fill(0, 0, 1, 1, '#').fill(4, 0, 75, 1, '#')               // Decke mit Luke (x 2–3) zur Sternwarte
+      .stair(4, 19, 8, 1).fill(12, 12, 14, 12, '#').stair(14, 11, 8, -1).fill(1, 4, 6, 4, '=').fill(2, 2, 3, 2, '=') // Wendeltreppe: zwei Läufe, Absatz, Tritt unter der Luke
       .fill(11, 16, 15, 16, '=').fill(19, 13, 25, 13, '=').fill(30, 16, 34, 16, '=')                     // Aktenböcke im Vorzimmer
       .prop('pz', { k: 'sign', x: 40, y: 16, title: 'chefSignT', key: 'chefSign', col: '#3c1c0c', reach: 3 })
       .mini('chef', 44, 74, 46, 0)
@@ -952,6 +953,30 @@ const Castle = (() => {
     chf.decor = [D('bench', 4.5, 19), D('bench', 7.5, 19), D('clock', 6, 13), D('desk', 26, 19), D('chair', 29.4, 19, true), D('kurn', 36, 19), D('starlamp', 42.5, 19)];
     chf.mapH = 1; // eine Zellenreihe auf der Karte
     add('chefetage', 0, 3, null, chf);
+    // Sternwarte des Amtsleiters (rechts an der Chefetage, nach dem Schreibtischtäter; js/stern.js): offenes Planetarium mit einem
+    // Messing-Orrery – auf dem Saturn (äußerste Bahn, streift am tiefsten Punkt fast den Boden) reitet man hinauf zum Balkon.
+    // Dahinter die Sternkuppel mit dem Sternbild. Keine Decke: oben ist Himmel
+    const pla = R(72, 'gallery', 34).ground(0, 71, 30).fill(2, 30, 3, 33, '.')                         // Einstieg von unten (Luke)
+      .fill(35, 30, 38, 31, '.')                                                                        // Bodenschlitz: hier taucht der Saturn ein
+      .fill(48, 8, 71, 9, '#')                                                                          // Balkon oben rechts
+      .fill(8, 18, 13, 18, '=').fill(63, 21, 70, 21, '=')                                               // Simse
+      .prop('stern', { k: 'sky', moon: true })
+      .prop('stern', { k: 'orrery', x: 36, y: 18 })                                                   // Saturn am Tiefpunkt 16 px über dem Boden
+      .prop('pz', { k: 'sign', x: 7, y: 26, title: 'sternSignT', key: 'sternSign', col: '#1c1c3c', reach: 3 })
+      .enemy('schnuppe', 22, 6).enemy('schnuppe', 56, 3).enemy('astrolab', 12, 13).enemy('astrolab', 66, 15)
+      .candle(3, 27, 'H').candle(16, 27).candle(30, 27, '$').candle(60, 27, 'H').candle(68, 5)
+      .chest(68, 7, 'big').prop('vessel', { x: 10, y: 17 })
+      .music('sternwarte').label('PLANETARIUM').start(6, 29).done();
+    pla.mapH = 1; pla.openSky = true; // keine Säulen-Silhouetten vor dem Himmel
+    add('planetarium', 0, 3, null, pla);
+    const kup = R(44, 'gallery', 24).ground(0, 43, 22)
+      .prop('stern', { k: 'sky', moon: false })
+      .mini('stern', 6, 38, 8, 0)
+      .candle(2, 19, 'H').candle(41, 19, 'H')
+      .chest(3, 21, 'big').prop('vessel', { x: 41, y: 21 })
+      .music('sternwarte').label('STERNKUPPEL').start(1, 21).done();
+    kup.mapH = 1; kup.openSky = true;
+    add('sternkuppel', 0, 3, null, kup);
     const kel = R(80, 'library', 18).ground(0, 79, 16).fill(0, 0, 79, 1, '#')
       .fill(30, 8, 31, 15, '#')                                                                         // Registraturwand (oben frei)
       .fill(27, 14, 29, 14, '=').fill(24, 12, 26, 12, '=').fill(27, 10, 29, 10, '=')                    // Rückweg aus der Kammer
@@ -977,6 +1002,8 @@ const Castle = (() => {
       [['side', 'paternoster'], { e: 'L', y: 33 }, ['side', 'aktenkeller'], { e: 'R', y: 15 }, {}],                           // 2. UG links → Aktenkeller
       [['side', 'registratur'], { e: 'R', y: 29 }, ['side', 'hauptpost'], { e: 'L', y: 19 }, {}],                             // Registratur rechts → Hauptpoststelle
       [['side', 'hauptpost'], { e: 'R', y: 19 }, ['side', 'chefetage'], { e: 'L', y: 19 }, { laufzettel: 1 }],                // Frankierstelle rechts → Chefetage (Laufzettel)
+      [['side', 'chefetage'], { e: 'T', x: 2 }, ['side', 'planetarium'], { e: 'B', x: 2 }, { mini: ['side', 'chefetage'] }],   // Luke im Vorzimmer → Sternwarte (nach dem Schreibtischtäter)
+      [['side', 'planetarium'], { e: 'R', y: 7 }, ['side', 'sternkuppel'], { e: 'L', y: 21 }, {}],                            // Balkon → Sternkuppel
     );
   }
   if (on && Levels.room) buildSide();
@@ -1904,6 +1931,7 @@ const Castle = (() => {
   if (on && typeof BOSSES !== 'undefined' && typeof Amtsschimmel !== 'undefined') BOSSES.amt = Amtsschimmel; // Amtsschimmel im Amt für Heldentaten (js/amt.js)
   if (on && typeof BOSSES !== 'undefined' && typeof Frankiermaschine !== 'undefined') BOSSES.post = Frankiermaschine; // Frankiermaschine in der Hauptpoststelle (js/post.js)
   if (on && typeof BOSSES !== 'undefined' && typeof Schreibtisch !== 'undefined') BOSSES.chef = Schreibtisch;        // Schreibtischtäter in der Chefetage (js/chef.js)
+  if (on && typeof BOSSES !== 'undefined' && typeof Sternbild !== 'undefined') BOSSES.stern = Sternbild;             // Sternbild in der Sternkuppel (js/stern.js)
   if (on && typeof BOSSES !== 'undefined' && typeof Reisswolf !== 'undefined') BOSSES.reiss = Reisswolf;     // Reißwolf im Aktenkeller (js/keller.js)
   if (on && typeof BOSSES !== 'undefined' && typeof GolemBoss !== 'undefined') BOSSES.golem = GolemBoss; // Steingolem im Golemstollen (js/golem.js)
   // Spiegel im Kabinett: zeigen den Helden – solange der Doppelgänger lebt, mit Verzögerung (das Spiegelbild ist nicht ganz
@@ -2303,7 +2331,8 @@ const Castle = (() => {
     shadowcard: { slot: 'fam', fam: 'shadow', col: '#8c5cc8' },        // Schatten des Doppelgängers: wiederholt jeden Hieb
     reisszahn: { slot: 'weapon', atk: 6, col: '#c8ccd4' },
     posthorn: { slot: 'acc', luck: 3, greed: 1, col: '#f8d048' },
-    goldstempel: { slot: 'acc', atk: 4, def: 3, luck: 2, col: '#f8d048' },       // Goldener Stempel (Lohn des Schreibtischtäters)               // Posthorn (Lohn der Frankiermaschine)                // Reißzahn (Lohn des Reißwolfs): Schneidwalze am Stiel
+    goldstempel: { slot: 'acc', atk: 4, def: 3, luck: 2, col: '#f8d048' },       // Goldener Stempel (Lohn des Schreibtischtäters)
+    orrery: { slot: 'acc', mp: 12, luck: 2, def: 1, col: '#c8dcff' },              // Taschen-Orrery (Lohn des Sternbilds)               // Posthorn (Lohn der Frankiermaschine)                // Reißzahn (Lohn des Reißwolfs): Schneidwalze am Stiel
     dienstsiegel: { slot: 'acc', def: 1, cert: 1, col: '#c8182c' },     // Dienstsiegel (Lohn des Amtsschimmels): Urkunden zahlen doppelt
     galvheart: { slot: 'acc', hp: 6, atk: 3, col: '#58f8b0' },          // Glasherz des Erweckten (Galvani-Laboratorium)
     book_spirit: { spell: 'spirit', price: 2500, col: '#a4e4fc' },      // Zauberbücher (Laden): lehren je einen Zauber
@@ -2343,7 +2372,7 @@ const Castle = (() => {
   const STOCK = ['potion', 'elixir', 'leather', 'chain', 'silver', 'heartamulet', 'fairy', 'map', 'book_spirit', 'book_hellfire', 'book_soulsteal'];
   const once = (g) => !!(g.slot || g.key || g.spell || g.rec || g.quest); // gibt es nur einmal
   const BOSS_LOOT = [[[0, -1], 'batcard']];
-  const MINI_LOOT = [[['side', 'spiegel'], 'shadowcard', 20, 10], [['side', 'golemstollen'], 'steinhaut', 12, 10], [['side', 'galvani'], 'galvheart', 97, 25], [['side', 'heldenamt'], 'dienstsiegel', 14, 17], [['side', 'aktenkeller'], 'reisszahn', 8, 15], [['side', 'hauptpost'], 'posthorn', 100, 19], [['side', 'chefetage'], 'goldstempel', 69, 19]]; // nach dem Doppelgänger: sein Schatten; nach dem Steingolem: Steinhaut; nach dem Erweckten: sein Glasherz
+  const MINI_LOOT = [[['side', 'spiegel'], 'shadowcard', 20, 10], [['side', 'golemstollen'], 'steinhaut', 12, 10], [['side', 'galvani'], 'galvheart', 97, 25], [['side', 'heldenamt'], 'dienstsiegel', 14, 17], [['side', 'aktenkeller'], 'reisszahn', 8, 15], [['side', 'hauptpost'], 'posthorn', 100, 19], [['side', 'chefetage'], 'goldstempel', 69, 19], [['side', 'sternkuppel'], 'orrery', 30, 21]]; // nach dem Doppelgänger: sein Schatten; nach dem Steingolem: Steinhaut; nach dem Erweckten: sein Glasherz
   const FINDS = [ // Einzelstücke: [Raum, Gegenstand, Kachel-x, Standreihe]
     [['side', 'kolosseum'], 'leather', 12, 7], [['side', 'kanal'], 'bloodstone', 43, 7], [['side', 'schatz'], 'greedring', 25, 6],
     [['side', 'verlies'], 'dragonfang', 28, 6], [['side', 'wehrgang'], 'luckcoin', 37, 6], [['side', 'himmel'], 'mirror', 44, 5],
@@ -3108,9 +3137,9 @@ const Castle = (() => {
 
   // ---------------- Bestiarium wie die Gegnerliste in SotN (Status, dritte Seite): Siege je Gegnerart, absurde Einträge ----------------
   const BEASTS = ['Bat', 'Skeleton', 'Ghoul', 'Raven', 'Knight', 'LivingArmor', 'Panther', 'Skull', 'Fishman', 'Ghost', 'Snake', 'FlyBook', 'Tome',
-    'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Automat', 'Mannequin', 'Jelly', 'Ordner', 'Flieger', 'Conductor', 'Doppel', 'GolemBoss', 'Awakened', 'Amtsschimmel', 'Reisswolf', 'Brief', 'Nachnahme', 'Frankiermaschine', 'Schreibtisch',
+    'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Automat', 'Mannequin', 'Jelly', 'Ordner', 'Flieger', 'Conductor', 'Doppel', 'GolemBoss', 'Awakened', 'Amtsschimmel', 'Reisswolf', 'Brief', 'Nachnahme', 'Frankiermaschine', 'Schreibtisch', 'Sternschnuppe', 'Astrolab', 'Sternbild',
     'TentacleBoss', 'GiantBat', 'IceWitch', 'GiantSkeleton', 'Medusa', 'SunWarden', 'ManTrap', 'Count'];
-  const BEAST_BOSS = { TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel', GolemBoss: 'bossGolem', Amtsschimmel: 'bossAmt', Reisswolf: 'bossReiss', Frankiermaschine: 'bossFrank', Schreibtisch: 'bossChef', Awakened: 'bossAwakened' };
+  const BEAST_BOSS = { TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel', GolemBoss: 'bossGolem', Amtsschimmel: 'bossAmt', Reisswolf: 'bossReiss', Frankiermaschine: 'bossFrank', Schreibtisch: 'bossChef', Sternbild: 'bossStern', Awakened: 'bossAwakened' };
   const BEAST_SET = new Set(BEASTS);
   const beastName = (k) => tr(BEAST_BOSS[k] || 'beast_' + k);
   const beasts = { sel: 0 };
@@ -3215,6 +3244,8 @@ const Castle = (() => {
     { id: 'konter', ok: () => (flag.konter || 0) >= 25 }, // 25 Geschosse zurückgeschleudert
     { id: 'dodge', ok: () => (flag.dodge || 0) >= 10 },   // zehnmal perfekt ausgewichen
     { id: 'takt', ok: () => !!flag.takt_s },              // Taktduell mit Wertung S
+    { id: 'stern', ok: () => !!best.Sternbild },          // Sternbild (Sternkuppel)
+    { id: 'orrery', ok: () => [0, 1, 2, 3].every(i => flag['planet' + i]) }, // auf allen vier Planeten gestanden
     { id: 'express', ok: () => !!flag.express_perfect }, // Rohrpost-Express ohne Kratzer
     { id: 'kopf', ok: () => !!flag.pat_flip },  // Paternoster: oben durchgefahren
     { id: 'mahl', ok: () => !!flag.ate },       // Kantine: gegessen
@@ -3975,6 +4006,7 @@ const Castle = (() => {
   // Neueste Änderungen (zum Testen): die Abschnittswahl markiert diese Räume mit NEU und zeigt darunter, was sich geändert hat;
   // SUB springt zum nächsten markierten Abschnitt. Bei jeder Auslieferung neu füllen
   const RECENT = [
+    [['side', 'planetarium'], 'chgStern'], // Sternwarte: Orrery, Sternschnuppen, Astrolabien, Sternbild
     [['side', 'rohrpost'], 'chgExpress2'], // Rohrpost-Express: schöner und gnädiger (früher sichtbar, Lenkhilfe, Countdown)
     [['side', 'hotel'], 'chgFeel'],        // Taktduell am Grammophon; Glühen, Konter, Perfekt-Ausweichen, adaptive Musik
     [['side', 'chefetage'], 'chgChef'], // Laufzettel, Chefetage und der Schreibtischtäter
@@ -4339,7 +4371,7 @@ const Castle = (() => {
     for (const b of BEATS) { const a = ref(b.at[0]); if (!a) out.push('Szene ohne Raum: ' + b.id); else if (!ground(S()[a.s].rooms[a.r], b.at[1], b.at[2])) out.push('Figur ohne Boden: ' + b.id); }
     for (const [R, id, x, y] of FINDS) { const a = ref(R); if (!a) out.push('Fund ohne Raum: ' + id); else if (SOLID.includes(S()[a.s].rooms[a.r].grid[y][x])) out.push('Fund in der Wand: ' + id); }
     const need = ['patF0', 'patF1', 'patF2', 'patF3', 'patSignT', 'patSign', 'patFlip', 'patCellar', 'npcCook', 'cookTitle', 'cookHi', 'cookHiWE', 'cookSold', 'cookOwned', 'cookPoor', 'cookThanks1', 'cookThanks2', 'cookThanks3', 'cookEat1', 'cookEat2', 'cookEat3',
-      'taktTitle', 'taktHi', 'taktHelp', 'taktPerfect', 'taktGood', 'taktMiss', 'taktScore', 'taktCombo', 'taktBest', 'taktAcc', 'taktMax', 'taktNewBest', 'taktS', 'taktA', 'taktB', 'taktC', 'ach_takt', 'achD_takt', 'optBloom', 'optBloomH', 'chgFeel', 'chgExpress2', 'dodgePerfect', 'ach_konter', 'achD_konter', 'ach_dodge', 'achD_dodge', 'laufStamp', 'laufLocked', 'laufDone', 'chefSignT', 'chefSign', 'bossChef', 'bossChefCall', 'bossChefWait', 'bossChefHold', 'bossChefPatience', 'bossChefBack', 'bossChefStand', 'bossChefChair', 'bossChefCrit', 'bossChefNote', 'banter_bossChef', 'beastD_Schreibtisch', 'item_goldstempel', 'itemD_goldstempel', 'ach_chef', 'achD_chef', 'ach_lauf', 'achD_lauf', 'kantMenuT', 'kantMenuWE', 'eatPop', 'buffEnd', 'regSignT', 'regSign', 'ablageP', 'ablageLab', 'outboxLab', 'ordnerDead', 'chgTrakt', 'chgSchimmel', 'chgKeller', 'chgExpress', 'chgPost', 'postSignT', 'postSign', 'paketSignT', 'paketSign', 'paketBack', 'briefDead', 'nachDead', 'portoHit', 'bossFrank', 'bossFrankRoll', 'bossFrankStamp', 'bossFrankRage', 'bossFrankCrit', 'bossFrankNote', 'banter_bossFrank', 'beast_Brief', 'beastD_Brief', 'beast_Nachnahme', 'beastD_Nachnahme', 'beastD_Frankiermaschine', 'item_posthorn', 'itemD_posthorn', 'ach_post', 'achD_post', 'expIn', 'expClosed', 'expSign', 'expStamps', 'expBoost', 'expWait', 'expArrive', 'expDone', 'expPerfect', 'expFlap', 'expGrate', 'expFolder', 'ach_express', 'achD_express', 'rrStuck', 'kellerSignT', 'kellerSign', 'bossReiss', 'bossReissShout', 'bossReissJam', 'bossReissRage', 'bossReissBonk', 'bossReissCrit', 'bossReissNote', 'banter_bossReiss', 'beastD_Reisswolf', 'ach_reiss', 'achD_reiss', 'item_reisszahn', 'itemD_reisszahn', 'banter_bossAmt', 'amtPile0', 'amtPile1', 'amtPile2', 'amtPile3', 'bossAmt', 'bossAmtNote', 'bossAmtShout', 'bossAmtRage', 'amtMark', 'npcClerk', 'amtSignT', 'amtSign', 'chgAmt', 'portrait0', 'portrait1', 'portrait2', 'banter_boss1', 'banter_boss2', 'banter_boss3', 'banter_boss4', 'banter_bossKraken', 'banter_bossTentacle', 'banter_bossKnight', 'banter_bossTrap', 'banter_bossWitch', 'banter_bossConductor', 'banter_bossDoppel', 'banter_bossAwakened', 'banter_bossGolem', 'secNew', 'secNewHelp', ...RECENT.map(([, k]) => k), 'chgBanter', 'famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'npcSpeed', 'npcBones', 'npcChicken', 'npcBarber', 'npcCarto', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'mapOverlayHelpT', 'optGuide', 'optGuideH'];
+      'sternSignT', 'sternSign', 'bossStern', 'bossSternBear', 'bossSternScorp', 'bossSternStamp', 'bossSternOk', 'bossSternNote', 'banter_bossStern', 'beast_Sternschnuppe', 'beastD_Sternschnuppe', 'beast_Astrolab', 'beastD_Astrolab', 'beastD_Sternbild', 'item_orrery', 'itemD_orrery', 'ach_stern', 'achD_stern', 'ach_orrery', 'achD_orrery', 'optSpeed', 'optSpeedH', 'taktTitle', 'taktHi', 'taktHelp', 'taktPerfect', 'taktGood', 'taktMiss', 'taktScore', 'taktCombo', 'taktBest', 'taktAcc', 'taktMax', 'taktNewBest', 'taktS', 'taktA', 'taktB', 'taktC', 'ach_takt', 'achD_takt', 'optBloom', 'optBloomH', 'chgFeel', 'chgExpress2', 'dodgePerfect', 'ach_konter', 'achD_konter', 'ach_dodge', 'achD_dodge', 'laufStamp', 'laufLocked', 'laufDone', 'chefSignT', 'chefSign', 'bossChef', 'bossChefCall', 'bossChefWait', 'bossChefHold', 'bossChefPatience', 'bossChefBack', 'bossChefStand', 'bossChefChair', 'bossChefCrit', 'bossChefNote', 'banter_bossChef', 'beastD_Schreibtisch', 'item_goldstempel', 'itemD_goldstempel', 'ach_chef', 'achD_chef', 'ach_lauf', 'achD_lauf', 'kantMenuT', 'kantMenuWE', 'eatPop', 'buffEnd', 'regSignT', 'regSign', 'ablageP', 'ablageLab', 'outboxLab', 'ordnerDead', 'chgTrakt', 'chgSchimmel', 'chgKeller', 'chgExpress', 'chgPost', 'postSignT', 'postSign', 'paketSignT', 'paketSign', 'paketBack', 'briefDead', 'nachDead', 'portoHit', 'bossFrank', 'bossFrankRoll', 'bossFrankStamp', 'bossFrankRage', 'bossFrankCrit', 'bossFrankNote', 'banter_bossFrank', 'beast_Brief', 'beastD_Brief', 'beast_Nachnahme', 'beastD_Nachnahme', 'beastD_Frankiermaschine', 'item_posthorn', 'itemD_posthorn', 'ach_post', 'achD_post', 'expIn', 'expClosed', 'expSign', 'expStamps', 'expBoost', 'expWait', 'expArrive', 'expDone', 'expPerfect', 'expFlap', 'expGrate', 'expFolder', 'ach_express', 'achD_express', 'rrStuck', 'kellerSignT', 'kellerSign', 'bossReiss', 'bossReissShout', 'bossReissJam', 'bossReissRage', 'bossReissBonk', 'bossReissCrit', 'bossReissNote', 'banter_bossReiss', 'beastD_Reisswolf', 'ach_reiss', 'achD_reiss', 'item_reisszahn', 'itemD_reisszahn', 'banter_bossAmt', 'amtPile0', 'amtPile1', 'amtPile2', 'amtPile3', 'bossAmt', 'bossAmtNote', 'bossAmtShout', 'bossAmtRage', 'amtMark', 'npcClerk', 'amtSignT', 'amtSign', 'chgAmt', 'portrait0', 'portrait1', 'portrait2', 'banter_boss1', 'banter_boss2', 'banter_boss3', 'banter_boss4', 'banter_bossKraken', 'banter_bossTentacle', 'banter_bossKnight', 'banter_bossTrap', 'banter_bossWitch', 'banter_bossConductor', 'banter_bossDoppel', 'banter_bossAwakened', 'banter_bossGolem', 'secNew', 'secNewHelp', ...RECENT.map(([, k]) => k), 'chgBanter', 'famSay_bat', 'famSay_fairy', 'famSay_tent', 'npcLib', 'npcSpeed', 'npcBones', 'npcChicken', 'npcBarber', 'npcCarto', 'equipTitle', 'shopTitle', 'spellTitle', 'testMode', 'mapOverlayHelp', 'mapOverlayHelpT', 'optGuide', 'optGuideH'];
     for (const id in GEAR) need.push('item_' + id, 'itemD_' + id);
     for (const b of BEATS) { if (b.lines !== false) need.push('story_' + b.id); need.push('story_' + (b.again || b.id) + 'Again'); }
     for (const id of SPELL_IDS) need.push('spell_' + id);
@@ -4424,7 +4456,7 @@ const Castle = (() => {
     startTest, enterTest, finishTest, drawMilestones, milestones: MILESTONES.length, msLabel: (n) => msName(MILESTONES[n]), msTarget: (n) => { const a = ref(MILESTONES[n].at); return { s: a.s, r: a.r }; }, get testing() { return testing; },
     setFlag: (k) => { flag[k] = 1; save(); }, // z. B. Aufzug als Abkürzung freigeschaltet (lift.js)
     k3at, art, whenArt, dishToday, buffInfo: () => buff && { id: buff.id, k: buff.t / BUFF_T }, // Behördentrakt (js/trakt.js), HUD: Mahlzeit
-    toolsInput, drawTools, selfCheck, mapReport, doorsOf, get god() { return god; }, get best() { return best; },
+    toolsInput, drawTools, selfCheck, mapReport, mapLayout: () => castle(), doorsOf, get god() { return god; }, get best() { return best; },
     toggleOverlay, get overlay() { return overlayOn; },
     tier: (s) => (TIER[S()[s].id] || 1) + 2 * (flag.ngp || 0), side: SIDE, startEpilogue, resultsInput, drawResults, ngPlus, ngRestore, drawGoalBanner, drawGoalToast, announceGoal, drawGuide, guidePlan, inPrologue, goal: () => { const g = goal(); return g && { text: goalText(g), where: tr(g.where) }; }, get vessels() { return vessel; }, get relics() { return relic; }, get cracks() { return crack; }, has,
     get seen() { return seen; }, get warps() { return warp; },

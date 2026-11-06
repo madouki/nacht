@@ -441,6 +441,29 @@ const Audio8 = (() => {
   const WS_C = ['C', 'Am', 'F', 'G', 'C', 'Am', 'Dm', 'G'];
   const WS_L = ['e5:4 g5:2 c6:4 b5:2 a5:2 g5:2', 'a5:6 c6:2 e5:8', 'f5:4 a5:2 c6:4 a5:2 g5:2 f5:2', 'g5:6 a5:1 g5:1 d5:8', 'e5:4 g5:2 c6:4 d6:2 e6:2 c6:2', 'a5:6 g5:2 e5:8', 'd5:2 e5:2 f5:2 a5:2 d6:4 c6:2 a5:2', 'g5:4 b5:4 d6:4 -:4'];
   const WS_DR = 'd:2 h:2 c:2 h:2 d:2 c:2 h:2 c:2';
+  // Sternwarte (Planetarium): verträumt in E-Dur mit lydischer Färbung (Ais), 92 BPM – Celesta-artige Melodie hoch oben mit langem
+  // Echo, Harfen-Arpeggien, langsamer Bass, weiches Schlagzeug (Doppel-Kick, Rim, offene Becken), Röhrenglocke alle acht Takte
+  const SW = { E: ['e3', 'g#3', 'b3'], Al: ['e3', 'a#3', 'c#4'], Cm: ['c#3', 'e3', 'g#3'], A: ['e3', 'a3', 'c#4'], B: ['d#3', 'f#3', 'b3'], Gm: ['d#3', 'g#3', 'b3'], Fm: ['c#3', 'f#3', 'a3'] };
+  const SWB = { E: 'e2', Al: 'e2', Cm: 'c#2', A: 'a1', B: 'b1', Gm: 'g#1', Fm: 'f#1' };
+  const SW_C = ['E', 'Al', 'E', 'Al', 'Cm', 'Cm', 'A', 'B', 'E', 'Gm', 'Cm', 'Fm', 'A', 'B', 'E', 'B'];
+  const SW_L = [
+    'b5:4 g#5:2 e5:2 b5:4 c#6:4', 'a#5:6 g#5:2 e5:8', 'b5:4 g#5:2 e5:2 f#5:2 g#5:2 b5:4', 'a#5:4 c#6:4 b5:8',
+    'c#6:4 b5:2 g#5:2 e5:4 g#5:4', 'c#6:2 e6:2 g#6:4 e6:4 c#6:4', 'a5:4 c#6:2 e6:2 a6:4 e6:4', 'f#6:4 d#6:4 b5:4 f#5:4',
+    'e6:6 d#6:2 b5:4 g#5:4', 'g#5:4 b5:2 d#6:2 g#6:8', 'e6:4 c#6:2 g#5:2 e5:4 g#5:4', 'f#5:4 a5:2 c#6:2 f#6:8',
+    'e6:2 c#6:2 a5:2 e5:2 a5:4 c#6:4', 'd#6:4 f#6:4 b6:4 a6:2 f#6:2', 'g#6:8 e6:4 b5:4', 'd#6:4 b5:4 f#5:4 -:4',
+  ];
+  // Sternbild (Bosskampf in der Sternkuppel): fis-Moll, 160 BPM – drängende Melodie, Sechzehntel-Arpeggien, Oktavbass im Galopp,
+  // Pfeifenorgel statt Flächenklang, Becken und Tomwirbel am Ende jeder Hälfte
+  const SB = { Fm: ['f#3', 'a3', 'c#4'], D: ['f#3', 'a3', 'd4'], E: ['e3', 'g#3', 'b3'], C7: ['f3', 'g#3', 'b3'], Bm: ['f#3', 'b3', 'd4'], A: ['e3', 'a3', 'c#4'], G: ['d3', 'g3', 'b3'] };
+  const SBB = { Fm: 'f#2', D: 'd2', E: 'e2', C7: 'c#2', Bm: 'b1', A: 'a1', G: 'g1' };
+  const SB_C = ['Fm', 'Fm', 'D', 'E', 'Fm', 'Fm', 'Bm', 'C7', 'D', 'E', 'A', 'Fm', 'Bm', 'G', 'C7', 'C7'];
+  const SB_L = [
+    'f#5:2 c#6:2 f#6:4 e6:2 c#6:2 a5:4', 'b5:2 c#6:2 a5:4 f#5:8', 'f#5:2 a5:2 d6:4 c#6:2 a5:2 f#5:4', 'g#5:4 b5:4 e6:4 d6:2 b5:2',
+    'f#5:2 c#6:2 f#6:4 g#6:2 a6:2 g#6:2 f#6:2', 'e6:2 c#6:2 a5:2 c#6:2 f#6:8', 'd6:4 f#6:4 b6:4 a6:2 f#6:2', 'f6:4 c#6:4 g#5:4 f5:4',
+    'f#6:3 e6:1 d6:4 a5:4 f#5:4', 'g#5:3 b5:1 e6:4 g#6:4 b6:4', 'a6:4 e6:4 c#6:4 a5:4', 'f#6:2 f#6:1 f#6:1 c#6:4 a5:4 f#5:4',
+    'b5:2 d6:2 f#6:4 e6:2 d6:2 b5:4', 'b5:2 d6:2 g6:4 f#6:2 d6:2 b5:4', 'c#6:4 f6:4 g#6:4 b6:4', 'c#7:4 g#6:4 f6:4 c#6:4',
+  ];
+  const SB_DR = ['k:2 h:1 h:1 s:2 h:1 k:1 k:2 h:1 h:1 s:2 h:2', 'k:1 s:1 s:1 s:1 t:2 t:2 u:2 u:2 s:1 s:1 x:2'];
   const RW_DR = ['k:1 h:1 r:1 h:1 s:1 h:1 k:1 h:1 k:1 h:1 r:1 h:1 s:1 h:1 o:1 h:1', 'k:1 s:1 s:1 s:1 t:1 t:1 u:1 u:1 k:1 s:1 r:1 r:1 r:1 r:1 x:2'];
 
   // Posthorn (Hauptpoststelle): flotte Posthorn-Polka in B-Dur, 132 BPM – das Signal (Dreiklang hinauf) eröffnet jede Phrase,
@@ -706,6 +729,22 @@ const Audio8 = (() => {
       tri: WS_C.map(c => { const b = WSB[c]; return `${b}:6 ${b}:2 ${up8(b)}:6 ${b}:2`; }).join(' '),
       pad: WS_C.map(c => WS[c].join('+') + ':16').join(' '),
       dr: WS_C.map(() => WS_DR).join(' '),
+    },
+    sternwarte: {
+      bpm: 92, loop: true, echo: { delay: 3, vol: 0.35 },
+      p1: SW_L.join(' '),
+      p2: SW_C.map(c => { const n = SW[c]; return `${n[0]}:2 ${n[1]}:2 ${n[2]}:2 ${up8(n[0])}:2 ${n[2]}:2 ${n[1]}:2 ${n[0]}:2 ${n[1]}:2`; }).join(' '),
+      tri: SW_C.map(c => `${SWB[c]}:8 ${up8(SWB[c])}:8`).join(' '),
+      pad: SW_C.map(c => SW[c].join('+') + ':16').join(' '),
+      dr: SW_C.map((c, i) => (i % 8 === 7 ? 'b:4 h:4 h:2 h:2 o:4' : 'd:4 h:2 h:2 c:4 h:2 o:2')).join(' '),
+    },
+    sternbild: {
+      bpm: 160, loop: true, echo: { delay: 3, vol: 0.25 },
+      p1: SB_L.join(' '),
+      p2: SB_C.map(c => { const n = SB[c]; return [0, 1, 2, 3].map(() => `${n[0]}:1 ${n[1]}:1 ${n[2]}:1 ${n[1]}:1`).join(' '); }).join(' '),
+      tri: SB_C.map(c => { const b = SBB[c], o = up8(b); return [0, 1, 2, 3].map(() => `${b}:2 ${o}:1 ${b}:1`).join(' '); }).join(' '),
+      org: SB_C.map(c => SB[c].join('+') + ':16').join(' '),
+      dr: SB_C.map((c, i) => SB_DR[i % 8 === 7 ? 1 : 0]).join(' '),
     },
     amtsmarsch: {
       bpm: 150, loop: true, echo: { delay: 3, vol: 0.25 },

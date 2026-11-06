@@ -79,7 +79,7 @@ class Schreibtisch extends Boss {
   constructor(ax, aw) {
     const gy = (W.room.h - 2) * T;
     super(ax + aw - 110, gy - 70, 110, 66, 72, 3);
-    this.ax = ax; this.aw = aw; this.gy = gy; this.mini = true; this.score = 25000; this.nameKey = 'bossChef'; this.music = 'dienstweg';
+    this.ax = ax; this.aw = aw; this.gy = gy; this.mini = true; this.score = 25000; this.nameKey = 'bossChef'; this.music = 'dienstweg'; this.keepMusic = true;
     this.bx = ax + aw - 100; this.by = 0; this.leg = 0; this.vy = 0; this.face = -1; this.yaw = 0.35; this.lootY = gy - 40;
     this.state = 'intro'; this.timer = 0; this.phase = 1; this.marks = []; this.buf = null; this.ring = 0; this.hold = 0; this.lamp = 1; this.chair = true;
     this.handset = 0; this.carousel = 0; this.drawerOut = 0;

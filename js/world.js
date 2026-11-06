@@ -83,6 +83,9 @@ const W = {
         case 'ordner': this.spawn(new Ordner(d.x, d.y, d)); break;
         case 'post': { const e = this.spawn(Post.make(d)); break; } // Hauptpoststelle: Förderbänder, Pakete (js/post.js)
         case 'brief': this.spawn(new Post.Brief(d.x, d.y, d)); break;
+        case 'stern': { const e = this.spawn(Stern.make(d)); if (e.plats) e.plats.forEach(pl => this.platforms.push(this.spawn(pl))); break; } // Sternwarte: Himmel, Orrery (js/stern.js)
+        case 'schnuppe': this.spawn(new Stern.Sternschnuppe(d.x, d.y)); break;
+        case 'astrolab': this.spawn(new Stern.Astrolab(d.x, d.y)); break;
         case 'nachnahme': this.spawn(new Post.Nachnahme(d.x, d.y)); break;
         case 'express': this.spawn(Express.make(d)); break; // Rohrpost-Express: Station (js/express.js)
         case 'keller': this.spawn(Keller.make(d)); break; // Aktenkeller: Rollregale, Kurbeln, Schiene, Steckdose (js/keller.js)
@@ -615,7 +618,7 @@ const W = {
     if (this.combo.pop > 0) this.combo.pop--;
     const b = this.boss;
     if (b && !b.dying && !this.bossEnraged && b.hp <= b.maxHp / 2) { // Phase 2: Musik eskaliert
-      this.bossEnraged = true; if (b.music === 'chapel' || b.music === 'count' || b.music === 'amtsmarsch') Audio8.tempo(b.music === 'amtsmarsch' ? 1.12 : 1.1); else { Audio8.stop(); Audio8.play('boss2'); } Audio8.sfx('roar'); // Graf und Amtsschimmel: dasselbe Stück, nur schneller
+      this.bossEnraged = true; if (b.keepMusic || b.music === 'chapel' || b.music === 'count' || b.music === 'amtsmarsch') Audio8.tempo(b.music === 'amtsmarsch' ? 1.12 : 1.1); // eigenes Lied bleibt, nur schneller else { Audio8.stop(); Audio8.play('boss2'); } Audio8.sfx('roar'); // Graf und Amtsschimmel: dasselbe Stück, nur schneller
       this.zoomFx = { t: 0, len: 46, amp: 0.1, b };
       if (this.room.theme === 'throne') Voice.say('taunt'); // der Graf spottet
       this.flash = 8; this.shake = 18; this.spawn(new Shock(b.cx, b.cy, 110, '#a80020', 5)); Input.rumble(0.7, 0.4, 500);
