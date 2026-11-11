@@ -614,7 +614,7 @@ const W = {
     const stopped = this.stopT > 0;
     const slowSkip = this.slowT > 0 && (this.frame & 1); // Zeitlupe (Perfekt-Ausweichen): nur der Held läuft in voller Geschwindigkeit
     if (!stopped && !slowSkip) this.spawners.forEach(s => s.update());
-    for (const e of this.ents) if (!e.dead && e.kind !== 'platform' && !(stopped && (e.kind === 'enemy' || e.kind === 'eproj')) && !(slowSkip && (e.kind === 'enemy' || e.kind === 'eproj' || e.kind === 'boss'))) e.update();
+    for (const e of this.ents) if (!e.dead && e.kind !== 'platform' && !(stopped && (e.kind === 'enemy' || e.kind === 'eproj')) && !(slowSkip && (e.kind === 'enemy' || e.kind === 'eproj' || e.kind === 'boss')) && !(e.kind === 'enemy' && e.stunT > 0 && e.stunT--)) e.update(); // stunT: versteinert (Mahr „Steinblick“)
     if (this.crash) this.updateCrash();
     if (this.cinema > 0) this.cinema--;
     if (this.bossEnraged && this.room.theme === 'throne') this.vortexBg++;

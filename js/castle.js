@@ -2174,7 +2174,8 @@ const Castle = (() => {
     if (!c) return;
     rpg.frames++; applyHp(W.player); trackHits(); // RPG: Spielzeit, max. HP der Stufe, Treffer und Besiegte
     famTick(); // Begleiter
-    if (rpg.frames % 45 === 0) mp = Math.min(mpMax(), mp + 1); // MP füllen sich langsam
+    if (rpg.frames % Math.max(12, Math.round(45 / (1 + gear('mpreg') / 100))) === 0) mp = Math.min(mpMax(), mp + 1); // MP füllen sich langsam (Uhrwerk-Mahr: schneller)
+    if (mahrCd > 0) mahrCd--;
     const hero = W.player; // Blutstein: alle vier Sekunden 1 HP
     if (buff && --buff.t <= 0) { buff = null; Game.note('buffEnd'); } // Mahlzeit verdaut
     if (gear('regen') && rpg.frames % 240 === 0 && hero.alive && hero.hp < hero.maxHp) { hero.hp = Math.min(hero.maxHp, hero.hp + 1); W.popup(hero.cx, hero.y - 6, '+10', '#d81830'); }
@@ -2259,11 +2260,26 @@ const Castle = (() => {
   const expFor = (lv) => 15 * lv * (lv - 1); // Gesamt-EXP für Stufe lv: LV2 30, LV5 300, LV10 1350, LV20 5700
   const vessels = () => Object.keys(vessel).length;
   const values = () => { const b = lvl() - 1; return { str: 10 + b, con: 10 + b, hp: Options.maxHp + 2 * b + 4 * vessels() + gear('hp') }; };
+  // Kritische Treffer: Grundchance 3 %, je Glückspunkt +1,5 %, dazu der Raubtierblick (Mahr); Schaden ×1,75. Ob ein Hieb kritisch
+  // ist, hängt fest an seiner Nummer (atkId) – so bleibt er über alle Bilder des Hiebs und für alle getroffenen Gegner gleich
+  const CRIT_MUL = 1.75;
+  const critChance = () => 3 + 1.5 * gear('luck') + gear('crit');
+  const swingCrit = (id) => (((id * 2654435761) >>> 0) % 1000) / 10 < critChance();
+  const critNow = () => { const p = W.player; return !!(p && p.atkT > 0 && !p.atkSub && swingCrit(p.atkId)); };
+  let critShown = 0;
   const strMul = () => 1 + (values().str - 10 + gear('atk')) * 0.05, conDiv = () => 1 + (values().con - 10 + gear('def')) * 0.04; // Ausrüstung zählt wie STR/CON-Punkte
   if (on) { // STR verstärkt Peitsche und Spezialwaffen, CON mindert erlittenen Schaden – nur im Schloss-Modus
-    Object.defineProperty(Options, 'dmgMul', { get: () => (Options.easy ? 2 : 1) * strMul(), configurable: true });
+    Object.defineProperty(Options, 'dmgMul', { get: () => (Options.easy ? 2 : 1) * strMul() * (critNow() ? CRIT_MUL : 1), configurable: true });
     const hurt = Player.prototype.hurt;
-    Player.prototype.hurt = function (dmg, srcX) { return hurt.call(this, Math.max(1, Math.round(dmg / conDiv())), srcX); };
+    Player.prototype.hurt = function (dmg, srcX) {
+      const dg = gear('dodge'); // Geisterhaut (Mahr): der Treffer geht manchmal einfach hindurch
+      if (dg && this.alive && !(this.inv > 0) && !Options.god && this.state !== 'cannon' && Math.random() * 100 < dg) {
+        this.inv = 45; W.popup(this.cx, this.y - 12, tr('mahrDodge'), '#78b4fc'); Audio8.sfx('whoosh');
+        for (let i = 0; i < 8; i++) W.spawn(new Particle(this.cx + rnd(-6, 6), this.cy + rnd(-12, 12), rnd(-0.8, 0.8), rnd(-0.8, 0.4), '#a4d0fc', 24, 1, 0));
+        return;
+      }
+      return hurt.call(this, Math.max(1, Math.round(dmg / conDiv())), srcX);
+    };
   }
   function applyHp(p) { // max. HP folgt der Stufe (Leicht-Modus verdoppelt die Grundleiste weiter)
     const want = values().hp;
@@ -2283,7 +2299,15 @@ const Castle = (() => {
   // Treffer: an der gesunkenen Lebensenergie erkennen (gilt für jede Gegnerart, ohne ihre Klassen anzufassen);
   // verschwindet ein Gegner mit 0 Energie, war er besiegt – sonst nur aus dem Bild gelaufen oder vom Raumwechsel entfernt
   const hpSeen = new Map();
-  function dmgNumber(e, d) { W.popup(e.cx + rnd(-4, 4), e.y - 2, String(Math.max(1, Math.round(d * 10))), e.kind === 'boss' ? '#f8b800' : '#fcfcfc'); }
+  function dmgNumber(e, d) {
+    const cr = critNow(), p = W.player;
+    W.popup(e.cx + rnd(-4, 4), e.y - 2, String(Math.max(1, Math.round(d * 10))) + (cr ? '!' : ''), cr ? '#fcd070' : e.kind === 'boss' ? '#f8b800' : '#fcfcfc');
+    if (cr && critShown !== p.atkId) { // einmal je Hieb: Ruf, Funkenkranz, kurzes Innehalten
+      critShown = p.atkId; W.popup(e.cx, e.y - 13, tr('crit'), '#fcd070'); Audio8.sfx('tink', e.cx); W.hitstop = Math.max(W.hitstop, 5);
+      W.spawn(new Shock(e.cx, e.cy, 20, '#fcd070', 3));
+      for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; W.spawn(new Particle(e.cx, e.cy, Math.cos(a) * 2.2, Math.sin(a) * 2.2, i % 2 ? '#fcd070' : '#ffffff', 16, 1, 0)); }
+    }
+  }
   function defeated(e) {
     const big = e.kind === 'boss', kind = e.constructor && e.constructor.name;
     rpg.kills++;
@@ -2292,6 +2316,74 @@ const Castle = (() => {
     const r = Math.random(), drop = big ? 'bagBig' : r < 0.05 ? 'roast' : r < 0.12 ? 'bag' : r < 0.17 ? 'heartB' : null; // Beute wie in SotN
     if (drop) W.spawn(new Item(drop, e.cx, Math.min(e.cy, W.room.h * T - 24)));
     lootDrop(e, big); // selten Ausrüstung oder Tränke
+    if (!big) mahrDrop(e); // mit etwas Glück bleibt sein Mahr zurück (js/mahr.js)
+  }
+  // ---------------- Mahre: gefangene Albträume der Gegner (js/mahr.js) ----------------
+  // Spielstand in flag: mahr_<id> = Rang (1–9), mahrRuf / mahrBann = angelegter Mahr, mpity_<id> = Siege ohne Fang (Trostzähler)
+  const MAHR_MAX = 9;
+  const mahrRank = (id) => Math.min(MAHR_MAX, flag['mahr_' + id] || 0);
+  const mahrEq = (slot) => { const id = flag[slot === 'ruf' ? 'mahrRuf' : 'mahrBann']; return id && typeof Mahr !== 'undefined' && Mahr.BY[id] && mahrRank(id) ? Mahr.BY[id] : null; };
+  function mahrStat(stat) { const d = mahrEq('bann'); return d ? d.st(mahrRank(d.id))[stat] || 0 : 0; }
+  function mahrGive(d, e) { // Rang heben (oder Gold, wenn schon Rang IX), freien Platz gleich belegen, Fang-Animation
+    const r0 = mahrRank(d.id), x = e ? e.cx : W.player.cx, y = e ? e.cy : W.player.y - 30;
+    if (r0 >= MAHR_MAX) { W.addScore(500); W.spawn(new Mahr.Wisp(x, y, d, r0, false, 500)); return; }
+    flag['mahr_' + d.id] = r0 + 1;
+    if (!mahrEq(d.slot)) flag[d.slot === 'ruf' ? 'mahrRuf' : 'mahrBann'] = d.id;
+    const first = !flag.mahr_seen; flag.mahr_seen = 1;
+    if (d.slot === 'ruf') { flag.mahr_ruf = 1; mp = Math.max(mp, Math.min(mpMax(), d.mp * 2)); } // der Fang bringt genug MP für zwei Versuche mit
+    save();
+    W.spawn(new Mahr.Wisp(x, y, d, r0 + 1, first, 0));
+  }
+  function mahrDrop(e) {
+    if (typeof Mahr === 'undefined') return;
+    const d = Mahr.FROM[e.constructor && e.constructor.name]; if (!d) return;
+    const pk = 'mpity_' + d.id;
+    const ch = d.rate * (1 + 0.15 * gear('luck')) * (W.bloodT > 0 ? 2 : 1) + (flag[pk] || 0) * 0.015;
+    if (flag.mahr_seen && Math.random() >= ch) { flag[pk] = (flag[pk] || 0) + 1; return; } // der allererste Mahr ist sicher
+    delete flag[pk];
+    mahrGive(d, e);
+  }
+  let mahrCd = 0;
+  function mahrCast(p) { // ↑ + SUB: Ruf-Mahr auslösen (aus preUpdate)
+    const d = mahrEq('ruf'); if (!d || mahrCd > 0) return;
+    if (mp < d.mp) { W.popup(p.cx, p.y - 10, 'MP!', '#7c84a8'); Audio8.sfx('wall'); mahrCd = 12; return; }
+    mp -= d.mp; mahrCd = 22;
+    Mahr.cast(d, p, mahrRank(d.id), strMul() * (Options.easy ? 2 : 1));
+    W.popup(p.cx, p.y - 14, tr('mahr_' + d.id), d.col); p.powerT = Math.max(p.powerT || 0, 12); Input.rumble(0.25, 0.3, 100);
+    for (let i = 0; i < 10; i++) W.spawn(new Particle(p.cx + rnd(-10, 10), p.y + rnd(0, 30), rnd(-0.6, 0.6), rnd(-1.6, -0.2), i % 2 ? d.col : '#2c1840', 26, 1, 0));
+    flag.mahr_casts = (flag.mahr_casts || 0) + 1;
+  }
+  const MAHR_LAB = { def: 'DEF', hp: 'HP', regen: 'REG', luck: 'LUCK', greed: 'GOLD', crit: 'CRIT', dodge: 'DODGE', mpreg: 'MP-REG', float: 'GRAV' };
+  const mahrStats = (d, r) => Object.entries(d.st(r)).filter(([, v]) => v).map(([k, v]) => MAHR_LAB[k] + (k === 'float' ? ' -15%' : ' +' + v + (k === 'crit' || k === 'dodge' || k === 'mpreg' ? '%' : ''))).join('  ');
+  const mahrUi = { sel: 0 };
+  function mahrInput(P) { // Statusseite MAHRE: ↑↓ wählen, Angriff legt an bzw. ab
+    const L = Mahr.LIST;
+    if (P.up || P.down) { mahrUi.sel = clamp(mahrUi.sel + (P.down ? 1 : -1), 0, L.length - 1); Audio8.sfx('select'); }
+    if (P.attack) {
+      const d = L[mahrUi.sel], key = d.slot === 'ruf' ? 'mahrRuf' : 'mahrBann';
+      if (!mahrRank(d.id)) { Audio8.sfx('wall'); return; }
+      if (flag[key] === d.id) delete flag[key]; else flag[key] = d.id;
+      Audio8.sfx('item'); save(); applyHp(W.player);
+    }
+  }
+  function drawMahre(ctx, t) {
+    const cx = View.cx, lx = cx - Math.min(130, View.w / 2 - 16), rx = cx + Math.min(130, View.w / 2 - 16), L = Mahr.LIST, rows = 10;
+    const got = L.filter(d => mahrRank(d.id)).length, top = clamp(mahrUi.sel - 4, 0, L.length - rows);
+    Font.draw(ctx, tr('mahrCount', got, L.length), cx, 36, '#c8a0fc', { align: 'center', shadow: '#000' });
+    if (top > 0) Font.draw(ctx, '↑', rx, 36, '#9c6cfc');
+    if (top + rows < L.length) Font.draw(ctx, '↓', rx, 48 + rows * 12, '#9c6cfc');
+    L.slice(top, top + rows).forEach((d, n) => {
+      const i = top + n, y = 50 + n * 12, on = i === mahrUi.sel, r = mahrRank(d.id), worn = !!r && mahrEq(d.slot) === d;
+      if (on) { ctx.fillStyle = 'rgba(156,108,252,0.2)'; ctx.fillRect(lx - 4, y - 2, rx - lx + 8, 11); }
+      Font.draw(ctx, tr(d.slot === 'ruf' ? 'mahrRuf' : 'mahrBann'), lx, y, r ? (d.slot === 'ruf' ? '#fc9c6c' : '#7cdcfc') : '#5c5c6c');
+      Mahr.icon(ctx, d, lx + 34, y - 2, !r);
+      Font.draw(ctx, r ? tr('mahr_' + d.id) : '???', lx + 50, y, r ? (worn ? '#f8d878' : on ? '#fcfcfc' : '#c8c8d8') : '#5c5c6c', { shadow: '#000' });
+      if (r) Font.draw(ctx, Mahr.ROMAN[r], rx - (worn ? Font.width(tr('mahrOn')) + 8 : 0), y, '#c8a0fc', { align: 'right', shadow: '#000' });
+      if (worn) Font.draw(ctx, tr('mahrOn'), rx, y, '#58f898', { align: 'right', shadow: '#000' });
+    });
+    const d = L[mahrUi.sel], r = mahrRank(d.id), seen = !!best[d.from];
+    Font.draw(ctx, (r ? (d.slot === 'ruf' ? 'MP ' + d.mp : mahrStats(d, r)) + '   ' : '') + tr('mahrFrom', seen || r ? beastName(d.from) : '???'), cx, 174, r ? '#7cdcfc' : '#7c7c8c', { align: 'center', shadow: '#000' });
+    wrap(r ? tr('mahrD_' + d.id) : tr('mahrUnknown'), rx - lx).slice(0, 3).forEach((l, i) => Font.draw(ctx, l, cx, 186 + i * 10, r ? '#fce0a8' : '#5c5c6c', { align: 'center', shadow: '#000' }));
   }
   // Gefahrenstufe: jeder Gegner (auch nachkommende und Geschosse) wird beim ersten Auftauchen einmal verstärkt
   const scaled = new WeakSet();
@@ -2421,7 +2513,7 @@ const Castle = (() => {
   const questState = (q) => flag['story_' + q.end] ? 'done' : flag['story_' + q.start] || q.items.some(i => inv[i]) ? 'open' : null;
   const DROPS = [['potion', 'potion', 'leather', 'silver'], ['potion', 'potion', 'chain', 'bloodrune', 'elixir'], ['potion', 'elixir', 'elixir', 'chain', 'bloodrune']];
   let buff = null; // Kantinenessen: { id, st: Werte, t: Restzeit in Spielschritten }
-  function gear(stat) { let n = buff && buff.st[stat] ? buff.st[stat] : 0; for (const s of SLOTS) { const g = eq[s] && GEAR[eq[s]]; if (g && g[stat]) n += g[stat]; } return n; }
+  function gear(stat) { let n = buff && buff.st[stat] ? buff.st[stat] : 0; for (const s of SLOTS) { const g = eq[s] && GEAR[eq[s]]; if (g && g[stat]) n += g[stat]; } return n + mahrStat(stat); } // Bann-Mahr zählt mit
   const DISHES = [null, 'linsen', 'schnitzel', 'currywurst', 'erbsen', 'fisch', null], BUFF_T = 10800; // So–Sa: Tagesgericht (am Wochenende nur Kaffee und Kuchen); drei Minuten
   const dishToday = () => DISHES[new Date().getDay()];
   function eat(id) { // Mahlzeit! Heilt, Kaffee füllt die MP, das Tagesgericht stärkt
@@ -2629,7 +2721,7 @@ const Castle = (() => {
   };
   const SPELL_IDS = ['spirit', 'hellfire', 'tetra', 'soulsteal'];
   const known = (id) => !!inv['book_' + id];
-  const mpMax = () => SPELL_IDS.some(known) || rel('bat') || rel('mist') || rel('wolf') ? 24 + 3 * (lvl() - 1) + gear('mp') : 0;
+  const mpMax = () => SPELL_IDS.some(known) || rel('bat') || rel('mist') || rel('wolf') || flag.mahr_ruf ? 24 + 3 * (lvl() - 1) + gear('mp') : 0;
   let mp = 0, lastDir = '';
   const hist = [];
   const absDir = (s, face) => s.replace('F', face > 0 ? 'R' : 'L').replace('B', face > 0 ? 'L' : 'R');
@@ -2663,6 +2755,7 @@ const Castle = (() => {
       if (mp < BAT_COST) { W.popup(p.cx, p.y - 10, 'MP!', '#7c84a8'); Audio8.sfx('wall'); return; }
       toBat(p); return;
     }
+    if (P.sub && I.up && p.state === 'normal' && mahrEq('ruf')) { P.sub = false; mahrCast(p); return; } // ↑ + SUB: Ruf-Mahr (statt Spezialwaffe)
     if (!P.attack || p.state !== 'normal') return;
     for (const id of ['soulsteal', 'tetra', 'hellfire', 'spirit']) {
       if (!known(id) || !cmdMatch(SPELLS[id].cmd, p.face)) continue;
@@ -3186,9 +3279,10 @@ const Castle = (() => {
   }
 
   // Statusbildschirm (Pause → STATUS): Werte wie in SotN in zwei Spalten, darunter EXP-Leiste, Karte, Siegel, Warpkammern
-  let statusPage = 0; // 0 = Werte, 1 = Zauber, 2 = Bestiarium, 3 = Aufträge, 4 = Urkunden (←→ blättert, im Bestiarium und bei den Urkunden ↑↓ wählen)
+  let statusPage = 0; // 0 = Werte, 1 = Zauber, 2 = Bestiarium, 3 = Aufträge, 4 = Urkunden, 5 = Mahre (←→ blättert, in Listen ↑↓ wählen)
   function statusInput(P) {
-    if (P.left || P.right) { statusPage = (statusPage + (P.right ? 1 : 4)) % 5; Audio8.sfx('select'); }
+    if (P.left || P.right) { statusPage = (statusPage + (P.right ? 1 : 5)) % 6; Audio8.sfx('select'); }
+    if (statusPage === 5) mahrInput(P);
     if (statusPage === 4 && (P.up || P.down)) { ach.sel = clamp(ach.sel + (P.down ? 1 : -1), 0, ACH.length - 1); Audio8.sfx('select'); }
     if (statusPage === 2 && (P.up || P.down)) { beasts.sel = clamp(beasts.sel + (P.down ? 1 : -1), 0, BEASTS.length - 1); Audio8.sfx('select'); }
   }
@@ -3211,6 +3305,7 @@ const Castle = (() => {
     if (statusPage === 2) { panel(ctx, tr('beastTitle'), '#9c6cfc'); drawBeasts(ctx, t); Font.draw(ctx, tr('statusHelp'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
     if (statusPage === 3) { panel(ctx, tr('questTitle'), '#f8b800'); drawQuests(ctx, t); Font.draw(ctx, tr('statusHelp'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
     if (statusPage === 4) { panel(ctx, tr('achTitle'), '#f8d878'); drawAch(ctx, t); Font.draw(ctx, tr('statusHelp'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
+    if (statusPage === 5) { panel(ctx, tr('mahrTitle'), '#b080fc'); drawMahre(ctx, t); Font.draw(ctx, tr('mahrHelp'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
     ctx.fillStyle = 'rgba(2,4,18,0.97)'; ctx.fillRect(0, 0, w, 240);
     ctx.fillStyle = '#c89020';
     ctx.fillRect(6, 6, w - 12, 1); ctx.fillRect(6, 233, w - 12, 1); ctx.fillRect(6, 6, 1, 228); ctx.fillRect(w - 7, 6, 1, 228);
@@ -3272,6 +3367,8 @@ const Castle = (() => {
     { id: 'stern', ok: () => !!best.Sternbild },          // Sternbild (Sternkuppel)
     { id: 'orrery', ok: () => [0, 1, 2, 3].every(i => flag['planet' + i]) }, // auf allen vier Planeten gestanden
     { id: 'landung', ok: () => !!flag.mond_landed },     // mit der Mondkanone auf dem Mond gelandet
+    { id: 'mahr1', ok: () => !!flag.mahr_seen },         // den ersten Mahr gefangen
+    { id: 'mahrAll', ok: () => typeof Mahr !== 'undefined' && Mahr.LIST.every(d => mahrRank(d.id)), arg: () => (typeof Mahr !== 'undefined' ? Mahr.LIST.length : 0) }, // alle Mahre gefangen
     { id: 'mond', ok: () => !!best.MannImMond },         // Mann im Mond (Krater)
     { id: 'express', ok: () => !!flag.express_perfect }, // Rohrpost-Express ohne Kratzer
     { id: 'kopf', ok: () => !!flag.pat_flip },  // Paternoster: oben durchgefahren
@@ -4033,6 +4130,7 @@ const Castle = (() => {
   // Neueste Änderungen (zum Testen): die Abschnittswahl markiert diese Räume mit NEU und zeigt darunter, was sich geändert hat;
   // SUB springt zum nächsten markierten Abschnitt. Bei jeder Auslieferung neu füllen
   const RECENT = [
+    [['side', 'kolosseum'], 'chgMahr'], // Mahre: Gegnerkräfte fangen (↑ + SUB), kritische Treffer, neues HUD
     [['side', 'mondmeer'], 'chgMond'], // Mondkanone, Mondmeer (geringe Schwerkraft), Mann im Mond; Abwärtshieb federt
     [['side', 'planetarium'], 'chgStern'], // Sternwarte: Orrery, Sternschnuppen, Astrolabien, Sternbild
     [['side', 'rohrpost'], 'chgExpress2'], // Rohrpost-Express: schöner und gnädiger (früher sichtbar, Lenkhilfe, Countdown)
@@ -4414,6 +4512,8 @@ const Castle = (() => {
       'liftLocked', 'liftOpen', 'needRelic', 'subNone', 'subNoHearts', 'bossDoppel', 'bossDoppelNote', 'bossDoppelShout', 'bossDoppelRage', 'famSay_shadow', 'questTitle', 'questDone', 'questNone', 'questFrom', 'kaleidoForm', 'bossAwakened', 'bossAwakenedNote', 'bossAwakenedShout', 'bossAwakenedRage', 'labCut', 'bossGolem', 'bossGolemNote', 'bossGolemShout', 'bossGolemRage', 'castleDrown', 'castleDrownTest');
     for (const q of QUESTS) need.push('quest_' + q.id, 'questHint_' + q.id);
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
+    if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
+    need.push('mahrTitle', 'mahrCount', 'mahrRuf', 'mahrBann', 'mahrHelp', 'mahrOn', 'mahrFrom', 'mahrUnknown', 'mahrGot', 'mahrFirst', 'mahrDodge', 'crit', 'chgMahr');
     { // Erreichbarkeit: vom Wald aus über Türen und Ausgänge (alles geöffnet) – kein Raum darf abgeschnitten sein
       const key = (s, r) => s + ':' + r, seenR = new Set(), queue = [], s0 = sIdx('arrival');
       const push = (s, r) => { if (s >= 0 && !seenR.has(key(s, r))) { seenR.add(key(s, r)); queue.push([s, r]); } };
@@ -4481,6 +4581,7 @@ const Castle = (() => {
     newRun, drawStatus, expProgress, gainExp, get rpg() { return rpg; }, talkInput, drawTalk, get talk() { return talk; }, get flags() { return flag; },
     openEquip, equipInput, drawEquip, openShop, shopInput, drawShop, get inv() { return inv; }, get eq() { return eq; }, giveItem,
     preUpdate, statusInput, mpMax, get mp() { return mp; }, set mp(v) { mp = v; }, get floaty() { return gear('float') > 0; },
+    mahrStrike: famStrike, mahrTarget: famTarget, mahrRank, mahrEq, mahrGive: (id, e) => mahrGive(Mahr.BY[id], e), get statusAttack() { return statusPage === 5; }, critChance,
     toolCount: TOOLS.length, get toolSel() { return tools.sel; }, set toolSel(v) { tools.sel = v; },
     startTest, enterTest, finishTest, drawMilestones, milestones: MILESTONES.length, msLabel: (n) => msName(MILESTONES[n]), msTarget: (n) => { const a = ref(MILESTONES[n].at); return { s: a.s, r: a.r }; }, get testing() { return testing; },
     setFlag: (k) => { flag[k] = 1; save(); }, // z. B. Aufzug als Abkürzung freigeschaltet (lift.js)

@@ -360,6 +360,11 @@ const Game = {
     trail(Math.ceil(Math.max(0, p.hp) / p.maxHp * 16), B.p);
     const bv = Math.min(this.bossBarValue(), B.fill);
     if (W.boss) trail(bv, B.b); else B.b = { v: bv, g: bv, d: 0 }; // ohne Boss kein Nachlauf (Arena-Start leert die Leiste)
+    // Schloss-HUD: dieselben Leisten glatt (Anteil 0..1 statt 16 Segmenten), der verlorene Teil läuft weiß nach
+    const smooth = (v, s) => { if (v < s.v - 0.001) s.d = 26; s.v = v; if (s.g < v) s.g = v; else if (s.g > v) { if (s.d > 0) s.d--; else s.g = Math.max(v, s.g - 0.022); } };
+    if (!B.hp) { B.hp = { v: 1, g: 1, d: 0 }; B.bo = { v: 0, g: 0, d: 0 }; }
+    smooth(clamp(p.hp / p.maxHp, 0, 1), B.hp);
+    if (W.boss) smooth(clamp(W.boss.hp / W.boss.maxHp, 0, 1) * B.fill / 16, B.bo); else B.bo = { v: 0, g: 0, d: 0 };
   },
 
   // Tutorial-Tafel (Achterschiff): Name des Moves, Gerät, Tasten – umbrochen, damit sie auch hochkant passt
@@ -539,7 +544,7 @@ const Game = {
         Castle.mapInput(P);
         break;
       case 'status': // Statusbildschirm (nur ?castle): ←→ Werte/Zauber, Sprung/Angriff/Start zurück zur Pause
-        if ((P.start || P.jump || P.attack) && this.t > 8) { this.go('pause'); this.pauseSel = this.pauseItems().indexOf('status'); Audio8.sfx('pause'); }
+        if ((P.start || P.jump || (P.attack && !Castle.statusAttack)) && this.t > 8) { this.go('pause'); this.pauseSel = this.pauseItems().indexOf('status'); Audio8.sfx('pause'); } // Seite MAHRE: Angriff legt an
         else Castle.statusInput(P);
         break;
       case 'talk': { // Gespräch mit einer Figur (nur Schloss): die Welt steht still, Sprung/Angriff/↑ blättert, Start überspringt
@@ -1104,6 +1109,62 @@ const Game = {
     return { x: dx, w: w * scale };
   },
 
+  // Schloss-HUD links: Medaillon mit der Stufe (EXP läuft als grüner Ring um), dahinter HP- und MP-Leiste mit Zahl – ihre Länge
+  // wächst mit dem Höchstwert –, darunter die Bossleiste mit Schädel, aber nur solange ein Boss da ist
+  medallion(lv, k) {
+    const key = lv + ':' + Math.round(k * 48);
+    if (this._medKey === key) return this._med;
+    const c = this._med || (this._med = document.createElement('canvas')); c.width = c.height = 27; this._medKey = key;
+    const g = c.getContext('2d'); g.clearRect(0, 0, 27, 27);
+    for (let y = 0; y < 27; y++) for (let x = 0; x < 27; x++) {
+      const dx = x - 13, dy = y - 13, d = Math.sqrt(dx * dx + dy * dy), lit = dx + dy; let col = null;
+      if (d > 13.3) continue;
+      if (d > 12.3) col = '#1c0c04';
+      else if (d > 10.8) col = lit < -5 ? '#fce0a8' : lit > 7 ? '#8c5810' : '#c89020';   // Goldreif
+      else if (d > 10.1) col = '#1c0c04';
+      else if (d > 7.9) { const a = ((Math.atan2(dx, -dy) + Math.PI * 2) % (Math.PI * 2)) / (Math.PI * 2); col = a < k ? (d > 9 ? '#58f898' : '#b8fcd0') : '#122418'; } // EXP-Ring, im Uhrzeigersinn ab 12 Uhr
+      else if (d > 7.2) col = '#1c0c04';
+      else col = dy < -3 ? '#4c1438' : dy < 2 ? '#34102c' : '#200a1c';                     // Grund
+      g.fillStyle = col; g.fillRect(x, y, 1, 1);
+    }
+    for (const [x, y] of [[13, 0], [26, 13], [13, 26], [0, 13]]) { g.fillStyle = '#fce0a8'; g.fillRect(x, y, 1, 1); } // vier Zierpunkte
+    return c;
+  },
+  drawCastleHud(ctx, R, bx) {
+    const p = W.player, B = this.bars && this.bars.hp ? this.bars : null, f = W.frame, x0 = 25, maxLen = Math.max(44, bx - 49);
+    const bar = (x, y, h, len, k, g, cols) => {
+      const w = Math.round(len * clamp(k, 0, 1)), gw = Math.round(len * clamp(g, 0, 1));
+      R('#07030c', x - 1, y - 1, len + 6, h + 4);
+      R('#c89020', x, y, len + 2, h + 2); R('#f0c060', x, y, len + 2, 1); R('#7c5010', x, y + h + 1, len + 2, 1);
+      R('#c89020', x + len + 2, y + 1, 1, h); R('#fce0a8', x + len + 3, y + (h >> 1), 1, 2);                              // Spitze
+      R('#1c0a0c', x + 1, y + 1, len, h); R('#0c0406', x + 1, y + 1, len, 1);
+      if (gw > w) R('#f0d8c8', x + 1 + w, y + 1, gw - w, h);
+      if (w > 0) {
+        R(cols[1], x + 1, y + 1, w, h); R(cols[0], x + 1, y + 1, w, 1); R(cols[2], x + 1, y + h, w, 1); R(cols[0], x + w, y + 1, 1, h);
+        const sx = (f * 2) % (len + 160) - 12; // Glanz wandert alle paar Sekunden über die Füllung
+        if (sx < w) { const a = Math.max(0, sx), b = Math.min(w, sx + 8); if (b > a) { ctx.globalAlpha = 0.28; R('#ffffff', x + 1 + a, y + 1, b - a, h); ctx.globalAlpha = 1; } }
+      }
+      for (let i = 1; i < 4; i++) R('#7c5010', x + 1 + Math.round(len * i / 4), y + h + 1, 1, 1);                         // Viertelmarken
+    };
+    const low = p.hp <= p.maxHp / 4, hpLen = clamp(Math.round(36 + p.maxHp * 0.5), 44, Math.min(maxLen, 150));
+    bar(x0, 3, 6, hpLen, B ? B.hp.v : 1, B ? B.hp.g : 1, low && (f & 16) ? ['#fcfcfc', '#fc7460', '#a80020'] : ['#fcbca0', '#e83c20', '#880c00']);
+    Font.draw(ctx, String(Math.ceil(Math.max(0, p.hp))), x0 + hpLen + 6, 4, low ? '#fc7460' : '#fcfcfc', { shadow: '#000' });
+    const mm = Castle.mpMax(); // MP, sobald ein Zauber gelernt oder ein Ruf-Mahr gefangen ist
+    if (mm) {
+      const mpLen = clamp(Math.round(24 + mm * 0.4), 30, hpLen - 8), k = clamp(Castle.mp / mm, 0, 1);
+      bar(x0, 12, 4, mpLen, k, k, ['#a4e4fc', '#3c8cfc', '#1c3ca8']);
+      Font.draw(ctx, String(Math.floor(Castle.mp)), x0 + mpLen + 6, 12, '#a4e4fc', { shadow: '#000' });
+    }
+    if (W.boss && B) { // Bossleiste: Schädel davor, füllt sich beim Auftritt mit Ticken
+      const sx = 30, sy = 21;
+      R('#e8e4d8', sx + 1, sy, 5, 1); R('#e8e4d8', sx, sy + 1, 7, 4); R('#e8e4d8', sx + 1, sy + 5, 5, 2);
+      R('#1c0a0c', sx + 1, sy + 2, 2, 2); R('#1c0a0c', sx + 4, sy + 2, 2, 2); R('#1c0a0c', sx + 3, sy + 4, 1, 1); R('#1c0a0c', sx + 2, sy + 6, 1, 1); R('#1c0a0c', sx + 4, sy + 6, 1, 1);
+      bar(sx + 9, 21, 4, clamp(bx - 47, 40, 150), B.bo.v, B.bo.g, ['#fce0a8', '#f8b800', '#9c6400']);
+    }
+    ctx.drawImage(this.medallion(Castle.rpg.lv, clamp(Castle.expProgress(), 0, 1)), 1, 1);
+    Font.draw(ctx, String(Castle.rpg.lv), 15, 11, '#fcfcfc', { align: 'center', shadow: '#000' });
+  },
+
   drawHud(ctx) {
     const Wd = View.w;
     const R = (c, x, y, w, h) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); };
@@ -1114,13 +1175,11 @@ const Game = {
     const label = '#b0a080', val = '#fcfcfc';
     const right = Wd - 98, boxCx = Math.round((116 + right) / 2);
     if (Castle.on) { // Schloss: Stufe mit EXP-Leiste statt Punkten, Gold in der Mitte statt der (stehenden) Zeit
-      Font.draw(ctx, 'LV', 18, 3, label, { align: 'right' }); Font.draw(ctx, pad(Castle.rpg.lv, 2), 22, 3, val, { shadow: '#000' });
-      const k = clamp(Castle.expProgress(), 0, 1); R('#000', 37, 4, 66, 5); R('#1c2c14', 38, 5, 64, 3); R('#58f898', 38, 5, Math.round(64 * k), 3); R('#b8fcd0', 38, 5, Math.round(64 * k), 1);
       if (Castle.testing) Font.draw(ctx, Castle.god ? 'TEST *' : 'TEST', 4, 34, '#58f898', { shadow: '#000' }); // Testmodus sichtbar (* = unverwundbar)
       const bf = Castle.buffInfo && Castle.buffInfo(); // Mahlzeit aus der Kantine: Teller und Restzeit
       if (bf && !(bf.k < 0.06 && (W.frame & 8))) { const by = Castle.testing ? 44 : 35; R('#000', 3, by, 44, 9); R('#e8e4d8', 4, by + 5, 10, 2); R('#a8a49c', 5, by + 7, 8, 1); R('#d8a040', 6, by + 2, 6, 3); R('#fce0a8', 7, by + 2, 2, 1); R('#2c1c08', 16, by + 3, 29, 3); R('#f8d878', 16, by + 3, Math.round(29 * bf.k), 3); }
-      const mm = Castle.mpMax(); // MP, sobald ein Zauber gelernt ist
-      if (mm) { const m = clamp(Castle.mp / mm, 0, 1); Font.draw(ctx, 'MP', 108, 3, label); R('#000', 120, 4, 28, 5); R('#0c1c34', 121, 5, 26, 3); R('#3cbcfc', 121, 5, Math.round(26 * m), 3); R('#a4e4fc', 121, 5, Math.round(26 * m), 1); }
+      this.drawCastleHud(ctx, R, boxCx - 16);
+      if (Wd >= 288) { const gx = boxCx - 29; R('#9c6400', gx + 1, 3, 5, 7); R('#f8b800', gx, 4, 7, 5); R('#fce0a8', gx + 2, 4, 2, 1); R('#9c6400', gx + 3, 5, 1, 3); } // Münze vor dem Gold
       Font.draw(ctx, pad(this.dispScore || 0, 6), boxCx, 3, this.dispScore < W.score ? '#fce0a8' : '#f8b800', { align: 'center', shadow: '#000' });
     } else {
       Font.draw(ctx, tr('hudScore'), 36, 3, label, { align: 'right' }); Font.draw(ctx, pad(this.dispScore || 0, 6), 40, 3, this.dispScore < W.score ? '#fce0a8' : val, { shadow: '#000' });
@@ -1130,8 +1189,6 @@ const Game = {
     }
     Font.draw(ctx, tr('hudStage'), Wd - 35, 3, label, { align: 'right' });
     Font.draw(ctx, pad(W.stage + 1, 1) + '-' + (W.roomIdx + 1), Wd - 30, 3, val, { shadow: '#000' });
-    Font.draw(ctx, tr('hudPlayer'), 6, 13, label);
-    Font.draw(ctx, tr('hudEnemy'), 6, 22, label);
     const B = this.bars, ghostCols = ['#fcfcfc', '#f0d8c8', '#a88c80'];
     const bar = (y, v, cols, ghost = 0) => {
       R('#000', 51, y - 1, 65, 8);
@@ -1140,16 +1197,22 @@ const Game = {
         R(c[1], 52 + i * 4, y, 3, 6); R(c[0], 52 + i * 4, y, 3, 1); R(c[2], 52 + i * 4, y + 5, 3, 1);
       }
     };
-    bar(13, Math.ceil(Math.max(0, p.hp) / p.maxHp * 16), p.hp <= p.maxHp / 4 && (W.frame & 16) ? ['#fcfcfc', '#fc7460', '#a80020'] : ['#fcbca0', '#e83c20', '#880c00'], B ? Math.ceil(B.p.g) : 0);
-    let bv = this.bossBarValue();
-    if (B && B.boss === W.boss) bv = Math.min(bv, B.fill);
-    bar(22, bv, ['#fce0a8', '#f8b800', '#9c6400'], B ? Math.ceil(B.b.g) : 0);
+    if (!Castle.on) { // Arcade: Segmentleisten wie am Automaten (das Schloss zeichnet seine eigenen, siehe drawCastleHud)
+      Font.draw(ctx, tr('hudPlayer'), 6, 13, label);
+      Font.draw(ctx, tr('hudEnemy'), 6, 22, label);
+      bar(13, Math.ceil(Math.max(0, p.hp) / p.maxHp * 16), p.hp <= p.maxHp / 4 && (W.frame & 16) ? ['#fcfcfc', '#fc7460', '#a80020'] : ['#fcbca0', '#e83c20', '#880c00'], B ? Math.ceil(B.p.g) : 0);
+      let bv = this.bossBarValue();
+      if (B && B.boss === W.boss) bv = Math.min(bv, B.fill);
+      bar(22, bv, ['#fce0a8', '#f8b800', '#9c6400'], B ? Math.ceil(B.b.g) : 0);
+    }
     const bx = boxCx - 16;
     R('#c89020', bx, 10, 33, 21); R('#3c0810', bx + 1, 11, 31, 19); R('#120610', bx + 2, 12, 29, 17);
     if (p.chargeT > 0) { R(p.chargeT >= 50 && (W.frame & 4) ? '#fcfcfc' : '#f8b800', bx + 2, 28, Math.min(29, Math.round(p.chargeT / 50 * 29)), 2); }
+    const ruf = Castle.on && typeof Mahr !== 'undefined' && Castle.mahrEq('ruf'); // Ruf-Mahr teilt sich das Fach mit der Spezialwaffe (↑ + SUB)
+    if (ruf) { R('#3c0810', bx + 19, 12, 1, 16); Mahr.icon(ctx, ruf, bx + 20, 13, Castle.mp < ruf.mp); const ac = Castle.mp < ruf.mp ? '#5c5c6c' : '#fce0a8'; R(ac, bx + 25, 25, 1, 1); R(ac, bx + 24, 26, 3, 1); }
     if (p.sub) {
-      const s = ITEM_SPR[p.sub]();
-      Sprites.draw(ctx, s, boxCx - Math.floor(s.w / 2), 21 - Math.floor(s.h / 2));
+      const s = ITEM_SPR[p.sub](), sc = ruf ? bx + 10 : boxCx;
+      Sprites.draw(ctx, s, sc - Math.floor(s.w / 2), 21 - Math.floor(s.h / 2));
     }
     Sprites.draw(ctx, Sprites.S.heartS, right + 1, 12);
     Font.draw(ctx, pad(p.hearts, 2), right + 11, 13, p.hearts >= 10 && p.sub ? '#f8b800' : val, { shadow: '#000' });

@@ -437,6 +437,23 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
       (Fächer aus Papierstreifen) und ANSTURM (Wandprall: benommen und verwundbar). Ab halber Energie Stufe 5 (Partikelschnitt).
     - Besiegt platzt er in Konfetti. Lohn: Reißzahn (Waffe, ATK +6) und die Urkunde „Datenschutz gewährleistet“.
   - Geräusche `howl`/`shred` vorerst als Synth (ElevenLabs war belegt; `Audio8.sample` nimmt Proben, sobald sie in `SAMP` stehen).
+- **Mahre, kritische Treffer, neues HUD** (20261111; js/mahr.js): Der Held trägt einen Traumfänger. Besiegte Gegner lassen
+  manchmal ihren **Mahr** zurück (ein dunkler Wisch mit Augen), der zum Helden fliegt und sich im Traumfänger verfängt.
+  - **18 Mahre in zwei Plätzen** (`Mahr.LIST`): zehn **Ruf-Mahre** (↑ + SUB, kosten MP: Flederschwarm, Knochenwurf mit
+    zwei Bodensprüngen, Feuerspucke, Seitenhagel, Rabensturz, Steinblick mit Versteinerung, Aktenwurf als Bumerang, Eilbrief,
+    Sternschnuppe mit Zielsuche, Sternenkranz) und acht **Bann-Mahre** (wirken dauernd: Ausweichen, DEF, Regeneration, Krit,
+    MP-Regeneration, Glück, Gold, weniger Schwerkraft). Je Platz einer; Status → Seite MAHRE (↑↓ wählen, Angriff legt an/ab).
+  - **Rang I–IX:** derselbe Mahr noch einmal hebt den Rang (Ruf: +15 % Schaden je Rang, Bann: bessere Werte); bei Rang IX
+    gibt es 500 Gold. Fangquote = Grundquote × Glück × Blutmond + Pechschutz (`mpity_<id>`); der erste Mahr ist sicher.
+  - Ruf-Schaden = Grundwert × Rang × Stärke des Helden (wie der Peitschenhieb, `strMul`); die Explosion der Feuerspucke zählt halb.
+  - **Kritische Treffer:** Quote 3 % + 1,5 je Glück + Bann-Mahr, Schaden ×1,75; goldene Zahl mit „!“, Ring, Funken, kurzer Halt.
+    Ein Hieb ist als Ganzes kritisch oder nicht (`swingCrit(atkId)`), damit Mehrfachtreffer zusammenpassen.
+  - **Versteinerung:** `e.stunT` hält gewöhnliche Gegner an (world.js überspringt ihr `update`), `Mahr.Stone` zeigt den Schleier.
+  - **Schloss-HUD neu** (`Game.drawCastleHud`, Arcade bleibt): Medaillon mit Stufe, EXP als grüner Ring; glatte HP- und
+    MP-Leisten mit Zahl, deren Länge mit dem Höchstwert wächst, Nachlauf in Weiß, wandernder Glanz; Bossleiste mit Schädel
+    nur im Kampf; der Ruf-Mahr teilt sich das Fach mit der Spezialwaffe (grau, wenn die MP nicht reichen); Münze vor dem Gold.
+    Geprüft bei 256, 300, 426 und 640 Pixeln Breite (test_hud.js).
+  - Urkunden „Traumfänger“ (erster Mahr) und „Albtraumsammler“ (alle 18). Tests: test_mahr.js, test_hud.js.
 - **Feinschliff über das ganze Spiel** (20261106, zweite Runde):
   - **Rundgang durch alle 86 Räume** (test_sweep.js): jeder Raum betreten, 3 s laufen lassen, ein Bild je Raum, Fehler je Raum.
     Ergebnis: keine Fehler, Selbsttest sauber.
