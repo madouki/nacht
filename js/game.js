@@ -664,7 +664,7 @@ const Game = {
   updatePlay(P) {
     if (this.banter && this.banter.t >= 0) { this.holdBanter(P); return; } // Wortgeplänkel vor dem Kampf: die Welt steht still
     if (P.start && W.player.alive) { this.go('pause'); this.pauseSel = 0; Audio8.setMusicVolume(0.3); Audio8.muffle(true); Audio8.sfx('pause'); this.saveResume(); return; } // Schloss: Pause = Fortsetzungspunkt
-    if (Castle.on && P.map) Castle.toggleOverlay(); // Schloss: Select/Tab – Karte durchscheinend über dem Spiel
+    if (Castle.on && P.map && !(Input.held.up && Castle.mahrCycle())) Castle.toggleOverlay(); // Schloss: Select/Tab – Karte durchscheinend über dem Spiel
     if (this.readyT > 0) { // READY? … GO! (das Spiel läuft dabei schon)
       this.readyT++;
       if (this.readyT === 3) Audio8.sfx('ready');

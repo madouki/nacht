@@ -2303,6 +2303,7 @@ const Castle = (() => {
     while (rpg.lv < MAXLV && rpg.exp >= expFor(rpg.lv + 1)) { rpg.lv++; up++; }
     if (!up) return;
     const p = W.player; applyHp(p);
+    if (mpMax()) mp = mpMax(); // der Aufstieg füllt die MP
     Game.shout('castleLvUp'); Audio8.sfx('oneUp'); Input.rumble(0.4, 0.3, 200);
     W.popup(p.cx, p.y - 12, 'LV ' + rpg.lv, '#58f898');
     for (let i = 0; i < 20; i++) W.spawn(new Particle(p.cx + rnd(-8, 8), p.y + rnd(0, 28), rnd(-0.6, 0.6), rnd(-2, -0.6), i % 2 ? '#58f898' : '#fce0a8', 44, 1, 0));
@@ -2312,6 +2313,7 @@ const Castle = (() => {
   const hpSeen = new Map();
   function dmgNumber(e, d) {
     const cr = critNow(), p = W.player;
+    if (cr && e.kind === 'enemy' && !e.dead && e.onGround === true && !(e.stunT > 0)) Phys.moveX(e, (e.cx >= p.cx ? 1 : -1) * 5); // kritischer Treffer schiebt Laufende ein Stück zurück
     W.popup(e.cx + rnd(-4, 4), e.y - 2, String(Math.max(1, Math.round(d * 10))) + (cr ? '!' : ''), cr ? '#fcd070' : e.kind === 'boss' ? '#f8b800' : '#fcfcfc');
     if (cr && critShown !== p.atkId) { // einmal je Hieb: Ruf, Funkenkranz, kurzes Innehalten
       critShown = p.atkId; W.popup(e.cx, e.y - 13, tr('crit'), '#fcd070'); Audio8.sfx('crit', e.cx); if (typeof Mahr !== 'undefined') W.spawn(new Mahr.CritStar(e.cx, e.cy)); W.hitstop = Math.max(W.hitstop, 5);
@@ -2355,6 +2357,15 @@ const Castle = (() => {
     mahrGive(d, e);
   }
   let mahrCd = 0, mpWarnT = 0;
+  function mahrCycle() { // ↑ + Karte: zum nächsten gefangenen Ruf-Mahr wechseln (ohne Menü); false = es gibt keinen zweiten
+    if (typeof Mahr === 'undefined') return false;
+    const have = Mahr.LIST.filter(d => d.slot === 'ruf' && mahrRank(d.id)); if (have.length < 2) return false;
+    const cur = have.findIndex(d => d.id === flag.mahrRuf), d = have[(cur + 1) % have.length], p = W.player;
+    flag.mahrRuf = d.id; save();
+    W.popup(p.cx, p.y - 14, tr('mahr_' + d.id), d.col); Audio8.sfx('select'); mahrCd = Math.max(mahrCd, 8);
+    for (let i = 0; i < 6; i++) W.spawn(new Particle(p.cx + rnd(-8, 8), p.y + rnd(4, 24), rnd(-0.4, 0.4), rnd(-1.2, -0.3), i % 2 ? d.col : '#2c1840', 20, 1, 0));
+    return true;
+  }
   function mahrHint() { // wer einen noch nicht gefangenen Mahr in sich trägt, verrät sich ab und zu durch ein violettes Glimmen
     for (const e of W.ents) {
       if (e.dead || e.kind !== 'enemy' || Math.random() > 0.3) continue;
@@ -3330,7 +3341,7 @@ const Castle = (() => {
     if (statusPage === 2) { panel(ctx, tr('beastTitle'), '#9c6cfc'); drawBeasts(ctx, t); Font.draw(ctx, tr('statusHelp'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
     if (statusPage === 3) { panel(ctx, tr('questTitle'), '#f8b800'); drawQuests(ctx, t); Font.draw(ctx, tr('statusHelp'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
     if (statusPage === 4) { panel(ctx, tr('achTitle'), '#f8d878'); drawAch(ctx, t); Font.draw(ctx, tr('statusHelp'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
-    if (statusPage === 5) { panel(ctx, tr('mahrTitle'), '#b080fc'); drawMahre(ctx, t); Font.draw(ctx, tr('mahrHelp'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
+    if (statusPage === 5) { panel(ctx, tr('mahrTitle'), '#b080fc'); drawMahre(ctx, t); Font.draw(ctx, tr(t % 420 < 240 ? 'mahrHelp' : 'mahrSwap'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
     ctx.fillStyle = 'rgba(2,4,18,0.97)'; ctx.fillRect(0, 0, w, 240);
     ctx.fillStyle = '#c89020';
     ctx.fillRect(6, 6, w - 12, 1); ctx.fillRect(6, 233, w - 12, 1); ctx.fillRect(6, 6, 1, 228); ctx.fillRect(w - 7, 6, 1, 228);
@@ -4540,7 +4551,7 @@ const Castle = (() => {
     for (const q of QUESTS) need.push('quest_' + q.id, 'questHint_' + q.id);
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
-    need.push('mahrTitle', 'mahrCount', 'mahrRuf', 'mahrBann', 'mahrHelp', 'mahrOn', 'mahrFrom', 'mahrUnknown', 'mahrGot', 'mahrFirst', 'mahrDodge', 'crit', 'chgMahr');
+    need.push('mahrTitle', 'mahrCount', 'mahrRuf', 'mahrBann', 'mahrHelp', 'mahrSwap', 'mahrOn', 'mahrFrom', 'mahrUnknown', 'mahrGot', 'mahrFirst', 'mahrDodge', 'crit', 'chgMahr');
     { // Erreichbarkeit: vom Wald aus über Türen und Ausgänge (alles geöffnet) – kein Raum darf abgeschnitten sein
       const key = (s, r) => s + ':' + r, seenR = new Set(), queue = [], s0 = sIdx('arrival');
       const push = (s, r) => { if (s >= 0 && !seenR.has(key(s, r))) { seenR.add(key(s, r)); queue.push([s, r]); } };
@@ -4608,7 +4619,7 @@ const Castle = (() => {
     newRun, drawStatus, expProgress, gainExp, get rpg() { return rpg; }, talkInput, drawTalk, get talk() { return talk; }, get flags() { return flag; },
     openEquip, equipInput, drawEquip, openShop, shopInput, drawShop, get inv() { return inv; }, get eq() { return eq; }, giveItem,
     preUpdate, statusInput, mpMax, get mp() { return mp; }, set mp(v) { mp = v; }, get floaty() { return gear('float') > 0; },
-    mahrStrike: famStrike, mahrTarget: famTarget, mahrRank, mahrEq, mahrGive: (id, e) => mahrGive(Mahr.BY[id], e), get statusAttack() { return statusPage === 5; }, critChance, get mpWarn() { return mpWarnT; },
+    mahrStrike: famStrike, mahrTarget: famTarget, mahrRank, mahrEq, mahrGive: (id, e) => mahrGive(Mahr.BY[id], e), get statusAttack() { return statusPage === 5; }, critChance, get mpWarn() { return mpWarnT; }, mahrCycle,
     toolCount: TOOLS.length, get toolSel() { return tools.sel; }, set toolSel(v) { tools.sel = v; },
     startTest, enterTest, finishTest, drawMilestones, milestones: MILESTONES.length, msLabel: (n) => msName(MILESTONES[n]), msTarget: (n) => { const a = ref(MILESTONES[n].at); return { s: a.s, r: a.r }; }, get testing() { return testing; },
     setFlag: (k) => { flag[k] = 1; save(); }, // z. B. Aufzug als Abkürzung freigeschaltet (lift.js)

@@ -73,6 +73,7 @@ const ITEM_SPR = {
   orb: () => Sprites.S.orb[Math.floor(W.frame / 8) % 2], watch: () => Sprites.S.watch,
 };
 
+const MAGNET = new Set(['heartS', 'heartB', 'bag', 'bagBig']);
 class Item extends Ent {
   constructor(type, x, y) {
     const s = ITEM_SPR[type]();
@@ -84,6 +85,15 @@ class Item extends Ent {
   }
   update() {
     this.t++;
+    if (this.t > 14 && MAGNET.has(this.type) && typeof Castle !== 'undefined' && Castle.on) { // Schloss: Herzen und Gold kommen dem Helden das letzte Stück entgegen
+      const p = W.player, dx = p.cx - this.cx, dy = p.cy - this.cy, d = Math.hypot(dx, dy);
+      if (p.alive && d < 36 && d > 1) {
+        const v = Math.min(2.4, 0.7 + (36 - d) * 0.09); Phys.moveX(this, dx / d * v); Phys.moveY(this, dy / d * v);
+        this.landed = false; this.vy = 0; this.vx = 0; this.pulled = true;
+        if (--this.life <= 0) this.dead = true;
+        return;
+      }
+    }
     if (!this.landed) {
       if (this.type === 'heartS') { this.vy = 0.55; this.vx = Math.sin(this.t / 9) * 0.9; Phys.moveX(this, this.vx); }
       else { this.vy = Math.min(this.vy + 0.15, 2.4); if (this.vx) { Phys.moveX(this, this.vx); this.vx *= 0.97; } }
@@ -98,6 +108,7 @@ class Item extends Ent {
   }
   collect(p) {
     this.dead = true;
+    if (this.pulled) W.sparks(this.cx, this.cy, 3);
     switch (this.type) {
       case 'heartS': p.hearts = Math.min(99, p.hearts + 1); Audio8.sfx('heart'); break;
       case 'heartB': p.hearts = Math.min(99, p.hearts + 5); Audio8.sfx('heart'); break;

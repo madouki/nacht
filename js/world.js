@@ -670,7 +670,7 @@ const W = {
     const order = ['prop', 'candle', 'platform', 'item', 'enemy', 'boss', 'sub', 'eproj', 'fx'];
     if (this.room.wrap) this.drawOnTower(ctx, order);
     else if (bend) this.drawBent(ctx, order);
-    else order.forEach(k => { for (const e of this.ents) if (e.kind === k) e.draw(ctx); if (k === 'boss') this.player.draw(ctx, this.cam); });
+    else { this.drawGroundShadows(ctx); order.forEach(k => { for (const e of this.ents) if (e.kind === k) e.draw(ctx); if (k === 'boss') this.player.draw(ctx, this.cam); }); }
     for (const e of this.ents) if (e.drawFront && !e.dead) e.drawFront(ctx); // Bauwerke, die vor dem Helden liegen (Torhaus beim Durchgehen)
     this.drawReflections(ctx, sx, sy);
     if ((theme === 'throne' || theme === 'gallery' || (theme === 'mirror' && !this.room.mtower)) && !View.lite) this.drawFloorMirror(ctx, sx, sy);
@@ -767,6 +767,30 @@ const W = {
   },
   // Blitz: jede Figur (Held, Gegner, Rüstungen, Kronleuchter, Kerzen) wirft einen harten, vergrößerten Schlagschatten
   // an die Wand – weg vom nächsten Fenster und nach oben, als stünde das Licht tief vorn (Stummfilm-Horror)
+  // Bodenschatten: unter Held, Gegnern und Beute liegt ein weicher dunkler Fleck auf dem Boden darunter – je höher die Figur über
+  // dem Boden, desto kleiner und blasser (ab 72 px keiner mehr). Wer steht (onGround, Treppe), hat ihn direkt unter den Füßen
+  drawGroundShadows(ctx) {
+    const cam = this.cam, vw = View.w, p = this.player;
+    const one = (e, grounded, wMax) => {
+      const sx = e.cx - cam.x; if (sx < -24 || sx > vw + 24) return;
+      const feet = e.y + e.h; let gy = -1;
+      if (grounded) gy = feet;
+      else { const tx = Math.floor(e.cx / T); let ty = Math.floor((feet + 1) / T); for (let k = 0; k < 5; k++, ty++) if (Phys.solidTile(tx, ty)) { gy = ty * T; break; } }
+      if (gy < 0 || gy < feet - 3) return;
+      const k = clamp(1 - (gy - feet) / 72, 0, 1); if (k < 0.05) return;
+      const w = Math.round(clamp(e.w * 1.5 + 4, 8, wMax) * (0.55 + 0.45 * k)), x = Math.round(sx - w / 2), y = Math.round(gy - cam.y) - 2, in1 = Math.max(1, Math.round(w * 0.2)); // ragt seitlich unter den Füßen hervor
+      const a = 0.4 * (0.3 + 0.7 * k);
+      ctx.fillStyle = '#000'; ctx.globalAlpha = a; ctx.fillRect(x, y + 1, w, 2);
+      ctx.globalAlpha = a * 0.6; ctx.fillRect(x + in1, y, w - in1 * 2, 1); ctx.fillRect(x + in1, y + 3, w - in1 * 2, 1);
+    };
+    for (const e of this.ents) {
+      if (e.dead || e.noShadow) continue;
+      if (e.kind === 'enemy') one(e, e.onGround === true, 40);
+      else if (e.kind === 'item') one(e, !!e.landed, 12);
+    }
+    if (p.alive && !p.hidden && p.state !== 'cannon') one(p, p.onGround || p.state === 'stairs', 26);
+    ctx.globalAlpha = 1;
+  },
   drawCastShadows(ctx) {
     const w = View.w;
     if (!this.shC || this.shC.width !== w) this.shC = Sprites.canvas(w, 208);

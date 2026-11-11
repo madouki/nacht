@@ -465,6 +465,14 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
       Stufenaufstieg, MP-Zahl blinkt rot, wenn der Ruf nicht bezahlbar ist.
     - *Gameplay:* Versteinerte sind spröde (Treffer ×1,5, Splitter); Perfekt-Ausweichen gibt 6 MP, und in der Zeitlupe danach
       ist jeder Hieb kritisch (`critNow`).
+  - **Dritter Stand** (mit dem eingemischten Zweig `polish-20261106`: schmale Schirme, Namensband, Vorbau; test_polish2.js, test_shadow.js):
+    - *Grafik:* Bodenschatten unter Held, Gegnern und Beute (`W.drawGroundShadows`, nur im flachen Zeichenweg – nicht auf Turmmänteln
+      und gewölbten Räumen): ragt seitlich unter den Füßen hervor, wird im Sprung kleiner und blasser, ab 72 px Höhe keiner.
+      `noShadow` am Gegner schaltet ihn ab.
+    - *Gameplay:* Herzen und Gold kommen dem Helden die letzten 36 px entgegen (`MAGNET` in enemies.js, nur Schloss); kritische
+      Treffer schieben laufende Gegner 5 px zurück; der Stufenaufstieg füllt die MP; **↑ + Karte** wechselt im Spiel reihum zum
+      nächsten gefangenen Ruf-Mahr (`Castle.mahrCycle`, erst ab zwei Ruf-Mahren – sonst öffnet die Taste wie gewohnt die Karte).
+      Die Hilfezeile der Seite MAHRE zeigt das im Wechsel (`mahrSwap`, 8 Sprachen).
 - **Feinschliff über das ganze Spiel** (20261106, zweite Runde):
   - **Rundgang durch alle 86 Räume** (test_sweep.js): jeder Raum betreten, 3 s laufen lassen, ein Bild je Raum, Fehler je Raum.
     Ergebnis: keine Fehler, Selbsttest sauber.
