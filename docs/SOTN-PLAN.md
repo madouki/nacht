@@ -473,6 +473,18 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
       Treffer schieben laufende Gegner 5 px zurück; der Stufenaufstieg füllt die MP; **↑ + Karte** wechselt im Spiel reihum zum
       nächsten gefangenen Ruf-Mahr (`Castle.mahrCycle`, erst ab zwei Ruf-Mahren – sonst öffnet die Taste wie gewohnt die Karte).
       Die Hilfezeile der Seite MAHRE zeigt das im Wechsel (`mahrSwap`, 8 Sprachen).
+  - **Vierter Stand** (20261112; Rückmeldung „Schrift im HUD und Menü teils verdeckt“, „Fledermäuse und Helden hübscher“):
+    - *Lesbarkeit:* Gold steht jetzt mit Münze unter den Leisten (über dem Waffenfach stieß die Zahl an dessen Rahmen; im
+      Bosskampf steht dort die Bossleiste), die HP-Zahl endet vor dem Waffenfach. Status, Karte und alle `panel()`-Seiten sind
+      deckend – vorher schien das HUD als blasse Geisterschrift durch. `Font.draw` macht zu breite Zeilen lesbar schmaler:
+      erst schmalere Leerzeichen (`opts.sp`, Buchstaben bleiben scharf), dann geglättet aus einem Puffer (das frühere Stauchen
+      ließ Pixelspalten wegfallen). Leere Auftragsliste bricht um, Verwandlungsnamen weichen dem Befehl. test_menus.js
+      fotografiert HUD, Pause, alle Statusseiten, Ausrüstung und Karte bei mehreren Breiten.
+    - *Fledermaus:* neu als Pixelgrafik im Code (`batPixel` in sprites16.js: von vorn, Flughäute in drei Feldern mit
+      Fingerknochen, Ohren, glühende Augen, 16 Phasen, ruhend kopfüber im Mantel); das vorgerenderte Low-Poly-Modell aus dem
+      Atlas wird nicht mehr geladen. Blender und Meshy waren nicht verbunden.
+    - *Helden:* die Blender-Bilder werden beim Bauen nachgeschärft (`polish3d` in hero.js: harte Kante, mehr Kontrast und
+      Farbe, gestufte Töne, Auge unter dem Stirnband an der Stelle `e` des Kopfrasters; beim Blinzeln zu). test_art.js zeigt beides.
 - **Feinschliff über das ganze Spiel** (20261106, zweite Runde):
   - **Rundgang durch alle 86 Räume** (test_sweep.js): jeder Raum betreten, 3 s laufen lassen, ein Bild je Raum, Fehler je Raum.
     Ergebnis: keine Fehler, Selbsttest sauber.

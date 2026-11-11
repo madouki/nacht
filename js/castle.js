@@ -3099,7 +3099,7 @@ const Castle = (() => {
     const J = ' + ' + tr('spellJump'), forms = [['bat', '↓ ↑' + J, BAT_COST], ['mist', '↑ ↓' + J, MIST_COST], ['wolf', '↓ ↘ →' + J, WOLF_COST], ['boots', '↑ + ' + tr('dashKey'), 0]].filter(([k]) => rel(k));
     forms.forEach(([k, cmd, cost], i) => { // Verwandlungen und Supersprung: eine Zeile je Relikt (Befehl, MP)
       const y = 162 + i * 10;
-      Font.draw(ctx, tr('relic_' + k), lx, y, RELIC_COL[k], { shadow: '#000' });
+      Font.draw(ctx, tr('relic_' + k), lx, y, RELIC_COL[k], { shadow: '#000', fit: Math.max(40, rx - 44 - Font.width(cmd) - 6 - lx) }); // schmal: der Name weicht dem Befehl
       Font.draw(ctx, cmd, rx - 44, y, '#fcfcfc', { align: 'right', shadow: '#000' });
       if (cost) Font.draw(ctx, cost + '+ MP', rx, y, '#7cdcfc', { align: 'right', shadow: '#000' });
     });
@@ -3148,7 +3148,7 @@ const Castle = (() => {
   }
   function panel(ctx, title, col) { // Vollbild wie Status und Karte
     const w = View.w, cx = View.cx;
-    ctx.fillStyle = 'rgba(2,4,18,0.97)'; ctx.fillRect(0, 0, w, 240);
+    ctx.fillStyle = '#020412'; ctx.fillRect(0, 0, w, 240); // deckend: das HUD dahinter schien sonst als blasse, unlesbare Schrift durch
     ctx.fillStyle = col; ctx.fillRect(6, 6, w - 12, 1); ctx.fillRect(6, 233, w - 12, 1); ctx.fillRect(6, 6, 1, 228); ctx.fillRect(w - 7, 6, 1, 228);
     Game.big(ctx, title, cx, 12, 2, LOGO, null, '#000');
   }
@@ -3325,7 +3325,7 @@ const Castle = (() => {
   function drawQuests(ctx, t) { // Auftragsbuch: Name, Auftraggeber, Stücke (gefundene farbig), erledigt
     const cx = View.cx, lx = cx - Math.min(130, View.w / 2 - 16), rx = cx + Math.min(130, View.w / 2 - 16), NPC = { lib: 'npcLib', conc: 'npcConcierge', pris: 'npcPrisoner' };
     const list = QUESTS.filter(questState);
-    if (!list.length) { Font.draw(ctx, tr('questNone'), cx, 100, '#7c7c8c', { align: 'center' }); return; }
+    if (!list.length) { wrap(tr('questNone'), View.w - 32).slice(0, 3).forEach((l, i) => Font.draw(ctx, l, cx, 100 + i * 11, '#7c7c8c', { align: 'center' })); return; }
     list.forEach((q, i) => {
       const y = 44 + i * 52, st = questState(q), done = st === 'done';
       Font.draw(ctx, tr('quest_' + q.id), lx, y, done ? '#58f898' : '#f8b800', { shadow: '#000' });
@@ -3342,7 +3342,7 @@ const Castle = (() => {
     if (statusPage === 3) { panel(ctx, tr('questTitle'), '#f8b800'); drawQuests(ctx, t); Font.draw(ctx, tr('statusHelp'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
     if (statusPage === 4) { panel(ctx, tr('achTitle'), '#f8d878'); drawAch(ctx, t); Font.draw(ctx, tr('statusHelp'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
     if (statusPage === 5) { panel(ctx, tr('mahrTitle'), '#b080fc'); drawMahre(ctx, t); Font.draw(ctx, tr(t % 420 < 240 ? 'mahrHelp' : 'mahrSwap'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
-    ctx.fillStyle = 'rgba(2,4,18,0.97)'; ctx.fillRect(0, 0, w, 240);
+    ctx.fillStyle = '#020412'; ctx.fillRect(0, 0, w, 240);
     ctx.fillStyle = '#c89020';
     ctx.fillRect(6, 6, w - 12, 1); ctx.fillRect(6, 233, w - 12, 1); ctx.fillRect(6, 6, 1, 228); ctx.fillRect(w - 7, 6, 1, 228);
     Game.big(ctx, tr('castleStatus'), cx, 12, 2, LOGO, null, '#000');
@@ -4228,7 +4228,7 @@ const Castle = (() => {
   function draw(ctx, t, warpMode = false, overlay = false) {
     const w = View.w, cx = View.cx, L = castle(), sw = warpMode && trip.list[trip.sel], st = S()[sw ? sw.s : W.stage];
     if (!overlay) {
-      ctx.fillStyle = 'rgba(2,4,18,0.97)'; ctx.fillRect(0, 0, w, 240);
+      ctx.fillStyle = '#020412'; ctx.fillRect(0, 0, w, 240);
       ctx.fillStyle = warpMode ? '#2c6cb0' : '#c89020';
       ctx.fillRect(6, 6, w - 12, 1); ctx.fillRect(6, 233, w - 12, 1); ctx.fillRect(6, 6, 1, 228); ctx.fillRect(w - 7, 6, 1, 228);
       Game.big(ctx, tr(warpMode ? 'warpTitle' : 'mapTitle'), cx, 12, 2, warpMode ? ['#fcfcfc', '#d8f0fc', '#a4e4fc', '#3cbcfc', '#0078f8', '#0040a8', '#001038'] : LOGO, null, '#000');

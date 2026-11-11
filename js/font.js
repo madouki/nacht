@@ -139,32 +139,46 @@ const Font = (() => {
 
   // opts: { align: 'left'|'center'|'right', shadow: color, wave: Amplitude (px), t: Zeit }
   // Mit Schatten gezeichnet bekommt die Schrift PS2-Tiefe: ein Pixel Extrusion nach rechts unten und eine Lichtkante oben.
-  // opts.fit: höchstens so breit (px); ohne Angabe die Schirmbreite. Breiterer Text wird waagerecht gestaucht statt über den Rand zu
-  // laufen (schmale Schirme: Handy quer mit Daumenrändern ~310 px, hoch 256 px). Ab 60 % ist Schluss – lieber knapp als unlesbar.
+  // opts.fit: höchstens so breit (px); ohne Angabe die Schirmbreite. Breiterer Text läuft nicht über den Rand (schmale Schirme:
+  // Handy quer mit Daumenrändern ~310 px, hoch 256 px), bleibt aber lesbar: zuerst werden nur die Leerzeichen schmaler (bis 3 px,
+  // die Buchstaben bleiben scharf); reicht das nicht, wird die Zeile scharf in einen Puffer gezeichnet und geglättet schmaler ins
+  // Bild gesetzt (ohne Glättung fielen ganze Pixelspalten weg – Buchstabensalat). Ab 62 % ist Schluss.
+  // opts.sp: Vorschub eines Leerzeichens (sonst ADV)
+  let fitC = null;
   function draw(ctx, str, x, y, color = '#fcfcfc', opts = {}) {
     const s = norm(str);
     const fw = opts.noFit ? 0 : opts.fit || (typeof View !== 'undefined' ? View.w - 16 : 0);
+    let ns = 0; if (opts.sp || fw > 0) for (const ch of s) if (ch === ' ') ns++;
+    const wOf = (sp) => width(s) - ns * (ADV - sp);
     if (fw > 0) {
       const w = width(s);
       if (w > fw) {
-        const k = Math.max(0.6, fw / w);
-        ctx.save(); ctx.translate(x, 0); ctx.scale(k, 1); ctx.translate(-x, 0);
-        draw(ctx, str, x, y, color, Object.assign({}, opts, { noFit: true }));
+        const sp = ns ? Math.max(3, ADV - Math.ceil((w - fw) / ns)) : ADV, w2 = wOf(sp), o2 = Object.assign({}, opts, { noFit: true, sp });
+        if (w2 <= fw) { draw(ctx, str, x, y, color, o2); return; } // schmalere Leerzeichen genügen
+        const k = Math.max(0.62, fw / w2), pad = 2, H = 20, tw = Math.ceil(w2) + pad * 2, dw = tw * k;
+        if (!fitC) fitC = document.createElement('canvas');
+        if (fitC.width < tw || fitC.height !== H) { fitC.width = Math.max(fitC.width, tw + 32); fitC.height = H; }
+        const fx = fitC.getContext('2d'); fx.clearRect(0, 0, fitC.width, H);
+        draw(fx, str, pad, 5, color, Object.assign({}, o2, { align: 'left' }));
+        const dx = opts.align === 'center' ? x - dw / 2 : opts.align === 'right' ? x - dw + pad * k : x - pad * k;
+        ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(fitC, 0, 0, tw, H, Math.round(dx), Math.round(y) - 5, dw, H);
         ctx.restore(); return;
       }
     }
+    const spA = opts.sp || ADV, wS = spA === ADV ? width(s) : wOf(spA);
     let sx = Math.round(x);
-    if (opts.align === 'center') sx = Math.round(x - width(s) / 2);
-    else if (opts.align === 'right') sx = Math.round(x - width(s));
+    if (opts.align === 'center') sx = Math.round(x - wS / 2);
+    else if (opts.align === 'right') sx = Math.round(x - wS);
     const wave = opts.wave || 0, t = opts.t || 0;
-    if (opts.shadow) draw(ctx, s, sx + 1, y + 1, opts.shadow, { wave, t, noFit: true });
+    if (opts.shadow) draw(ctx, s, sx + 1, y + 1, opts.shadow, { wave, t, noFit: true, sp: opts.sp });
     const a = atlas(color), hl = opts.shadow ? atlas(lighter(color)) : null, yy = Math.round(y);
     let i = 0;
     for (const ch of s) {
       const gi = INDEX.get(ch), oy = wave ? Math.round(Math.sin(t * 0.16 - i * 0.7) * wave) : 0;
       if (gi !== undefined) {
         if (ch !== ' ') { ctx.drawImage(a, gi * ADV, 0, 5, 7, sx, yy + oy, 5, 7); if (hl) ctx.drawImage(hl, gi * ADV, 0, 5, 1, sx, yy + oy, 5, 1); }
-        sx += ADV;
+        sx += ch === ' ' ? spA : ADV;
       } else { ctx.drawImage(tinted(ch, color), sx, yy - 3 + oy); sx += fb(ch).adv; }
       i++;
     }

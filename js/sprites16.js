@@ -56,61 +56,74 @@
   }
   S.bat = { fly: [0, 1, 2, 3, 4, 5].map(i => bat(i / 6)), perch: batPerch() };
 
-  // ---------------- Fledermaus im PS1-Look ----------------
-  // Ein Low-Poly-Modell (Oktaeder-Leib, Kopf mit Ohren, Flughäute mit drei Fingerknochen) wird in 16 Flügelschlag-Phasen
-  // vorgerendert – flach schattiert vom Mondlicht, leicht von oben und schräg vorn gesehen. Die Flügel verkürzen sich
-  // perspektivisch, wenn sie auf den Betrachter zeigen, der hintere Flügel liegt hinter dem Leib.
-  (function bat3d() {
-    const W = 40, H = 32, tilt = 0.42, yaw = 0.62;
-    const rot = ([x, y, z]) => {
-      const x1 = x * Math.cos(yaw) + z * Math.sin(yaw), z1 = -x * Math.sin(yaw) + z * Math.cos(yaw);
-      return [x1, y * Math.cos(tilt) - z1 * Math.sin(tilt), y * Math.sin(tilt) + z1 * Math.cos(tilt)];
+  // ---------------- Fledermaus als Pixelgrafik ----------------
+  // Von vorn gesehen wie in den 16-Bit-Vorbildern: pelziger Leib, spitze Ohren, glühende Augen, Flughäute mit Fingerknochen und
+  // gebogtem Saum, drei Hautfelder in drei Helligkeiten. 16 Phasen Flügelschlag (der Leib wippt gegenläufig), dazu die ruhende
+  // Fledermaus kopfüber im Flügelmantel. Ersetzt das frühere vorgerenderte Low-Poly-Modell (wirkte wie Papierflieger).
+  (function batPixel() {
+    const FW = 50, FH = 44, CX = 25, CY = 24;
+    const FUR = ['#160c20', '#2a1840', '#42285c', '#5e3a7c', '#8058a4'];
+    const SKIN = ['#3a1048', '#581c68', '#7c2c88', '#a044a8', '#c468c8'];
+    const BONE = '#e0a4e4', EYE = '#fc3828', GLINT = '#fff4d0', EAR = '#c86088', FANG = '#f4f0e8';
+    const tools = (x, w, h) => {
+      const px = (a, b, col) => { x.fillStyle = col; x.fillRect(Math.round(a), Math.round(b), 1, 1); };
+      const line = (x0, y0, x1, y1, col) => { x0 = Math.round(x0); y0 = Math.round(y0); x1 = Math.round(x1); y1 = Math.round(y1); const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1; let er = dx + dy; for (let n = 0; n < 200; n++) { px(x0, y0, col); if (x0 === x1 && y0 === y1) break; const e2 = 2 * er; if (e2 >= dy) { er += dy; x0 += sx; } if (e2 <= dx) { er += dx; y0 += sy; } } };
+      const blob = (cx, cy, rx, ry, ramp, bias = 0) => { for (let b = Math.floor(cy - ry); b <= Math.ceil(cy + ry); b++) for (let a = Math.floor(cx - rx); a <= Math.ceil(cx + rx); a++) { const nx = (a + 0.5 - cx) / rx, ny = (b + 0.5 - cy) / ry, q = nx * nx + ny * ny; if (q > 1) continue; const l = -nx * 0.45 - ny * 0.6 + Math.sqrt(1 - q) * 0.55 + bias; px(a, b, ramp[Math.max(0, Math.min(ramp.length - 1, Math.round((l + 0.4) / 1.5 * (ramp.length - 1))))]); } };
+      const hard = () => { const img = x.getImageData(0, 0, w, h), d = img.data; for (let i = 3; i < d.length; i += 4) d[i] = d[i] < 128 ? 0 : 255; x.putImageData(img, 0, 0); };
+      const poly = (pts, col, curve) => { x.fillStyle = col; x.beginPath(); x.moveTo(pts[0][0] + 0.5, pts[0][1] + 0.5); for (let i = 1; i < pts.length; i++) { const q = pts[i]; if (curve && curve[i]) { const o = pts[i - 1], c = curve[i]; x.quadraticCurveTo(c[0] + 0.5, c[1] + 0.5, q[0] + 0.5, q[1] + 0.5); } else x.lineTo(q[0] + 0.5, q[1] + 0.5); } x.closePath(); x.fill(); };
+      return { px, line, blob, hard, poly };
     };
-    const norm = v => { const l = Math.hypot(...v) || 1; return v.map(a => a / l); };
-    const Lt = norm([-0.35, -0.8, 0.55]);
-    const MEM = [[20, 8, 28], [44, 18, 58], [72, 32, 92], [104, 52, 124], [140, 84, 160]], FUR = [[14, 8, 12], [34, 20, 28], [58, 36, 46], [86, 60, 70], [120, 92, 100]];
-    function frame(phi, fold) {
-      const c = Sprites.canvas(W, H), x = c.getContext('2d'), polys = [];
-      const add = (pts, ramp, bias = 0) => { const P = pts.map(rot); polys.push({ P, ramp, bias, z: P.reduce((a, p) => a + p[2], 0) / P.length }); };
-      const v = (a, b, k) => [a[0] + b[0] * k, a[1] + b[1] * k, a[2] + b[2] * k];
-      // Leib (Oktaeder) und Kopf mit Ohren, Blick nach +x
-      const F = [5, 0, 0], B = [-6, 1, 0], T = [0, -2.6, 0], D = [0, 2.8, 0], N = [0, 0, 2.6], R = [0, 0, -2.6];
-      [[F, T, N], [F, N, D], [F, D, R], [F, R, T], [B, N, T], [B, D, N], [B, R, D], [B, T, R]].forEach(t => add(t, FUR));
-      const HT = [9, -1.2, 0];
-      add([F, HT, [6, -2.4, 1.2]], FUR, 0.1); add([F, HT, [6, -2.4, -1.2]], FUR); add([F, HT, [6.5, 0.8, 0]], FUR, -0.1);
-      add([[6, -2.4, 1.2], [7.6, -6.5, 1.6], [8, -2, 0.6]], FUR, 0.15); add([[6, -2.4, -1.2], [7.6, -6.5, -1.6], [8, -2, -0.6]], FUR); // Ohren
-      // Flügel: Richtung aus dem Schlagwinkel, Arm – Handgelenk – drei Finger, Flughaut dazwischen
-      for (const sd of [1, -1]) {
-        const dir = fold ? [0, 0.95, sd * 0.3] : [0, -Math.sin(phi), sd * Math.cos(phi)];
-        const len = fold ? 0.45 : 1;
-        const rF = [2.5, -1, sd * 1.8], rB = [-4, -0.5, sd * 1.6];
-        const wrist = v([2, -1, sd * 1.8], dir, 10 * len), f1 = v(v(wrist, dir, 6 * len), [1, 0, 0], 3.5), f2 = v(v(wrist, dir, 7 * len), [1, 0, 0], -2.5), f3 = v(v(wrist, dir, 5 * len), [1, 0, 0], -7);
-        const s1 = v(v(wrist, dir, 3.5 * len), [1, 0, 0], 0.5), s2 = v(v(wrist, dir, 3.5 * len), [1, 0, 0], -4.5);
-        add([rF, wrist, f3, rB], MEM); add([wrist, f1, s1], MEM, 0.05); add([wrist, s1, f2], MEM); add([wrist, f2, s2], MEM, -0.03); add([wrist, s2, f3], MEM);
-        polys.push({ bone: [rF, wrist, f1, f2, f3].map(rot), z: rot(wrist)[2] + 0.01 });
+    function head(t, cx, cy, down) { // Kopf mit Ohren, Augen, Fangzähnen (down: kopfüber)
+      const k = down ? -1 : 1;
+      t.blob(cx, cy, 3.6, 3.3, FUR, 0.05);
+      for (const s of [-1, 1]) { // Ohren: spitze Dreiecke mit rosa Innenohr
+        t.line(cx + s * 2, cy - k * 2, cx + s * 4, cy - k * 7, FUR[2]); t.line(cx + s * 3, cy - k * 2, cx + s * 4, cy - k * 6, FUR[3]); t.line(cx + s * 4, cy - k * 2, cx + s * 4, cy - k * 5, FUR[1]);
+        t.px(cx + s * 3, cy - k * 4, EAR);
+        t.px(cx + s * 2 - (s > 0 ? 0 : 1), cy, EYE); t.px(cx + s * 2 - (s > 0 ? 1 : 0), cy, EYE); // Auge zwei Pixel breit
       }
-      polys.sort((a, b) => a.z - b.z);
-      const cx = W / 2 - 1, cy = H / 2;
-      for (const p of polys) {
-        if (p.bone) { // Fingerknochen und Arm hell
-          const [a, w, ...fs] = p.bone; x.strokeStyle = 'rgb(150,110,150)'; x.lineWidth = 1;
-          x.beginPath(); x.moveTo(cx + a[0], cy + a[1]); x.lineTo(cx + w[0], cy + w[1]); fs.forEach(f => { x.moveTo(cx + w[0], cy + w[1]); x.lineTo(cx + f[0], cy + f[1]); }); x.stroke();
-          continue;
-        }
-        const [a, b, c2] = p.P, u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], w = [c2[0] - a[0], c2[1] - a[1], c2[2] - a[2]];
-        let n = norm([u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]]); if (n[2] < 0) n = n.map(q => -q);
-        const lum = Math.max(0, Math.min(0.999, Math.max(0, n[0] * Lt[0] + n[1] * Lt[1] + n[2] * Lt[2]) * 0.85 + 0.12 + p.bias)), col = p.ramp[Math.floor(lum * p.ramp.length)];
-        x.fillStyle = `rgb(${col.join(',')})`; x.beginPath(); p.P.forEach(([px2, py2], i) => i ? x.lineTo(cx + px2, cy + py2) : x.moveTo(cx + px2, cy + py2)); x.closePath(); x.fill();
+      t.px(cx - 2, cy - (down ? 0 : 0), GLINT); t.px(cx + 1, cy, GLINT);
+      t.px(cx - 1, cy + k * 2, FANG); t.px(cx + 1, cy + k * 2, FANG); t.px(cx, cy + k * 1, FUR[0]);
+    }
+    function frame(ph) {
+      const c = Sprites.canvas(FW, FH), x = c.getContext('2d'), t = tools(x, FW, FH);
+      const a = Math.sin(ph * Math.PI * 2), up = a * 0.95, by = CY - a * 1.6; // Flügelwinkel (+ = oben); der Leib wippt gegenläufig
+      const bones = [];
+      for (const s of [-1, 1]) {
+        const sh = [CX + s * 3, by - 2], wr = [sh[0] + s * Math.cos(up * 0.9) * 9, sh[1] - Math.sin(up * 0.9) * 9 - 1];
+        const span = 0.82 + 0.18 * Math.cos(up);
+        const fin = [[up + 0.3, 12], [up - 0.5, 11.5], [up - 1.25, 9.5]].map(([an, L]) => [wr[0] + s * Math.cos(an) * L * span, wr[1] - Math.sin(an) * L]);
+        const hip = [CX + s * 2, by + 4];
+        const mid = (p, q, pull) => [(p[0] + q[0]) / 2 + (wr[0] - (p[0] + q[0]) / 2) * pull, (p[1] + q[1]) / 2 + (wr[1] - (p[1] + q[1]) / 2) * pull];
+        // drei Hautfelder: innen dunkel, außen hell; der Saum zwischen den Fingerspitzen ist eingebuchtet
+        t.poly([wr, fin[2], hip, sh], SKIN[1], { 2: mid(fin[2], hip, 0.3) });
+        t.poly([wr, fin[1], fin[2]], SKIN[2], { 2: mid(fin[1], fin[2], 0.38) });
+        t.poly([wr, fin[0], fin[1]], SKIN[3], { 2: mid(fin[0], fin[1], 0.38) });
+        bones.push([sh, wr, fin]);
       }
-      const eye = rot([7.8, -1.3, 1]); x.fillStyle = '#fc2020'; x.fillRect(Math.round(cx + eye[0]), Math.round(cy + eye[1]), 1, 1); // rotes Auge
-      const img = x.getImageData(0, 0, W, H), d = img.data; for (let i = 3; i < d.length; i += 4) d[i] = d[i] < 100 ? 0 : 255; x.putImageData(img, 0, 0);
+      t.hard();
+      for (const [sh, wr, fin] of bones) { // Knochen über der Haut: Arm kräftig, Finger fein, helle Spitzen
+        fin.forEach((f, i) => t.line(wr[0], wr[1], f[0], f[1], i === 0 ? SKIN[4] : SKIN[i === 1 ? 4 : 3]));
+        t.line(sh[0], sh[1], wr[0], wr[1], FUR[3]); t.line(sh[0], sh[1] + 1, wr[0], wr[1] + 1, FUR[2]);
+        t.px(wr[0], wr[1], BONE); fin.forEach(f => t.px(f[0], f[1], BONE));
+      }
+      t.blob(CX, by + 1.5, 3.9, 4.6, FUR);                                   // Leib
+      t.px(CX, by + 1, FUR[4]); t.px(CX - 1, by + 2, FUR[3]); t.px(CX + 1, by + 3, FUR[3]); // Brustfell
+      t.px(CX - 2, by + 6, FUR[2]); t.px(CX + 1, by + 6, FUR[2]);            // Füßchen
+      head(t, CX, by - 4.5, false);
       return Sprites.fromCanvas(c);
     }
-    const fly = Array.from({ length: 16 }, (_, i) => frame(0.2 + 0.95 * Math.sin(i / 16 * Math.PI * 2), false));
-    // hängend: Flügel angelegt, kopfüber
-    const pc = frame(0, true), hang = Sprites.canvas(pc.c.width, pc.c.height), hx = hang.getContext('2d');
-    hx.translate(pc.c.width / 2, pc.c.height / 2); hx.rotate(Math.PI / 2); hx.drawImage(pc.c, -pc.c.width / 2, -pc.c.height / 2);
-    S.bat3d = { fly, perch: Sprites.fromCanvas(hang, false) };
+    function perch() { // kopfüber: Füße oben an der Decke, Flügel wie ein Mantel um den Leib, Kopf unten
+      const w = 44, h = 40, c = Sprites.canvas(w, h), x = c.getContext('2d'), t = tools(x, w, h), cx = 22, top = 16;
+      t.poly([[cx - 2, top + 1], [cx + 2, top + 1], [cx + 5, top + 6], [cx + 4, top + 13], [cx, top + 15], [cx - 4, top + 13], [cx - 5, top + 6]], SKIN[1]);
+      t.poly([[cx - 2, top + 1], [cx, top + 2], [cx, top + 15], [cx - 4, top + 13], [cx - 5, top + 6]], SKIN[2]);
+      t.hard();
+      t.line(cx, top + 2, cx, top + 14, SKIN[0]); t.line(cx - 3, top + 3, cx - 5, top + 7, SKIN[4]); t.line(cx + 3, top + 3, cx + 5, top + 7, SKIN[3]);
+      t.line(cx - 4, top + 8, cx - 3, top + 13, SKIN[3]); t.line(cx + 4, top + 8, cx + 3, top + 13, SKIN[0]);
+      t.px(cx - 1, top, FUR[3]); t.px(cx + 1, top, FUR[3]); t.px(cx - 1, top + 1, FUR[2]); t.px(cx + 1, top + 1, FUR[2]); // Krallen an der Decke
+      head(t, cx, top + 16.5, true);
+      return Sprites.fromCanvas(c);
+    }
+    S.bat3d = { fly: Array.from({ length: 16 }, (_, i) => frame(i / 16)), perch: perch() };
   })();
 
   // ---------------- Fliegender Schädel: Feuerschweif in vier Phasen, glühende Augen, klappernder Kiefer, Haarrisse ----------------

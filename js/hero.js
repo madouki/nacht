@@ -166,6 +166,27 @@ const HEROES = (() => {
   // Vorgerenderte 3D-Figuren (Blender): Atlas je Held, Bild je Pose (Schlüssel = Hash der Pose). Fehlt ein Bild,
   // wird die Figur wie bisher aus dem Rig gemalt. REC sammelt beim Export die Gelenke jeder Pose für Blender.
   const R3D = {};
+  // Heldenbilder aus Blender wirken im Spiel weich und flau: harte Kante, mehr Kontrast und Farbe, leicht gestufte Töne – und ein
+  // Auge unter dem Stirnband (Kopfraster wie bei den handgepixelten Köpfen: 'e' in HEAD markiert die Stelle; beim Blinzeln zu)
+  const POLISH = new Set(['henrik', 'ragnor', 'kaspar']);
+  function polish3d(x, def, hx, hy, pose) {
+    const img = x.getImageData(0, 0, FW, FH), d = img.data;
+    for (let i = 0; i < d.length; i += 4) {
+      if (d[i + 3] < 128) { d[i + 3] = 0; continue; }
+      d[i + 3] = 255;
+      const l = 0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2];
+      for (let k = 0; k < 3; k++) { let v = l + (d[i + k] - l) * 1.22; v = (v - 128) * 1.16 + 132; d[i + k] = Math.max(0, Math.min(255, Math.round(v / 9) * 9)); }
+    }
+    const rows = HEAD[def.head]; let ex = -1, ey = -1;
+    rows.forEach((row, ry) => { const cx = row.indexOf('e'); if (cx >= 0) { ex = hx + cx; ey = hy + ry; } });
+    const at = (px, py) => (py * FW + px) * 4, skin = (px, py) => { const i = at(px, py); return px >= 0 && py >= 0 && px < FW && py < FH && d[i + 3] > 0 && d[i] > 150 && d[i + 1] > 80 && d[i] - d[i + 2] > 40 && d[i + 1] > d[i + 2]; };
+    if (ex >= 0 && !pose.blink && skin(ex, ey)) {
+      const i = at(ex, ey); d[i] = 36; d[i + 1] = 18; d[i + 2] = 12;                                    // Pupille
+      if (skin(ex + 1, ey)) { const j = at(ex + 1, ey); d[j] = 252; d[j + 1] = 240; d[j + 2] = 224; }   // Augenweiß nach vorn
+      if (skin(ex, ey + 1)) { const j = at(ex, ey + 1); d[j] = Math.round(d[j] * 0.86); d[j + 1] = Math.round(d[j + 1] * 0.8); d[j + 2] = Math.round(d[j + 2] * 0.78); } // Wangenschatten
+    }
+    x.putImageData(img, 0, 0);
+  }
   let REC = null;
   const poseKey = (pose) => { const s = JSON.stringify(pose); let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); };
   // pose: { legs:[[th,kn] vorne,[th,kn] hinten], fa/ba: Arm, lean, bob, air, flare, blink, hurt, coil, capeOpen }
@@ -188,6 +209,7 @@ const HEROES = (() => {
       const A = R3D[rid], r = A && A.map[key];
       if (r) { // gerendertes 3D-Bild statt Pixelmalerei
         G.x.drawImage(A.img, r[0], r[1], FW * S, FH * S, 0, 0, FW * S, FH * S);
+        if (S === 1 && HEAD[def.head] && POLISH.has(def.id)) polish3d(G.x, def, Math.round(12 + lean), ty, pose);
         const spr = Sprites.fromCanvas(G.c);
         spr.mx = MX * S; spr.hand = [fA.hx, fA.hy]; spr.drop = yOff;
         return spr;

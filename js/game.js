@@ -1141,7 +1141,7 @@ const Game = {
     return c;
   },
   drawCastleHud(ctx, R, bx) {
-    const p = W.player, B = this.bars && this.bars.hp ? this.bars : null, f = W.frame, x0 = 25, maxLen = Math.max(44, bx - 49);
+    const p = W.player, B = this.bars && this.bars.hp ? this.bars : null, f = W.frame, x0 = 25, maxLen = Math.max(44, bx - 52); // die HP-Zahl endet vor dem Waffenfach
     const bar = (x, y, h, len, k, g, cols, heal) => {
       const w = Math.round(len * clamp(k, 0, 1)), gw = Math.round(len * clamp(g, 0, 1));
       R('#07030c', x - 1, y - 1, len + 6, h + 4);
@@ -1165,6 +1165,11 @@ const Game = {
       const mpLen = clamp(Math.round(24 + mm * 0.4), 30, hpLen - 8), k = clamp(Castle.mp / mm, 0, 1);
       bar(x0, 12, 4, mpLen, k, k, ['#a4e4fc', '#3c8cfc', '#1c3ca8']);
       Font.draw(ctx, String(Math.floor(Castle.mp)), x0 + mpLen + 6, 12, Castle.mpWarn > 0 && (f & 4) ? '#fc7460' : '#a4e4fc', { shadow: '#000' }); // zu wenig MP für den Ruf: Zahl blinkt rot
+    }
+    if (!W.boss) { // Gold mit Münze unter den Leisten (im Bosskampf steht dort die Bossleiste) – über dem Waffenfach stieß die Zahl an dessen Rahmen
+      const gx = 31, gy = 20;
+      R('#9c6400', gx + 1, gy, 5, 7); R('#f8b800', gx, gy + 1, 7, 5); R('#fce0a8', gx + 2, gy + 1, 2, 1); R('#9c6400', gx + 3, gy + 2, 1, 3);
+      Font.draw(ctx, String(Math.max(0, this.dispScore || 0)), gx + 10, gy, this.dispScore < W.score ? '#fce0a8' : '#f8b800', { shadow: '#000' });
     }
     if (W.boss && B) { // Bossleiste: Schädel davor, füllt sich beim Auftritt mit Ticken
       const sx = 30, sy = 21;
@@ -1196,8 +1201,6 @@ const Game = {
       const bf = Castle.buffInfo && Castle.buffInfo(); // Mahlzeit aus der Kantine: Teller und Restzeit
       if (bf && !(bf.k < 0.06 && (W.frame & 8))) { const by = Castle.testing ? 44 : 35; R('#000', 3, by, 44, 9); R('#e8e4d8', 4, by + 5, 10, 2); R('#a8a49c', 5, by + 7, 8, 1); R('#d8a040', 6, by + 2, 6, 3); R('#fce0a8', 7, by + 2, 2, 1); R('#2c1c08', 16, by + 3, 29, 3); R('#f8d878', 16, by + 3, Math.round(29 * bf.k), 3); }
       this.drawCastleHud(ctx, R, boxCx - 16);
-      if (Wd >= 288) { const gx = boxCx - 29; R('#9c6400', gx + 1, 3, 5, 7); R('#f8b800', gx, 4, 7, 5); R('#fce0a8', gx + 2, 4, 2, 1); R('#9c6400', gx + 3, 5, 1, 3); } // Münze vor dem Gold
-      Font.draw(ctx, pad(this.dispScore || 0, 6), boxCx, 3, this.dispScore < W.score ? '#fce0a8' : '#f8b800', { align: 'center', shadow: '#000' });
     } else {
       Font.draw(ctx, tr('hudScore'), 36, 3, label, { align: 'right' }); Font.draw(ctx, pad(this.dispScore || 0, 6), 40, 3, this.dispScore < W.score ? '#fce0a8' : val, { shadow: '#000' });
       if (Options.easy) Font.draw(ctx, tr('tagEasy'), 82, 3, '#58f898');

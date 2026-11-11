@@ -10,7 +10,7 @@
     S.raven = { perch: fr('raven_perch'), fly: seq('raven_fly', 2) };
     S.eagle = seq('eagle_', 3); S.skull = seq('skull_', 4); S.ghost = seq('ghost_', 2);
     S.pillar = fr('pillar_0'); S.pillarOpen = fr('pillar_1');
-    S.bat3d = { fly: seq('bat_', 16), perch: fr('bat_perch', false) };
+    // S.bat3d: seit 20261112 die Pixel-Fledermaus aus sprites16.js (die Bilder bat_* im Atlas bleiben ungenutzt)
     S.gbatX = { flap: seq('gbat_flap', 8), open: seq('gbat_open', 8), fold: fr('gbat_fold') };
     const count = { closed: fr('count_closed'), open: fr('count_open'), cast: fr('count_cast') };
     COUNT_ART.get = () => count;
