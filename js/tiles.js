@@ -1232,9 +1232,21 @@ const Tiles = (() => {
   // Figurenfenster in doppelter Auflösung (Kaleidoskop, Pendelhalle): dieselben Entwürfe wie im Glasturm, aber in Gestaltungs-
   // koordinaten gerechnet – die Figuren als glatte Vektorformen, Bleiruten und Schwarzlot halb so dick, Bögen und Rosetten runder.
   // Je Fenster: Bild mit Laibung (außen durchsichtig), Leuchtebene und Rohdaten (Farbe, Leuchten, Glasmaske) fürs Kaleidoskop
-  let glassHi = null;
+  // Gebaut wird schrittweise (ein Fenster je Schritt, ~0,1 s): glassHiStep() aus dem Vorbau der Regionskarte hält den Ladebalken
+  // in Bewegung; glassWindowsHi() baut, was noch fehlt, auf einmal
+  let glassHi = null, glassHiJob = null;
+  function glassHiStep() {
+    if (glassHi) return true;
+    if (!glassHiJob) glassHiJob = glassHiGen();
+    const r = glassHiJob.next();
+    if (r.done) { glassHi = r.value; glassHiJob = null; return true; }
+    return false;
+  }
   function glassWindowsHi() {
-    if (glassHi) return glassHi;
+    while (!glassHiStep());
+    return glassHi;
+  }
+  function* glassHiGen() {
     const sc = 2, W0 = 84, H0 = 196, A0 = Math.round(W0 * 0.866), FX = 7, FY = 56, RC = { x: W0 / 2, y: 27 }, RR = 14, WH = W0 * sc, HH = H0 * sc, FWs = FIG_W * sc;
     const SETS = [[[26, 52, 168], [168, 26, 44], [216, 160, 32], [120, 200, 240]], [[152, 22, 44], [26, 52, 168], [216, 160, 32], [252, 200, 120]],
       [[22, 108, 70], [152, 22, 44], [216, 160, 32], [180, 248, 200]], [[96, 40, 168], [216, 160, 32], [168, 26, 44], [220, 170, 252]]];
@@ -1258,7 +1270,7 @@ const Tiles = (() => {
       return null;
     };
     const out = [];
-    MOTIFS.forEach((row, band) => row.forEach((name, wi) => {
+    for (const [band, row] of MOTIFS.entries()) for (const [wi, name] of row.entries()) {
       const S = SETS[SET_OF[band][wi]], key = band * 4 + wi, F = glassFigure(name, sc), txt = label(NAMES[name.replace('!', '')]), N = WH * HH;
       const pid = new Int32Array(N).fill(-1), base = new Array(N), paint = new Uint8Array(N), zone = new Uint8Array(N);
       for (let hy = 0; hy < HH; hy++) for (let hx = 0; hx < WH; hx++) {
@@ -1327,8 +1339,9 @@ const Tiles = (() => {
       }
       x.putImageData(img, 0, 0); gx.putImageData(gimg, 0, 0);
       out.push({ c, g: gc, rgb, glw, mask, w: WH, h: HH });
-    }));
-    return (glassHi = out);
+      yield;
+    }
+    return out;
   }
 
   // ---------------- Hintergründe ----------------
@@ -2040,6 +2053,7 @@ const Tiles = (() => {
       range(pk, hp, { face: ['#28163e', '#382252', '#52366c'], deep: '#2c1844', rim: '#5c4478', rimLit: '#b49cd4', snow: ['#6c5c8c', '#8c7cac', '#d0c0e8'] }, 84, { from: 120, len: 56, col: '#2c1642' });
       add('peaks2d', pk, 0.06, { hidden: true }); // ersetzt durch die Low-Poly-Berge
       L.push({ name: 'peaks', custom: drawMountains3D, par: 0.06, c: C(1, 1) });
+      if (!mtnBands) { mtnBands = MTN.map(buildMtnBand); mtnMist = buildMtnMist(); } // beim Vorladen bauen, nicht im ersten Bild (~0,1 s)
       const mt = C(512, 208), mx = mt.getContext('2d'), hm = peaks(8, 92, 176, 0.45, 0.85, 14);
       range(mt, hm, { face: ['#10061a', '#1a0a26', '#2a1238'], deep: '#14081e', rim: '#30163e', rimLit: '#6c2a58' }, 0, { from: 162, len: 46, col: '#2a1238' });
       for (let i = 0; i < 80; i++) { // Tannen auf den unteren Hängen
@@ -2082,6 +2096,7 @@ const Tiles = (() => {
       for (let i = 0; i < 22; i++) { const wx = 160 + ri(0, 280), wy = 125 + ri(0, 50); px(x2, '#f8b800', wx, wy, 1, 2); }
       add('castle2d', cs, 0.25, { hidden: true }); // ersetzt durch die Low-Poly-Burg
       L.push({ name: 'castle', custom: drawCastle3D, par: 0.25, c: cs });
+      if (!castleArt) castleArt = buildCastleArt(); // beim Vorladen bauen
       const nr = C(512, 208), x3 = nr.getContext('2d');
       // knorrige, tote Bäume: sich verjüngende, verzweigte Äste mit Zweigen, Wurzeln und Moosbärten; die zum Mond gewandte
       // Kante leuchtet rötlich-violett, auf den Ästen sitzen eine Eule mit glühenden Augen und ein Rabe
@@ -2318,6 +2333,7 @@ const Tiles = (() => {
       add('sky', sky, 0, { wrap: false });
       L.push({ name: 'moon', custom: (c2, cam, f) => PS2.drawMoon(c2, View.w - 128, 74, 42, f), par: 0, c: C(1, 1) }); // Blutmond wie im Titelbild, groß hinter der Burg
       L.push({ name: 'castle', custom: drawCastle3D, par: 0.25, c: C(1, 1) });
+      if (!castleArt) castleArt = buildCastleArt(); // beim Vorladen bauen
       L.push({ name: 'clouds', custom: drawCloudStream, par: 0, c: C(1, 1) });
       L.push({ name: 'piers', custom: drawBridgePiers, par: 1, c: C(1, 1) });
     } else if (theme === 'tower') {
@@ -4051,5 +4067,5 @@ const Tiles = (() => {
     }
   }
 
-  return { build, drawBg, drawTiles, drawFront, layer, drawLayer, shipLights, drawCloud7, drawGlassRays, drawPortal, glassWins: () => glassWins, glassHi: glassWindowsHi }; // glassWins: Fenster des Glasturms (das Kaleidoskop leiht sie sich)
+  return { build, drawBg, drawTiles, drawFront, layer, drawLayer, shipLights, drawCloud7, drawGlassRays, drawPortal, glassWins: () => glassWins, glassHi: glassWindowsHi, glassHiStep }; // glassWins: Fenster des Glasturms (das Kaleidoskop leiht sie sich)
 })();

@@ -139,13 +139,25 @@ const Font = (() => {
 
   // opts: { align: 'left'|'center'|'right', shadow: color, wave: Amplitude (px), t: Zeit }
   // Mit Schatten gezeichnet bekommt die Schrift PS2-Tiefe: ein Pixel Extrusion nach rechts unten und eine Lichtkante oben.
+  // opts.fit: höchstens so breit (px); ohne Angabe die Schirmbreite. Breiterer Text wird waagerecht gestaucht statt über den Rand zu
+  // laufen (schmale Schirme: Handy quer mit Daumenrändern ~310 px, hoch 256 px). Ab 60 % ist Schluss – lieber knapp als unlesbar.
   function draw(ctx, str, x, y, color = '#fcfcfc', opts = {}) {
     const s = norm(str);
+    const fw = opts.noFit ? 0 : opts.fit || (typeof View !== 'undefined' ? View.w - 16 : 0);
+    if (fw > 0) {
+      const w = width(s);
+      if (w > fw) {
+        const k = Math.max(0.6, fw / w);
+        ctx.save(); ctx.translate(x, 0); ctx.scale(k, 1); ctx.translate(-x, 0);
+        draw(ctx, str, x, y, color, Object.assign({}, opts, { noFit: true }));
+        ctx.restore(); return;
+      }
+    }
     let sx = Math.round(x);
     if (opts.align === 'center') sx = Math.round(x - width(s) / 2);
     else if (opts.align === 'right') sx = Math.round(x - width(s));
     const wave = opts.wave || 0, t = opts.t || 0;
-    if (opts.shadow) draw(ctx, s, sx + 1, y + 1, opts.shadow, { wave, t });
+    if (opts.shadow) draw(ctx, s, sx + 1, y + 1, opts.shadow, { wave, t, noFit: true });
     const a = atlas(color), hl = opts.shadow ? atlas(lighter(color)) : null, yy = Math.round(y);
     let i = 0;
     for (const ch of s) {

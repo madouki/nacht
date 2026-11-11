@@ -389,7 +389,8 @@ const Game = {
   // kleine Nachricht oben im Bild (z. B. Gruß an Infernax)
   note(key, ...args) { this.noteT = 240; this.noteKey = key; this.noteArgs = args; },
   drawNote(ctx) {
-    const s = tr(this.noteKey, ...(this.noteArgs || [])), y = 48;
+    const band = W.boss && this.bossName > 0 && this.bossName < 150; // Namensband des Bosses (y 40–62) steht: Hinweis darunter
+    const s = tr(this.noteKey, ...(this.noteArgs || [])), y = band ? 66 : 48;
     let lines = [s];
     const max = View.w - 20;
     if (Font.width(s) > max) { // zu breit (schmaler Bildschirm): am Gedankenstrich, wenn beide Teile passen, sonst wortweise umbrechen
@@ -982,6 +983,10 @@ const Game = {
   // und ab; ein Glanzstreifen läuft über die Vorderseiten. Erst alle Umrisse, dann alle Flanken, dann alle Fronten –
   // so verdeckt keine Flanke den Nachbarbuchstaben.
   text3d(ctx, text, cx, y, scale, colors, o = {}) {
+    if (!o.fitted) { // breiter als der Schirm (Handy: 256–310 px): waagerecht stauchen statt abschneiden (Boss-Namen, Ausrufe, Regionsnamen)
+      const tw = (Font.width(text) + 1) * scale * (o.zoom || 1), mw = View.w - 12;
+      if (tw > mw) { ctx.save(); ctx.translate(cx, 0); ctx.scale(Math.max(0.55, mw / tw), 1); ctx.translate(-cx, 0); const r = this.text3d(ctx, text, cx, y, scale, colors, Object.assign({}, o, { fitted: true })); ctx.restore(); return r; }
+    }
     const fbk = Font.hasFB(text), top = fbk ? 3 : 0, H = fbk ? 12 : 7, w = Math.min(this.bigCanvas.width, Font.width(text) + 1);
     const T = performance.now() / 16.667, ang = o.ang || 0, zoom = o.zoom || 1, lite = View.lite;
     const depth = Math.max(1, Math.round((o.depth ?? Math.max(2, scale + 1)) * (lite ? 0.6 : 1))), wob = o.wobble ?? 0.2, bob = o.bob ?? 0.4;
@@ -1050,6 +1055,8 @@ const Game = {
     if (rooms.some(r => r.theme === 'expo')) jobs.push(() => Expo.prewarm());
     if (rooms.some(r => r.theme === 'ballroom')) jobs.push(() => Ball.prewarm());
     if (rooms.some(r => r.ents.some(e => e.type === 'grand'))) jobs.push(...PS2.chandJobs(54, 2)); // XXL-Kronleuchter: alle Drehstellungen vorab
+    rooms.forEach(r => { if (r.wrap && PS2.Tower.prewarm) jobs.push(() => PS2.Tower.prewarm(r)); }); // Turmmäntel (Eisturm, Eisrutsche, Sonnenturm …)
+    if (rooms.some(r => r.ents.some(e => e.type === 'pendglass'))) for (let i = 0; i < 13; i++) jobs.push(() => Tiles.glassHiStep()); // Buntglas der Pendelhalle (doppelt aufgelöst, ~1,2 s): Fenster für Fenster vorbauen, sonst Hänger beim ersten Bild
     [...new Set(rooms.map(r => r.theme))].forEach(th => jobs.push(() => FX.drawFog(this.warmCtx(), th, { x: 0, y: 0 }, 0))); // Bodennebel je Thema
     jobs.push(() => this.warmRoom());
     this.warmJobs = jobs; this.warmTotal = jobs.length; this.warmDoneT = -1; this.warmFor = s;

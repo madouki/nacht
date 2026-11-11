@@ -44,7 +44,11 @@ class Spark extends Ent {
 class Popup extends Ent {
   constructor(x, y, text, color) { super(x, y, 0, 0); this.text = text; this.color = color || '#fcfcfc'; }
   update() { this.t++; this.y -= this.t < 20 ? 0.5 : 0; if (this.t > 50) this.dead = true; }
-  draw(ctx) { Font.draw(ctx, this.text, this.x - W.cam.x, this.y - W.cam.y, this.color, { align: 'center', shadow: '#000' }); }
+  draw(ctx) { // am Bildrand nicht abschneiden: steht der Held ganz außen, rückt der Text ins Bild (und nicht hinter die Statusleiste)
+    const hw = Font.width(this.text) / 2, ax = this.x - W.cam.x, ay = this.y - W.cam.y;
+    if (ax < -hw - 12 || ax > View.w + hw + 12 || ay < -24 || ay > View.h + 8) return;
+    Font.draw(ctx, this.text, Math.round(clamp(ax, hw + 3, View.w - hw - 3)), Math.round(Math.max(36, ay)), this.color, { align: 'center', shadow: '#000' });
+  }
 }
 class Particle extends Ent {
   constructor(x, y, vx, vy, color, life = 50, size = 2, grav = 0.18) {
