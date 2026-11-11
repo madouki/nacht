@@ -2176,6 +2176,8 @@ const Castle = (() => {
     famTick(); // Begleiter
     if (rpg.frames % Math.max(12, Math.round(45 / (1 + gear('mpreg') / 100))) === 0) mp = Math.min(mpMax(), mp + 1); // MP füllen sich langsam (Uhrwerk-Mahr: schneller)
     if (mahrCd > 0) mahrCd--;
+    if (mpWarnT > 0) mpWarnT--;
+    if (typeof Mahr !== 'undefined' && W.frame % 8 === 0) mahrHint();
     const hero = W.player; // Blutstein: alle vier Sekunden 1 HP
     if (buff && --buff.t <= 0) { buff = null; Game.note('buffEnd'); } // Mahlzeit verdaut
     if (gear('regen') && rpg.frames % 240 === 0 && hero.alive && hero.hp < hero.maxHp) { hero.hp = Math.min(hero.maxHp, hero.hp + 1); W.popup(hero.cx, hero.y - 6, '+10', '#d81830'); }
@@ -2265,7 +2267,7 @@ const Castle = (() => {
   const CRIT_MUL = 1.75;
   const critChance = () => 3 + 1.5 * gear('luck') + gear('crit');
   const swingCrit = (id) => (((id * 2654435761) >>> 0) % 1000) / 10 < critChance();
-  const critNow = () => { const p = W.player; return !!(p && p.atkT > 0 && !p.atkSub && swingCrit(p.atkId)); };
+  const critNow = () => { const p = W.player; return !!(p && p.atkT > 0 && !p.atkSub && (W.slowT > 0 || swingCrit(p.atkId))); }; // in der Zeitlupe nach Perfekt-Ausweichen trifft jeder Hieb kritisch
   let critShown = 0;
   const strMul = () => 1 + (values().str - 10 + gear('atk')) * 0.05, conDiv = () => 1 + (values().con - 10 + gear('def')) * 0.04; // Ausrüstung zählt wie STR/CON-Punkte
   if (on) { // STR verstärkt Peitsche und Spezialwaffen, CON mindert erlittenen Schaden – nur im Schloss-Modus
@@ -2274,11 +2276,20 @@ const Castle = (() => {
     Player.prototype.hurt = function (dmg, srcX) {
       const dg = gear('dodge'); // Geisterhaut (Mahr): der Treffer geht manchmal einfach hindurch
       if (dg && this.alive && !(this.inv > 0) && !Options.god && this.state !== 'cannon' && Math.random() * 100 < dg) {
-        this.inv = 45; W.popup(this.cx, this.y - 12, tr('mahrDodge'), '#78b4fc'); Audio8.sfx('whoosh');
+        this.inv = 45; W.popup(this.cx, this.y - 12, tr('mahrDodge'), '#78b4fc'); Audio8.sfx('ghost');
         for (let i = 0; i < 8; i++) W.spawn(new Particle(this.cx + rnd(-6, 6), this.cy + rnd(-12, 12), rnd(-0.8, 0.8), rnd(-0.8, 0.4), '#a4d0fc', 24, 1, 0));
         return;
       }
       return hurt.call(this, Math.max(1, Math.round(dmg / conDiv())), srcX);
+    };
+    const pd = W.perfectDodge; // Perfekt-Ausweichen lädt 6 MP nach (dazu in der Zeitlupe: jeder Hieb kritisch, siehe critNow)
+    W.perfectDodge = function (p) { pd.call(this, p); const m = mpMax(); if (m && mp < m) { mp = Math.min(m, mp + 6); this.popup(p.cx, p.y - 25, 'MP +6', '#7cc8fc'); } };
+    const ehit = Enemy.prototype.hit; // Versteinerte (Steinblick) sind spröde: jeder Treffer zählt anderthalbfach, Splitter fliegen
+    Enemy.prototype.hit = function (dmg, id) {
+      if (!(this.stunT > 0) || (id && this.lastHit === id)) return ehit.call(this, dmg, id);
+      const ok = ehit.call(this, dmg * 1.5, id);
+      if (ok) for (let i = 0; i < 4; i++) W.spawn(new Particle(this.cx + rnd(-5, 5), this.cy + rnd(-8, 8), rnd(-1.6, 1.6), rnd(-2, -0.4), '#b8b8c4', 22, 2, 0.14));
+      return ok;
     };
   }
   function applyHp(p) { // max. HP folgt der Stufe (Leicht-Modus verdoppelt die Grundleiste weiter)
@@ -2303,7 +2314,7 @@ const Castle = (() => {
     const cr = critNow(), p = W.player;
     W.popup(e.cx + rnd(-4, 4), e.y - 2, String(Math.max(1, Math.round(d * 10))) + (cr ? '!' : ''), cr ? '#fcd070' : e.kind === 'boss' ? '#f8b800' : '#fcfcfc');
     if (cr && critShown !== p.atkId) { // einmal je Hieb: Ruf, Funkenkranz, kurzes Innehalten
-      critShown = p.atkId; W.popup(e.cx, e.y - 13, tr('crit'), '#fcd070'); Audio8.sfx('tink', e.cx); W.hitstop = Math.max(W.hitstop, 5);
+      critShown = p.atkId; W.popup(e.cx, e.y - 13, tr('crit'), '#fcd070'); Audio8.sfx('crit', e.cx); if (typeof Mahr !== 'undefined') W.spawn(new Mahr.CritStar(e.cx, e.cy)); W.hitstop = Math.max(W.hitstop, 5);
       W.spawn(new Shock(e.cx, e.cy, 20, '#fcd070', 3));
       for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; W.spawn(new Particle(e.cx, e.cy, Math.cos(a) * 2.2, Math.sin(a) * 2.2, i % 2 ? '#fcd070' : '#ffffff', 16, 1, 0)); }
     }
@@ -2343,10 +2354,18 @@ const Castle = (() => {
     delete flag[pk];
     mahrGive(d, e);
   }
-  let mahrCd = 0;
+  let mahrCd = 0, mpWarnT = 0;
+  function mahrHint() { // wer einen noch nicht gefangenen Mahr in sich trägt, verrät sich ab und zu durch ein violettes Glimmen
+    for (const e of W.ents) {
+      if (e.dead || e.kind !== 'enemy' || Math.random() > 0.3) continue;
+      const d = Mahr.FROM[e.constructor.name]; if (!d || mahrRank(d.id)) continue;
+      if (e.cx < W.cam.x - 8 || e.cx > W.cam.x + View.w + 8) continue;
+      W.spawn(new Particle(e.cx + rnd(-e.w / 2, e.w / 2), e.y + rnd(0, e.h * 0.6), rnd(-0.15, 0.15), rnd(-0.7, -0.3), Math.random() < 0.5 ? '#b48cfc' : d.col, 26, 1, 0));
+    }
+  }
   function mahrCast(p) { // ↑ + SUB: Ruf-Mahr auslösen (aus preUpdate)
     const d = mahrEq('ruf'); if (!d || mahrCd > 0) return;
-    if (mp < d.mp) { W.popup(p.cx, p.y - 10, 'MP!', '#7c84a8'); Audio8.sfx('wall'); mahrCd = 12; return; }
+    if (mp < d.mp) { W.popup(p.cx, p.y - 10, 'MP!', '#7c84a8'); Audio8.sfx('mpOut'); mahrCd = 12; mpWarnT = 30; return; }
     mp -= d.mp; mahrCd = 22;
     Mahr.cast(d, p, mahrRank(d.id), strMul() * (Options.easy ? 2 : 1));
     W.popup(p.cx, p.y - 14, tr('mahr_' + d.id), d.col); p.powerT = Math.max(p.powerT || 0, 12); Input.rumble(0.25, 0.3, 100);
@@ -4581,7 +4600,7 @@ const Castle = (() => {
     newRun, drawStatus, expProgress, gainExp, get rpg() { return rpg; }, talkInput, drawTalk, get talk() { return talk; }, get flags() { return flag; },
     openEquip, equipInput, drawEquip, openShop, shopInput, drawShop, get inv() { return inv; }, get eq() { return eq; }, giveItem,
     preUpdate, statusInput, mpMax, get mp() { return mp; }, set mp(v) { mp = v; }, get floaty() { return gear('float') > 0; },
-    mahrStrike: famStrike, mahrTarget: famTarget, mahrRank, mahrEq, mahrGive: (id, e) => mahrGive(Mahr.BY[id], e), get statusAttack() { return statusPage === 5; }, critChance,
+    mahrStrike: famStrike, mahrTarget: famTarget, mahrRank, mahrEq, mahrGive: (id, e) => mahrGive(Mahr.BY[id], e), get statusAttack() { return statusPage === 5; }, critChance, get mpWarn() { return mpWarnT; },
     toolCount: TOOLS.length, get toolSel() { return tools.sel; }, set toolSel(v) { tools.sel = v; },
     startTest, enterTest, finishTest, drawMilestones, milestones: MILESTONES.length, msLabel: (n) => msName(MILESTONES[n]), msTarget: (n) => { const a = ref(MILESTONES[n].at); return { s: a.s, r: a.r }; }, get testing() { return testing; },
     setFlag: (k) => { flag[k] = 1; save(); }, // z. B. Aufzug als Abkürzung freigeschaltet (lift.js)

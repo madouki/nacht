@@ -147,7 +147,7 @@ const Game = {
   },
 
   go(state) { this.state = state; this.t = 0; },
-  toTitle() { this.saveHi(); this.go('title'); Audio8.muffle(false); this.bars = null; Audio8.play('title'); Audio8.ambience(true); this.revealed = false; this.idleT = 0; Voice.stop(); },
+  toTitle() { this.saveHi(); this.go('title'); Audio8.danger(false); Audio8.muffle(false); this.bars = null; Audio8.play('title'); Audio8.ambience(true); this.revealed = false; this.idleT = 0; Voice.stop(); },
 
   // Schloss: Fortsetzungspunkt schreiben, solange man in einem Raum ist (Pause, Menüs, Spiel – nicht auf Titel oder im Übergang)
   saveResume() {
@@ -361,10 +361,13 @@ const Game = {
     const bv = Math.min(this.bossBarValue(), B.fill);
     if (W.boss) trail(bv, B.b); else B.b = { v: bv, g: bv, d: 0 }; // ohne Boss kein Nachlauf (Arena-Start leert die Leiste)
     // Schloss-HUD: dieselben Leisten glatt (Anteil 0..1 statt 16 Segmenten), der verlorene Teil läuft weiß nach
-    const smooth = (v, s) => { if (v < s.v - 0.001) s.d = 26; s.v = v; if (s.g < v) s.g = v; else if (s.g > v) { if (s.d > 0) s.d--; else s.g = Math.max(v, s.g - 0.022); } };
+    const smooth = (v, s) => { if (v < s.v - 0.001) s.d = 26; else if (v > s.v + 0.004) { if (!(s.hf > 0)) s.h0 = s.v; s.hf = 18; } if (s.hf > 0) s.hf--; s.v = v; if (s.g < v) s.g = v; else if (s.g > v) { if (s.d > 0) s.d--; else s.g = Math.max(v, s.g - 0.022); } };
     if (!B.hp) { B.hp = { v: 1, g: 1, d: 0 }; B.bo = { v: 0, g: 0, d: 0 }; }
     smooth(clamp(p.hp / p.maxHp, 0, 1), B.hp);
     if (W.boss) smooth(clamp(W.boss.hp / W.boss.maxHp, 0, 1) * B.fill / 16, B.bo); else B.bo = { v: 0, g: 0, d: 0 };
+    // wenig HP: Herzschlag im Takt des roten Warnrands (world.js: sin(frame · 0,14))
+    const lowHp = p.alive && p.hp > 0 && p.hp <= p.maxHp / 4; Audio8.danger(lowHp);
+    if (lowHp && Math.sin(W.frame * 0.14) > 0.6 && Math.sin((W.frame - 1) * 0.14) <= 0.6) Audio8.sfx('heartbeat');
   },
 
   // Tutorial-Tafel (Achterschiff): Name des Moves, Gerät, Tasten – umbrochen, damit sie auch hochkant passt
@@ -1132,7 +1135,7 @@ const Game = {
   },
   drawCastleHud(ctx, R, bx) {
     const p = W.player, B = this.bars && this.bars.hp ? this.bars : null, f = W.frame, x0 = 25, maxLen = Math.max(44, bx - 49);
-    const bar = (x, y, h, len, k, g, cols) => {
+    const bar = (x, y, h, len, k, g, cols, heal) => {
       const w = Math.round(len * clamp(k, 0, 1)), gw = Math.round(len * clamp(g, 0, 1));
       R('#07030c', x - 1, y - 1, len + 6, h + 4);
       R('#c89020', x, y, len + 2, h + 2); R('#f0c060', x, y, len + 2, 1); R('#7c5010', x, y + h + 1, len + 2, 1);
@@ -1141,19 +1144,20 @@ const Game = {
       if (gw > w) R('#f0d8c8', x + 1 + w, y + 1, gw - w, h);
       if (w > 0) {
         R(cols[1], x + 1, y + 1, w, h); R(cols[0], x + 1, y + 1, w, 1); R(cols[2], x + 1, y + h, w, 1); R(cols[0], x + w, y + 1, 1, h);
+        if (heal) { const a0 = Math.round(len * clamp(heal.from, 0, 1)); if (w > a0) { ctx.globalAlpha = heal.a; R('#b8fcd0', x + 1 + a0, y + 1, w - a0, h); ctx.globalAlpha = 1; } } // Heilung: der neue Teil blitzt grün auf
         const sx = (f * 2) % (len + 160) - 12; // Glanz wandert alle paar Sekunden über die Füllung
         if (sx < w) { const a = Math.max(0, sx), b = Math.min(w, sx + 8); if (b > a) { ctx.globalAlpha = 0.28; R('#ffffff', x + 1 + a, y + 1, b - a, h); ctx.globalAlpha = 1; } }
       }
       for (let i = 1; i < 4; i++) R('#7c5010', x + 1 + Math.round(len * i / 4), y + h + 1, 1, 1);                         // Viertelmarken
     };
     const low = p.hp <= p.maxHp / 4, hpLen = clamp(Math.round(36 + p.maxHp * 0.5), 44, Math.min(maxLen, 150));
-    bar(x0, 3, 6, hpLen, B ? B.hp.v : 1, B ? B.hp.g : 1, low && (f & 16) ? ['#fcfcfc', '#fc7460', '#a80020'] : ['#fcbca0', '#e83c20', '#880c00']);
+    bar(x0, 3, 6, hpLen, B ? B.hp.v : 1, B ? B.hp.g : 1, low && (f & 16) ? ['#fcfcfc', '#fc7460', '#a80020'] : ['#fcbca0', '#e83c20', '#880c00'], B && B.hp.hf > 0 ? { from: B.hp.h0, a: B.hp.hf / 18 * 0.85 } : null);
     Font.draw(ctx, String(Math.ceil(Math.max(0, p.hp))), x0 + hpLen + 6, 4, low ? '#fc7460' : '#fcfcfc', { shadow: '#000' });
     const mm = Castle.mpMax(); // MP, sobald ein Zauber gelernt oder ein Ruf-Mahr gefangen ist
     if (mm) {
       const mpLen = clamp(Math.round(24 + mm * 0.4), 30, hpLen - 8), k = clamp(Castle.mp / mm, 0, 1);
       bar(x0, 12, 4, mpLen, k, k, ['#a4e4fc', '#3c8cfc', '#1c3ca8']);
-      Font.draw(ctx, String(Math.floor(Castle.mp)), x0 + mpLen + 6, 12, '#a4e4fc', { shadow: '#000' });
+      Font.draw(ctx, String(Math.floor(Castle.mp)), x0 + mpLen + 6, 12, Castle.mpWarn > 0 && (f & 4) ? '#fc7460' : '#a4e4fc', { shadow: '#000' }); // zu wenig MP für den Ruf: Zahl blinkt rot
     }
     if (W.boss && B) { // Bossleiste: Schädel davor, füllt sich beim Auftritt mit Ticken
       const sx = 30, sy = 21;
@@ -1163,6 +1167,12 @@ const Game = {
     }
     ctx.drawImage(this.medallion(Castle.rpg.lv, clamp(Castle.expProgress(), 0, 1)), 1, 1);
     Font.draw(ctx, String(Castle.rpg.lv), 15, 11, '#fcfcfc', { align: 'center', shadow: '#000' });
+    const lv = Castle.rpg.lv; if (this._hudLv !== undefined && lv > this._hudLv) this._lvFx = 60; this._hudLv = lv; // Stufenaufstieg: das Medaillon blitzt, ein Ring läuft hinaus
+    if (this._lvFx > 0) {
+      const k = this._lvFx-- / 60;
+      ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = k * k * 0.9; ctx.fillStyle = '#fce0a8'; ctx.beginPath(); ctx.arc(14.5, 14.5, 13, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = k; ctx.strokeStyle = '#58f898'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(14.5, 14.5, 13 + (1 - k) * 26, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+    }
   },
 
   drawHud(ctx) {

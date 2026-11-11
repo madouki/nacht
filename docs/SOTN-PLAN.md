@@ -454,6 +454,17 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
     nur im Kampf; der Ruf-Mahr teilt sich das Fach mit der Spezialwaffe (grau, wenn die MP nicht reichen); Münze vor dem Gold.
     Geprüft bei 256, 300, 426 und 640 Pixeln Breite (test_hud.js).
   - Urkunden „Traumfänger“ (erster Mahr) und „Albtraumsammler“ (alle 18). Tests: test_mahr.js, test_hud.js.
+  - **Feinschliff dazu** (zweiter Stand am selben Tag; test_polish.js, test_audio2.js, test_filter.js):
+    - *Geräusche:* acht neue (`mahrRise`, `mahrCatch`, `cast`, `mpOut`, `ghost`, `crit`, `stone`, `heartbeat`, alle Synth – ElevenLabs
+      war nicht verbunden). Oft gehörte Geräusche (`VARY` in audio.js: Peitsche, Treffer, Schritte …) klingen jedes Mal ± 5 % anders.
+    - *Musik:* Hi-Hats auf den Sechzehntel-Nebenzeiten leiser und leicht unregelmäßig (`hatVel`, Position kommt aus dem Cursor
+      `c.s`); bei wenig HP rückt die Musik hinter einen sanften Tiefpass (`Audio8.danger`, 3,4 kHz), dazu Herzschlag im Takt des
+      roten Warnrands. `Audio8.filterHz` zeigt den Filter für Tests.
+    - *Grafik:* Zauberkreis mit Lichtsäule beim Ruf (`Mahr.Glyph`), vierstrahliger Stern beim kritischen Treffer (`Mahr.CritStar`),
+      violettes Glimmen an Gegnern, deren Mahr noch fehlt (`mahrHint`), im HUD grüner Blitz bei Heilung, Medaillon-Blitz beim
+      Stufenaufstieg, MP-Zahl blinkt rot, wenn der Ruf nicht bezahlbar ist.
+    - *Gameplay:* Versteinerte sind spröde (Treffer ×1,5, Splitter); Perfekt-Ausweichen gibt 6 MP, und in der Zeitlupe danach
+      ist jeder Hieb kritisch (`critNow`).
 - **Feinschliff über das ganze Spiel** (20261106, zweite Runde):
   - **Rundgang durch alle 86 Räume** (test_sweep.js): jeder Raum betreten, 3 s laufen lassen, ein Bild je Raum, Fehler je Raum.
     Ergebnis: keine Fehler, Selbsttest sauber.

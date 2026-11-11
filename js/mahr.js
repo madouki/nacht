@@ -74,7 +74,7 @@ const Mahr = (() => {
         for (const e of W.ents) {
           if (e.dead || e.kind !== 'enemy' || this.seen.has(e) || !Phys.overlap(this, e)) continue;
           this.seen.add(e); e.hit(this.dmg, this.id);
-          if (!e.dead) { const fresh = !(e.stunT > 0); e.stunT = Math.max(e.stunT || 0, this.o.stun); if (fresh) W.spawn(new Stone(e)); Audio8.sfx('crumble', e.cx); }
+          if (!e.dead) { const fresh = !(e.stunT > 0); e.stunT = Math.max(e.stunT || 0, this.o.stun); if (fresh) W.spawn(new Stone(e)); Audio8.sfx('stone', e.cx); }
         }
         strike(this, this.dmg, this.id);
       } else if (k === 'star') { this.x += this.vx; this.y += this.vy; if (this.cy >= this.o.ty || (this.t > 6 && this.solid())) return this.boom(18); }
@@ -127,7 +127,7 @@ const Mahr = (() => {
 
   // ---------------- Fang: der Mahr steigt auf, fliegt zum Helden, verfängt sich im Traumfänger ----------------
   class Wisp extends Ent {
-    constructor(x, y, def, rank, first, gold) { super(x - 5, y - 5, 10, 10); this.kind = 'fx'; this.def = def; this.rank = rank; this.first = first; this.gold = gold; }
+    constructor(x, y, def, rank, first, gold) { super(x - 5, y - 5, 10, 10); this.kind = 'fx'; this.def = def; this.rank = rank; this.first = first; this.gold = gold; Audio8.sfx('mahrRise', x); }
     update() {
       this.t++; const p = W.player;
       if (this.t < 40) { this.y -= 0.7; this.x += Math.sin(this.t * 0.25) * 1.3; }
@@ -141,7 +141,7 @@ const Mahr = (() => {
       for (let i = 0; i < 16; i++) W.spawn(new Particle(p.cx + rnd(-8, 8), p.cy + rnd(-12, 12), rnd(-1.4, 1.4), rnd(-1.8, 0.2), i % 2 ? d.col : '#fcfcfc', 34, 1, 0));
       if (this.gold) { W.popup(p.cx, p.y - 16, '+' + this.gold + ' G', '#f8b800'); Audio8.sfx('money'); return; }
       W.popup(p.cx, p.y - 26, tr('mahrGot'), '#c8a0fc'); W.popup(p.cx, p.y - 15, tr('mahr_' + d.id) + (this.rank > 1 ? ' ' + ROMAN[this.rank] : ''), d.col);
-      Audio8.sfx('holy'); Audio8.sfx('cert');
+      Audio8.sfx('mahrCatch');
       if (this.first) Game.note('mahrFirst');
     }
     lightUp(L, cx, cy) { L.push({ x: this.cx - cx, y: this.cy - cy, r: 26, c: [180, 140, 252], a: 0.55 }); }
@@ -169,9 +169,39 @@ const Mahr = (() => {
     }
   }
 
+  class Glyph extends Ent { // Zauberkreis unter dem Helden, solange der Ruf hinausgeht
+    constructor(col) { super(0, 0, 1, 1); this.kind = 'fx'; this.col = col; }
+    update() { if (++this.t > 22) this.dead = true; }
+    draw(ctx) {
+      const p = W.player, x = Math.round(p.cx - W.cam.x), y = Math.round(p.feet - W.cam.y) - 1, k = this.t / 22, r = 6 + 18 * Math.min(1, k * 2.2), a = k < 0.5 ? 1 : (1 - k) * 2;
+      ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = a * 0.9; ctx.strokeStyle = this.col; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.ellipse(x, y, r, r * 0.3, 0, 0, Math.PI * 2); ctx.stroke(); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.ellipse(x, y, r * 0.62, r * 0.19, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = '#ffffff';
+      for (let i = 0; i < 6; i++) { const an = this.t * 0.2 + i * Math.PI / 3; ctx.fillRect(Math.round(x + Math.cos(an) * r) - 1, Math.round(y + Math.sin(an) * r * 0.3) - 1, 2, 2); }
+      ctx.globalAlpha = a * 0.3; ctx.fillStyle = this.col; ctx.fillRect(x - 1, y - 34, 2, 34); // Lichtsäule
+      ctx.restore();
+    }
+  }
+  class CritStar extends Ent { // kritischer Treffer: vierstrahliger Stern blitzt am Gegner auf
+    constructor(x, y) { super(x, y, 1, 1); this.kind = 'fx'; this.rot = rnd(-0.3, 0.3); }
+    update() { if (++this.t > 11) this.dead = true; }
+    draw(ctx) {
+      const x = this.x - W.cam.x, y = this.y - W.cam.y, k = this.t / 11, L = 10 + 28 * Math.sin(Math.min(1, k * 1.6) * Math.PI / 2), w = 5 * (1 - k);
+      ctx.save(); ctx.translate(x, y); ctx.rotate(this.rot + 0.5); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 1 - k * k;
+      for (let i = 0; i < 2; i++) {
+        if (i) ctx.rotate(Math.PI / 2);
+        ctx.fillStyle = '#fcd070'; ctx.beginPath(); ctx.moveTo(-L, 0); ctx.lineTo(0, -w); ctx.lineTo(L, 0); ctx.lineTo(0, w); ctx.fill();
+        ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.moveTo(-L * 0.6, 0); ctx.lineTo(0, -w * 0.5); ctx.lineTo(L * 0.6, 0); ctx.lineTo(0, w * 0.5); ctx.fill();
+      }
+      ctx.restore();
+    }
+  }
+
   // Ruf auslösen: Rang und Stufe heben den Schaden
   function cast(def, p, rank, mul) { // mul: Stärke des Helden (wie beim Peitschenhieb)
     const k = 1 + 0.15 * (rank - 1), D = (b) => b * k * mul, f = p.face, x = p.cx + f * 8, y = p.y + 11;
+    W.spawn(new Glyph(def.col)); Audio8.sfx('cast');
     switch (def.id) {
       case 'bat': for (let i = 0; i < 3; i++) W.spawn(new Shot('bat', x, y - 7 + i * 7, f * (2.4 + i * 0.3), 0, D(1.1), { ph: i * 2.1, life: 100 })); Audio8.sfx('bat'); break;
       case 'bone': W.spawn(new Shot('bone', x, y, f * 2.6, -2.3, D(1.6), { life: 170 })); Audio8.sfx('throw'); break;
@@ -192,5 +222,5 @@ const Mahr = (() => {
     R(2, 2, 7, 6, dim ? '#2c2c3c' : '#1c1030'); R(3, 1, 5, 8, dim ? '#2c2c3c' : '#1c1030'); if (def.slot === 'ruf') { R(5, 0, 1, 1, def.col); R(4, 9, 3, 1, dim ? '#2c2c3c' : '#1c1030'); R(5, 10, 1, 1, dim ? '#2c2c3c' : '#1c1030'); }
     R(3, 4, 2, 2, dim ? '#5c5c6c' : def.col); R(6, 4, 2, 2, dim ? '#5c5c6c' : def.col); if (!dim) { R(3, 4, 1, 1, '#ffffff'); R(6, 4, 1, 1, '#ffffff'); }
   }
-  return { LIST, BY, FROM, ROMAN, cast, icon, glow, Shot, Orbit, Stone, Wisp, Catcher };
+  return { LIST, BY, FROM, ROMAN, cast, icon, glow, Shot, Orbit, Stone, Wisp, Catcher, Glyph, CritStar };
 })();

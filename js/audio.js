@@ -82,12 +82,15 @@ const Audio8 = (() => {
 
   // ---------------- SFX ----------------
   let outBus = null; // während sfx(name, x): Stereo-Panner der aktuellen Quelle
+  let vary = 1;      // während sfx(name): Tonhöhe leicht verstellt (± 5 %), damit oft gehörte Geräusche nicht jedes Mal gleich klingen
+  const VARY = new Set(['whip', 'hit', 'kill', 'candle', 'hurt', 'bossHit', 'explode', 'wall', 'splash', 'step', 'stepWet', 'klack', 'klack2', 'crumble', 'crash', 'shatter', 'clank',
+    'flap', 'page', 'splat', 'slime', 'chomp', 'squeak', 'bat', 'throw', 'axe', 'whoosh', 'tink', 'zap', 'laser', 'djump', 'crack', 'boom', 'raven', 'crit', 'ghost', 'stone', 'cast']);
   function tone(type, f0, f1, dur, vol, duty, t0) {
     if (!ac) return;
     const t = t0 || ac.currentTime;
     const o = osc(type, duty), g = ac.createGain();
-    o.frequency.setValueAtTime(f0, t);
-    if (f1 && f1 !== f0) o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+    o.frequency.setValueAtTime(f0 * vary, t);
+    if (f1 && f1 !== f0) o.frequency.exponentialRampToValueAtTime(Math.max(20, f1 * vary), t + dur);
     g.gain.setValueAtTime(vol, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + dur);
     o.connect(g); g.connect(outBus || sfxBus);
@@ -113,6 +116,15 @@ const Audio8 = (() => {
 
   const last = {};
   const SFX = {
+    // Mahre: der Wisch steigt auf, verfängt sich im Traumfänger; Ruf, leere MP, Geisterhaut, Versteinerung; kritischer Treffer; Herzschlag bei wenig HP
+    mahrRise: () => { tone('sine', 220, 660, 0.5, 0.1); tone('sine', 223, 668, 0.5, 0.07); noise(0.5, 0.06, 'bandpass', 500, 2600); },
+    mahrCatch: () => { arp(['a5', 'c#6', 'e6', 'a6', 'c#7'], 0.055, 'triangle', 0.16); arp(['e5', 'a5', 'c#6'], 0.11, 'sine', 0.08); noise(0.35, 0.07, 'highpass', 7000); },
+    cast: () => { tone('sine', 420, 1260, 0.16, 0.12); tone('pulse', 840, 1680, 0.1, 0.05, 0.125); noise(0.14, 0.1, 'highpass', 3000, 9000); },
+    mpOut: () => { const t = ac.currentTime; tone('triangle', 196, 147, 0.07, 0.16, 0.5, t); tone('triangle', 147, 110, 0.09, 0.14, 0.5, t + 0.08); },
+    ghost: () => { noise(0.22, 0.14, 'bandpass', 2600, 700); tone('sine', 1100, 520, 0.2, 0.07); },
+    crit: () => { tone('square', 2400, 1700, 0.05, 0.1); tone('triangle', 3200, 2400, 0.12, 0.09); tone('triangle', 190, 55, 0.14, 0.34); noise(0.05, 0.2, 'highpass', 5000); },
+    stone: () => { const t = ac.currentTime; noise(0.3, 0.26, 'lowpass', 900, 160); tone('triangle', 130, 48, 0.24, 0.26); noise(0.04, 0.2, 'bandpass', 2400, 1200, t + 0.06); },
+    heartbeat: () => { const t = ac.currentTime; tone('sine', 110, 52, 0.12, 0.4, 0.5, t); tone('triangle', 70, 40, 0.1, 0.26, 0.5, t); tone('sine', 96, 46, 0.13, 0.26, 0.5, t + 0.18); },
     whip: () => { noise(0.16, 0.35, 'bandpass', 900, 5000); tone('pulse', 1400, 300, 0.08, 0.08, 0.125); },
     hit: () => tone('pulse', 600, 120, 0.09, 0.22, 0.5),
     kill: () => { noise(0.28, 0.4, 'lowpass', 3000, 200); tone('pulse', 300, 60, 0.2, 0.15, 0.25); },
@@ -260,8 +272,9 @@ const Audio8 = (() => {
       pan.pan.value = Math.max(-1, Math.min(1, (x - W.cam.x - View.w / 2) / (View.w * 0.55))) * 0.8;
       pan.connect(sfxBus);
       outBus = pan;
-      try { SFX[name](); } finally { outBus = null; }
-    } else SFX[name]();
+      vary = VARY.has(name) ? 0.95 + Math.random() * 0.1 : 1;
+      try { SFX[name](); } finally { outBus = null; vary = 1; }
+    } else { vary = VARY.has(name) ? 0.95 + Math.random() * 0.1 : 1; try { SFX[name](); } finally { vary = 1; } }
   }
 
   // ---------------- Musik ----------------
@@ -904,7 +917,9 @@ const Audio8 = (() => {
     melBus.gain.linearRampToValueAtTime(1, t + 0.12);
   }
   let cueQ = [], songT0 = 0; // geplante Pauken-/Beckenschläge (Audiozeit) fürs Bild; Startzeit des laufenden Stücks
-  function drum(n, t, dur) {
+  // Groove: Hi-Hats auf den Sechzehntel-Nebenzeiten (ungerade Positionen) leiser, jede ein wenig anders – kein Maschinengewehr mehr
+  const hatVel = (pos) => (Math.abs(pos % 2 - 1) < 0.01 ? 0.64 : 1) * (0.93 + Math.random() * 0.14);
+  function drum(n, t, dur, pos = 0) {
     const musicBus = drumOut(); // eigener Bus (adaptive Lautstärke)
     if (n === 'p' || n === 'x') { cueQ.push(t); if (cueQ.length > 32) cueQ.shift(); } // Pauke und Becken: Taktmarken fürs Bild (Ballsaal-Blitze)
     if (n === 'w') { // Riser: Rauschen schwillt an und steigt
@@ -942,7 +957,7 @@ const Audio8 = (() => {
     }
     if (n === 'x' || n === 'c') noise(0.7, 0.22, 'highpass', 6000, 2500, t, musicBus);
     if (n === 's' || n === 'q') { noise(0.14, 0.3, 'bandpass', 1900, 900, t, musicBus); tone2('triangle', 240, 120, 0.06, 0.19, t, musicBus); }
-    else if (n === 'h') noise(0.03, 0.13, 'highpass', 8000, null, t, pan('hat', musicBus));
+    else if (n === 'h') noise(0.03, 0.13 * hatVel(pos), 'highpass', 8000, null, t, pan('hat', musicBus));
     else if (n === 'c') { tone2('square', 1750, 1600, 0.025, 0.1, t, pan('tomL', musicBus)); noise(0.025, 0.12, 'bandpass', 3200, 2400, t, musicBus); } // Rim-Click (Bossa nova)
     else if (n === 'o') noise(0.12, 0.13, 'highpass', 7000, null, t, pan('hat', musicBus));
     else if (n === 't') tone2('triangle', 300, 120, 0.12, 0.45, t, pan('tomL', musicBus));
@@ -1015,11 +1030,11 @@ const Audio8 = (() => {
     });
   }
 
-  function playEvent(track, ev, t, stepDur) {
+  function playEvent(track, ev, t, stepDur, pos = 0) { // pos: Sechzehntel seit Beginn des Durchlaufs (für den Groove)
     if (ev.n === '-') return;
     if (track === 'pad') { ev.n.split('+').forEach(n => { const f = freq(n); if (f) padNote(f, t, ev.len * stepDur); }); return; }
     if (track === 'org') { ev.n.split('+').forEach(n => { const f = freq(n); if (f) organNote(f, t, ev.len * stepDur); }); return; }
-    if (track === 'dr') { drum(ev.n, t, ev.len * stepDur); return; }
+    if (track === 'dr') { drum(ev.n, t, ev.len * stepDur, pos); return; }
     const f = freq(ev.n);
     if (!f) return;
     const dur = ev.len * stepDur;
@@ -1038,11 +1053,11 @@ const Audio8 = (() => {
       while (!c.done && c.t < horizon) {
         if (c.i >= tr.ev.length) {
           if (!song.loop) { c.done = true; break; }
-          c.i = 0;
+          c.i = 0; c.s = 0;
         }
         const ev = tr.ev[c.i++];
-        if (c.t >= now - 0.03) playEvent(tr.name, ev, c.t, stepDur); // nach einem Hänger verpasste Noten auslassen statt alle auf einmal nachzuholen – der Takt bleibt
-        c.t += ev.len * stepDur;
+        if (c.t >= now - 0.03) playEvent(tr.name, ev, c.t, stepDur, c.s || 0); // nach einem Hänger verpasste Noten auslassen statt alle auf einmal nachzuholen – der Takt bleibt
+        c.t += ev.len * stepDur; c.s = (c.s || 0) + ev.len;
       }
       if (!c.done) allDone = false;
     });
@@ -1058,7 +1073,7 @@ const Audio8 = (() => {
     song = parsed[name]; songName = name; nextSong = then;
     if (songGain) songGain.gain.setTargetAtTime(SONG_GAIN[name] || 1, ac.currentTime, 0.08);
     const t0 = ac.currentTime + 0.05 + (fade ? fade * 2 : 0);
-    cursors = song.tracks.map(() => ({ i: 0, t: t0, done: false }));
+    cursors = song.tracks.map(() => ({ i: 0, t: t0, s: 0, done: false }));
     songT0 = t0;
     schedule();
     timer = setInterval(schedule, 40);
@@ -1242,16 +1257,20 @@ const Audio8 = (() => {
   function tempo(m) { tempoMul = m; }
   const openFreq = () => Math.min(18000, ac.sampleRate / 2 - 100);
   let slowOn = false;
-  function slow(on) { slowOn = !!on; if (muffleF && ac) muffleF.frequency.setTargetAtTime(on ? 1500 : openFreq(), ac.currentTime, on ? 0.05 : 0.3); }
-  function muffle(on) { if (muffleF && ac) muffleF.frequency.setTargetAtTime(on ? 650 : slowOn ? 1500 : openFreq(), ac.currentTime, on ? 0.04 : 0.12); }
+  function slow(on) { slowOn = !!on; if (muffleF && ac) muffleF.frequency.setTargetAtTime(on ? 1500 : rest(), ac.currentTime, on ? 0.05 : 0.3); }
+  function muffle(on) { if (muffleF && ac) muffleF.frequency.setTargetAtTime(on ? 650 : slowOn ? 1500 : rest(), ac.currentTime, on ? 0.04 : 0.12); }
+  // wenig HP: die Musik rückt etwas in den Hintergrund (sanfter Tiefpass), der Herzschlag tritt hervor
+  let dangerOn = false;
+  const rest = () => (dangerOn ? 3400 : openFreq());
+  function danger(on) { on = !!on; if (on === dangerOn) return; dangerOn = on; if (muffleF && ac && !slowOn) muffleF.frequency.setTargetAtTime(rest(), ac.currentTime, on ? 0.5 : 0.8); }
   function duck(on) { if (duckBus && ac) duckBus.gain.setTargetAtTime(on ? 0.45 : 1, ac.currentTime, on ? 0.06 : 0.5); }
 
-  return { init, prepare, sfx, play, stop, ambience, drip, toggleMute, setMusicVolume, setMusicLevel, ready, duck, muffle, tempo, intensity, slow,
+  return { init, prepare, sfx, play, stop, ambience, drip, toggleMute, setMusicVolume, setMusicLevel, ready, duck, muffle, tempo, intensity, slow, danger,
     get drumLevel() { return drumLvl; },
     steps: () => (ac && song ? Math.max(0, ac.currentTime - songT0) * song.bpm * tempoMul / 15 : null), // Sechzehntel seit Liedbeginn (Taktduell)
     context: () => ac, voiceOut: () => voiceBus,
     beat: () => (ac && song ? Math.max(0, ac.currentTime - songT0) * song.bpm * tempoMul / 60 : null), // Schlag im laufenden Stück
     cues: () => { if (!ac) return 0; const now = ac.currentTime; let n = 0; while (cueQ.length && cueQ[0] <= now) { cueQ.shift(); n++; } return n; }, // fällige Stakkato-Schläge
     stream: () => { if (!ac) return null; if (!tapDest) { tapDest = ac.createMediaStreamDestination(); comp.connect(tapDest); } return tapDest.stream; }, // Mitschnitt (Trailer-Aufnahme)
-    get muted() { return muted; }, get current() { return songName; }, _songs: parsed };
+    get muted() { return muted; }, get current() { return songName; }, get filterHz() { return muffleF ? Math.round(muffleF.frequency.value) : 0; }, _songs: parsed };
 })();
