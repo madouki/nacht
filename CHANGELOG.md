@@ -8,6 +8,24 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 
 ---
 
+## 20261112-1414 – Fluss: schneller zurück zum Boss, Lohn nach jedem Sieg
+
+**Neu**
+- **Bossräume als Reiseziele:** Hast du den Raum eines noch unbesiegten Bosses einmal betreten, steht er in der Schnellreise
+  (orange beschriftet, z. B. „NEBENBOSS: DER ZUGFÜHRER“). Die Reise setzt dich am Eingang dieses Raums ab – nach einer
+  Niederlage entfällt der lange Anmarsch. Vorgewählt ist der Raum des aktuellen Ziels, wenn er schon bekannt ist.
+- **↓ + Karte** (Tab/Q bzw. Select) öffnet die Schnellreise direkt aus dem Spiel, ohne Pausenmenü.
+- **Lohn nach jedem Bosssieg:** Kopfgeld (Nebenboss 1000 G je Gefahrenstufe, Hauptboss 2000 G je Stufe), HP und MP sind
+  danach voll. Beim ersten Sieg erscheint einmal der Hinweis auf die Schnellreise.
+- Nach der Schnellreise aus dem Pausenmenü ist die Musik wieder normal laut (die Pause-Dämpfung wird gelöst).
+
+**Beim Testen ansehen**
+- Einen Bossraum betreten, wieder hinausgehen, dann Pause → SCHNELLREISE: steht der Raum in der Liste, kommt man am
+  Eingang an und beginnt der Kampf normal?
+- ↓ + Karte im Laufen, im Sprung, auf Treppen: öffnet sich die Reise nur, wenn man es will (↓ wird auch zum Ducken benutzt)?
+- Ist das Kopfgeld zu großzügig oder zu knapp? Fühlt sich das volle Auffüllen nach Bossen richtig an?
+- Bekannt offen: Abkürzungen als echte Türen zwischen Regionen und ein sichtbares Portal in der Arena gibt es noch nicht.
+
 ## 20261112-0614 – Alle Bosse im Schloss, weniger Lauferei
 
 **Neu**

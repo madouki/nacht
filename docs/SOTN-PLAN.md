@@ -516,7 +516,10 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
     - *Bosszähler* auf der Statusseite (`bossTally`, 16 = 6 Arenen + 10 Nebenbosse).
     - *Schnellreise von überall:* Pause → SCHNELLREISE (`travelOk`, `openTravel`, Zustand `warp` wie in der Warpkammer), nicht im
       Bosskampf, nicht im Vorspiel; vorgewählt ist die Kammer in der Region des Ziels.
-    - Offen für den „Infernax-Fluss“: mehr Abkürzungen zwischen den Regionen, Rückweg-Portal nach Bossen, Aufträge mit Lohn.
+    - *Fluss, zweiter Teil:* `bossDoors()` nimmt schon betretene Räume unbesiegter Bosse in die Reiseliste auf (Ankunft am
+      Raumeingang, `place: 'start'`), **↓ + Karte** öffnet die Reise aus dem Spiel, `bossReward()` zahlt nach jedem Bosssieg
+      Kopfgeld (Stufe × 1000 bzw. × 2000) und füllt HP und MP; einmaliger Hinweis `travelTip`. test_flow.js prüft alles.
+    - Offen für den „Infernax-Fluss“: Abkürzungen als echte Türen zwischen den Regionen, sichtbares Rückweg-Portal in der Arena, Aufträge mit Lohn.
     - CHANGELOG.md im Projektstamm führt je Build auf, was neu ist und was beim Testen anzusehen ist – bei jeder Veröffentlichung ergänzen.
 - **Feinschliff über das ganze Spiel** (20261106, zweite Runde):
   - **Rundgang durch alle 86 Räume** (test_sweep.js): jeder Raum betreten, 3 s laufen lassen, ein Bild je Raum, Fehler je Raum.

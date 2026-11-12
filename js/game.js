@@ -529,7 +529,7 @@ const Game = {
         if (Castle.on && P.map) { this.go('map'); Castle.openMap(); Audio8.sfx('select'); } // Select in der Pause: große Karte
         else if (ok && it === 'easy') this.toggleEasy();
         else if (ok && it === 'map') { this.go('map'); Castle.openMap(); Audio8.sfx('select'); } // Schloss-Modus: Karte
-        else if (ok && it === 'travel') { Castle.openTravel(); this.go('warp'); Audio8.sfx('select'); } // Schloss-Modus: Schnellreise von überall
+        else if (ok && it === 'travel') { Castle.openTravel(); this.go('warp'); Audio8.setMusicVolume(0.5); Audio8.muffle(false); Audio8.sfx('select'); } // Schloss-Modus: Schnellreise von überall (die Pause-Dämpfung der Musik gleich lösen)
         else if (ok && it === 'status') { this.go('status'); Audio8.sfx('select'); } // Schloss-Modus: Werte wie in SotN
         else if (ok && it === 'equip') { this.go('equip'); Castle.openEquip(); Audio8.sfx('select'); } // Schloss-Modus: Ausrüstung und Tränke
         else if (ok && it === 'tools') { this.go('tools'); Audio8.sfx('select'); } // Testmodus: Werkzeugkasten
@@ -665,7 +665,11 @@ const Game = {
   updatePlay(P) {
     if (this.banter && this.banter.t >= 0) { this.holdBanter(P); return; } // Wortgeplänkel vor dem Kampf: die Welt steht still
     if (P.start && W.player.alive) { this.go('pause'); this.pauseSel = 0; Audio8.setMusicVolume(0.3); Audio8.muffle(true); Audio8.sfx('pause'); this.saveResume(); return; } // Schloss: Pause = Fortsetzungspunkt
-    if (Castle.on && P.map && !(Input.held.up && Castle.mahrCycle())) Castle.toggleOverlay(); // Schloss: Select/Tab – Karte durchscheinend über dem Spiel
+    if (Castle.on && P.map) { // Karte: mit ↑ Ruf-Mahr wechseln, mit ↓ Schnellreise, sonst Karte über dem Spiel
+      if (Input.held.up && Castle.mahrCycle()) { /* gewechselt */ }
+      else if (Input.held.down && Castle.travelOk()) { Castle.openTravel(); this.go('warp'); Audio8.sfx('select'); return; }
+      else Castle.toggleOverlay();
+    } // Schloss: Select/Tab – Karte durchscheinend über dem Spiel
     if (this.readyT > 0) { // READY? … GO! (das Spiel läuft dabei schon)
       this.readyT++;
       if (this.readyT === 3) Audio8.sfx('ready');
@@ -937,7 +941,7 @@ const Game = {
   },
   drawPause(ctx) {
     const ids = this.pauseItems(), extra = (ids.length - 4) * 12;
-    const LABEL = { resume: tr('resume'), map: tr('mapTitle') + (Input.device === 'pad' ? ' (SELECT)' : Input.device === 'touch' ? '' : ' (TAB/Q)'), travel: tr('pauseTravel'), status: tr('castleStatus'), equip: tr('equipTitle'), tools: tr('testTools'), skip: tr('castleSkipPrologue'), easy: tr('optEasy') + ': ' + tr(Options.easy ? 'on' : 'off'), sec: tr('secTitle'), title: tr('toTitle') };
+    const LABEL = { resume: tr('resume'), map: tr('mapTitle') + (Input.device === 'pad' ? ' (SELECT)' : Input.device === 'touch' ? '' : ' (TAB/Q)'), travel: tr('pauseTravel') + (Input.device === 'pad' ? ' (↓ + SELECT)' : Input.device === 'touch' ? '' : ' (↓ + TAB/Q)'), status: tr('castleStatus'), equip: tr('equipTitle'), tools: tr('testTools'), skip: tr('castleSkipPrologue'), easy: tr('optEasy') + ': ' + tr(Options.easy ? 'on' : 'off'), sec: tr('secTitle'), title: tr('toTitle') };
     const cx = View.cx, items = ids.map(id => LABEL[id]);
     const hint = tr(Input.device === 'pad' ? 'pausePad' : Input.device === 'touch' ? 'pauseTouch' : 'pauseKey');
     const pw = Math.min(View.w - 8, Math.max(150, Font.width(hint) + 16, ...items.map(s => Font.width(s) + 96)));

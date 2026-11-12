@@ -2188,6 +2188,7 @@ const Castle = (() => {
     if (!set.has(i)) { set.add(i); dirty = true; }
     if (W.miniDone[s + ':' + r] && !mini[key]) { // Zwischengegner besiegt: gemerkt, sein Relikt erscheint
       mini[key] = 1; dirty = true;
+      bossReward(tierOf(s, r) * 1000); // Nebenboss: Kopfgeld, HP und MP voll
       for (const [R, k, x, y] of MINI_RELIC) if (same(ref(R), s, r) && !rel(k)) W.spawn(new RelicStone(k, x, y));
       for (const [R, id, x, y] of MINI_LOOT) if (same(ref(R), s, r) && !inv[id]) W.spawn(new CastleLoot(id, x * T + 8, (y + 1) * T - 8, id));
     }
@@ -2239,11 +2240,20 @@ const Castle = (() => {
     push = pushing ? push + 1 : 0; lastX = p.x;
   }
 
+  // Lohn nach jedem Bosssieg (Fluss wie in Infernax: Sieg → Lohn → gleich weiter): Kopfgeld, HP und MP voll; beim ersten Mal
+  // der Hinweis auf die Schnellreise
+  function bossReward(gold) {
+    const p = W.player; if (!p) return;
+    W.addScore(gold); p.hp = p.maxHp; if (mpMax()) mp = mpMax();
+    W.popup(p.cx, p.y - 30, tr('bounty', gold), '#f8b800'); Audio8.sfx('money');
+    if (!flag.travelTip) { flag.travelTip = 1; Game.note('travelTip'); }
+  }
   // Boss besiegt (Orb eingesammelt): Siegel statt Kapitelende – die Arena öffnet sich, weiter geht es zu Fuß
   function bossBeaten() {
     const s = W.stage;
     if (s >= S().length - 1) return false; // der Graf: Abspann wie gewohnt
     boss[roomKey(s, W.roomIdx)] = 1; save();
+    bossReward(tierOf(s, W.roomIdx) * 2000);
     W.cleared = false; W.arenaOn = false; W.camLock = false; W.arenaW = 0; W.camEase = 1; W.boss = null; W.room.arena = null;
     W.ents = W.ents.filter(e => !(e instanceof CastleDoor));
     for (const d of doorsOf(s, W.roomIdx)) W.spawn(new CastleDoor(d, S()[s].rooms[W.roomIdx]));
@@ -4255,12 +4265,19 @@ const Castle = (() => {
   }
   // Schnellreise aus dem Pausenmenü (seit 20261112): von überall zu jeder schon betretenen Warpkammer – nicht im Bosskampf,
   // nicht im Vorspiel. Spart die Lauferei zurück zur nächsten Kammer.
-  const travelOk = () => !W.boss && !W.arenaOn && !inPrologue() && W.player && W.player.alive && allChambers().some(w => w.kind === 'warp' && warp[w.key]);
+  const travelOk = () => travelAny();
+  function bossDoors() { // schon betretene Räume mit unbesiegtem Boss: Reiseziel ist ihr Eingang (kein langer Anmarsch nach einer Niederlage)
+    const out = [], add = (s, r, d, title) => { const k = roomKey(s, r); if (seen[k] && seen[k].size && !(s === W.stage && r === W.roomIdx)) out.push({ key: 'boss:' + k, kind: 'warp', s, r, x: d.start.x, y: d.start.y, place: 'start', title }); };
+    S().forEach((st, s) => st.rooms.forEach((d, r) => { if (d.arena && !d.side && !boss[roomKey(s, r)] && s < S().length - 1) add(s, r, d, tr(st.bossKey)); }));
+    for (const b of sideBosses()) if (!sideDone(b)) add(b.s, b.r, b.d, tr(MINI_NAME[b.id]));
+    return out;
+  }
   function openTravel() {
-    trip.list = allChambers().filter(w => w.kind === 'warp' && warp[w.key]); trip.from = '';
-    const g = guideTarget(), near = (w) => (g && w.s === g.s ? 0 : 2) + (w.s === W.stage ? 1 : 3); // vorgewählt: die Kammer in der Region des Ziels
+    trip.list = allChambers().filter(w => w.kind === 'warp' && warp[w.key]).concat(bossDoors()); trip.from = '';
+    const g = guideTarget(), near = (w) => (g && w.s === g.s && w.r === g.r ? -4 : 0) + (g && w.s === g.s ? 0 : 2) + (w.s === W.stage ? 1 : 3); // vorgewählt: der Raum des Ziels, sonst die Kammer in seiner Region
     trip.sel = Math.max(0, trip.list.reduce((bi, w, i) => (near(w) < near(trip.list[bi]) ? i : bi), 0)); view.zoom = false;
   }
+  const travelAny = () => !W.boss && !W.arenaOn && !inPrologue() && W.player && W.player.alive && (allChambers().some(w => w.kind === 'warp' && warp[w.key]) || bossDoors().length > 0);
   function warpInput(P) { // 'cancel', ein Ziel { s, r, place } oder null
     const n = trip.list.length;
     if (P.start || !n) return 'cancel';
@@ -4269,7 +4286,7 @@ const Castle = (() => {
     if (P.jump || P.attack) {
       const w = trip.list[trip.sel];
       if (w.key === trip.from) return 'cancel';
-      return { s: w.s, r: w.r, place: { x: w.x, y: w.y, chamber: 'warp' } };
+      return { s: w.s, r: w.r, place: w.place || { x: w.x, y: w.y, chamber: 'warp' } };
     }
     return null;
   }
@@ -4430,7 +4447,7 @@ const Castle = (() => {
       ly += 21;
     }
     Font.draw(ctx, tr('mapExplored', percent(W.stage)) + '    ' + tr('mapCastle', percent()), cx, ly, '#fcfcfc', { align: 'center', shadow: '#000' });
-    if (!g) { Font.draw(ctx, warpMode ? tr('warpCount', trip.sel + 1, trip.list.length) : tr('castleSealsShort', seals(), sealRooms().length), cx, ly + 10, warpMode ? '#7cdcfc' : '#c8a0fc', { align: 'center', shadow: '#000' }); ly += 10; }
+    if (!g) { Font.draw(ctx, warpMode ? (sw && sw.title ? tr('castleGoalBoss', sw.title) : tr('warpCount', trip.sel + 1, trip.list.length)) : tr('castleSealsShort', seals(), sealRooms().length), cx, ly + 10, warpMode ? (sw && sw.title ? '#fc9c6c' : '#7cdcfc') : '#c8a0fc', { align: 'center', shadow: '#000' }); ly += 10; }
     Font.draw(ctx, tr(warpMode ? 'mapHelpWarp' : view.zoom ? 'mapHelpZoom' : 'mapHelp'), cx, ly + 11, '#7c7c8c', { align: 'center' });
   }
 
@@ -4603,7 +4620,7 @@ const Castle = (() => {
     for (const q of QUESTS) need.push('quest_' + q.id, 'questHint_' + q.id);
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
-    need.push('castleBossCount', 'castleGoalBoss', 'pauseTravel', 'mahrTitle', 'mahrCount', 'mahrRuf', 'mahrBann', 'mahrHelp', 'mahrSwap', 'mahrOn', 'mahrFrom', 'mahrUnknown', 'mahrGot', 'mahrFirst', 'mahrDodge', 'crit', 'chgMahr');
+    need.push('castleBossCount', 'castleGoalBoss', 'pauseTravel', 'bounty', 'travelTip', 'mahrTitle', 'mahrCount', 'mahrRuf', 'mahrBann', 'mahrHelp', 'mahrSwap', 'mahrOn', 'mahrFrom', 'mahrUnknown', 'mahrGot', 'mahrFirst', 'mahrDodge', 'crit', 'chgMahr');
     { // Erreichbarkeit: vom Wald aus über Türen und Ausgänge (alles geöffnet) – kein Raum darf abgeschnitten sein
       const key = (s, r) => s + ':' + r, seenR = new Set(), queue = [], s0 = sIdx('arrival');
       const push = (s, r) => { if (s >= 0 && !seenR.has(key(s, r))) { seenR.add(key(s, r)); queue.push([s, r]); } };
