@@ -3364,12 +3364,13 @@ const Castle = (() => {
     const by = 124, bw = Math.min(220, w - 40), bx = Math.round(cx - bw / 2), k = expProgress(); // EXP bis zur nächsten Stufe
     ctx.fillStyle = '#000'; ctx.fillRect(bx - 1, by - 1, bw + 2, 7); ctx.fillStyle = '#1c2c14'; ctx.fillRect(bx, by, bw, 5);
     ctx.fillStyle = '#58f898'; ctx.fillRect(bx, by, Math.round(bw * clamp(k, 0, 1)), 5); ctx.fillStyle = '#b8fcd0'; ctx.fillRect(bx, by, Math.round(bw * clamp(k, 0, 1)), 1);
-    Font.draw(ctx, tr('mapCastle', percent()), cx, 142, '#fcfcfc', { align: 'center', shadow: '#000' });
-    Font.draw(ctx, tr('castleSealsShort', seals(), sealRooms().length), cx, 156, '#c8a0fc', { align: 'center', shadow: '#000' });
+    Font.draw(ctx, tr('mapCastle', percent()), cx, 138, '#fcfcfc', { align: 'center', shadow: '#000' });
+    Font.draw(ctx, tr('castleSealsShort', seals(), sealRooms().length), cx, 150, '#c8a0fc', { align: 'center', shadow: '#000' });
+    const bt = bossTally(); Font.draw(ctx, tr('castleBossCount', bt[0], bt[1]), cx, 162, '#fc9c6c', { align: 'center', shadow: '#000' });
     const wl = allChambers().filter(c => c.kind === 'warp');
-    Font.draw(ctx, tr('warpCount', wl.filter(c => warp[c.key]).length, wl.length), cx, 170, '#7cdcfc', { align: 'center', shadow: '#000' });
+    Font.draw(ctx, tr('warpCount', wl.filter(c => warp[c.key]).length, wl.length), cx, 174, '#7cdcfc', { align: 'center', shadow: '#000' });
     const vAll = S().reduce((n, st) => n + st.rooms.reduce((m, d) => m + d.ents.filter(e => e.type === 'vessel').length, 0), 0);
-    Font.draw(ctx, tr('castleVesselCount', vessels(), vAll), cx, 184, '#fc7460', { align: 'center', shadow: '#000' });
+    Font.draw(ctx, tr('castleVesselCount', vessels(), vAll), cx, 186, '#fc7460', { align: 'center', shadow: '#000' });
     const own = RELICS.filter(k => rel(k)); // Relikte: Anzahl, darunter je eine farbige Kugel (leer = noch nicht gefunden)
     Font.draw(ctx, tr('castleRelicCount', own.length, RELICS.length), cx, 198, '#e0d0fc', { align: 'center', shadow: '#000' });
     RELICS.forEach((k, i) => { const x = Math.round(cx - RELICS.length * 7 + i * 14 + 2), y = 208; ctx.fillStyle = '#1c1428'; ctx.fillRect(x - 1, y - 1, 10, 7); ctx.fillStyle = rel(k) ? RELIC_COL[k] : '#3c3448'; ctx.fillRect(x, y, 8, 5); });
@@ -3499,7 +3500,48 @@ const Castle = (() => {
     { done: () => false, verb: 'castleGoalBeat', obj: () => bossName(3), where: 'whereThrone', at: [[3, -1], 'arena'] },
   ];
   const witchDone = () => { const a = ref(MINI_RELIC[0][0]); return !!(a && mini[roomKey(a.s, a.r)]); }; // Eishexe besiegt: der Wolf wartet in der Gruft
-  const goal = () => GOALS.find(g => !g.done()) || null;
+  const mainGoal = () => GOALS.find(g => !g.done()) || null;
+  // Nebenbosse (Zusatzräume mit .mini) gehören seit 20261112 zum Wegweiser: sobald der Hauptweg eine höhere Gefahrenstufe
+  // erreicht hat als ihr Raum und ihr Tor offen ist, schickt er den Helden zuerst dorthin (leichtere zuerst, dann der nähere).
+  // Der Mond hängt nur an der Mondkanone (kein Türweg): nach dem Sternbild zeigt das Ziel auf die Sternkuppel.
+  const MINI_NAME = { conductor: 'bossConductor', doppel: 'bossDoppel', golem: 'bossGolem', awakened: 'bossAwakened', amt: 'bossAmt', post: 'bossFrank', chef: 'bossChef', stern: 'bossStern', mond: 'bossMond', reiss: 'bossReiss' };
+  let sideMemo = null;
+  function sideBosses() {
+    if (!sideMemo) { sideMemo = []; S().forEach((st, s) => st.rooms.forEach((d, r) => { if (d.mini && MINI_NAME[d.mini.boss]) sideMemo.push({ s, r, d, id: d.mini.boss }); })); }
+    return sideMemo;
+  }
+  const sideDone = (b) => !!mini[roomKey(b.s, b.r)];
+  const sideGoalOf = (b, via) => { const t = via || b; return { side: b, id: 'm' + b.id, done: () => sideDone(b), verb: 'castleGoalBoss', obj: () => tr(MINI_NAME[b.id]), whereRaw: t.d.label || '', at: [[S()[t.s].id, t.r], t.d.mini.x, (t.d.start && t.d.start.y) || 10] }; };
+  const sgMemo = { key: '', f: -999, g: null };
+  function sideGoal() {
+    const here = W.stage + ':' + W.roomIdx, f = rpg.frames, m = sgMemo;
+    if (m.key === here && f >= m.f && f - m.f < 180 && !(m.g && m.g.done())) return m.g;
+    m.key = here; m.f = f; m.g = null;
+    let best = null, bs = Infinity;
+    for (const b of sideBosses()) {
+      if (sideDone(b)) continue;
+      let h = hopsFrom(b.s + ':' + b.r, true)[here], via = null;
+      if (h === undefined && b.id === 'mond') { const st = sideBosses().find(x => x.id === 'stern'); if (st && sideDone(st)) { h = hopsFrom(st.s + ':' + st.r, true)[here]; via = st; } }
+      if (h === undefined) continue;
+      const sc = tierOf(b.s, b.r) * 100 + h;
+      if (sc < bs) { bs = sc; best = sideGoalOf(b, via); }
+    }
+    return (m.g = best);
+  }
+  function goal() {
+    const g = mainGoal(), sg = sideGoal();
+    if (!sg) return g;
+    if (!g) return sg;
+    const a = g.at && ref(g.at[0]);
+    return tierOf(sg.side.s, sg.side.r) < (a ? tierOf(a.s, a.r) : 99) ? sg : g;
+  }
+  const whereText = (g) => (g.whereRaw !== undefined ? g.whereRaw : tr(g.where));
+  const bossTally = () => { // [besiegt, alle]: Hauptbosse (Arenen) und Nebenbosse
+    let n = 0, all = 0;
+    S().forEach((st, s) => st.rooms.forEach((d, r) => { if (d.arena && !d.side) { all++; if (boss[roomKey(s, r)]) n++; } }));
+    for (const b of sideBosses()) { all++; if (sideDone(b)) n++; }
+    return [n, all];
+  };
   const goalText = (g) => tr(g.verb, g.obj());
   function goalCell(g) { // Kartenzelle des Ziels (absolut)
     const a = ref(g.at[0]), rm = a && roomAt(a.s, a.r);
@@ -3508,10 +3550,12 @@ const Castle = (() => {
     return { x: rm.ax + c.x, y: rm.ay + c.y };
   }
   // eigene Einblendung unten im Bild (unabhängig von den Raum-Hinweisen oben, die sie sonst überschreiben würden)
-  let toast = null, goalWait = 0;
+  let toast = null, goalWait = 0, lastGoalId;
   function announceGoal(delay = 200) { goalWait = Math.max(1, delay); }
   function goalTick() {
-    if (goalWait > 0 && --goalWait === 0) { const g = goal(); if (g) toast = { a: tr('castleGoalNote', goalText(g)), b: tr(g.where), t: 330 }; }
+    const cur = goal(), cid = cur ? (cur.id || GOALS.indexOf(cur)) : -1; // neues Ziel (auch ein Nebenboss, dessen Tor gerade aufging): ansagen
+    if (cid !== lastGoalId) { if (lastGoalId !== undefined && !goalWait && typeof cid === 'string') goalWait = 160; lastGoalId = cid; }
+    if (goalWait > 0 && --goalWait === 0) { const g = goal(); if (g) toast = { a: tr('castleGoalNote', goalText(g)), b: whereText(g), t: 330 }; }
     else if (toast && --toast.t <= 0) toast = null;
   }
   function drawGoalToast(ctx) {
@@ -3531,7 +3575,7 @@ const Castle = (() => {
     ctx.fillStyle = 'rgba(0,0,0,0.78)'; ctx.fillRect(0, y - 3, w, 25);
     ctx.fillStyle = '#c89020'; ctx.fillRect(0, y - 3, w, 1); ctx.fillRect(0, y + 21, w, 1);
     Font.draw(ctx, tr('castleGoalLabel') + ': ' + goalText(g), cx, y, '#f8b800', { align: 'center', shadow: '#000' });
-    Font.draw(ctx, tr(g.where), cx, y + 11, '#d0c0a0', { align: 'center', shadow: '#000' });
+    Font.draw(ctx, whereText(g), cx, y + 11, '#d0c0a0', { align: 'center', shadow: '#000' });
   }
 
   // ---------------- Wegweiser im Bild: goldener Pfeil zur nächsten Tür auf dem Weg zum Ziel ----------------
@@ -3590,7 +3634,7 @@ const Castle = (() => {
   }
   function guideTarget() { // Zielraum und -stelle: das nächste Ziel, sonst der nächste unbesiegte Boss
     const g = goal(), at = g && g.at, a = at && ref(at[0]);
-    if (a) return { s: a.s, r: a.r, at, id: GOALS.indexOf(g) };
+    if (a) return { s: a.s, r: a.r, at, id: g.id || GOALS.indexOf(g) };
     for (let s = 0; s < S().length; s++) for (let r = 0; r < S()[s].rooms.length; r++) {
       const d = S()[s].rooms[r];
       if (d.arena && !d.side && !boss[roomKey(s, r)]) return { s, r, at: [null, 'arena'], id: 'b' + s };
@@ -4209,6 +4253,14 @@ const Castle = (() => {
     trip.list = allChambers().filter(w => w.kind === 'warp' && warp[w.key]); trip.from = c.key;
     trip.sel = Math.max(0, trip.list.findIndex(w => w.key === c.key)); view.zoom = false;
   }
+  // Schnellreise aus dem Pausenmenü (seit 20261112): von überall zu jeder schon betretenen Warpkammer – nicht im Bosskampf,
+  // nicht im Vorspiel. Spart die Lauferei zurück zur nächsten Kammer.
+  const travelOk = () => !W.boss && !W.arenaOn && !inPrologue() && W.player && W.player.alive && allChambers().some(w => w.kind === 'warp' && warp[w.key]);
+  function openTravel() {
+    trip.list = allChambers().filter(w => w.kind === 'warp' && warp[w.key]); trip.from = '';
+    const g = guideTarget(), near = (w) => (g && w.s === g.s ? 0 : 2) + (w.s === W.stage ? 1 : 3); // vorgewählt: die Kammer in der Region des Ziels
+    trip.sel = Math.max(0, trip.list.reduce((bi, w, i) => (near(w) < near(trip.list[bi]) ? i : bi), 0)); view.zoom = false;
+  }
   function warpInput(P) { // 'cancel', ein Ziel { s, r, place } oder null
     const n = trip.list.length;
     if (P.start || !n) return 'cancel';
@@ -4374,7 +4426,7 @@ const Castle = (() => {
     let ly = top + H + 6;
     if (g) { // nächstes Ziel und wo es liegt
       Font.draw(ctx, tr('castleGoalLabel') + ': ' + goalText(g), cx, ly, '#f8b800', { align: 'center', shadow: '#000' });
-      Font.draw(ctx, tr(g.where), cx, ly + 10, '#d0c0a0', { align: 'center', shadow: '#000' });
+      Font.draw(ctx, whereText(g), cx, ly + 10, '#d0c0a0', { align: 'center', shadow: '#000' });
       ly += 21;
     }
     Font.draw(ctx, tr('mapExplored', percent(W.stage)) + '    ' + tr('mapCastle', percent()), cx, ly, '#fcfcfc', { align: 'center', shadow: '#000' });
@@ -4551,7 +4603,7 @@ const Castle = (() => {
     for (const q of QUESTS) need.push('quest_' + q.id, 'questHint_' + q.id);
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
-    need.push('mahrTitle', 'mahrCount', 'mahrRuf', 'mahrBann', 'mahrHelp', 'mahrSwap', 'mahrOn', 'mahrFrom', 'mahrUnknown', 'mahrGot', 'mahrFirst', 'mahrDodge', 'crit', 'chgMahr');
+    need.push('castleBossCount', 'castleGoalBoss', 'pauseTravel', 'mahrTitle', 'mahrCount', 'mahrRuf', 'mahrBann', 'mahrHelp', 'mahrSwap', 'mahrOn', 'mahrFrom', 'mahrUnknown', 'mahrGot', 'mahrFirst', 'mahrDodge', 'crit', 'chgMahr');
     { // Erreichbarkeit: vom Wald aus über Türen und Ausgänge (alles geöffnet) – kein Raum darf abgeschnitten sein
       const key = (s, r) => s + ':' + r, seenR = new Set(), queue = [], s0 = sIdx('arrival');
       const push = (s, r) => { if (s >= 0 && !seenR.has(key(s, r))) { seenR.add(key(s, r)); queue.push([s, r]); } };
@@ -4625,7 +4677,7 @@ const Castle = (() => {
     setFlag: (k) => { flag[k] = 1; save(); }, // z. B. Aufzug als Abkürzung freigeschaltet (lift.js)
     k3at, art, whenArt, dishToday, buffInfo: () => buff && { id: buff.id, k: buff.t / BUFF_T }, // Behördentrakt (js/trakt.js), HUD: Mahlzeit
     toolsInput, drawTools, selfCheck, mapReport, mapLayout: () => castle(), doorsOf, get god() { return god; }, get best() { return best; },
-    toggleOverlay, get overlay() { return overlayOn; },
+    toggleOverlay, get overlay() { return overlayOn; }, travelOk, openTravel, bossTally, sideBosses: () => sideBosses().map(b => ({ id: b.id, s: b.s, r: b.r, done: sideDone(b), label: b.d.label })), goalInfo: () => { const g = goal(); return g ? { text: goalText(g), where: whereText(g), id: g.id || GOALS.indexOf(g) } : null; },
     tier: (s) => (TIER[S()[s].id] || 1) + 2 * (flag.ngp || 0), side: SIDE, startEpilogue, resultsInput, drawResults, ngPlus, ngRestore, drawGoalBanner, drawGoalToast, announceGoal, drawGuide, guidePlan, inPrologue, goal: () => { const g = goal(); return g && { text: goalText(g), where: tr(g.where) }; }, get vessels() { return vessel; }, get relics() { return relic; }, get cracks() { return crack; }, has,
     get seen() { return seen; }, get warps() { return warp; },
     reset() { seen = {}; boss = {}; mini = {}; warp = {}; vessel = {}; relic = {}; crack = {}; flag = {}; inv = {}; eq = {}; famx = {}; best = {}; try { localStorage.removeItem(KEY); localStorage.removeItem(SAVE_KEY); localStorage.removeItem(RESUME_KEY); } catch (e) { /* privat */ } },

@@ -529,6 +529,7 @@ const Game = {
         if (Castle.on && P.map) { this.go('map'); Castle.openMap(); Audio8.sfx('select'); } // Select in der Pause: große Karte
         else if (ok && it === 'easy') this.toggleEasy();
         else if (ok && it === 'map') { this.go('map'); Castle.openMap(); Audio8.sfx('select'); } // Schloss-Modus: Karte
+        else if (ok && it === 'travel') { Castle.openTravel(); this.go('warp'); Audio8.sfx('select'); } // Schloss-Modus: Schnellreise von überall
         else if (ok && it === 'status') { this.go('status'); Audio8.sfx('select'); } // Schloss-Modus: Werte wie in SotN
         else if (ok && it === 'equip') { this.go('equip'); Castle.openEquip(); Audio8.sfx('select'); } // Schloss-Modus: Ausrüstung und Tränke
         else if (ok && it === 'tools') { this.go('tools'); Audio8.sfx('select'); } // Testmodus: Werkzeugkasten
@@ -927,7 +928,7 @@ const Game = {
     Audio8.sfx('select'); return null;
   },
   // Touch im Pausenmenü: Tipp auf einen Menüpunkt wählt ihn (true), sonst geht es weiter
-  pauseItems() { return Castle.on ? ['resume', 'map', 'status', 'equip', ...(Castle.inPrologue() ? ['skip'] : []), Castle.testing ? 'tools' : 'easy', 'sec', 'title'] : ['resume', 'easy', 'sec', 'title']; },
+  pauseItems() { return Castle.on ? ['resume', 'map', ...(Castle.travelOk() ? ['travel'] : []), 'status', 'equip', ...(Castle.inPrologue() ? ['skip'] : []), Castle.testing ? 'tools' : 'easy', 'sec', 'title'] : ['resume', 'easy', 'sec', 'title']; },
   pauseTouch(clientX, clientY) {
     const r = this.canvas.getBoundingClientRect(), y = (clientY - r.top) / r.height * 240;
     const n = this.pauseItems().length, i = Math.round((y - 123) / 12); // nächster Menüpunkt, großzügig
@@ -936,7 +937,7 @@ const Game = {
   },
   drawPause(ctx) {
     const ids = this.pauseItems(), extra = (ids.length - 4) * 12;
-    const LABEL = { resume: tr('resume'), map: tr('mapTitle') + (Input.device === 'pad' ? ' (SELECT)' : Input.device === 'touch' ? '' : ' (TAB/Q)'), status: tr('castleStatus'), equip: tr('equipTitle'), tools: tr('testTools'), skip: tr('castleSkipPrologue'), easy: tr('optEasy') + ': ' + tr(Options.easy ? 'on' : 'off'), sec: tr('secTitle'), title: tr('toTitle') };
+    const LABEL = { resume: tr('resume'), map: tr('mapTitle') + (Input.device === 'pad' ? ' (SELECT)' : Input.device === 'touch' ? '' : ' (TAB/Q)'), travel: tr('pauseTravel'), status: tr('castleStatus'), equip: tr('equipTitle'), tools: tr('testTools'), skip: tr('castleSkipPrologue'), easy: tr('optEasy') + ': ' + tr(Options.easy ? 'on' : 'off'), sec: tr('secTitle'), title: tr('toTitle') };
     const cx = View.cx, items = ids.map(id => LABEL[id]);
     const hint = tr(Input.device === 'pad' ? 'pausePad' : Input.device === 'touch' ? 'pauseTouch' : 'pauseKey');
     const pw = Math.min(View.w - 8, Math.max(150, Font.width(hint) + 16, ...items.map(s => Font.width(s) + 96)));

@@ -211,6 +211,9 @@ const I18N = (() => {
     castleLocked: { de: 'DER WEG IST NOCH VERSPERRT', en: 'THE WAY IS STILL BLOCKED', fr: 'LE PASSAGE EST ENCORE BLOQUÉ', es: 'EL CAMINO SIGUE CERRADO', ja: '道はまだ閉ざされている', zh: '道路仍被封锁', it: 'LA STRADA È ANCORA BLOCCATA', ro: 'DRUMUL E ÎNCĂ BLOCAT' },
     castleSeals: { de: 'SIEGELTOR: {0}/{1} SIEGEL', en: 'SEAL GATE: {0}/{1} SEALS', fr: 'PORTE SCELLÉE : {0}/{1} SCEAUX', es: 'PUERTA SELLADA: {0}/{1} SELLOS', ja: '封印の扉: 封印 {0}/{1}', zh: '封印之门: 封印 {0}/{1}', it: 'PORTA DEI SIGILLI: {0}/{1} SIGILLI', ro: 'POARTA SIGILIILOR: {0}/{1} SIGILII' },
     castleSeal: { de: 'SIEGEL {0}/{1} – EIN NEUER WEG IST OFFEN', en: 'SEAL {0}/{1} – A NEW PATH IS OPEN', fr: 'SCEAU {0}/{1} – NOUVEAU CHEMIN OUVERT', es: 'SELLO {0}/{1} – UN NUEVO CAMINO SE ABRE', ja: '封印 {0}/{1} – 新たな道が開いた', zh: '封印 {0}/{1} – 新的道路已开启', it: 'SIGILLO {0}/{1} – UNA NUOVA VIA È APERTA', ro: 'SIGILIUL {0}/{1} – UN DRUM NOU S-A DESCHIS' },
+    castleGoalBoss: { de: 'NEBENBOSS: {0}', en: 'SIDE BOSS: {0}', fr: 'BOSS ANNEXE : {0}', es: 'JEFE OPCIONAL: {0}', ja: 'サブボス: {0}', zh: '支线首领: {0}', it: 'BOSS SECONDARIO: {0}', ro: 'BOS SECUNDAR: {0}' },
+    castleBossCount: { de: 'BOSSE {0}/{1}', en: 'BOSSES {0}/{1}', fr: 'BOSS {0}/{1}', es: 'JEFES {0}/{1}', ja: 'ボス {0}/{1}', zh: '首领 {0}/{1}', it: 'BOSS {0}/{1}', ro: 'BOȘI {0}/{1}' },
+    pauseTravel: { de: 'SCHNELLREISE', en: 'FAST TRAVEL', fr: 'VOYAGE RAPIDE', es: 'VIAJE RÁPIDO', ja: 'ファストトラベル', zh: '快速旅行', it: 'VIAGGIO RAPIDO', ro: 'CĂLĂTORIE RAPIDĂ' },
     castleSealsShort: { de: 'SIEGEL {0}/{1}', en: 'SEALS {0}/{1}', fr: 'SCEAUX {0}/{1}', es: 'SELLOS {0}/{1}', ja: '封印 {0}/{1}', zh: '封印 {0}/{1}', it: 'SIGILLI {0}/{1}', ro: 'SIGILII {0}/{1}' },
     // Schloss-Modus: Speicher- und Warpkammern, Fortsetzen
     castleCont: { de: 'FORTSETZEN', en: 'CONTINUE', fr: 'CONTINUER', es: 'CONTINUAR', ja: 'つづきから', zh: '继续游戏', it: 'CONTINUA', ro: 'CONTINUĂ' },

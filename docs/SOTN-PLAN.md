@@ -505,6 +505,19 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
       leiser. test_songs.js spielt alle 31 Lieder an und prüft die Spurlängen.
     - Nächste Schritte der Leitlinie (noch offen): weitere Gegner und Bosse neu rendern, Requisiten, dann Hintergründe; später
       eine höher aufgelöste Ebene für Figuren.
+  - **Sechster Stand – alle Bosse im Wegweiser, weniger Lauferei** (20261112; Rückmeldung „zu viel Backtracking“, „neue Bosse
+    nicht einbezogen“, „Infernax-Fluss“):
+    - *Nebenbosse als Ziele:* `goal()` wählt jetzt zwischen dem Hauptweg (`mainGoal()`, Liste `GOALS`) und dem nächsten
+      erreichbaren Nebenboss (`sideGoal()`: alle Räume mit `.mini`, deren Boss in `MINI_NAME` steht). Ein Nebenboss kommt dran,
+      wenn seine Gefahrenstufe kleiner ist als die des Hauptziels und `hopsFrom(…, true)` einen Weg durch offene Tore findet –
+      nach Stufe, dann nach Entfernung. Der Mond hängt an der Mondkanone (kein Türweg): nach dem Sternbild zeigt das Ziel auf
+      die Sternkuppel. Text „NEBENBOSS: {0}“ (`castleGoalBoss`), Ort = Raumname (`whereRaw`). Neue Nebenziele sagt `goalTick`
+      von selbst an. `Castle.goalInfo()`, `Castle.sideBosses()` für Tests.
+    - *Bosszähler* auf der Statusseite (`bossTally`, 16 = 6 Arenen + 10 Nebenbosse).
+    - *Schnellreise von überall:* Pause → SCHNELLREISE (`travelOk`, `openTravel`, Zustand `warp` wie in der Warpkammer), nicht im
+      Bosskampf, nicht im Vorspiel; vorgewählt ist die Kammer in der Region des Ziels.
+    - Offen für den „Infernax-Fluss“: mehr Abkürzungen zwischen den Regionen, Rückweg-Portal nach Bossen, Aufträge mit Lohn.
+    - CHANGELOG.md im Projektstamm führt je Build auf, was neu ist und was beim Testen anzusehen ist – bei jeder Veröffentlichung ergänzen.
 - **Feinschliff über das ganze Spiel** (20261106, zweite Runde):
   - **Rundgang durch alle 86 Räume** (test_sweep.js): jeder Raum betreten, 3 s laufen lassen, ein Bild je Raum, Fehler je Raum.
     Ergebnis: keine Fehler, Selbsttest sauber.
