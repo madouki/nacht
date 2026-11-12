@@ -166,16 +166,14 @@ const HEROES = (() => {
   // Vorgerenderte 3D-Figuren (Blender): Atlas je Held, Bild je Pose (Schlüssel = Hash der Pose). Fehlt ein Bild,
   // wird die Figur wie bisher aus dem Rig gemalt. REC sammelt beim Export die Gelenke jeder Pose für Blender.
   const R3D = {};
-  // Heldenbilder aus Blender wirken im Spiel weich und flau: harte Kante, mehr Kontrast und Farbe, leicht gestufte Töne – und ein
-  // Auge unter dem Stirnband (Kopfraster wie bei den handgepixelten Köpfen: 'e' in HEAD markiert die Stelle; beim Blinzeln zu)
-  const POLISH = new Set(['henrik', 'ragnor', 'kaspar']);
+  // Heldenbilder aus Blender (seit 20261112 neu modelliert, Farbabstufung schon beim Packen): harte Kante und ein Auge als Pixel
+  // (Kopfraster wie bei den handgepixelten Köpfen: 'e' in HEAD markiert die Stelle; beim Blinzeln zu)
+  const POLISH = new Set(['henrik', 'ragnor', 'kaspar', 'henrikAdv']);
   function polish3d(x, def, hx, hy, pose) {
     const img = x.getImageData(0, 0, FW, FH), d = img.data;
     for (let i = 0; i < d.length; i += 4) {
       if (d[i + 3] < 128) { d[i + 3] = 0; continue; }
       d[i + 3] = 255;
-      const l = 0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2];
-      for (let k = 0; k < 3; k++) { let v = l + (d[i + k] - l) * 1.22; v = (v - 128) * 1.16 + 132; d[i + k] = Math.max(0, Math.min(255, Math.round(v / 9) * 9)); }
     }
     const rows = HEAD[def.head]; let ex = -1, ey = -1;
     rows.forEach((row, ry) => { const cx = row.indexOf('e'); if (cx >= 0) { ex = hx + cx; ey = hy + ry; } });

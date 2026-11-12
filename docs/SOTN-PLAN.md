@@ -485,6 +485,26 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
       Atlas wird nicht mehr geladen. Blender und Meshy waren nicht verbunden.
     - *Helden:* die Blender-Bilder werden beim Bauen nachgeschärft (`polish3d` in hero.js: harte Kante, mehr Kontrast und
       Farbe, gestufte Töne, Auge unter dem Stirnband an der Stelle `e` des Kopfrasters; beim Blinzeln zu). test_art.js zeigt beides.
+  - **Fünfter Stand – erster Schritt Richtung HD-3D** (20261112; Leitlinie des Users: von 16-Bit schrittweise zu einem
+    Bloodstained-artigen HD-3D-Look, mit Augenmaß, ohne das Gesamtgefüge zu gefährden – immer ein abgegrenztes Stück je Runde,
+    Bildgrößen, Anker und Trefferflächen bleiben):
+    - *Helden neu aus Blender:* `HEROES.exportRig(id)` liefert je Pose die Gelenke (47 Posen, Schlüssel = Hash der Pose). Ein
+      Blender-Skript (hero_bl.py, über den Add-on-Socket 127.0.0.1:9876) baut daraus je Pose eine 3D-Figur aus Kugeln und
+      Ellipsoiden (drei Lichter: Führung von oben links, kaltes Gegenlicht, Kante von hinten), rendert orthografisch mit 12-facher
+      Überabtastung; pack.py verkleinert vormultipliziert auf 34×36, härtet die Kante, stuft die Töne leicht und setzt die
+      Bilder an die Plätze der vorhandenen Karte in chars3d.js (die Karten bleiben unverändert). Vier Figuren mit eigenem Aussehen:
+      Henrik, Ragnor (nackter Oberkörper, Fellmantel, Schwert), Kaspar (Porzellan-Marionette im Gehrock, Hellebarde), Henrik als
+      Abenteurer (Hut, Jacke, Tasche). `polish3d` setzt nur noch die harte Kante und das Auge.
+    - *Graf neu aus Blender* (count_bl.py): drei Posen 100×88 von vorn – Umhang als gefaltete Fläche mit gebogtem Saum und
+      schwarzem Rand, spitz aufgestellter Kragen, Frack mit Hemdbrust, roter Weste und Orden, blasses Gesicht mit glühenden Augen.
+      Augenhöhe wie zuvor (y 17), damit der Augenschein im Spiel passt. Bilder ersetzen count_* in img/creatures3d.png.
+    - *Musik:* Rückmeldung „Percussion stolpert, weniger Techno, harmonischer“ → die gemeinsamen Schlagzeugmuster (FOUR, DK,
+      FILL…, PFOUR, GFOUR) sind jetzt ein Rock-Takt (Kick auf 1, vor 3 und auf 3, Snare auf 2 und 4, Hi-Hat auf den
+      Achtel-Nebenzeiten, Tom-Wirbel statt Rausch-Anstieg), die Zufallsbetonung der Hi-Hats ist weg, das Pumpen der Melodie bei
+      jeder Kick fast weg (0,45 → 0,88), Schlagzeug-Bus leiser (0,5–0,9), zweite Stimme und Streicherfläche lauter, Kratzbass
+      leiser. test_songs.js spielt alle 31 Lieder an und prüft die Spurlängen.
+    - Nächste Schritte der Leitlinie (noch offen): weitere Gegner und Bosse neu rendern, Requisiten, dann Hintergründe; später
+      eine höher aufgelöste Ebene für Figuren.
 - **Feinschliff über das ganze Spiel** (20261106, zweite Runde):
   - **Rundgang durch alle 86 Räume** (test_sweep.js): jeder Raum betreten, 3 s laufen lassen, ein Bild je Raum, Fehler je Raum.
     Ergebnis: keine Fehler, Selbsttest sauber.

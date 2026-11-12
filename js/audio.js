@@ -286,18 +286,18 @@ const Audio8 = (() => {
   const ROCKX = 'x:1 h:1 h:1 h:1 s:1 h:1 h:1 k:1 k:1 h:1 k:1 h:1 s:1 h:1 o:1 h:1';
   const FILL = 'k:1 h:1 s:1 h:1 k:1 h:1 s:1 h:1 t:1 h:1 u:1 h:1 k:1 t:1 u:1 h:1';
   // Treibender Four-on-the-floor-Beat: Kick auf jedem Viertel, Snare 2+4, offene Hats auf den Offbeats
-  const FOUR = 'k:1 h:1 o:1 h:1 q:1 h:1 o:1 h:1 k:1 h:1 o:1 k:1 q:1 h:1 o:1 h:1';
-  const FOURX = 'x:1 h:1 o:1 h:1 q:1 h:1 o:1 h:1 k:1 h:1 o:1 k:1 q:1 h:1 o:1 h:1';
-  const FILLS = 'k:1 h:1 o:1 h:1 q:1 h:1 o:1 h:1 k:1 h:1 o:1 h:1 q:1 h:1 t:1 u:1';
-  const FILLB = 'k:1 h:1 o:1 h:1 q:1 h:1 o:1 h:1 k:1 h:1 t:1 u:1 q:1 h:1 o:1 h:1';
+  const FOUR = 'k:1 -:1 h:1 -:1 s:1 -:1 h:1 k:1 k:1 -:1 h:1 -:1 s:1 -:1 h:1 -:1';
+  const FOURX = 'x:1 -:1 h:1 -:1 s:1 -:1 h:1 k:1 k:1 -:1 h:1 -:1 s:1 -:1 h:1 -:1';
+  const FILLS = 'k:1 -:1 h:1 -:1 s:1 -:1 h:1 k:1 k:1 -:1 h:1 -:1 s:1 -:1 t:1 u:1';
+  const FILLB = 'k:1 -:1 h:1 -:1 s:1 -:1 h:1 k:1 k:1 -:1 t:1 u:1 s:1 -:1 s:1 -:1';
   // Aufbau der Stage-Songs: 32 Takte ohne Pause – die Melodie läuft durch, die zweite Hälfte legt
   // mit 32tel-Arpeggien und galoppierender Kick zu, ein Riser führt zurück an den Anfang.
   const contrastLead = (chords, m, bars) => bars.join(' ') + ' ' + bars.join(' ');
   const section = () => rep([FOURX, FOUR, FOUR, FILLS, FOUR, FOUR, FOUR, FILLB].join(' '), 2);
   // B-Teil: galoppierende Kick (kein Dauerfeuer), Tom-Fill und Riser vor dem Loop
-  const DK = 'k:1 h:1 o:1 k:1 q:1 h:1 o:1 h:1 k:1 h:1 k:1 h:1 q:1 h:1 o:1 h:1';
-  const DKX = 'x:1 h:1 o:1 k:1 q:1 h:1 o:1 h:1 k:1 h:1 k:1 h:1 q:1 h:1 o:1 h:1';
-  const FILLR = 'k:1 h:1 o:1 h:1 q:1 h:1 t:1 u:1 w:8';
+  const DK = 'k:1 -:1 h:1 k:1 s:1 -:1 h:1 -:1 k:1 k:1 h:1 -:1 s:1 -:1 h:1 -:1';
+  const DKX = 'x:1 -:1 h:1 k:1 s:1 -:1 h:1 -:1 k:1 k:1 h:1 -:1 s:1 -:1 h:1 -:1';
+  const FILLR = 'k:1 -:1 h:1 -:1 s:1 -:1 t:1 u:1 s:1 s:1 t:1 t:1 u:1 u:1 s:1 s:1';
   const sectionB = () => [DKX, DK, DK, FILLS, DK, DK, DK, FILLB, DKX, DK, DK, FILLS, DK, DK, DK, FILLR].join(' ');
   // 3er-Arpeggio gegen den 4er-Takt: verschiebt sich ständig und treibt nach vorn
   const arp3 = (a, b, c) => Array.from({ length: 16 }, (_, i) => [a, b, c][i % 3] + ':1').join(' ');
@@ -362,8 +362,8 @@ const Audio8 = (() => {
   const LB_B = { Am: ['a1', 'a2'], E: ['e2', 'e3'], Dm: ['d2', 'd3'], G: ['g1', 'g2'], C: ['c2', 'c3'], F: ['f1', 'f2'] };
   const LB_C = ['Am', 'E', 'Am', 'G', 'F', 'C', 'Dm', 'E', 'Am', 'Dm', 'G', 'C', 'F', 'Dm', 'E', 'E'];
   // Pauken auf der Eins und ein Paukenwirbel als Fill (Glasturm)
-  const PFOUR = 'p:1 h:1 o:1 h:1 q:1 h:1 o:1 h:1 k:1 h:1 o:1 k:1 q:1 h:1 o:1 h:1';
-  const FILLP = 'k:1 h:1 o:1 h:1 q:1 h:1 o:1 h:1 p:1 h:1 p:1 h:1 p:1 p:1 p:1 p:1';
+  const PFOUR = 'p:1 -:1 h:1 -:1 s:1 -:1 h:1 k:1 k:1 -:1 h:1 -:1 s:1 -:1 h:1 -:1';
+  const FILLP = 'k:1 -:1 h:1 -:1 s:1 -:1 h:1 -:1 p:1 -:1 p:1 -:1 p:1 p:1 p:1 p:1';
   const toccata = (a, b, c) => { const up = (n) => n.replace(/\d/, d => +d + 1); return `${a}:1 ${b}:1 ${c}:1 ${b}:1 ${a}:1 ${b}:1 ${c}:1 ${up(a)}:1 ${c}:1 ${up(a)}:1 ${up(b)}:1 ${up(a)}:1 ${c}:1 ${b}:1 ${a}:1 ${b}:1`; };
 
   // Graf – Bosslied (d-Moll): Akkorde, Pedalgrundtöne, Orgel-Lagen
@@ -372,7 +372,7 @@ const Audio8 = (() => {
   const CT_O = { Dm: 'd3+a3+d4+f4', Bb: 'a#2+f3+a#3+d4', Gm: 'g2+d3+g3+a#3', A: 'a2+e3+a3+c#4', F: 'f2+c3+f3+a3', C: 'c3+g3+c4+e4', Cdim: 'c#3+g3+a#3+e4' };
   const CT_C = ['Dm', 'Bb', 'Gm', 'A', 'Dm', 'Bb', 'Cdim', 'A', 'Dm', 'F', 'C', 'Dm', 'Bb', 'Gm', 'A', 'A'];
   const CT_C2 = ['Dm', 'Gm', 'Bb', 'A', 'Dm', 'Gm', 'A', 'A'];
-  const GFOUR = 'g:1 h:1 o:1 h:1 q:1 h:1 o:1 h:1 k:1 h:1 o:1 k:1 q:1 h:1 o:1 h:1'; // Gong auf der Eins
+  const GFOUR = 'g:1 -:1 h:1 -:1 s:1 -:1 h:1 k:1 k:1 -:1 h:1 -:1 s:1 -:1 h:1 -:1'; // Gong auf der Eins
   const DKD = 'k:1 d:1 s:1 d:1 k:1 d:1 s:1 d:1 k:1 d:1 s:1 d:1 k:1 d:1 s:1 d:1'; // Doppel-Kick unter Snare-Achteln
   const GDKD = 'g:1' + DKD.slice(3), BDKD = 'b:1' + DKD.slice(3); // mit Gong bzw. Glocke auf der Eins
 
@@ -897,7 +897,7 @@ const Audio8 = (() => {
     return drumBus;
   }
   function intensity(x) {
-    const v = 0.6 + 0.4 * Math.max(0, Math.min(1, x));
+    const v = 0.5 + 0.4 * Math.max(0, Math.min(1, x)); // Schlagzeug insgesamt etwas zurückgenommen (mehr Raum für die Harmonien)
     if (Math.abs(v - drumLvl) < 0.01) return;
     drumLvl = v;
     if (ac && drumBus) drumBus.gain.setTargetAtTime(v, ac.currentTime, v > drumBus.gain.value ? 0.25 : 1.2); // schnell hinauf, langsam zurück
@@ -913,12 +913,12 @@ const Audio8 = (() => {
   }
   // Sidechain: Melodie/Bass kurz absenken, wenn die Kick kommt
   function sidechain(t) {
-    melBus.gain.setValueAtTime(0.45, t);
-    melBus.gain.linearRampToValueAtTime(1, t + 0.12);
+    melBus.gain.setValueAtTime(0.88, t); // nur noch ein Hauch – das starke Pumpen klang nach Techno
+    melBus.gain.linearRampToValueAtTime(1, t + 0.09);
   }
   let cueQ = [], songT0 = 0; // geplante Pauken-/Beckenschläge (Audiozeit) fürs Bild; Startzeit des laufenden Stücks
-  // Groove: Hi-Hats auf den Sechzehntel-Nebenzeiten (ungerade Positionen) leiser, jede ein wenig anders – kein Maschinengewehr mehr
-  const hatVel = (pos) => (Math.abs(pos % 2 - 1) < 0.01 ? 0.64 : 1) * (0.93 + Math.random() * 0.14);
+  // Hi-Hats auf den Sechzehntel-Nebenzeiten (ungerade Positionen) etwas leiser – fest, ohne Zufall (der wirkte wie Stolpern)
+  const hatVel = (pos) => (Math.abs(pos % 2 - 1) < 0.01 ? 0.8 : 1);
   function drum(n, t, dur, pos = 0) {
     const musicBus = drumOut(); // eigener Bus (adaptive Lautstärke)
     if (n === 'p' || n === 'x') { cueQ.push(t); if (cueQ.length > 32) cueQ.shift(); } // Pauke und Becken: Taktmarken fürs Bild (Ballsaal-Blitze)
@@ -974,7 +974,7 @@ const Audio8 = (() => {
   function note(track, f, t, dur, volMul = 1, dutyOverride, side) { // side: eigener Platz im Panorama (Echo)
     const o = track === 'tri' ? osc('triangle') : osc('pulse', dutyOverride || (track === 'p1' ? 0.25 : 0.125));
     const g = ac.createGain();
-    const vol = (track === 'p1' ? 0.2 : track === 'p2' ? 0.085 : track === 'pb' ? 0.05 : 0.42) * volMul;
+    const vol = (track === 'p1' ? 0.2 : track === 'p2' ? 0.102 : track === 'pb' ? 0.04 : 0.42) * volMul; // zweite Stimme lauter, Kratzbass leiser
     const gate = Math.max(0.03, dur * (track === 'tri' ? 0.92 : track === 'pb' ? 0.55 : 0.82));
     o.frequency.setValueAtTime(f, t);
     if (track === 'p1' && dur > 0.22) { // Vibrato bei langen Tönen
@@ -1024,7 +1024,7 @@ const Audio8 = (() => {
     [-7, 7].forEach(cents => { // je Sägezahn eigener Filter und Platz: der tiefere links, der höhere rechts – breit wie ein Chor
       const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1400; lp.Q.value = 2;
       const g = ac.createGain();
-      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.045, t + 0.5); g.gain.setValueAtTime(0.045, t + dur * 0.8); g.gain.linearRampToValueAtTime(0, t + dur + 0.6);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.054, t + 0.5); g.gain.setValueAtTime(0.054, t + dur * 0.8); g.gain.linearRampToValueAtTime(0, t + dur + 0.6);
       const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.detune.value = cents;
       o.connect(lp); lp.connect(g); g.connect(pan(cents < 0 ? 'padL' : 'padR', melBus)); o.start(t); o.stop(t + dur + 0.7);
     });
