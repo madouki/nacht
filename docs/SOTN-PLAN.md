@@ -524,6 +524,8 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
       Kopfgeld (Stufe × 1000 bzw. × 2000) und füllt HP und MP; einmaliger Hinweis `travelTip`. test_flow.js prüft alles.
     - Offen für den „Infernax-Fluss“: Abkürzungen als echte Türen zwischen den Regionen, sichtbares Rückweg-Portal in der Arena, Aufträge mit Lohn.
     - CHANGELOG.md im Projektstamm führt je Build auf, was neu ist und was beim Testen anzusehen ist – bei jeder Veröffentlichung ergänzen.
+      Seit 20261113 auch im Spiel: Optionen → CHANGELOG (Zustand `changelog`, `Game.chgLayout/updateChangelog/drawChangelog`);
+      die Daten erzeugt `python tools/make_changelog.py` aus CHANGELOG.md nach js/changelog.js – vor jedem Commit neu erzeugen.
 - **Feinschliff über das ganze Spiel** (20261106, zweite Runde):
   - **Rundgang durch alle 86 Räume** (test_sweep.js): jeder Raum betreten, 3 s laufen lassen, ein Bild je Raum, Fehler je Raum.
     Ergebnis: keine Fehler, Selbsttest sauber.

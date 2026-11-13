@@ -8,6 +8,18 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 
 ---
 
+## 20261113-0134 – Changelog im Spiel
+
+**Neu**
+- **Optionen → CHANGELOG** zeigt dieses Changelog im Spiel: ↑↓ rollt (gehalten läuft es weiter), ←→ springt zur vorigen
+  oder nächsten Version, Start, Sprung oder Angriff führt zurück. In der Optionszeile steht die neueste Build-Nummer.
+- Der Text kommt aus CHANGELOG.md (`python tools/make_changelog.py` erzeugt daraus js/changelog.js) und ist auf Deutsch,
+  auch wenn das Spiel auf eine andere Sprache gestellt ist.
+
+**Beim Testen ansehen**
+- Titel → OPTIONEN → ganz nach unten: steht CHANGELOG vor ZURÜCK, stimmt die Build-Nummer mit dem Titelbild überein?
+- Ist die Seite auf deinem Bildschirm gut lesbar, rollt sie flüssig, sind lange Zeilen sauber umbrochen?
+
 ## 20261113-0128 – Grafik: Riesenfledermaus und Gegner neu aus Blender
 
 **Neu**

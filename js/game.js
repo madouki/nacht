@@ -17,6 +17,7 @@ const OPTION_ITEMS = [ // label/hint sind Schlüssel für tr()
   { key: 'bloom', label: 'optBloom', hint: 'optBloomH' }, // Glühen (Bloom) um helle Stellen
   { key: 'speed', label: 'optSpeed', hint: 'optSpeedH' }, // Spieltempo 100 / 85 / 70 %
   { key: 'fullscreen', label: 'optFull', hint: 'optFullH' },
+  { key: 'changelog', label: 'optChangelog', hint: 'optChangelogH' }, // was ist neu, was testen (aus CHANGELOG.md, js/changelog.js)
   { key: 'back', label: 'optBack', hint: '' },
 ].filter(it => !['guide', 'allRelics', 'maxLevel'].includes(it.key) || Castle.on);
 const BAY4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
@@ -486,6 +487,7 @@ const Game = {
       case 'scores': this.updateScores(); break;
       case 'demo': this.updateDemo(); break;
       case 'options': this.updateOptions(P); break;
+      case 'changelog': this.updateChangelog(P); break;
       case 'sections': this.updateSections(P); break;
       case 'pausesec': this.updateSections(P, true); break;
       case 'secload': { // Ladeanzeige ist schon gezeichnet (secShown): Hintergründe der Ziel-Region vorbauen (runWarm, Balken läuft), dann starten
@@ -649,6 +651,7 @@ const Game = {
     const it = OPTION_ITEMS[this.optSel];
     const left = P.left, right = P.right || P.jump || P.attack;
     if (P.start || (it.key === 'back' && (P.jump || P.attack))) { this.go('title'); Audio8.sfx('pause'); return; }
+    if (it.key === 'changelog') { if (right) { this.chg = { y: 0, lay: null }; this.go('changelog'); Audio8.sfx('select'); } return; }
     if (!(left || right)) return;
     if (it.key === 'music') {
       Options.set('music', clamp(Options.music + (left ? -1 : 1), 0, 10));
@@ -724,6 +727,7 @@ const Game = {
     switch (this.state) {
       case 'title': this.drawTitle(ctx); break;
       case 'options': this.drawOptions(ctx); break;
+      case 'changelog': this.drawChangelog(ctx); break;
       case 'sections': this.drawSections(ctx); break;
       case 'milestones': Castle.drawMilestones(ctx, this.t, this.msSel || 0); break;
       case 'epilogue': { // Schloss-Ende: Morgendämmerung über der Burg, darüber das Gesprächsfenster
@@ -1534,6 +1538,57 @@ const Game = {
     Font.draw(ctx, tr('secHelp'), cx, 212, '#7c7c8c', { align: 'center' });
   },
 
+  // Changelog im Spiel (Optionen → CHANGELOG): die Einträge aus CHANGELOG.md als rollbare Seite. ↑↓ rollt (gehalten: weiter),
+  // ←→ springt zur vorigen/nächsten Version, Start/Sprung/Angriff zurück. Umbruch nach Schirmbreite, je Breite einmal gesetzt.
+  chgLayout() {
+    const W2 = Math.min(View.w - 28, 380), c = this.chg;
+    if (c.lay && c.lay.w === W2) return c.lay;
+    const rows = [], heads = [];
+    const wrapTo = (txt, max) => { const out = []; let line = ''; for (const wd of String(txt).split(' ')) { const t = line ? line + ' ' + wd : wd; if (!line || Font.width(t) <= max) line = t; else { out.push(line); line = wd; } } if (line) out.push(line); return out; };
+    let y = 0;
+    (typeof CHANGELOG !== 'undefined' ? CHANGELOG : []).forEach((v, i) => {
+      if (i) y += 8;
+      heads.push(y);
+      rows.push({ y, s: v.build, col: '#f8b800', x: 0, rule: true }); y += 10;
+      wrapTo(v.title, W2).forEach(l => { rows.push({ y, s: l, col: '#fce0a8', x: 0 }); y += 10; });
+      y += 3;
+      for (const [k, txt] of v.rows) {
+        if (k === 'h') { y += 3; rows.push({ y, s: txt, col: '#7cdcfc', x: 0 }); y += 11; continue; }
+        const ind = k === 'b' ? 9 : 0;
+        wrapTo(txt, W2 - ind).forEach((l, j) => { rows.push({ y, s: l, col: '#e8e4d8', x: ind, dot: k === 'b' && j === 0 }); y += 9; });
+        y += 2;
+      }
+    });
+    return (c.lay = { w: W2, rows, heads, h: y });
+  },
+  updateChangelog(P) {
+    const c = this.chg || (this.chg = { y: 0, lay: null }), L = this.chgLayout(), view = 164, max = Math.max(0, L.h - view);
+    if (this.t > 8 && (P.start || P.jump || P.attack)) { this.go('options'); Audio8.sfx('pause'); return; }
+    if (Input.held.down) c.y += 3; if (Input.held.up) c.y -= 3;
+    if (P.right) { const n = L.heads.find(h => h > c.y + 1); if (n !== undefined) c.y = n; Audio8.sfx('select'); }
+    if (P.left) { const prev = L.heads.filter(h => h < c.y - 1); c.y = prev.length ? prev[prev.length - 1] : 0; Audio8.sfx('select'); }
+    c.y = clamp(c.y, 0, max);
+  },
+  drawChangelog(ctx) {
+    const cx = View.cx, c = this.chg || (this.chg = { y: 0, lay: null }), L = this.chgLayout(), x0 = Math.round(cx - L.w / 2), top = 40, view = 164;
+    this.menuBg(ctx);
+    ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(x0 - 8, 14, L.w + 16, 212);
+    ctx.fillStyle = '#c89020'; ctx.fillRect(x0 - 8, 14, L.w + 16, 1); ctx.fillRect(x0 - 8, 225, L.w + 16, 1); ctx.fillRect(x0 - 2, 36, L.w + 4, 1); ctx.fillRect(x0 - 2, top + view + 3, L.w + 4, 1);
+    this.big(ctx, tr('optChangelog'), cx, 18, 2, LOGO, null, '#000');
+    ctx.save(); ctx.beginPath(); ctx.rect(x0 - 4, top, L.w + 8, view); ctx.clip();
+    for (const r of L.rows) {
+      const y = top + 2 + r.y - Math.round(c.y);
+      if (y < top - 10 || y > top + view) continue;
+      if (r.rule) { ctx.fillStyle = 'rgba(200,144,32,0.45)'; ctx.fillRect(x0 + Font.width(r.s) + 6, y + 3, L.w - Font.width(r.s) - 6, 1); }
+      if (r.dot) { ctx.fillStyle = '#c89020'; ctx.fillRect(x0 + 2, y + 2, 3, 3); }
+      Font.draw(ctx, r.s, x0 + r.x, y, r.col, { shadow: '#000', noFit: true });
+    }
+    ctx.restore();
+    const max = Math.max(1, L.h - view), k = clamp(c.y / max, 0, 1), bh = Math.max(12, Math.round(view * view / Math.max(view, L.h))); // Rollbalken
+    ctx.fillStyle = '#2c1c10'; ctx.fillRect(x0 + L.w + 3, top, 2, view); ctx.fillStyle = '#c89020'; ctx.fillRect(x0 + L.w + 3, top + Math.round((view - bh) * k), 2, bh);
+    Font.draw(ctx, tr('chgNav'), cx, 213, '#7c7c7c', { align: 'center' });
+  },
+
   drawOptions(ctx) {
     const cx = View.cx;
     this.menuBg(ctx);
@@ -1554,6 +1609,7 @@ const Game = {
         for (let k = 0; k < 10; k++) { ctx.fillStyle = k < Options.music ? '#f8b800' : '#3c3c3c'; ctx.fillRect(cx + 54 + k * 6, y, 4, 7); }
       } else if (it.key === 'lang') { val = '< ' + I18N.NAMES[Options.lang] + ' >'; good = true; }
       else if (it.key === 'speed') { val = '< ' + Options.speed + ' % >'; good = Options.speed === 100; }
+      else if (it.key === 'changelog') { val = typeof CHANGELOG !== 'undefined' && CHANGELOG[0] ? CHANGELOG[0].build + ' >' : '>'; good = true; }
       else if (it.key !== 'back') {
         good = it.key === 'crt' ? this.crt : !!Options[it.key];
         val = tr(good ? 'on' : 'off');
