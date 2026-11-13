@@ -633,8 +633,9 @@ const Castle = (() => {
       [['side', 'eiskeller'], { e: 'R', y: 10 }, ['side', 'eisaufzug'], { e: 'L', y: 100 }, {}],     // Eiskeller → Eisaufzug (Mitte)
       [['side', 'eisaufzug'], { e: 'R', y: 113 }, ['side', 'gruftgang'], { e: 'L', y: 10 }, {}],     // Eisaufzug (unten) → Gruftgang
       [['side', 'gruftgang'], { e: 'T', x: 70 }, [1, 4], { e: 'B', x: 13 }, {}],                    // Gruftgang: Aufzug → Loch unter der Brücke der Gruft
-      [[1, 2], { e: 'B', x: 40 }, ['side', 'eisrutsche'], { e: 'T', x: 2 }, {}],                    // Eishöhle: Lücke in der Stachelgrube → Eisrutsche (settle)
-      [['side', 'eisrutsche'], { e: 'B', x: 57 }, ['side', 'eiskeller'], { e: 'T', x: 50 }, {}],     // Turmfuß der Rutsche → Eiskeller
+      [[1, 2], { e: 'B', x: 40 }, ['side', 'eisrutsche'], { e: 'T', x: 2 }, { oneway: true }],       // Eishöhle: Lücke in der Stachelgrube → Eisrutsche (settle); nur hinab
+      [['side', 'eisrutsche'], { e: 'B', x: 57 }, ['side', 'eiskeller'], { e: 'T', x: 50 }, { oneway: true }], // Turmfuß der Rutsche → Eiskeller; nur hinab
+      // (der Schacht in der Eiskellerdecke liegt acht Kacheln über dem höchsten Sims – als Rückweg schickte der Wegweiser Spieler in die Sackgasse)
       [[1, 4], { e: 'R', y: 10 }, ['side', 'kanal'], 'start', { crack: 'kanal', back: { beat: [1, -1] } }], // Gruft (hinter dem Knochenriesen) → Kanal
       [['side', 'kanal'], { e: 'B', x: 6 }, ['side', 'kapelle'], { e: 'T', x: 3 }, {}],              // Kanal: Loch am Anfang → versunkene Kapelle
       [['side', 'kanal'], { e: 'T', x: 48 }, ['side', 'pumpenschacht'], { e: 'B', x: 11 }, {}],      // Kanal: Aufzug → Pumpenschacht
@@ -3656,6 +3657,23 @@ const Castle = (() => {
     for (const d of doorsOf(s, r)) out.push({ to: d.to, door: d, gate: d.gate });
     return (stepMemo[k] = out);
   }
+  // Prüfhilfe (Tests): alle Schächte, durch die ein Raum nach OBEN verlassen wird – gibt es dort einen Aufzug, eine Tür mit
+  // Standreihe oder Boden in Sprunghöhe? Sonst ist es nur ein Fallschacht und die Verbindung muss { oneway: true } tragen,
+  // damit der Wegweiser niemanden dorthin schickt (Eiskeller unter der Eisrutsche, 20261113).
+  function shaftAudit() {
+    const out = [];
+    S().forEach((stg, s) => stg.rooms.forEach((def, r) => { for (const d of doorsOf(s, r)) {
+      const pl = d.place; if (!isEdge(pl) || pl.e !== 'T') continue;
+      const lift = (def.ents || []).some(e => (e.type === 'lift' || e.type === 'elevator') && Math.abs(e.x - pl.x) <= 6);
+      let row = 99, stairs = false; // row: höchste Standreihe am Schacht (Doppelsprung reicht etwa 5 Kacheln), stairs: Treppe bis an die Decke
+      for (let col = Math.max(0, pl.x - 4); col <= Math.min(def.w - 1, pl.x + 5); col++) {
+        if ('/\\'.includes(def.grid[0][col]) || '/\\'.includes(def.grid[1][col])) stairs = true;
+        for (let y = 0; y < def.h - 1; y++) if (SOLID.includes(def.grid[y + 1][col]) && !SOLID.includes(def.grid[y][col])) { row = Math.min(row, y); break; }
+      }
+      out.push({ room: def.label || s + ':' + r, s, r, x: pl.x, y: pl.y, lift, stairs, row, ok: lift || stairs || pl.y !== undefined || row <= 4 });
+    } }));
+    return out;
+  }
   let backEdges = null;
   function edgesInto() { // der Raumgraph rückwärts: 's:r' → alle Schritte, die in diesen Raum führen ({ s, r, gate } = woher, Bedingung)
     if (backEdges) return backEdges;
@@ -4652,6 +4670,7 @@ const Castle = (() => {
         else if (![0, 1].every(k => open(pl.x + k, def.h - 1) && open(pl.x + k, def.h - 2))) out.push('Schacht unten zu: ' + where);
         if (pl.e === 'B' && d.gate && Object.keys(d.gate).some(k => k !== 'oneway' && k !== 'back')) out.push('Schacht unten mit Sperre (man fiele ins Leere): ' + where); // Einbahn sperrt nichts
       }
+      for (const a of r === 0 && s === 0 ? shaftAudit() : []) if (!a.ok) out.push('Schacht nach oben ohne Aufstieg (oneway fehlt?): ' + a.room + ' x' + a.x);
     }));
     for (const [A, , B] of LINKS) if (!ref(A) || !ref(B)) out.push('Verbindung ohne Raum: ' + JSON.stringify([A, B]));
     for (const b of BEATS) { const a = ref(b.at[0]); if (!a) out.push('Szene ohne Raum: ' + b.id); else if (!ground(S()[a.s].rooms[a.r], b.at[1], b.at[2])) out.push('Figur ohne Boden: ' + b.id); }
@@ -4747,7 +4766,7 @@ const Castle = (() => {
     setFlag: (k) => { flag[k] = 1; save(); }, // z. B. Aufzug als Abkürzung freigeschaltet (lift.js)
     k3at, art, whenArt, dishToday, buffInfo: () => buff && { id: buff.id, k: buff.t / BUFF_T }, // Behördentrakt (js/trakt.js), HUD: Mahlzeit
     toolsInput, drawTools, selfCheck, mapReport, mapLayout: () => castle(), doorsOf, get god() { return god; }, get best() { return best; },
-    toggleOverlay, get overlay() { return overlayOn; }, travelOk, openTravel, bossTally, bountyList, get statusPageNo() { return statusPage; }, hasReturnGate: () => W.ents.some(e => e instanceof ReturnGate && !e.dead), sideBosses: () => sideBosses().map(b => ({ id: b.id, s: b.s, r: b.r, done: sideDone(b), label: b.d.label })), goalInfo: () => { const g = goal(); return g ? { text: goalText(g), where: whereText(g), id: g.id || GOALS.indexOf(g) } : null; },
+    toggleOverlay, get overlay() { return overlayOn; }, travelOk, openTravel, bossTally, shaftAudit, bountyList, get statusPageNo() { return statusPage; }, hasReturnGate: () => W.ents.some(e => e instanceof ReturnGate && !e.dead), sideBosses: () => sideBosses().map(b => ({ id: b.id, s: b.s, r: b.r, done: sideDone(b), label: b.d.label })), goalInfo: () => { const g = goal(); return g ? { text: goalText(g), where: whereText(g), id: g.id || GOALS.indexOf(g) } : null; },
     tier: (s) => (TIER[S()[s].id] || 1) + 2 * (flag.ngp || 0), side: SIDE, startEpilogue, resultsInput, drawResults, ngPlus, ngRestore, drawGoalBanner, drawGoalToast, announceGoal, drawGuide, guidePlan, inPrologue, goal: () => { const g = goal(); return g && { text: goalText(g), where: tr(g.where) }; }, get vessels() { return vessel; }, get relics() { return relic; }, get cracks() { return crack; }, has,
     get seen() { return seen; }, get warps() { return warp; },
     reset() { seen = {}; boss = {}; mini = {}; warp = {}; vessel = {}; relic = {}; crack = {}; flag = {}; inv = {}; eq = {}; famx = {}; best = {}; try { localStorage.removeItem(KEY); localStorage.removeItem(SAVE_KEY); localStorage.removeItem(RESUME_KEY); } catch (e) { /* privat */ } },

@@ -8,6 +8,18 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 
 ---
 
+## 20261113-0717 – Hotfix: Wegweiser im Eiskeller zeigte in eine Sackgasse
+
+**Behoben**
+- **Eiskeller (Katakomben, unter der Eisrutsche):** Der Wegweiser zeigte auf den Schacht in der Decke. Das ist nur der
+  Fallschacht der Eisrutsche – von unten kommt man dort nicht hinauf. Der Schacht zählt jetzt als Einbahn: der Wegweiser
+  führt nach **rechts zum Eisaufzug** (↑ ruft die Kabine, ↑ auf der Kabine fährt hinauf zur Eishöhle) oder nach links zum
+  Golemstollen. Dasselbe gilt für das obere Ende der Eisrutsche.
+- Der Selbsttest prüft jetzt jeden Schacht nach oben: ohne Aufzug, Treppe oder Boden in Sprunghöhe wird er gemeldet.
+
+**Beim Testen ansehen**
+- Im Eiskeller: zeigt der Pfeil nach rechts (bzw. links zum Golem), und kommst du über den Eisaufzug wieder hinauf?
+
 ## 20261113-0229 – Grafik: Medusa und die kleinen Kreaturen neu aus Blender
 
 **Neu – Grafik**
