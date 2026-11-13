@@ -93,6 +93,10 @@ LOOK = {
                  bracer=None, flap=None, sash=None, trim='#2c8c50', pauld=None, arm=1.65, leg=1.0, pony=False, bandOn=False, belt='#2c8c50', fin='#d83020'),
     'knight': dict(head='helmet', skin='#b4b4d0', hair='#3c3c58', hairD='#1c1c2c', band=None, torso='#a4a4c4', torsoD='#7c7c9c', shirt=None, legs='#8c8cac', boot='#a4a4c4', bootL='#d0d0e8',
                    bracer='#f0c040', flap='#8c8cac', sash=None, trim='#f0c040', pauld='#c8c8e4', arm=2.0, leg=1.1, pony=False, bandOn=False, metal=True, shield='#2c50d0', plume='#e02818'),
+    'skel': dict(head='skull', ribs=True, skin='#e8e0c8', hair='#9c9478', hairD='#3c3428', band=None, torso='#dcd4b8', torsoD='#b4a888', shirt=None, legs='#dcd4b8', boot='#dcd4b8', bootL='#f4f0e0',
+                 bracer=None, flap=None, sash=None, trim='#b4a888', pauld=None, arm=1.05, leg=0.55, pony=False, bandOn=False, joints='#b4a888'),
+    'sunknight': dict(head='helmet', skin='#e8b030', hair='#8c5c00', hairD='#3c2400', band=None, torso='#f4c848', torsoD='#a87010', shirt=None, legs='#c89020', boot='#f0c040', bootL='#fcf0a0',
+                      bracer='#d0d0e8', flap='#d8a830', sash=None, trim='#d0d0e8', pauld='#fcd860', arm=2.0, leg=1.1, pony=False, bandOn=False, metal=True, shield='#2c50d0', plume='#fcfcfc'),
 }
 
 def monster_head(L, hc, sh, flare, fA):
@@ -115,18 +119,42 @@ def monster_head(L, hc, sh, flare, fA):
         S(hc[0] + 2.6, hc[1] + 0.2, -2.9, 2.4, dark, 1.6, 0.62); S(hc[0] + 3.9, hc[1] + 2.0, -1.8, 0.5, dark, 1.2, 1.5)
         S(hc[0] - 0.2, hc[1] - 4.2, 0, 3.6, M('#d0d0e8', 0.25, 1, 0.8), 0.8, 0.9)
         chain((hc[0] - 0.6, hc[1] - 5.0), (hc[0] - 5.4 - flare, hc[1] - 3.0), 0, 1.5, 0.7, M(L['plume'], 0.7), 5); chain((hc[0] - 3.0, hc[1] - 4.6), (hc[0] - 6.4 - flare, hc[1] - 0.6), 0, 1.2, 0.5, M(L['plume'], 0.7, 0.8), 4)
+    elif st == 'skull':  # Schädel: Hirnschale, Jochbein, dunkle Augenhöhlen, Nasenloch, Unterkiefer mit Zahnreihe
+        bone, dark = M(L['skin'], 0.5), M('#140c08', 0.8)
+        S(hc[0] + 0.3, hc[1] - 0.2, 0, 4.4, bone, 4.0, 4.3); S(hc[0] + 1.7, hc[1] + 2.4, 0, 2.9, bone, 3.0, 1.9)
+        S(hc[0] + 2.6, hc[1] + 0.2, -3.1, 1.45, dark, 0.7, 1.35); S(hc[0] + 4.2, hc[1] + 1.6, -1.8, 0.55, dark, 0.5, 0.75)
+        S(hc[0] + 1.9, hc[1] + 4.3, 0, 2.5, bone, 2.6, 1.0); S(hc[0] + 2.7, hc[1] + 3.5, -2.3, 1.7, dark, 0.5, 0.28)
     if L.get('shield'):  # runder Schild am vorderen Arm: blau mit goldenem Rand und Buckel
-        hx, hy = fA[4] + 0.6, fA[5] - 0.6
-        S(hx, hy, -5.2, 5.2, M('#f0c040', 0.3, 1, 0.8), 0.7, 5.2); S(hx, hy, -5.6, 4.4, M(L['shield'], 0.35, 1, 0.3), 0.7, 4.4); S(hx, hy, -6.2, 1.5, M('#f0c040', 0.25, 1, 0.9), 0.9, 1.5)
+        hx, hy = min(fA[4] + 0.4, FW - 4.6), max(fA[5] - 0.6, 4.6)
+        S(hx, hy, -5.2, 4.3, M('#f0c040', 0.3, 1, 0.8), 0.7, 4.3); S(hx, hy, -5.6, 3.6, M(L['shield'], 0.35, 1, 0.3), 0.7, 3.6); S(hx, hy, -6.2, 1.3, M('#f0c040', 0.25, 1, 0.9), 0.9, 1.3)
+
+def figure_torso(L, sh, hip, ang, tor, torD, legs, flare):
+    S(hip[0], hip[1] - 0.3, 0, 3.15, legs, 3.9, 2.7)                                                             # Becken
+    S(sh[0] * 0.3 + hip[0] * 0.7, sh[1] * 0.3 + hip[1] * 0.7, 0, 3.05, torD if not L.get('bare') else tor, 3.8, 3.4, ang)   # Bauch
+    S(sh[0] * 0.66 + hip[0] * 0.34 + 0.35, sh[1] * 0.66 + hip[1] * 0.34 + 0.3, 0, 3.55, tor, 4.5, 4.4, ang)       # Brust
+    if L.get('shirt'): S(sh[0] + 1.9, sh[1] + 2.6, -1.2, 1.9, M(L['shirt'], 0.7), 2.6, 3.4, ang)                   # Hemdbrust
+    if L.get('bare'):                                                                                             # Brustmuskel, Gurt
+        S(sh[0] + 2.2, sh[1] + 1.8, -2.0, 1.9, tor, 2.2, 1.7); chain((sh[0] - 2.6, sh[1] - 0.6), (hip[0] + 2.8, hip[1] - 3.2), -3.6, 0.7, 0.7, M('#3c1c0c', 0.6), 9)
+    S(hip[0], hip[1] - 2.0, 0, 3.3, M(L.get('belt') or (L['trim'] if not L.get('bare') else '#3c1c0c'), 0.35, 1, 0.6 if not (L.get('bare') or L.get('belt')) else 0), 4.0, 0.6)   # Gürtel
+    if not L.get('belt'): S(hip[0] + 3.0, hip[1] - 2.0, -2.2, 0.95, M('#f0c040', 0.25, 1, 0.9), 0.9, 0.95)                               # Schnalle
+    if L.get('flap'):
+        S(hip[0] - 0.4, hip[1] + 1.9, -3.5, 2.7, M(L['flap'], 0.65), 0.9, 3.3); S(hip[0] - 0.4, hip[1] + 4.9, -3.7, 2.2, M(L['trim'], 0.35, 1, 0.5), 0.6, 0.4)
+    if L.get('sash'):
+        sm = M(L['sash'], 0.7); chain((hip[0] + 2.4, hip[1] - 1.0), (hip[0] + 2.6 - flare * 1.1, hip[1] + 6.2 - flare * 0.5), -2.6, 1.5, 1.0, sm, 6)
+    if L.get('mantle'):
+        mm = M(L['mantle'], 0.9); S(sh[0] - 0.6, sh[1] - 0.2, 0, 4.4, mm, 5.4, 2.4); S(sh[0] - 3.4, sh[1] + 2.6, 0, 2.2, mm, 4.6, 3.6); S(sh[0] - 4.0 - flare * 0.6, sh[1] + 6.6, 0, 1.8, mm, 4.0, 3.0)
+    if L.get('satchel'):
+        S(hip[0] - 2.2, hip[1] + 1.4, -4.2, 2.3, M(L['satchel'], 0.6), 1.2, 2.1); chain((sh[0] + 2.4, sh[1] - 0.8), (hip[0] - 2.2, hip[1] - 0.4), -4.0, 0.55, 0.55, M(L['satchel'], 0.6, 0.8), 9)
 
 def figure(r, L):
     CX = FW / 2
     lean, ty, hipY, flare = r['lean'], r['ty'], r['hipY'], r['flare']
     fL, bL, fA, bA = r['fL'], r['bL'], r['fA'], r['bA']
     sh = (CX + lean, 11.8 + ty); hip = (CX + lean * 0.3, hipY)
-    skin, skinB = M(L['skin'], 0.55), M(L['skin'], 0.55, 0.7)
-    legs, legsB = M(L['legs'], 0.7), M(L['legs'], 0.7, 0.68)
-    boot, bootB, bootL = M(L['boot'], 0.5), M(L['boot'], 0.5, 0.68), M(L['bootL'], 0.45)
+    mt = 0.6 if L.get('metal') else 0.0; rg = 0.32 if L.get('metal') else None   # Rüstung glänzt
+    skin, skinB = M(L['skin'], rg or 0.55, 1, mt), M(L['skin'], rg or 0.55, 0.7, mt)
+    legs, legsB = M(L['legs'], rg or 0.7, 1, mt), M(L['legs'], rg or 0.7, 0.68, mt)
+    boot, bootB, bootL = M(L['boot'], rg or 0.5, 1, mt), M(L['boot'], rg or 0.5, 0.68, mt), M(L['bootL'], rg or 0.45, 1, mt)
     lr = L['leg']; ar = L['arm']
     sleeve = L.get('sleeve')
     armM, armMB = (M(sleeve, 0.7), M(sleeve, 0.7, 0.68)) if sleeve else (skin, skinB)
@@ -137,6 +165,7 @@ def figure(r, L):
         S(G[2] + (G[4] - G[2]) * 0.12, G[3] + (G[5] - G[3]) * 0.12, y, 2.3 * lr, mBoot if back else bootL, 2.3 * lr, 1.0)   # Stulpe
         S(G[4] + 1.15, G[5] + 0.75, y, 2.45, mBoot, 1.5, 1.3)                                                           # Fuß
         if L.get('joints'): S(G[2], G[3], y - (0 if back else 0.6), 1.5, M(L['joints'], 0.3, 0.7 if back else 1, 0.8))
+        if L.get('metal'): S(G[2] + 0.5, G[3], y - (0 if back else 0.9), 2.1 * lr, M(L['trim'], 0.25, 0.7 if back else 1, 0.8), 1.6, 1.9 * lr)   # Kniebuckel
     def arm(A, y, mArm, mSkin, back):
         chain((A[0], A[1]), (A[2], A[3]), y, ar, ar - 0.25, mArm)
         chain((A[2], A[3]), (A[4], A[5]), y, ar - 0.3, ar - 0.55, mArm)
@@ -158,24 +187,15 @@ def figure(r, L):
     arm(bA, 3.5, armMB, skinB, True)
     leg(bL, 1.8, legsB, bootB, True)
     # ---- Rumpf ----
-    tor, torD = M(L['torso'], 0.6), M(L['torsoD'], 0.6)
+    tor, torD = M(L['torso'], rg or 0.6, 1, mt), M(L['torsoD'], rg or 0.6, 1, mt)
     ang = math.atan2(sh[0] - hip[0], hip[1] - sh[1])
-    S(hip[0], hip[1] - 0.3, 0, 3.15, legs, 3.9, 2.7)                                                             # Becken
-    S(sh[0] * 0.3 + hip[0] * 0.7, sh[1] * 0.3 + hip[1] * 0.7, 0, 3.05, torD if not L.get('bare') else tor, 3.8, 3.4, ang)   # Bauch
-    S(sh[0] * 0.66 + hip[0] * 0.34 + 0.35, sh[1] * 0.66 + hip[1] * 0.34 + 0.3, 0, 3.55, tor, 4.5, 4.4, ang)       # Brust
-    if L.get('shirt'): S(sh[0] + 1.9, sh[1] + 2.6, -1.2, 1.9, M(L['shirt'], 0.7), 2.6, 3.4, ang)                   # Hemdbrust
-    if L.get('bare'):                                                                                             # Brustmuskel, Gurt
-        S(sh[0] + 2.2, sh[1] + 1.8, -2.0, 1.9, tor, 2.2, 1.7); chain((sh[0] - 2.6, sh[1] - 0.6), (hip[0] + 2.8, hip[1] - 3.2), -3.6, 0.7, 0.7, M('#3c1c0c', 0.6), 9)
-    S(hip[0], hip[1] - 2.0, 0, 3.3, M(L.get('belt') or (L['trim'] if not L.get('bare') else '#3c1c0c'), 0.35, 1, 0.6 if not (L.get('bare') or L.get('belt')) else 0), 4.0, 0.6)   # Gürtel
-    if not L.get('belt'): S(hip[0] + 3.0, hip[1] - 2.0, -2.2, 0.95, M('#f0c040', 0.25, 1, 0.9), 0.9, 0.95)                               # Schnalle
-    if L.get('flap'):
-        S(hip[0] - 0.4, hip[1] + 1.9, -3.5, 2.7, M(L['flap'], 0.65), 0.9, 3.3); S(hip[0] - 0.4, hip[1] + 4.9, -3.7, 2.2, M(L['trim'], 0.35, 1, 0.5), 0.6, 0.4)
-    if L.get('sash'):
-        sm = M(L['sash'], 0.7); chain((hip[0] + 2.4, hip[1] - 1.0), (hip[0] + 2.6 - flare * 1.1, hip[1] + 6.2 - flare * 0.5), -2.6, 1.5, 1.0, sm, 6)
-    if L.get('mantle'):
-        mm = M(L['mantle'], 0.9); S(sh[0] - 0.6, sh[1] - 0.2, 0, 4.4, mm, 5.4, 2.4); S(sh[0] - 3.4, sh[1] + 2.6, 0, 2.2, mm, 4.6, 3.6); S(sh[0] - 4.0 - flare * 0.6, sh[1] + 6.6, 0, 1.8, mm, 4.0, 3.0)
-    if L.get('satchel'):
-        S(hip[0] - 2.2, hip[1] + 1.4, -4.2, 2.3, M(L['satchel'], 0.6), 1.2, 2.1); chain((sh[0] + 2.4, sh[1] - 0.8), (hip[0] - 2.2, hip[1] - 0.4), -4.0, 0.55, 0.55, M(L['satchel'], 0.6, 0.8), 9)
+    if L.get('ribs'):  # Skelett: Wirbelsäule, vier Rippenbögen, Becken, Schlüsselbein
+        chain(hip, (sh[0], sh[1] - 1.5), 0, 0.95, 0.85, torD, 6)
+        for i in range(4):
+            t = 0.42 + i * 0.16; S(hip[0] + (sh[0] - hip[0]) * t + 0.5, hip[1] + (sh[1] - hip[1]) * t, 0, 3.3 - i * 0.25, tor, 3.6 - i * 0.2, 0.55, ang)
+        S(hip[0], hip[1] - 0.4, 0, 2.7, tor, 3.3, 1.35); S(sh[0], sh[1] - 0.2, 0, 3.4, tor, 4.0, 0.6)
+    else:
+        figure_torso(L, sh, hip, ang, tor, torD, legs, flare)
     # ---- vorn: Bein, Arm ----
     leg(fL, -1.8, legs, boot, False)
     if L.get('pauld'): S(fA[0] - 0.1, fA[1] - 0.5, -3.7, 2.45, M(L['pauld'], 0.3, 1, 0.6), 2.3, 2.1)
@@ -212,7 +232,7 @@ def run():
     only = CFG.get('only'); n = 0
     for r in rig:
         if only and r['key'] not in only: continue
-        if CFG.get('rid') and (r.get('id') != CFG['rid'] or r.get('S', 1) != 1): continue
+        if CFG.get('rid') and (r.get('id') != CFG['rid'] or r.get('S', 1) != CFG.get('S', 1)): continue
         clear(); figure(r, L)
         bpy.context.scene.render.filepath = os.path.join(out, r['key'] + '.png'); bpy.ops.render.render(write_still=True); n += 1
     clear(); print('gerendert', n)

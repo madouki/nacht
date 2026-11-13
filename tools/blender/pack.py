@@ -53,11 +53,13 @@ if sys.argv[1] == 'preview':
     sheet.save(out); print(sheet.size)
 else:
     d, js, hid, out = sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]
+    K = int(sys.argv[6]) if len(sys.argv) > 6 else 1   # Auflösungsstufe (2 = doppelt große Figur)
+    FW, FH = FW * K, FH * K
     s = open(js, encoding='utf-8').read()
-    mp = json.loads(re.search(r"load3d\('%s', '[^']+', (\{.*?\})\)" % hid, s).group(1))
+    mp = json.loads(re.search(r"load3d\('%s', '[^']*%s', (\{.*?\})" % (hid, re.escape(os.path.basename(out))), s).group(1))
     atlas = Image.new('RGBA', (max(v[0] for v in mp.values()) + FW, max(v[1] for v in mp.values()) + FH), (0, 0, 0, 0)); miss = 0
     for k, (x, y) in mp.items():
         f = os.path.join(d, k + '.png')
         if not os.path.exists(f): miss += 1; continue
-        atlas.paste(grade(down(Image.open(f))), (x, y))
+        atlas.paste(grade(down(Image.open(f), FW, FH)), (x, y))
     atlas.save(out); print(hid, 'Bilder', len(mp) - miss, 'fehlend', miss)

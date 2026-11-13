@@ -506,8 +506,15 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
     - *Zweites Stück (20261112):* Riesenfledermaus neu (gbat_bl.py: 8 Schlagphasen × Maul zu/auf + ruhend, 128×84, Hautfelder
       als gewölbte Gitterflächen zwischen den Fingern) und die Rig-Gegner Ghul, Fischmensch, Ritter (hero_bl.py mit `head`-Stil
       'zombie' / 'fish' / 'helmet', Posen aus `HEROES.exportRig('monsters')`, Aufruf mit `rid`).
-    - Nächste Schritte der Leitlinie (noch offen): Skelett, Knochenriese, Sonnenwächter, Medusa, Raben, Geister; Requisiten,
-      dann Hintergründe; später eine höher aufgelöste Ebene für Figuren.
+    - *Drittes Stück (20261113):* Skelett (einfach und doppelt groß als Knochenriese) und Sonnenwächter (doppelt groß) aus
+      hero_bl.py (`head: 'skull'`, `ribs`, `metal` für glänzende Rüstung; `CFG.S` wählt die Posen der Auflösungsstufe,
+      pack.py verkleinert mit Faktor K auf 68×72). Damit sind alle Rig-Figuren neu.
+    - *Gameplay dazu:* Statusseite 6 KOPFGELD (`bountyList`, `drawBounties`), Rückweg-Portal `ReturnGate` nach `bossReward`
+      (↑ öffnet die Schnellreise; wird vor Türen geprüft und nicht auf Türen gestellt).
+    - *Musik dazu:* `harmonyP2` – gebrochene Achtel-Akkorde (`alberti`), in der Wiederholung die Melodie eine Terz tiefer
+      (`thirdBelow`, natürliches Moll; leiterfremde Töne bekommen die große Terz).
+    - Nächste Schritte der Leitlinie (noch offen): Medusa, Raben, Geister, Seeadler; Requisiten, dann Hintergründe; später
+      eine höher aufgelöste Ebene für Figuren.
   - **Sechster Stand – alle Bosse im Wegweiser, weniger Lauferei** (20261112; Rückmeldung „zu viel Backtracking“, „neue Bosse
     nicht einbezogen“, „Infernax-Fluss“):
     - *Nebenbosse als Ziele:* `goal()` wählt jetzt zwischen dem Hauptweg (`mainGoal()`, Liste `GOALS`) und dem nächsten

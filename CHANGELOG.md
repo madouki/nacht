@@ -8,6 +8,31 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 
 ---
 
+## 20261113-0153 – Grafik, Gameplay, Musik: Skelette und Sonnenwächter neu, Kopfgeld-Seite, Portal, zweite Stimme
+
+**Neu – Grafik**
+- **Skelett, Knochenriese und Sonnenwächter** neu aus Blender: Schädel mit Augenhöhlen, Rippenbögen, dünne Knochen;
+  der Sonnenwächter in glänzender Goldrüstung mit Stahl-Kniebuckeln, weißem Federbusch und Schild. Auch der Ritter glänzt jetzt.
+  Damit kommen alle Figuren, die aus dem Gelenk-Rig entstehen, aus derselben Render-Strecke wie die Helden.
+
+**Neu – Gameplay**
+- **Statusseite KOPFGELD** (Pause → STATUS, ganz nach rechts blättern): alle 16 Bosse als Steckbriefliste mit Ort und Lohn;
+  erledigte haben einen Haken, das aktuelle Ziel des Wegweisers blinkt.
+- **Rückweg-Portal:** nach jedem Bosssieg erscheint neben dem Helden ein blaues Portal. ↑ davor öffnet die Schnellreise.
+  Es bleibt, bis man den Raum verlässt.
+
+**Neu – Musik**
+- Die drei Hauptthemen (Burghof, Katakomben, Bergfried) haben eine neue Begleitstimme: im ersten Durchgang ruhige gebrochene
+  Akkorde in Achteln statt der schnellen 16tel-/32tel-Arpeggien, in der Wiederholung singt die zweite Stimme die Melodie
+  eine Terz tiefer mit.
+
+**Beim Testen ansehen**
+- Katakomben (Skelette, Knochenriese), Sonnenkathedrale (Sonnenwächter): passen Größe und Trefferfläche, sieht der
+  Lanzenstoß des Sonnenwächters noch richtig aus?
+- KOPFGELD-Seite auf deinem Bildschirm: ist alles lesbar, stimmen die Haken mit deinem Spielstand?
+- Portal nach einem Bosssieg: steht es frei (nicht in einer Wand oder auf einer Tür), reagiert ↑ zuverlässig?
+- Musik: klingt die Terzstimme in allen drei Stücken sauber, oder reibt sie sich irgendwo mit Bass und Fläche?
+
 ## 20261113-0134 – Changelog im Spiel
 
 **Neu**

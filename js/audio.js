@@ -292,7 +292,20 @@ const Audio8 = (() => {
   const FILLB = 'k:1 -:1 h:1 -:1 s:1 -:1 h:1 k:1 k:1 -:1 t:1 u:1 s:1 -:1 s:1 -:1';
   // Aufbau der Stage-Songs: 32 Takte ohne Pause – die Melodie läuft durch, die zweite Hälfte legt
   // mit 32tel-Arpeggien und galoppierender Kick zu, ein Riser führt zurück an den Anfang.
-  const contrastLead = (chords, m, bars) => bars.join(' ') + ' ' + bars.join(' ');
+  let lastBars = null; // Takte der zuletzt gebauten Melodie (für die zweite Stimme in harmonyP2)
+  const contrastLead = (chords, m, bars) => { lastBars = bars; return bars.join(' ') + ' ' + bars.join(' '); };
+  // Begleitstimme der Hauptthemen (statt der 16tel-/32tel-Arpeggien, die nach Techno klangen): im ersten Durchgang gebrochene
+  // Akkorde in ruhigen Achteln, in der Wiederholung singt sie die Melodie eine Terz tiefer mit (Tonleiter = natürliches Moll;
+  // leiterfremde Töne wie der Leitton bekommen die große Terz darunter)
+  const alberti = (a, b, c) => `${a}:2 ${c}:2 ${b}:2 ${c}:2 ${a}:2 ${c}:2 ${b}:2 ${c}:2`;
+  const thirdBelow = (tok, scale) => {
+    const [n, len] = tok.split(':'), m = /^([a-g]#?)(\d)$/.exec(n);
+    if (!m) return tok;
+    const v = NN.indexOf(m[1]) + 12 * +m[2], pc = (x) => NN[((x % 12) + 12) % 12], inS = (x) => scale.includes(pc(x));
+    const d = inS(v) ? (inS(v - 3) ? 3 : 4) : (inS(v - 4) ? 4 : 3), h = v - d;
+    return pc(h) + Math.floor(h / 12) + ':' + len;
+  };
+  const harmonyP2 = (list, m, scale) => list.map(c => alberti(...m[c])).join(' ') + ' ' + lastBars.map(bar => bar.split(' ').map(t => thirdBelow(t, scale)).join(' ')).join(' ');
   const section = () => rep([FOURX, FOUR, FOUR, FILLS, FOUR, FOUR, FOUR, FILLB].join(' '), 2);
   // B-Teil: galoppierende Kick (kein Dauerfeuer), Tom-Fill und Riser vor dem Loop
   const DK = 'k:1 -:1 h:1 k:1 s:1 -:1 h:1 -:1 k:1 k:1 h:1 -:1 s:1 -:1 h:1 -:1';
@@ -552,7 +565,7 @@ const Audio8 = (() => {
         'f5:2 a#5:2 d6:2 f6:4 d6:2 a#5:2 f5:2', 'e5:2 g5:2 c6:2 e6:4 d6:2 c6:2 a#5:2',
         'a5:2 c#6:2 e6:2 a6:4 g6:2 f6:2 e6:2', 'c#6:2 a5:2 e5:2 c#5:2 a4:4 -:4',
       ]),
-      p2: chordArps2(S1C, S1), tri: chordBass(S1C, S1B, drive), pad: chordPad(S1C, S1), dr: section() + ' ' + sectionB(),
+      p2: harmonyP2(S1C, S1, ['d', 'e', 'f', 'g', 'a', 'a#', 'c']), tri: chordBass(S1C, S1B, drive), pad: chordPad(S1C, S1), dr: section() + ' ' + sectionB(),
     },
     stage2: {
       bpm: 166, loop: true, echo: { delay: 3, vol: 0.35 },
@@ -566,7 +579,7 @@ const Audio8 = (() => {
         'c6:3 b5:1 a5:2 f5:2 a5:2 c6:2 f6:4', 'd6:3 c6:1 b5:2 g5:2 b5:2 d6:2 g6:4',
         'e6:2 d6:2 b5:2 g#5:2 b5:2 g#5:2 e5:2 d5:2', 'b4:2 e5:2 g#5:2 b5:2 e6:8',
       ]),
-      p2: chordArps2(S2C, S2), tri: chordBass(S2C, S2B, drive), pad: chordPad(S2C, S2), dr: section() + ' ' + sectionB(),
+      p2: harmonyP2(S2C, S2, ['a', 'b', 'c', 'd', 'e', 'f', 'g']), tri: chordBass(S2C, S2B, drive), pad: chordPad(S2C, S2), dr: section() + ' ' + sectionB(),
     },
     stage3: {
       bpm: 184, loop: true, echo: { delay: 3, vol: 0.3 },
@@ -580,7 +593,7 @@ const Audio8 = (() => {
         'e6:2 c6:2 g5:2 c6:2 e6:2 g6:2 e6:2 c6:2', 'f#6:2 d6:2 a5:2 d6:2 f#6:2 a6:2 f#6:2 d6:2',
         'd#6:2 f#6:2 b6:4 a6:2 f#6:2 d#6:2 b5:2', 'b5:4 a5:2 g5:2 f#5:4 d#5:4',
       ]),
-      p2: chordArps2(S3C, S3), tri: chordBass(S3C, S3B, drive), pad: chordPad(S3C, S3), dr: section() + ' ' + sectionB(),
+      p2: harmonyP2(S3C, S3, ['e', 'f#', 'g', 'a', 'b', 'c', 'd']), tri: chordBass(S3C, S3B, drive), pad: chordPad(S3C, S3), dr: section() + ' ' + sectionB(),
     },
     boss: {
       bpm: 192, loop: true, echo: { delay: 2, vol: 0.28 },

@@ -2205,6 +2205,8 @@ const Castle = (() => {
     }
     if (def.waterLine !== undefined && !rel('diver') && p.alive && p.feet > def.waterLine * T + 22 && p.state !== 'dead') { Game.note(testing ? 'castleDrownTest' : 'castleDrown'); p.fallPenalty(3); } // ohne Helm: ertrinken (im Testmodus: wo es den Helm sofort gibt)
     if (!p.alive || p.state !== 'normal' || W.arenaOn) { push = 0; lastX = p.x; return; }
+    const rg = P.up && W.ents.find(e => e instanceof ReturnGate && !e.dead); // Rückweg-Portal nach einem Bosssieg (vor Türen und Figuren geprüft)
+    if (rg && p.onGround && Math.abs(p.cx - rg.cx) < 13 && Math.abs(p.feet - (rg.y + rg.h)) < 12 && travelOk()) { push = 0; openTravel(); Game.go('warp'); Audio8.sfx('select'); return; }
     for (const e of W.ents) { // Figuren: neue Szene beim Herantreten, danach ↑ für den Rat
       if (!(e instanceof CastleNPC) || e.go || !p.onGround || Math.abs(p.feet - (e.y + e.h)) > 16) continue;
       const dx = Math.abs(p.cx - e.cx), fresh = !beatDone(e.b);
@@ -2240,6 +2242,36 @@ const Castle = (() => {
     push = pushing ? push + 1 : 0; lastX = p.x;
   }
 
+  // Rückweg-Portal: erscheint nach einem Bosssieg neben dem Helden; ↑ davor öffnet die Schnellreise (bleibt, bis der Raum verlassen wird)
+  class ReturnGate extends Ent {
+    constructor(cx, feet) { super(cx - 8, feet - 30, 16, 30); this.kind = 'fx'; }
+    update() {
+      this.t++;
+      if (this.t % 4 === 0) W.spawn(new Particle(this.cx + rnd(-6, 6), this.y + this.h - rnd(0, 6), rnd(-0.2, 0.2), rnd(-1.1, -0.4), this.t % 8 ? '#7cdcfc' : '#fcfcfc', 30, 1, 0));
+    }
+    lightUp(L, cx, cy) { L.push({ x: this.cx - cx, y: this.cy - cy, r: 36, c: [110, 200, 252], a: 0.5 }); }
+    draw(ctx) {
+      const x = Math.round(this.cx - W.cam.x), y = Math.round(this.y + this.h - W.cam.y), t = this.t, grow = Math.min(1, t / 30), p = W.player;
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      for (let k = 0; k < 3; k++) { // drei pulsierende Ovale, innen heller
+        const pu = 1 + Math.sin(t * 0.09 + k * 2.1) * 0.06, rx = (9 - k * 2.4) * grow * pu, ry = (15 - k * 4) * grow * pu;
+        ctx.globalAlpha = 0.28 + k * 0.16; ctx.fillStyle = k === 2 ? '#e8f8ff' : k ? '#7cdcfc' : '#2c6cc8';
+        ctx.beginPath(); ctx.ellipse(x, y - 15, Math.max(0.5, rx), Math.max(0.5, ry), 0, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.globalAlpha = 0.9; ctx.strokeStyle = '#a4e4fc'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(x, y - 15, 10 * grow, 16 * grow, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
+      if (p && Math.abs(p.cx - this.cx) < 22 && ((t >> 4) & 1)) Font.draw(ctx, '↑', x, y - 42, '#fcfcfc', { align: 'center', shadow: '#000' });
+    }
+  }
+  function spawnReturnGate() {
+    const p = W.player; if (!p || W.ents.some(e => e instanceof ReturnGate && !e.dead)) return;
+    const free = (x) => !W.ents.some(e => (e instanceof CastleDoor || e instanceof CastleChamber) && !e.dead && Math.abs(e.cx - x) < 30); // nicht auf eine Tür stellen
+    const cand = [-30, 30, -62, 62, -94, 94].map(d => clamp(p.cx + d * (p.face > 0 ? 1 : -1), 28, W.room.w * T - 28));
+    const gx = cand.find(free) ?? cand[0], tx = Math.floor(gx / T);
+    let ty = Math.floor((p.feet - 1) / T), feet = p.feet;
+    for (let k = 0; k < 14; k++, ty++) if (Phys.solidTile(tx, ty)) { feet = ty * T; break; }
+    W.spawn(new ReturnGate(gx, feet));
+  }
   // Lohn nach jedem Bosssieg (Fluss wie in Infernax: Sieg → Lohn → gleich weiter): Kopfgeld, HP und MP voll; beim ersten Mal
   // der Hinweis auf die Schnellreise
   function bossReward(gold) {
@@ -2247,6 +2279,7 @@ const Castle = (() => {
     W.addScore(gold); p.hp = p.maxHp; if (mpMax()) mp = mpMax();
     W.popup(p.cx, p.y - 30, tr('bounty', gold), '#f8b800'); Audio8.sfx('money');
     if (!flag.travelTip) { flag.travelTip = 1; Game.note('travelTip'); }
+    spawnReturnGate();
   }
   // Boss besiegt (Orb eingesammelt): Siegel statt Kapitelende – die Arena öffnet sich, weiter geht es zu Fuß
   function bossBeaten() {
@@ -3327,7 +3360,7 @@ const Castle = (() => {
   // Statusbildschirm (Pause → STATUS): Werte wie in SotN in zwei Spalten, darunter EXP-Leiste, Karte, Siegel, Warpkammern
   let statusPage = 0; // 0 = Werte, 1 = Zauber, 2 = Bestiarium, 3 = Aufträge, 4 = Urkunden, 5 = Mahre (←→ blättert, in Listen ↑↓ wählen)
   function statusInput(P) {
-    if (P.left || P.right) { statusPage = (statusPage + (P.right ? 1 : 5)) % 6; Audio8.sfx('select'); }
+    if (P.left || P.right) { statusPage = (statusPage + (P.right ? 1 : 6)) % 7; Audio8.sfx('select'); }
     if (statusPage === 5) mahrInput(P);
     if (statusPage === 4 && (P.up || P.down)) { ach.sel = clamp(ach.sel + (P.down ? 1 : -1), 0, ACH.length - 1); Audio8.sfx('select'); }
     if (statusPage === 2 && (P.up || P.down)) { beasts.sel = clamp(beasts.sel + (P.down ? 1 : -1), 0, BEASTS.length - 1); Audio8.sfx('select'); }
@@ -3345,12 +3378,32 @@ const Castle = (() => {
       if (!done) Font.draw(ctx, tr('questHint_' + q.id), lx + 8 + q.items.length * 14 + 6, y + 23, '#7c7c8c');
     });
   }
+  // Statusseite KOPFGELD: alle Bosse des Schlosses als Steckbriefliste – Name, Ort, Lohn (oder Haken). Das aktuelle Ziel blinkt.
+  function bountyList() {
+    const out = [];
+    S().forEach((st, s) => st.rooms.forEach((d, r) => { if (d.arena && !d.side) out.push({ id: 'b' + s, name: tr(st.bossKey), where: tr(st.nameKey), done: !!boss[roomKey(s, r)], gold: s < S().length - 1 ? tierOf(s, r) * 2000 : 0 }); }));
+    for (const b of sideBosses()) out.push({ id: 'm' + b.id, name: tr(MINI_NAME[b.id]), where: b.d.label || '', done: sideDone(b), gold: tierOf(b.s, b.r) * 1000 });
+    return out;
+  }
+  function drawBounties(ctx, t) {
+    const cx = View.cx, lx = cx - Math.min(150, View.w / 2 - 12), rx = cx + Math.min(150, View.w / 2 - 12), L = bountyList(), bt = bossTally(), g = goal(), gid = g && g.id;
+    Font.draw(ctx, tr('castleBossCount', bt[0], bt[1]), cx, 34, '#fc9c6c', { align: 'center', shadow: '#000' });
+    L.forEach((b, i) => {
+      const y = 47 + i * 10.6, cur = !b.done && gid === b.id, rw = b.done ? '✓' : b.gold ? b.gold + ' G' : '???', rww = Font.width(rw);
+      if (cur && (t >> 4) & 1) { ctx.fillStyle = 'rgba(248,184,0,0.16)'; ctx.fillRect(lx - 3, y - 2, rx - lx + 6, 10); }
+      Font.draw(ctx, b.name, lx, y, b.done ? '#58a868' : cur ? '#fcfcfc' : '#f8d878', { shadow: '#000', fit: Math.max(60, (rx - lx) * 0.52) });
+      Font.draw(ctx, rw, rx, y, b.done ? '#58f898' : '#f8b800', { align: 'right', shadow: '#000' });
+      const wx = lx + Math.max(60, (rx - lx) * 0.52) + 6, ww = rx - rww - 8 - wx;
+      if (ww > 40) Font.draw(ctx, b.where, wx, y, b.done ? '#4c5c50' : '#8c9cc8', { fit: ww });
+    });
+  }
   function drawStatus(ctx, t) {
     const w = View.w, cx = View.cx, p = W.player, v = values();
     if (statusPage === 1) { panel(ctx, tr('spellTitle'), '#7cdcfc'); drawSpells(ctx); Font.draw(ctx, tr('statusHelp'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
     if (statusPage === 2) { panel(ctx, tr('beastTitle'), '#9c6cfc'); drawBeasts(ctx, t); Font.draw(ctx, tr('statusHelp'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
     if (statusPage === 3) { panel(ctx, tr('questTitle'), '#f8b800'); drawQuests(ctx, t); Font.draw(ctx, tr('statusHelp'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
     if (statusPage === 4) { panel(ctx, tr('achTitle'), '#f8d878'); drawAch(ctx, t); Font.draw(ctx, tr('statusHelp'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
+    if (statusPage === 6) { panel(ctx, tr('bountyTitle'), '#f8b800'); drawBounties(ctx, t); Font.draw(ctx, tr('statusHelp'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
     if (statusPage === 5) { panel(ctx, tr('mahrTitle'), '#b080fc'); drawMahre(ctx, t); Font.draw(ctx, tr(t % 420 < 240 ? 'mahrHelp' : 'mahrSwap'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
     ctx.fillStyle = '#020412'; ctx.fillRect(0, 0, w, 240);
     ctx.fillStyle = '#c89020';
@@ -4620,7 +4673,7 @@ const Castle = (() => {
     for (const q of QUESTS) need.push('quest_' + q.id, 'questHint_' + q.id);
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
-    need.push('castleBossCount', 'castleGoalBoss', 'pauseTravel', 'bounty', 'travelTip', 'mahrTitle', 'mahrCount', 'mahrRuf', 'mahrBann', 'mahrHelp', 'mahrSwap', 'mahrOn', 'mahrFrom', 'mahrUnknown', 'mahrGot', 'mahrFirst', 'mahrDodge', 'crit', 'chgMahr');
+    need.push('castleBossCount', 'castleGoalBoss', 'pauseTravel', 'bounty', 'travelTip', 'bountyTitle', 'mahrTitle', 'mahrCount', 'mahrRuf', 'mahrBann', 'mahrHelp', 'mahrSwap', 'mahrOn', 'mahrFrom', 'mahrUnknown', 'mahrGot', 'mahrFirst', 'mahrDodge', 'crit', 'chgMahr');
     { // Erreichbarkeit: vom Wald aus über Türen und Ausgänge (alles geöffnet) – kein Raum darf abgeschnitten sein
       const key = (s, r) => s + ':' + r, seenR = new Set(), queue = [], s0 = sIdx('arrival');
       const push = (s, r) => { if (s >= 0 && !seenR.has(key(s, r))) { seenR.add(key(s, r)); queue.push([s, r]); } };
@@ -4694,7 +4747,7 @@ const Castle = (() => {
     setFlag: (k) => { flag[k] = 1; save(); }, // z. B. Aufzug als Abkürzung freigeschaltet (lift.js)
     k3at, art, whenArt, dishToday, buffInfo: () => buff && { id: buff.id, k: buff.t / BUFF_T }, // Behördentrakt (js/trakt.js), HUD: Mahlzeit
     toolsInput, drawTools, selfCheck, mapReport, mapLayout: () => castle(), doorsOf, get god() { return god; }, get best() { return best; },
-    toggleOverlay, get overlay() { return overlayOn; }, travelOk, openTravel, bossTally, sideBosses: () => sideBosses().map(b => ({ id: b.id, s: b.s, r: b.r, done: sideDone(b), label: b.d.label })), goalInfo: () => { const g = goal(); return g ? { text: goalText(g), where: whereText(g), id: g.id || GOALS.indexOf(g) } : null; },
+    toggleOverlay, get overlay() { return overlayOn; }, travelOk, openTravel, bossTally, bountyList, get statusPageNo() { return statusPage; }, hasReturnGate: () => W.ents.some(e => e instanceof ReturnGate && !e.dead), sideBosses: () => sideBosses().map(b => ({ id: b.id, s: b.s, r: b.r, done: sideDone(b), label: b.d.label })), goalInfo: () => { const g = goal(); return g ? { text: goalText(g), where: whereText(g), id: g.id || GOALS.indexOf(g) } : null; },
     tier: (s) => (TIER[S()[s].id] || 1) + 2 * (flag.ngp || 0), side: SIDE, startEpilogue, resultsInput, drawResults, ngPlus, ngRestore, drawGoalBanner, drawGoalToast, announceGoal, drawGuide, guidePlan, inPrologue, goal: () => { const g = goal(); return g && { text: goalText(g), where: tr(g.where) }; }, get vessels() { return vessel; }, get relics() { return relic; }, get cracks() { return crack; }, has,
     get seen() { return seen; }, get warps() { return warp; },
     reset() { seen = {}; boss = {}; mini = {}; warp = {}; vessel = {}; relic = {}; crack = {}; flag = {}; inv = {}; eq = {}; famx = {}; best = {}; try { localStorage.removeItem(KEY); localStorage.removeItem(SAVE_KEY); localStorage.removeItem(RESUME_KEY); } catch (e) { /* privat */ } },
