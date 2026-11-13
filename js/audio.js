@@ -340,6 +340,7 @@ const Audio8 = (() => {
   // Sonnenkathedrale – Sonnenaufgang über der Kathedrale (D-Dur, 168 BPM): Akkorde, Bass, Orgel-Lagen; der B-Teil steht einen
   // Ganzton höher (tp), die Brücke in E-Dur endet auf A-Dur und führt zurück an den Anfang
   const NN = ['c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b'];
+  const TRACKS = ['p1', 'p2', 'tri', 'dr', 'pad', 'org', 'fl', 'hrp', 'str', 'brs', 'tmp', 'glk']; // die letzten sechs: Orchesterstimmen des Arrangeurs
   const tp = (str, k) => str.replace(/([a-g]#?)(\d)/g, (m, n, o) => { const v = NN.indexOf(n) + 12 * +o + k; return NN[((v % 12) + 12) % 12] + Math.floor(v / 12); });
   const SD = { D: ['d4', 'f#4', 'a4'], A: ['c#4', 'e4', 'a4'], Bm: ['b3', 'd4', 'f#4'], 'F#m': ['c#4', 'f#4', 'a4'], G: ['b3', 'd4', 'g4'], Em: ['e4', 'g4', 'b4'] };
   const SD_B = { D: ['d2', 'd3'], A: ['a1', 'a2'], Bm: ['b1', 'b2'], 'F#m': ['f#1', 'f#2'], G: ['g1', 'g2'], Em: ['e2', 'e3'] };
@@ -877,6 +878,116 @@ const Audio8 = (() => {
     },
   };
 
+  // ---------------- Arrangeur (seit 20261113) ----------------
+  // Rückmeldung: „alle BGM-Stücke haben einen zu kurzen Loop und könnten variantenreicher, orchestraler sein“. Jedes Schleifenlied
+  // wird beim Laden zu einer langen Form ausgebaut: mehrere Durchgänge desselben Materials, jeder anders instrumentiert, einer
+  // in einer anderen Tonart mit einem neuen Thema, das aus den Akkorden entsteht. Der erste Durchgang bleibt das Original
+  // (kurze Begegnungen klingen wie bisher; das Taktduell liest weiter die Originalspur). Neue Spuren: fl (Flöte), hrp (Harfe),
+  // str (Streicher), brs (Blech), tmp (Pauke, gestimmt auf den Bass), glk (Glockenspiel).
+  //   A Original · B Kammer (Flöte führt, Harfe begleitet, kaum Schlagzeug) bzw. bei Bossliedern Streicher mit vollem Schlagzeug
+  //   C Brücke (Quarte höher: Blechthema aus den Akkorden, Streicher liegen darüber) · D Tutti (Melodie mit Streichern,
+  //   Glockenspiel und Pauken) · E Mollterz höher (Streicher und Flöte) · F Zwischenspiel ohne Melodie · G Original mit Flöte
+  // Länge: Lieder ab 40 s vier Durchgänge, ab 28 s fünf, kürzere acht.
+  const DRIVE = new Set(['boss', 'boss2', 'kraken', 'count', 'mondboss', 'reisswolf', 'sternbild', 'dienstweg', 'amtsmarsch', 'galopp']);
+  const mOf = (n) => { const m = /^([a-g]#?)(-?\d)$/.exec(n); return m ? NN.indexOf(m[1]) + 12 * (+m[2] + 1) : null; };
+  const nOf = (m) => NN[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
+  function arrange(s, name) {
+    const evs = (str) => str.trim().split(/\s+/).map(tok => { const [n, l] = tok.split(':'); return [n, parseFloat(l || '1')]; });
+    const total = (ev) => ev.reduce((a, e) => a + e[1], 0);
+    const base = {};
+    for (const k of ['p1', 'p2', 'tri', 'dr', 'pad', 'org']) if (s[k]) base[k] = evs(s[k]);
+    if (!base.p1) return null;
+    const L = total(base.p1);
+    if (Object.values(base).some(ev => Math.abs(total(ev) - L) > 0.001) || L % 16) return null;
+    const src = base.pad || base.org, hist = {};
+    if (src) for (const e of src) hist[e[1]] = (hist[e[1]] || 0) + 1;
+    const common = +(Object.keys(hist).sort((a, b) => hist[b] - hist[a])[0] || 16);
+    const bar = s.bar || (common % 12 === 0 && common % 16 !== 0 && L % 12 === 0 ? 12 : 16), nb = L / bar;
+    const mapN = (ev, fn) => ev.map(([n, l]) => [n === '-' ? n : n.split('+').map(x => { const m = mOf(x); return m === null ? x : nOf(fn(m)); }).join('+'), l]);
+    const avg = (ev) => { let a = 0, w = 0; for (const [n, l] of ev) for (const x of n.split('+')) { const m = mOf(x); if (m !== null) { a += m * l; w += l; } } return w ? a / w : null; };
+    const fit = (ev, lo, hi) => { const a = ev && avg(ev); if (a === null || a === undefined) return ev; let k = 0; while (a + k > hi) k -= 12; while (a + k < lo) k += 12; return k ? mapN(ev, m => m + k) : ev; };
+    const T = (ev, k) => ev && mapN(ev, m => m + k);
+    const near = (ev, k) => { if (!ev) return ev; const a = avg(ev); return a === null ? ev : fit(T(ev, k), a - 6, a + 6); }; // transponiert, bleibt aber in seiner Lage
+    const atBars = (ev) => { // was klingt am Taktanfang? (Pause: der nächste Ton im Takt, sonst der vorige)
+      const out = []; let i = 0, t = 0, last = null;
+      for (let b = 0; b < nb; b++) {
+        const t0 = b * bar;
+        while (i < ev.length && t + ev[i][1] <= t0 + 0.001) { if (ev[i][0] !== '-') last = ev[i][0]; t += ev[i][1]; i++; }
+        let n = null;
+        for (let j = i, tt = t; j < ev.length && tt < t0 + bar - 0.001; tt += ev[j][1], j++) if (ev[j][0] !== '-') { n = ev[j][0]; break; }
+        out.push(n || last);
+      }
+      return out;
+    };
+    const chords = src ? atBars(src).map(n => { const c = n ? n.split('+').map(mOf).filter(m => m !== null) : []; return c.length >= 2 ? c : null; }) : null;
+    const roots = base.tri ? atBars(base.tri).map(n => (n ? mOf(n.split('+')[0]) : null)) : null;
+    const reg = (ch, lo) => [...new Set(ch.map(m => { while (m < lo) m += 12; while (m >= lo + 12) m -= 12; return m; }))].sort((a, b) => a - b);
+    const N = (m, l) => [nOf(m), l];
+    // Blechthema aus den Akkorden: viertaktige Phrasen (punktierter Abstieg, Aufstieg, Wechselnoten, langer Schlusston), die zweite Phrase setzt höher an
+    const theme = (chs, lo) => chs.flatMap((ch, i) => {
+      if (!ch) return [['-', bar]];
+      const t = reg(ch, lo), a = t[0], b = t[1], c = t[Math.min(2, t.length - 1)], d = a + 12;
+      const P = bar === 12
+        ? [[N(c, 6), N(b, 6)], [N(a, 4), N(b, 4), N(c, 4)], [N(c, 4), N(d, 4), N(b, 4)], [N(b, 10), ['-', 2]], [N(d, 6), N(c, 6)], [N(b, 4), N(c, 4), N(d, 4)], [N(d, 4), N(c, 4), N(b, 4)], [N(a, 10), ['-', 2]]]
+        : [[N(c, 6), N(b, 2), N(a, 4), N(b, 4)], [N(a, 4), N(b, 4), N(c, 8)], [N(c, 2), N(d, 2), N(c, 2), N(b, 2), N(a, 4), N(b, 4)], [N(b, 12), ['-', 4]],
+          [N(d, 4), N(c, 4), N(b, 4), N(a, 4)], [N(b, 6), N(c, 2), N(d, 8)], [N(d, 2), N(c, 2), N(b, 2), N(c, 2), N(d, 4), N(c, 4)], [N(a, 12), ['-', 4]]];
+      return P[i % 8];
+    });
+    const chorale = (chs, lo) => chs.map((ch, i) => (ch ? N(reg(ch, lo)[i % 4 < 2 ? 1 : Math.min(2, reg(ch, lo).length - 1)], bar) : ['-', bar])); // lange Töne (Zwischenspiel)
+    const harp = (chs, lo) => chs.flatMap((ch) => { // gebrochene Akkorde in Achteln, hinauf und wieder herab
+      if (!ch) return [['-', bar]];
+      const t = reg(ch, lo), a = t[0], b = t[1], c = t[Math.min(2, t.length - 1)], d = a + 12;
+      return (bar === 12 ? [a, b, c, d, c, b] : [a, b, c, d, c, b, a, b]).map(m => N(m, 2));
+    });
+    const sustain = (chs, lo) => { // Streicher: die beiden oberen Akkordtöne, gleiche Akkorde werden gebunden
+      const out = [];
+      for (const ch of chs) {
+        const t = ch && reg(ch, lo), n = t ? nOf(t[t.length - 2]) + '+' + nOf(t[t.length - 1]) : '-';
+        if (out.length && out[out.length - 1][0] === n && out[out.length - 1][1] < bar * 2) out[out.length - 1][1] += bar; else out.push([n, bar]);
+      }
+      return out;
+    };
+    const timp = (rs, full) => rs.flatMap((r, i) => {
+      if (r === null) return [['-', bar]];
+      let m = r; while (m < 36) m += 12; while (m > 47) m -= 12;
+      if (!full) return i % 4 === 0 ? [N(m, bar)] : [['-', bar]];
+      return i % 4 === 3 ? [['-', bar - 4], N(m, 2), N(m, 2)] : i % 2 === 0 ? [N(m, bar)] : [['-', bar]];
+    });
+    const cut = (ev, t0, t1) => { // Ausschnitt [t0, t1) einer Spur (angeschnittene Töne werden gekürzt)
+      const out = []; let t = 0;
+      for (const [n, l] of ev) { const a = Math.max(t, t0), b = Math.min(t + l, t1); if (b > a + 0.0001) out.push([t < t0 ? '-' : n, b - a]); t += l; }
+      return out;
+    };
+    const lightEv = (ev) => ev.map(([n, l]) => ['hrzyo'.includes(n) ? n : '-', l]);
+    const light = (dr) => (dr && nb >= 4 ? cut(lightEv(dr), 0, L - bar).concat([['w', bar]]) : dr && lightEv(dr)); // am Ende ein anschwellendes Rauschen in den nächsten Teil
+    const glock = (p1) => atBars(p1).map((n, i) => (n && i % 2 === 0 ? N(Math.min(96, mOf(n.split('+')[0]) + 12), bar) : ['-', bar]));
+    const cT = (k) => chords && chords.map(c => c && c.map(m => m + k)), rT = (k) => roots && roots.map(r => (r === null ? r : r + k));
+    const drive = DRIVE.has(name), B = base;
+    const SEC = {
+      A: () => ({ ...B }),
+      B: () => (drive
+        ? { str: fit(B.p1, 58, 74), p2: B.p2, tri: B.tri, pad: B.pad, org: B.org, dr: B.dr, tmp: roots && timp(roots, true) }
+        : { fl: fit(B.p1, 70, 86), hrp: chords ? harp(chords, 55) : B.p2, tri: B.tri, pad: B.pad, org: B.org, dr: light(B.dr), tmp: roots && timp(roots, false) }),
+      C: () => ({ brs: chords ? theme(cT(5), 55) : fit(T(B.p1, 5), 55, 72), str: chords ? sustain(cT(5), 67) : undefined, hrp: chords ? harp(cT(5), 60) : undefined,
+        p2: chords ? undefined : near(B.p2, 5), tri: near(B.tri, 5), pad: near(B.pad, 5), org: near(B.org, 5), dr: B.dr, tmp: roots && timp(rT(5), true) }),
+      D: () => ({ p1: B.p1, str: fit(T(B.p1, -12), 55, 76), glk: glock(B.p1), p2: B.p2, tri: B.tri, pad: B.pad, org: B.org, dr: B.dr, tmp: roots && timp(roots, true) }),
+      E: () => ({ str: fit(T(B.p1, 3), 60, 79), fl: fit(T(B.p1, 3), 72, 88), hrp: chords ? harp(cT(3), 55) : undefined, tri: near(B.tri, 3), pad: near(B.pad, 3), org: near(B.org, 3),
+        dr: B.dr, tmp: roots && timp(rT(3), false) }),
+      F: () => ({ brs: chords ? chorale(chords, 55) : undefined, hrp: chords ? harp(chords, 60) : B.p2, tri: B.tri, pad: B.pad, org: B.org,
+        dr: B.dr && cut(lightEv(B.dr), 0, L / 2).concat(cut(B.dr, L / 2, L)), tmp: roots && timp(roots, true) }),
+      G: () => ({ p1: B.p1, fl: fit(B.p1, 70, 86), glk: glock(B.p1), hrp: chords ? harp(chords, 55) : undefined, p2: chords ? undefined : B.p2, tri: B.tri, pad: B.pad, org: B.org,
+        dr: B.dr, tmp: roots && timp(roots, false) }),
+    };
+    const secs = L * 15 / s.bpm, plan = s.form || (secs >= 40 ? 'ABCD' : secs >= 28 ? 'ABCDE' : 'ABCDFEGD');
+    const out = { bpm: s.bpm, loop: s.loop, echo: s.echo, form: plan };
+    for (const k of TRACKS) {
+      const parts = [...plan].map(c => SEC[c]()[k]);
+      if (parts.every(x => !x || x.every(e => e[0] === '-'))) continue;
+      out[k] = parts.map(x => (x || [['-', L]]).map(([n, l]) => n + ':' + l).join(' ')).join(' ');
+    }
+    return out;
+  }
+
   function parse(str) {
     return str.trim().split(/\s+/).map(tok => {
       const [n, l] = tok.split(':');
@@ -885,13 +996,18 @@ const Audio8 = (() => {
   }
   // Boss Phase 2: schneller und härter
   SONGS.boss2 = Object.assign({}, SONGS.boss, { bpm: 212, dr: [DKX, DK, DK, FILLR, DKX, DK, DK, FILLR].join(' ') });
-  const parsed = {};
-  for (const k in SONGS) {
-    const s = SONGS[k];
-    const tracks = ['p1', 'p2', 'tri', 'dr', 'pad', 'org'].filter(t => s[t]).map(t => ({ name: t, ev: parse(s[t]) }));
+  const parsed = {}, plain = {}; // parsed: was gespielt wird (lange Form), plain: das Original (Taktduell liest daraus die Noten)
+  const build = (k, s) => {
+    const tracks = TRACKS.filter(t => s[t]).map(t => ({ name: t, ev: parse(s[t]) }));
     const lens = tracks.map(t => t.ev.reduce((a, e) => a + e.len, 0));
-    if (new Set(lens).size > 1) console.warn('Songlänge ungleich', k, lens);
-    parsed[k] = { bpm: s.bpm, loop: s.loop, echo: s.echo, tracks, steps: lens[0] };
+    if (new Set(lens.map(l => Math.round(l * 100))).size > 1) console.warn('Songlänge ungleich', k, lens);
+    return { bpm: s.bpm, loop: s.loop, echo: s.echo, tracks, steps: lens[0], form: s.form || 'A' };
+  };
+  for (const k in SONGS) {
+    plain[k] = build(k, SONGS[k]);
+    let a = null;
+    try { a = SONGS[k].loop ? arrange(SONGS[k], k) : null; } catch (e) { console.warn('Arrangeur', k, e); }
+    parsed[k] = a ? build(k, a) : plain[k];
   }
 
   let song = null, songName = null, pending = null, timer = null, tempoMul = 1, nextSong = null;
@@ -900,7 +1016,8 @@ const Audio8 = (() => {
   // Stereo wie beim SNES: jede Stimme hat ihren festen Platz im Panorama – Melodie halb links, Begleitung rechts, das Echo der
   // Melodie antwortet von der anderen Seite, die beiden Pad-Sägezähne liegen weit links und rechts, Becken und Toms verteilt.
   // Melodie- und Musikbus werden bei jedem Liedwechsel neu angelegt, darum je Bus ein eigener Satz Panner (bei Bedarf gebaut).
-  const PAN = { p1: -0.45, p1c: 0.3, p2: 0.55, echo: 0.75, pb: -0.3, padL: -0.8, padR: 0.8, hat: 0.45, tomL: -0.5, tomR: 0.5 };
+  const PAN = { p1: -0.45, p1c: 0.3, p2: 0.55, echo: 0.75, pb: -0.3, padL: -0.8, padR: 0.8, hat: 0.45, tomL: -0.5, tomR: 0.5,
+    str: -0.3, brs: 0.3, fl: -0.5, hrp: 0.6, glk: 0.4, tmp: 0.15 }; // Orchester: Streicher halb links, Blech halb rechts, Harfe rechts außen
   let pans = null;
   // Adaptive Musik: das Schlagzeug läuft über einen eigenen Bus. Beim Erkunden spielt es zurückhaltend (60 %), sobald Gegner in
   // der Nähe sind oder ein Boss kämpft, schwillt es auf volle Stärke an (Audio8.intensity, von der Welt alle paar Bilder gesetzt)
@@ -1043,14 +1160,80 @@ const Audio8 = (() => {
     });
   }
 
+  // ---------------- Orchesterstimmen (Arrangeur) ----------------
+  let orch = 1; // Pegel der Orchesterstimmen im laufenden Lied: leise Stücke werden insgesamt angehoben (SONG_GAIN), das Orchester gleicht das halb aus
+  // Streicher: zwei verstimmte Sägezähne durch einen Tiefpass, weicher Einsatz, die Verstimmung wandert (lebendiger Ton)
+  function strNote(f, t, dur) {
+    const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = Math.min(5200, 900 + f * 3); lp.Q.value = 0.6;
+    const g = ac.createGain(), v = 0.044 * orch, a = Math.min(0.09, dur * 0.3), end = t + Math.max(0.05, dur * 0.96);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + a); g.gain.setValueAtTime(v, end); g.gain.linearRampToValueAtTime(0, end + 0.12);
+    [-8, 8].forEach((c, i) => {
+      const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.detune.setValueAtTime(c, t);
+      if (dur > 0.3) o.detune.linearRampToValueAtTime(c + (i ? 7 : -7), t + dur);
+      o.connect(lp); o.start(t); o.stop(end + 0.15);
+    });
+    lp.connect(g); g.connect(pan('str', melBus));
+  }
+  // Blech: Sägezahn und Rechteck durch einen Tiefpass, der beim Anstoß aufgeht (das „Schmettern“)
+  function brassNote(f, t, dur) {
+    const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 1.2;
+    lp.frequency.setValueAtTime(500, t); lp.frequency.linearRampToValueAtTime(Math.min(4200, f * 5.5), t + 0.05); lp.frequency.setTargetAtTime(Math.min(3000, f * 3.5), t + 0.06, 0.2);
+    const g = ac.createGain(), v = 0.066 * orch, end = t + Math.max(0.06, dur * 0.9);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + 0.03); g.gain.linearRampToValueAtTime(v * 0.8, t + Math.min(0.2, dur * 0.5)); g.gain.setValueAtTime(v * 0.8, end); g.gain.linearRampToValueAtTime(0, end + 0.08);
+    const o = ac.createOscillator(), o2 = ac.createOscillator(), g2 = ac.createGain();
+    o.type = 'sawtooth'; o.frequency.value = f; o2.type = 'square'; o2.frequency.value = f; o2.detune.value = 5; g2.gain.value = 0.35;
+    o.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); g.connect(pan('brs', melBus));
+    o.start(t); o2.start(t); o.stop(end + 0.1); o2.stop(end + 0.1);
+  }
+  // Flöte: Sinus mit leiser Oktave, Vibrato bei langen Tönen, ein Hauch Anblasgeräusch
+  function fluteNote(f, t, dur) {
+    const g = ac.createGain(), v = 0.13 * orch, end = t + Math.max(0.04, dur * 0.88), dst = pan('fl', melBus);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + 0.025); g.gain.setValueAtTime(v * 0.85, end); g.gain.linearRampToValueAtTime(0, end + 0.05);
+    const o = ac.createOscillator(), o2 = ac.createOscillator(), g2 = ac.createGain();
+    o.type = 'sine'; o.frequency.value = f; o2.type = 'triangle'; o2.frequency.value = f * 2; g2.gain.value = 0.15;
+    if (dur > 0.25) { const lfo = ac.createOscillator(), lg = ac.createGain(); lfo.frequency.value = 5.2; lg.gain.value = f * 0.006; lfo.connect(lg); lg.connect(o.frequency); lfo.start(t + 0.12); lfo.stop(end + 0.06); }
+    o.connect(g); o2.connect(g2); g2.connect(g); g.connect(dst); o.start(t); o2.start(t); o.stop(end + 0.07); o2.stop(end + 0.07);
+    noise(0.045, 0.022, 'bandpass', 2600, null, t, dst);
+  }
+  // Harfe / Pizzicato: Dreieck mit Sinus-Oktave, rascher Abklang
+  function harpNote(f, t, dur) {
+    const g = ac.createGain(), v = 0.09 * orch, d = Math.max(0.28, Math.min(0.9, dur * 1.8));
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0008, t + d);
+    const o = ac.createOscillator(), o2 = ac.createOscillator(), g2 = ac.createGain();
+    o.type = 'triangle'; o.frequency.value = f; o2.type = 'sine'; o2.frequency.value = f * 2; g2.gain.value = 0.3;
+    o.connect(g); o2.connect(g2); g2.connect(g); g.connect(pan('hrp', melBus)); o.start(t); o2.start(t); o.stop(t + d + 0.02); o2.stop(t + d + 0.02);
+  }
+  // Glockenspiel: Sinus mit unharmonischem Oberton, klingt aus
+  function glockNote(f, t) {
+    [[1, 0.05], [2.76, 0.016], [5.4, 0.006]].forEach(([m, a]) => {
+      const o = ac.createOscillator(), g = ac.createGain(); o.type = 'sine'; o.frequency.value = f * m;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(a, t + 0.003); g.gain.exponentialRampToValueAtTime(0.0006, t + 1.1 / Math.sqrt(m));
+      o.connect(g); g.connect(pan('glk', melBus)); o.start(t); o.stop(t + 1.2);
+    });
+  }
+  // Pauke, gestimmt auf den Basston: Sinus mit kurzem Tonhöhenabfall, Quinte darüber, dumpfer Anschlag
+  function timpNote(f, t) {
+    const dst = pan('tmp', musicBus), o = ac.createOscillator(), o2 = ac.createOscillator(), g = ac.createGain(), g2 = ac.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(f * 1.5, t); o.frequency.exponentialRampToValueAtTime(f, t + 0.05);
+    o2.type = 'sine'; o2.frequency.value = f * 1.5; g2.gain.value = 0.22;
+    g.gain.setValueAtTime(0.3, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.75);
+    o.connect(g); o2.connect(g2); g2.connect(g); g.connect(dst); o.start(t); o2.start(t); o.stop(t + 0.8); o2.stop(t + 0.8);
+    noise(0.1, 0.07, 'lowpass', 420, 110, t, dst);
+  }
+
   function playEvent(track, ev, t, stepDur, pos = 0) { // pos: Sechzehntel seit Beginn des Durchlaufs (für den Groove)
     if (ev.n === '-') return;
     if (track === 'pad') { ev.n.split('+').forEach(n => { const f = freq(n); if (f) padNote(f, t, ev.len * stepDur); }); return; }
     if (track === 'org') { ev.n.split('+').forEach(n => { const f = freq(n); if (f) organNote(f, t, ev.len * stepDur); }); return; }
     if (track === 'dr') { drum(ev.n, t, ev.len * stepDur, pos); return; }
+    if (track === 'str' || track === 'hrp') { ev.n.split('+').forEach(n => { const f = freq(n); if (f) (track === 'str' ? strNote : harpNote)(f, t, ev.len * stepDur); }); return; }
     const f = freq(ev.n);
     if (!f) return;
     const dur = ev.len * stepDur;
+    if (track === 'fl') return fluteNote(f, t, dur);
+    if (track === 'brs') return brassNote(f, t, dur);
+    if (track === 'glk') return glockNote(f, t);
+    if (track === 'tmp') return timpNote(f, t);
     note(track, f, t, dur);
     if (track === 'tri' && song.loop && dur < 0.2) note('pb', f * 2, t, dur, 1, 0.125); // kratziger Bass
     if (track === 'p1' && song.echo) note('p1', f, t + song.echo.delay * stepDur, dur, song.echo.vol, 0.125, 'echo');
@@ -1078,16 +1261,20 @@ const Audio8 = (() => {
   }
 
   // fade (s): beim Raumwechsel blendet das alte Lied aus und das neue weich ein, statt hart zu schneiden
-  function play(name, then = null, fade = 0) {
+  function play(name, then = null, fade = 0, at = 0) { // at: Sechzehntel ab Liedbeginn (Vorhören eines Durchgangs)
     if (!ac) { pending = then || name; return; }
     if (songName === name && song) return;
     if (!parsed[name]) return;
     stop(song ? fade : 0);
     song = parsed[name]; songName = name; nextSong = then;
     if (songGain) songGain.gain.setTargetAtTime(SONG_GAIN[name] || 1, ac.currentTime, 0.08);
+    orch = 1 / Math.sqrt(SONG_GAIN[name] || 1);
     const t0 = ac.currentTime + 0.05 + (fade ? fade * 2 : 0);
-    cursors = song.tracks.map(() => ({ i: 0, t: t0, s: 0, done: false }));
-    songT0 = t0;
+    cursors = song.tracks.map((tr) => { // at > 0: jede Spur an ihr erstes Ereignis ab dieser Stelle setzen
+      let i = 0, st = 0; if (at > 0) while (i < tr.ev.length && st + 0.001 < at) st += tr.ev[i++].len;
+      return { i, t: t0 + (at > 0 ? (st - at) * 60 / (song.bpm * tempoMul) / 4 : 0), s: at > 0 ? st : 0, done: false };
+    });
+    songT0 = t0 - (at > 0 ? at * 60 / (song.bpm * tempoMul) / 4 : 0);
     schedule();
     timer = setInterval(schedule, 40);
   }
@@ -1285,5 +1472,5 @@ const Audio8 = (() => {
     beat: () => (ac && song ? Math.max(0, ac.currentTime - songT0) * song.bpm * tempoMul / 60 : null), // Schlag im laufenden Stück
     cues: () => { if (!ac) return 0; const now = ac.currentTime; let n = 0; while (cueQ.length && cueQ[0] <= now) { cueQ.shift(); n++; } return n; }, // fällige Stakkato-Schläge
     stream: () => { if (!ac) return null; if (!tapDest) { tapDest = ac.createMediaStreamDestination(); comp.connect(tapDest); } return tapDest.stream; }, // Mitschnitt (Trailer-Aufnahme)
-    get muted() { return muted; }, get current() { return songName; }, get filterHz() { return muffleF ? Math.round(muffleF.frequency.value) : 0; }, _songs: parsed };
+    get muted() { return muted; }, get current() { return songName; }, get filterHz() { return muffleF ? Math.round(muffleF.frequency.value) : 0; }, _songs: plain, _arr: parsed };
 })();

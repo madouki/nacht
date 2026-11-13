@@ -8,6 +8,36 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 
 ---
 
+## 20261113-1319 – Musik in langer Form mit Orchester, Schnellreise zu jedem Raum, Paternoster im Eilgang, Requisiten neu
+
+**Neu – Musik (alle Stücke)**
+- **Längere Schleifen:** jedes Stück läuft jetzt 2 bis 4 Minuten, bevor es sich wiederholt (vorher 9 bis 63 Sekunden;
+  das Bosslied z. B. 80 statt 10 Sekunden, der Burghof 175 statt 44).
+- **Mehrere Durchgänge, jeder anders besetzt:** Original → Kammerbesetzung (Flöte führt, Harfe begleitet, kaum
+  Schlagzeug; bei Bossliedern stattdessen Streicher mit vollem Schlagzeug) → Brücke in einer anderen Tonart mit einem
+  neuen Blechthema über liegenden Streichern → Tutti mit Streichern, Glockenspiel und Pauken. Kurze Stücke bekommen
+  dazu ein Zwischenspiel ohne Melodie und einen Durchgang eine Mollterz höher.
+- **Neue Instrumente:** Streicher, Blech, Flöte, Harfe, Glockenspiel und Pauken (auf den Bass gestimmt).
+- Der erste Durchgang ist jeweils das bisherige Stück; das Taktduell am Grammophon ist unverändert.
+
+**Neu – weniger Lauferei**
+- **Schnellreise zu jedem schon betretenen Raum** (Pause → SCHNELLREISE oder ↓ + Karte): Ziel ist der Raumeingang.
+  Warpkammern und Bossräume bleiben wie bisher. Vorgewählt ist das Ziel, das dem Wegweiser am nächsten liegt.
+  Die Pfeiltasten springen auf der Karte zum nächsten Ziel in dieser Richtung.
+- **Paternoster im Eilgang:** sobald du in einer Kabine stehst, läuft der Umlauf gut dreimal so schnell
+  (vier Stockwerke in 3 statt knapp 10 Sekunden). Hältst du ← oder →, bremst er, und du steigst am nächsten Stockwerk aus.
+
+**Neu – Grafik**
+- **Paternoster-Kabine** neu aus Blender: Mahagoni-Kassetten, Messingpfosten mit Konsolen, Handlauf, Deckenlampe.
+- **Kerzen, Fackeln, Standleuchter und Feuerschalen** neu aus Blender (gedrechseltes Messing, Dreifuß, Flammenbilder).
+
+**Beim Testen ansehen**
+- Musik: ein Stück zwei, drei Minuten laufen lassen (Burghof, Katakomben, ein Bosskampf). Passen die Übergänge zwischen
+  den Durchgängen, ist ein Teil zu laut, zu leise oder schräg? Ich konnte nur Pegel messen, nicht hören.
+- Schnellreise: Karte öffnen, mit den Pfeilen ein paar Räume ansteuern, reisen. Kommst du an einer sinnvollen Stelle an?
+- Paternoster (Behördentrakt): Fahrt im Eilgang, Aussteigen mit gehaltener Richtung auf jedem Stockwerk, oben durchfahren.
+- Kerzen und Fackeln in jedem Raum, Standleuchter und Feuerschalen im Bergfried und im Thronbereich: gut erkennbar?
+
 ## 20261113-0717 – Hotfix: Wegweiser im Eiskeller zeigte in eine Sackgasse
 
 **Behoben**

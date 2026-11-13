@@ -4331,7 +4331,7 @@ const Castle = (() => {
   // Schnellreise: Auswahl unter allen freigeschalteten Warpkammern auf der Schlosskarte
   const trip = { list: [], sel: 0, from: null };
   function openWarp(c) {
-    trip.list = allChambers().filter(w => w.kind === 'warp' && warp[w.key]); trip.from = c.key;
+    trip.list = tripList(); trip.from = c.key;
     trip.sel = Math.max(0, trip.list.findIndex(w => w.key === c.key)); view.zoom = false;
   }
   // Schnellreise aus dem Pausenmenü (seit 20261112): von überall zu jeder schon betretenen Warpkammer – nicht im Bosskampf,
@@ -4343,17 +4343,46 @@ const Castle = (() => {
     for (const b of sideBosses()) if (!sideDone(b)) add(b.s, b.r, b.d, tr(MINI_NAME[b.id]));
     return out;
   }
-  function openTravel() {
-    trip.list = allChambers().filter(w => w.kind === 'warp' && warp[w.key]).concat(bossDoors()); trip.from = '';
-    const g = guideTarget(), near = (w) => (g && w.s === g.s && w.r === g.r ? -4 : 0) + (g && w.s === g.s ? 0 : 2) + (w.s === W.stage ? 1 : 3); // vorgewählt: der Raum des Ziels, sonst die Kammer in seiner Region
-    trip.sel = Math.max(0, trip.list.reduce((bi, w, i) => (near(w) < near(trip.list[bi]) ? i : bi), 0)); view.zoom = false;
+  // Seit 20261113 (Rückmeldung „immer noch zu viel Backtracking“): Reiseziel ist auch der Eingang JEDES schon betretenen Raums
+  // (nicht die Ankunft – aufs Schiff geht es nicht zurück – und nicht der Thronsaal). Räume, die schon als Warpkammer oder
+  // Bossraum in der Liste stehen, kommen nicht doppelt.
+  function roomDoors(skip) {
+    const out = [], last = S().length - 1;
+    S().forEach((st, s) => st.rooms.forEach((d, r) => {
+      const k = roomKey(s, r);
+      if (!seen[k] || !seen[k].size || !d.start || st.id === 'arrival' || (s === last && d.arena) || (s === W.stage && r === W.roomIdx) || skip.has(s + ':' + r)) return;
+      out.push({ key: 'room:' + k, kind: 'warp', s, r, x: d.start.x, y: d.start.y, place: 'start', room: true });
+    }));
+    return out;
   }
-  const travelAny = () => !W.boss && !W.arenaOn && !inPrologue() && W.player && W.player.alive && (allChambers().some(w => w.kind === 'warp' && warp[w.key]) || bossDoors().length > 0);
+  function tripList() {
+    const base = allChambers().filter(w => w.kind === 'warp' && warp[w.key]).concat(bossDoors());
+    return base.concat(roomDoors(new Set(base.map(w => w.s + ':' + w.r))));
+  }
+  const tripPos = (w) => { const rr = roomAt(w.s, w.r), cc = rr && placeCell(rr, w.place === 'start' ? 'start' : w); return cc ? { x: rr.ax + cc.x, y: rr.ay + cc.y } : { x: 0, y: 0 }; };
+  function openTravel() {
+    trip.list = tripList(); trip.from = '';
+    // vorgewählt: das Ziel mit den wenigsten Raumwechseln bis zum Wegweiser-Ziel (bei Gleichstand die Warpkammer, dann die eigene Region)
+    const g = guideTarget(), dist = g ? hopsFrom(g.s + ':' + g.r, true) : null;
+    const cost = (w) => { const d = dist ? dist[w.s + ':' + w.r] : undefined; return (d === undefined ? 60 : d) * 4 + (w.room ? 1 : 0) + (w.s === W.stage ? 0 : 0.5); };
+    trip.sel = Math.max(0, trip.list.reduce((bi, w, i) => (cost(w) < cost(trip.list[bi]) ? i : bi), 0)); view.zoom = false;
+  }
+  const travelAny = () => !W.boss && !W.arenaOn && !inPrologue() && W.player && W.player.alive && tripList().length > 0;
+  function tripMove(dx, dy) { // nächstes Ziel in Pfeilrichtung auf der Karte; gibt es dort keines, das fernste auf der Gegenseite (Umlauf)
+    const a = tripPos(trip.list[trip.sel]); let best = -1, bd = 1e9, far = -1, fd = -1e9;
+    trip.list.forEach((w, i) => {
+      if (i === trip.sel) return;
+      const b = tripPos(w), along = (b.x - a.x) * dx + (b.y - a.y) * dy, across = Math.abs((b.x - a.x) * dy) + Math.abs((b.y - a.y) * dx);
+      if (along > 0.01) { const d = along + across * 2.4; if (d < bd) { bd = d; best = i; } }
+      else if (along < -0.01) { const d = -along - across * 2.4; if (d > fd) { fd = d; far = i; } }
+    });
+    const to = best >= 0 ? best : far;
+    if (to >= 0) { trip.sel = to; Audio8.sfx('select'); }
+  }
   function warpInput(P) { // 'cancel', ein Ziel { s, r, place } oder null
     const n = trip.list.length;
     if (P.start || !n) return 'cancel';
-    if (P.left || P.up) { trip.sel = (trip.sel + n - 1) % n; Audio8.sfx('select'); }
-    if (P.right || P.down) { trip.sel = (trip.sel + 1) % n; Audio8.sfx('select'); }
+    if (P.left) tripMove(-1, 0); else if (P.right) tripMove(1, 0); else if (P.up) tripMove(0, -1); else if (P.down) tripMove(0, 1);
     if (P.jump || P.attack) {
       const w = trip.list[trip.sel];
       if (w.key === trip.from) return 'cancel';
@@ -4492,6 +4521,7 @@ const Castle = (() => {
       if (!cc) return;
       const px = ox + (rr.ax + cc.x) * cs, py = oy + (rr.ay + cc.y) * cs, on = i === trip.sel, g = on ? 3 : 1;
       if (on && (t >> 3) % 2) return;
+      if (wc.room && !on) { ctx.fillStyle = '#7cdcfc'; ctx.fillRect(px + Math.floor(cs / 2) - 1, py + Math.floor(cs / 2) - 1, 2, 2); return; } // Raumeingang: heller Punkt
       ctx.strokeStyle = on ? '#ffffff' : '#3cbcfc'; ctx.lineWidth = 1;
       ctx.strokeRect(px - g + 0.5, py - g + 0.5, cs + g * 2 - 1, cs + g * 2 - 1);
       if (on) ctx.strokeRect(px - g - 0.5, py - g - 0.5, cs + g * 2 + 1, cs + g * 2 + 1);
@@ -4518,7 +4548,7 @@ const Castle = (() => {
       ly += 21;
     }
     Font.draw(ctx, tr('mapExplored', percent(W.stage)) + '    ' + tr('mapCastle', percent()), cx, ly, '#fcfcfc', { align: 'center', shadow: '#000' });
-    if (!g) { Font.draw(ctx, warpMode ? (sw && sw.title ? tr('castleGoalBoss', sw.title) : tr('warpCount', trip.sel + 1, trip.list.length)) : tr('castleSealsShort', seals(), sealRooms().length), cx, ly + 10, warpMode ? (sw && sw.title ? '#fc9c6c' : '#7cdcfc') : '#c8a0fc', { align: 'center', shadow: '#000' }); ly += 10; }
+    if (!g) { Font.draw(ctx, warpMode ? (sw && sw.title ? tr('castleGoalBoss', sw.title) : tr(sw && sw.room ? 'travelRoom' : 'warpCount', trip.sel + 1, trip.list.length)) : tr('castleSealsShort', seals(), sealRooms().length), cx, ly + 10, warpMode ? (sw && sw.title ? '#fc9c6c' : '#7cdcfc') : '#c8a0fc', { align: 'center', shadow: '#000' }); ly += 10; }
     Font.draw(ctx, tr(warpMode ? 'mapHelpWarp' : view.zoom ? 'mapHelpZoom' : 'mapHelp'), cx, ly + 11, '#7c7c8c', { align: 'center' });
   }
 
@@ -4692,7 +4722,7 @@ const Castle = (() => {
     for (const q of QUESTS) need.push('quest_' + q.id, 'questHint_' + q.id);
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
-    need.push('castleBossCount', 'castleGoalBoss', 'pauseTravel', 'bounty', 'travelTip', 'bountyTitle', 'mahrTitle', 'mahrCount', 'mahrRuf', 'mahrBann', 'mahrHelp', 'mahrSwap', 'mahrOn', 'mahrFrom', 'mahrUnknown', 'mahrGot', 'mahrFirst', 'mahrDodge', 'crit', 'chgMahr');
+    need.push('castleBossCount', 'castleGoalBoss', 'pauseTravel', 'bounty', 'travelTip', 'bountyTitle', 'travelRoom', 'mahrTitle', 'mahrCount', 'mahrRuf', 'mahrBann', 'mahrHelp', 'mahrSwap', 'mahrOn', 'mahrFrom', 'mahrUnknown', 'mahrGot', 'mahrFirst', 'mahrDodge', 'crit', 'chgMahr');
     { // Erreichbarkeit: vom Wald aus über Türen und Ausgänge (alles geöffnet) – kein Raum darf abgeschnitten sein
       const key = (s, r) => s + ':' + r, seenR = new Set(), queue = [], s0 = sIdx('arrival');
       const push = (s, r) => { if (s >= 0 && !seenR.has(key(s, r))) { seenR.add(key(s, r)); queue.push([s, r]); } };
@@ -4766,7 +4796,7 @@ const Castle = (() => {
     setFlag: (k) => { flag[k] = 1; save(); }, // z. B. Aufzug als Abkürzung freigeschaltet (lift.js)
     k3at, art, whenArt, dishToday, buffInfo: () => buff && { id: buff.id, k: buff.t / BUFF_T }, // Behördentrakt (js/trakt.js), HUD: Mahlzeit
     toolsInput, drawTools, selfCheck, mapReport, mapLayout: () => castle(), doorsOf, get god() { return god; }, get best() { return best; },
-    toggleOverlay, get overlay() { return overlayOn; }, travelOk, openTravel, bossTally, shaftAudit, bountyList, get statusPageNo() { return statusPage; }, hasReturnGate: () => W.ents.some(e => e instanceof ReturnGate && !e.dead), sideBosses: () => sideBosses().map(b => ({ id: b.id, s: b.s, r: b.r, done: sideDone(b), label: b.d.label })), goalInfo: () => { const g = goal(); return g ? { text: goalText(g), where: whereText(g), id: g.id || GOALS.indexOf(g) } : null; },
+    toggleOverlay, get overlay() { return overlayOn; }, travelOk, openTravel, bossTally, shaftAudit, tripInfo: () => ({ n: trip.list.length, sel: trip.sel, cur: trip.list[trip.sel] ? { s: trip.list[trip.sel].s, r: trip.list[trip.sel].r, room: !!trip.list[trip.sel].room, key: trip.list[trip.sel].key } : null, rooms: trip.list.filter(w => w.room).length }), bountyList, get statusPageNo() { return statusPage; }, hasReturnGate: () => W.ents.some(e => e instanceof ReturnGate && !e.dead), sideBosses: () => sideBosses().map(b => ({ id: b.id, s: b.s, r: b.r, done: sideDone(b), label: b.d.label })), goalInfo: () => { const g = goal(); return g ? { text: goalText(g), where: whereText(g), id: g.id || GOALS.indexOf(g) } : null; },
     tier: (s) => (TIER[S()[s].id] || 1) + 2 * (flag.ngp || 0), side: SIDE, startEpilogue, resultsInput, drawResults, ngPlus, ngRestore, drawGoalBanner, drawGoalToast, announceGoal, drawGuide, guidePlan, inPrologue, goal: () => { const g = goal(); return g && { text: goalText(g), where: tr(g.where) }; }, get vessels() { return vessel; }, get relics() { return relic; }, get cracks() { return crack; }, has,
     get seen() { return seen; }, get warps() { return warp; },
     reset() { seen = {}; boss = {}; mini = {}; warp = {}; vessel = {}; relic = {}; crack = {}; flag = {}; inv = {}; eq = {}; famx = {}; best = {}; try { localStorage.removeItem(KEY); localStorage.removeItem(SAVE_KEY); localStorage.removeItem(RESUME_KEY); } catch (e) { /* privat */ } },

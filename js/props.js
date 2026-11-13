@@ -1129,6 +1129,8 @@ class Brazier extends Ent {
   lights(L, cx, cy, flick) { L.push({ x: this.cx - cx, y: this.y - 6 - cy, r: 66 + flick(this.x) * 2, c: [248, 120, 30], a: 0.72 }); }
   draw(ctx) {
     const x = Math.round(this.x - W.cam.x), y = Math.round(this.y - W.cam.y), R = (c, a, b, w, h) => { ctx.fillStyle = c; ctx.fillRect(x + a, y + b, w, h); };
+    const P3 = Sprites.S.props3d; // aus Blender (js/props3d.js): Schale auf dem Dreifuß mit drei Flammenbildern
+    if (P3) { Sprites.draw(ctx, P3.brazier[Math.floor(this.t / 6) % 3], x - 8, y - 16); return; }
     R('#1c1418', 7, 14, 2, 34); R('#4c4458', 7, 14, 1, 34); R('#1c1418', 2, 44, 12, 2); R('#1c1418', 0, 46, 3, 6); R('#1c1418', 13, 46, 3, 6); R('#c89020', 6, 28, 4, 2); // Dreifuß
     R('#2c2430', -5, 8, 26, 6); R('#6c6478', -5, 8, 26, 1); R('#c89020', -5, 10, 26, 1); R('#1c1418', -3, 14, 22, 2); // Schale
     R('#a82800', -3, 6, 22, 3); R('#fc7c00', -1, 6, 18, 1); // Glut
@@ -1146,6 +1148,8 @@ class Candelabra extends Ent {
   lights(L, cx, cy, flick) { L.push({ x: this.cx - cx, y: this.y + 2 - cy, r: 40 + flick(this.x), c: [248, 160, 60], a: 0.5 }); }
   draw(ctx) {
     const x = Math.round(this.x - W.cam.x), y = Math.round(this.y - W.cam.y), R = (c, a, b, w, h) => { ctx.fillStyle = c; ctx.fillRect(x + a, y + b, w, h); };
+    const P3 = Sprites.S.props3d; // aus Blender (js/props3d.js): zwei Bilder, die Flammen flackern
+    if (P3) { Sprites.draw(ctx, P3.candelabra[(this.t >> 3) & 1], x - 2, y - 10); return; }
     R('#5c4010', 4, 44, 16, 4); R('#c89020', 4, 44, 16, 1); R('#8c6414', 7, 40, 10, 4); // Fuß
     R('#8c6414', 11, 12, 2, 30); R('#e8c070', 11, 12, 1, 30); R('#c89020', 9, 24, 6, 2); R('#c89020', 9, 33, 6, 2); // Schaft mit Knäufen
     R('#c89020', 1, 12, 22, 2); R('#fce0a8', 1, 12, 22, 1); R('#c89020', 1, 6, 2, 6); R('#c89020', 21, 6, 2, 6); R('#c89020', 6, 8, 2, 4); R('#c89020', 16, 8, 2, 4); // Arme

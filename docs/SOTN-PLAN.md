@@ -517,7 +517,15 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
       und Knochensäule aus `tools/blender/rest_bl.py` (frei modelliert, kein Rig); `pack_rest.py` setzt die 18 Bilder an ihre
       Plätze in `img/creatures3d.png`. Damit sind alle Kreaturen des Atlas neu; das Schlangenhaar und der Schwanz der Medusa
       werden weiter im Spiel gezeichnet (Farben des Leibs darauf abgestimmt).
-    - Nächste Schritte der Leitlinie (noch offen): Requisiten, dann Hintergründe; später eine höher aufgelöste Ebene für
+    - *Fünftes Stück (20261113):* Requisiten aus `tools/blender/props_bl.py` – Kerze, Fackel (ersetzen `S.candle`/`S.torch`),
+      Standleuchter und Feuerschale (`Sprites.S.props3d`, Atlas `img/props3d.png`, Karte in `js/props3d.js`; `pack_props.py`).
+      Paternoster-Kabine neu (`pcabin_bl.py`, `pack_pcabin.py` setzt sie in `img/krat3d.png`). Truhe und Kronleuchter bleiben
+      die Polygonmodelle mit Echtzeit-Perspektive.
+    - *Dazu (20261113):* Arrangeur in `js/audio.js` (`arrange`: lange Form A B C D … je Lied, Orchesterstimmen fl/hrp/str/brs/
+      tmp/glk; `Audio8._songs` = Original fürs Taktduell, `Audio8._arr` = gespielte Form; `play(name, then, fade, at)` springt
+      an eine Stelle). Schnellreise zu jedem betretenen Raum (`roomDoors`, `tripList`, `tripMove`). Paternoster-Eilgang
+      (`Pater.v`). Schacht-Prüfung `shaftAudit` im Selbsttest (Einbahn-Schächte: Eisrutsche, Eiskeller).
+    - Nächste Schritte der Leitlinie (noch offen): Hintergründe; Sammelgegenstände; später eine höher aufgelöste Ebene für
       Figuren.
   - **Sechster Stand – alle Bosse im Wegweiser, weniger Lauferei** (20261112; Rückmeldung „zu viel Backtracking“, „neue Bosse
     nicht einbezogen“, „Infernax-Fluss“):

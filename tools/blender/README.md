@@ -17,5 +17,10 @@ aufgebaut, mit drei Lichtern beleuchtet, stark überabgetastet gerendert und auf
    rendert Medusa, Medusenhaupt, Gespenst, Flammenschädel, Seeadler, Rabe und Knochensäule (`what` weglassen = alle);
    `python pack_rest.py r_rest ../../js/creatures3d.js ../../img/creatures3d.png` setzt sie in den Atlas.
 
+5. **Requisiten:** `python bl.py props_bl.py '{"dir": "<dieser Ordner>", "out": ".../r_props"}'` rendert Kerze, Fackel,
+   Standleuchter und Feuerschale; `python pack_props.py r_props ../../js/props3d.js ../../img/props3d.png` packt den Atlas und
+   trägt die Karte ein. Die Paternoster-Kabine: `pcabin_bl.py`, dann
+   `python pack_pcabin.py r_pcabin/pcabin.png ../../js/castle.js ../../img/krat3d.png`.
+
 Aussehen der Helden steht in `LOOK` (hero_bl.py), die Posen des Grafen in `count()` (count_bl.py). Bildgrößen, Anker und
 Kartenschlüssel bleiben, damit im Spiel nichts verrutscht.

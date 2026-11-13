@@ -20,11 +20,11 @@ const Trakt = (() => {
       this.xu = d.x * T; this.xd = (d.x + 4) * T; this.yt = (d.top + 1) * T; this.yb = (d.bot + 1) * T;
       this.V = this.yb - this.yt; this.Hz = this.xd - this.xu; this.L = 2 * this.V + 2 * this.Hz;
       const n = Math.round(this.L / 64);
-      this.sp = this.L / n; this.ph = 0; this.speed = d.speed || 0.7;
+      this.sp = this.L / n; this.ph = 0; this.speed = d.speed || 0.7; this.v = this.speed; // v: Tempo im Augenblick (Eilgang, solange der Held mitfährt)
       this.cabs = []; this.plats = [];
       for (let i = 0; i < n; i++) {
         const self = this, c = { kind: 'platform', pater: this, i, x: 0, y: 0, w: 48, h: 6, dx: 0, dy: 0, slack: 4, seg: 0,
-          update() { if (this.i === 0) self.ph = (self.ph + self.speed) % self.L; self.place(this, false); } };
+          update() { if (this.i === 0) self.ph = (self.ph + self.v) % self.L; self.place(this, false); } };
         this.place(c, true); this.cabs.push(c); this.plats.push(c);
       }
       this.spin = -1; this.lastSeg = -1; this.cellar = false; this.ding = -1;
@@ -44,6 +44,11 @@ const Trakt = (() => {
     update() {
       this.t++;
       const p = W.player, c = p && p.alive ? p.ridePlat : null;
+      // Eilgang: fährt der Held mit, läuft der ganze Umlauf gut dreimal so schnell (sonst steht man für vier Stockwerke zehn
+      // Sekunden in der Kabine); in den Wenden gemächlicher. Wer eine Richtung hält, will aussteigen: dann bremst der Umlauf,
+      // und die Aussteighilfe setzt den Helden am nächsten Stockwerk hinaus.
+      { const on = !!(c && c.pater === this), I = Input.held, want = !on ? this.speed : I.left || I.right ? 1.5 : c.seg === 1 || c.seg === 3 ? 2.2 : (this.d.fast || 3.3);
+        this.v += clamp(want - this.v, -0.16, 0.14); }
       if (c && c.pater === this) {
         // in der Kabine bleiben, solange daneben eine Decke vorbeizieht (sonst trüge die Kabine den Helden in die Mauer)
         const side = c.seg === 0 ? -1 : c.seg === 2 ? 1 : 0, edge = side < 0 ? c.x - 3 : c.x + c.w + 1;
@@ -102,7 +107,7 @@ const Trakt = (() => {
         }
         const chain = (x, dir) => { // Glieder wandern mit: hinauf im linken, hinab im rechten Schacht
           ctx.fillStyle = '#2c2a30'; ctx.fillRect(x, y0, 2, y1 - y0);
-          const off = ((dir * this.ph) % 8 + 8) % 8;
+          const off = ((dir * this.ph) % 8 + 8) % 8; // (im Eilgang laufen die Kettenglieder entsprechend schneller)
           ctx.fillStyle = '#7c7884'; for (let y = y0 - 8 + off; y < y1; y += 8) ctx.fillRect(x, Math.round(y), 2, 3);
         };
         chain(xu + 23, -1); chain(xd + 23, 1);
