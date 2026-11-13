@@ -38,7 +38,7 @@ class ShortcutLift extends Ent {
       return;
     }
     const goal = this.stops[this.to], dist = goal - this.y, dir = Math.sign(dist);
-    this.v = Math.min(this.d.speed || 2.4, this.v + 0.08, Math.max(0.5, Math.abs(dist) * 0.06)); // anfahren, gleiten, sanft halten (speed: Höchsttempo)
+    this.v = Math.min(this.d.speed || 4.2, this.v + 0.12, Math.max(0.6, Math.abs(dist) * 0.07)); // anfahren, gleiten, sanft halten (speed: Höchsttempo)
     const ny = Math.abs(dist) <= this.v ? goal : this.y + dir * this.v;
     this.dy = ny - this.y; this.y = ny; this.hum++;
     if (this.hum % 24 === 0) Audio8.sfx('cog');

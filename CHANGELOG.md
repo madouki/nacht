@@ -8,6 +8,29 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 
 ---
 
+## 20261113-1334 – Eigene Mittelteile für die Hauptthemen, flottere Aufzüge, Sammelgegenstände neu
+
+**Neu – Musik**
+- **Burghof, Katakomben, Bergfried und das Bosslied** haben für ihre Brücke jetzt eine eigens geschriebene Melodie
+  (getragene Blechlinie über den Akkorden des Stücks, eine Quarte höher); beim zweiten Durchlauf der Melodie spielt die
+  Flöte eine Oktave höher mit. Die übrigen Stücke behalten das Thema, das der Arrangeur aus den Akkorden bildet.
+
+**Neu – weniger Warten**
+- **Plattform-Aufzüge** (die pendelnden Plattformen an Seilen) fahren deutlich schneller. Stehst du drauf, fahren sie
+  nach einem Augenblick los; wartest du am anderen Ende, kommen sie sofort, statt ihre Pause abzusitzen.
+- **Kabinenaufzüge** ohne eigenes Tempo (z. B. im Hotel Krat) fahren fast doppelt so schnell.
+
+**Neu – Grafik**
+- **Sammelgegenstände** neu aus Blender: kleines und großes Herz, roter und violetter Geldsack, Braten, Kristallkugel.
+  Das kleine Herz ist auch der Zeiger in den Menüs.
+
+**Beim Testen ansehen**
+- Musik: in Burghof, Katakomben oder Bergfried etwa eine Minute bleiben – nach dem ruhigen Flötenteil kommt die neue
+  Blechmelodie. Klingt sie stimmig zum Stück? (Ich konnte nur Pegel messen, nicht hören.)
+- Plattform-Aufzüge (Katakomben-Schacht, Uhrturm): fährt die Plattform los, sobald du draufstehst, und kommt sie, wenn du
+  unten oder oben wartest? Ist ein Sprung dadurch schwerer geworden?
+- Herzen, Geldsäcke, Braten: gut zu erkennen, auch im Flug und vor hellem Hintergrund?
+
 ## 20261113-1319 – Musik in langer Form mit Orchester, Schnellreise zu jedem Raum, Paternoster im Eilgang, Requisiten neu
 
 **Neu – Musik (alle Stücke)**

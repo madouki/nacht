@@ -19,7 +19,8 @@ aufgebaut, mit drei Lichtern beleuchtet, stark überabgetastet gerendert und auf
 
 5. **Requisiten:** `python bl.py props_bl.py '{"dir": "<dieser Ordner>", "out": ".../r_props"}'` rendert Kerze, Fackel,
    Standleuchter und Feuerschale; `python pack_props.py r_props ../../js/props3d.js ../../img/props3d.png` packt den Atlas und
-   trägt die Karte ein. Die Paternoster-Kabine: `pcabin_bl.py`, dann
+   trägt die Karte ein (weitere Render-Ordner hinten anhängen, z. B. `r_items` aus `items_bl.py` für Herzen, Geldsäcke, Braten,
+   Kristallkugel). Die Paternoster-Kabine: `pcabin_bl.py`, dann
    `python pack_pcabin.py r_pcabin/pcabin.png ../../js/castle.js ../../img/krat3d.png`.
 
 Aussehen der Helden steht in `LOOK` (hero_bl.py), die Posen des Grafen in `count()` (count_bl.py). Bildgrößen, Anker und

@@ -76,10 +76,16 @@ class Elevator extends Ent {
   }
   update() {
     this.t++; this.dy = 0;
-    if (this.wait > 0) { this.wait--; return; }
-    let ny = this.y + this.dir * 0.75;
-    if (ny <= this.yHigh) { ny = this.yHigh; this.dir = 1; this.wait = 60; }
-    if (ny >= this.yLow) { ny = this.yLow; this.dir = -1; this.wait = 60; }
+    if (this.wait > 0) { // weniger Warten (20261113): steht der Held drauf, fährt die Plattform nach einem Augenblick los; wartet er am
+      // anderen Ende, kommt sie sofort (statt die volle Pause abzusitzen)
+      const p = W.player, on = p && p.alive && p.ridePlat === this, far = this.dir < 0 ? this.yHigh : this.yLow;
+      const calls = p && p.alive && !on && Math.abs(p.cx - (this.x + 16)) < 72 && Math.abs(p.feet - far) < 40;
+      this.wait = on ? Math.min(this.wait - 1, 14) : calls ? Math.min(this.wait - 1, 4) : this.wait - 1;
+      return;
+    }
+    let ny = this.y + this.dir * 1.2; // flotter (vorher 0,75 px je Schritt)
+    if (ny <= this.yHigh) { ny = this.yHigh; this.dir = 1; this.wait = 40; }
+    if (ny >= this.yLow) { ny = this.yLow; this.dir = -1; this.wait = 40; }
     this.dy = ny - this.y; this.y = ny;
   }
   // PS2-3D: Rahmen aus Eisen, Riffelblech mit Rillen, gelbe Warnleiste vorn, Messingschäkel für die Seile

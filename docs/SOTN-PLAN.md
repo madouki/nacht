@@ -525,8 +525,12 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
       tmp/glk; `Audio8._songs` = Original fürs Taktduell, `Audio8._arr` = gespielte Form; `play(name, then, fade, at)` springt
       an eine Stelle). Schnellreise zu jedem betretenen Raum (`roomDoors`, `tripList`, `tripMove`). Paternoster-Eilgang
       (`Pater.v`). Schacht-Prüfung `shaftAudit` im Selbsttest (Einbahn-Schächte: Eisrutsche, Eiskeller).
-    - Nächste Schritte der Leitlinie (noch offen): Hintergründe; Sammelgegenstände; später eine höher aufgelöste Ebene für
-      Figuren.
+    - *Sechstes Stück (20261113):* Sammelgegenstände aus `tools/blender/items_bl.py` (Herzen, Geldsäcke, Braten, Kristallkugel)
+      im Atlas `img/props3d.png` (`pack_props.py <r_props> … <r_items>`); 1UP, Peitschen-Aufwertung und die Wurfwaffen bleiben
+      gezeichnet (die Wurfwaffen sind zugleich Geschoss und HUD-Bild). Musik: `bridge` je Lied = eigene Mittelteil-Melodie in der
+      Grundtonart (Burghof, Katakomben, Bergfried, Boss). Aufzüge: `Elevator` 1,2 px je Schritt, kurze Pausen, kommt auf Wunsch;
+      `ShortcutLift` Grundtempo 4,2.
+    - Nächste Schritte der Leitlinie (noch offen): Hintergründe; später eine höher aufgelöste Ebene für Figuren.
   - **Sechster Stand – alle Bosse im Wegweiser, weniger Lauferei** (20261112; Rückmeldung „zu viel Backtracking“, „neue Bosse
     nicht einbezogen“, „Infernax-Fluss“):
     - *Nebenbosse als Ziele:* `goal()` wählt jetzt zwischen dem Hauptweg (`mainGoal()`, Liste `GOALS`) und dem nächsten

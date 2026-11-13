@@ -567,6 +567,8 @@ const Audio8 = (() => {
         'a5:2 c#6:2 e6:2 a6:4 g6:2 f6:2 e6:2', 'c#6:2 a5:2 e5:2 c#5:2 a4:4 -:4',
       ]),
       p2: harmonyP2(S1C, S1, ['d', 'e', 'f', 'g', 'a', 'a#', 'c']), tri: chordBass(S1C, S1B, drive), pad: chordPad(S1C, S1), dr: section() + ' ' + sectionB(),
+      bridge: ['d4:8 f4:4 a4:4', 'a4:6 g4:2 f4:8', 'a#4:8 d5:4 a#4:4', 'c5:6 a#4:2 g4:4 e4:4', 'f4:8 a4:4 d5:4', 'd5:6 c5:2 a4:8', 'a#4:4 a4:4 g4:4 f4:4', 'e4:12 -:4',
+        'g4:8 a#4:4 d5:4', 'd5:6 c5:2 a#4:8', 'a4:8 f4:4 d4:4', 'f4:6 e4:2 d4:8', 'a#4:4 d5:4 f5:8', 'e5:6 d5:2 c5:4 g4:4', 'a4:8 c#5:4 e5:4', 'e5:4 c#5:4 a4:4 -:4'],
     },
     stage2: {
       bpm: 166, loop: true, echo: { delay: 3, vol: 0.35 },
@@ -581,6 +583,8 @@ const Audio8 = (() => {
         'e6:2 d6:2 b5:2 g#5:2 b5:2 g#5:2 e5:2 d5:2', 'b4:2 e5:2 g#5:2 b5:2 e6:8',
       ]),
       p2: harmonyP2(S2C, S2, ['a', 'b', 'c', 'd', 'e', 'f', 'g']), tri: chordBass(S2C, S2B, drive), pad: chordPad(S2C, S2), dr: section() + ' ' + sectionB(),
+      bridge: ['e4:8 a4:4 c5:4', 'b4:6 a4:2 e4:8', 'f4:8 a4:4 c5:4', 'd5:6 c5:2 b4:4 g4:4', 'a4:8 c5:4 e5:4', 'e5:6 d5:2 c5:8', 'b4:4 g#4:4 e4:4 g#4:4', 'b4:12 -:4',
+        'd5:8 f5:4 d5:4', 'a4:6 g4:2 f4:8', 'e4:8 a4:4 c5:4', 'c5:6 b4:2 a4:8', 'a4:4 c5:4 f5:8', 'g5:6 f5:2 d5:4 b4:4', 'e5:8 d5:4 b4:4', 'g#4:4 b4:4 e5:4 -:4'],
     },
     stage3: {
       bpm: 184, loop: true, echo: { delay: 3, vol: 0.3 },
@@ -595,6 +599,8 @@ const Audio8 = (() => {
         'd#6:2 f#6:2 b6:4 a6:2 f#6:2 d#6:2 b5:2', 'b5:4 a5:2 g5:2 f#5:4 d#5:4',
       ]),
       p2: harmonyP2(S3C, S3, ['e', 'f#', 'g', 'a', 'b', 'c', 'd']), tri: chordBass(S3C, S3B, drive), pad: chordPad(S3C, S3), dr: section() + ' ' + sectionB(),
+      bridge: ['b4:8 g4:4 e4:4', 'g4:6 a4:2 b4:8', 'c5:8 e5:4 c5:4', 'd5:6 c5:2 a4:4 f#4:4', 'e4:8 g4:4 b4:4', 'e5:6 d5:2 b4:8', 'd#5:4 b4:4 f#4:4 b4:4', 'f#4:12 -:4',
+        'a4:8 c5:4 e5:4', 'e5:6 d5:2 c5:8', 'b4:8 g4:4 e4:4', 'g4:6 f#4:2 e4:8', 'g4:4 c5:4 e5:8', 'f#5:6 e5:2 d5:4 a4:4', 'b4:8 d#5:4 f#5:4', 'f#5:4 d#5:4 b4:4 -:4'],
     },
     boss: {
       bpm: 192, loop: true, echo: { delay: 2, vol: 0.28 },
@@ -608,6 +614,7 @@ const Audio8 = (() => {
       tri: [drive('d2', 'd3'), drive('d2', 'd3'), drive('d#2', 'd#3'), drive('d#2', 'd#3'), drive('d2', 'd3'), drive('d2', 'd3'), drive('c#2', 'c#3'), drive('c#2', 'c#3')].join(' '),
       pad: 'd3+f3+a3:32 d#3+g3+a#3:32 d3+f3+a3:32 c#3+e3+g#3:32',
       dr: [FOURX, DK, FOUR, FILLS, DK, DK, DK, FILLR].join(' '),
+      bridge: ['d4:6 d4:2 f4:4 a4:4', 'a4:12 f4:4', 'd#4:6 d#4:2 g4:4 a#4:4', 'a#4:12 g4:4', 'd5:4 a4:4 f4:4 a4:4', 'd5:8 c5:4 a4:4', 'c#5:6 c#5:2 e5:4 g#4:4', 'g#4:8 e4:4 c#4:4'],
     },
     // Schiff – Seemannslied im 6/8-Takt (d-Moll, 176 BPM): A-Teil = das Shanty-Thema über 16tel-Akkordeon und galoppierendem
     // Bass, B-Teil = eine Oktave höher mit Läufen, 32tel-Arpeggien, pumpendem Bass und Doppel-Kick; Tom-Fill und Riser zum Loop
@@ -963,12 +970,16 @@ const Audio8 = (() => {
     const glock = (p1) => atBars(p1).map((n, i) => (n && i % 2 === 0 ? N(Math.min(96, mOf(n.split('+')[0]) + 12), bar) : ['-', bar]));
     const cT = (k) => chords && chords.map(c => c && c.map(m => m + k)), rT = (k) => roots && roots.map(r => (r === null ? r : r + k));
     const drive = DRIVE.has(name), B = base;
+    // eigene Mittelteil-Melodie (s.bridge, in der Grundtonart): füllt den Durchgang, wenn nötig mehrfach
+    const own = s.bridge ? evs(s.bridge.join(' ')) : null, ownL = own ? total(own) : 0, reps = own && L % ownL === 0 ? L / ownL : 0;
+    const br = reps ? T(Array(reps).fill(own).flat(), 5) : null;
     const SEC = {
       A: () => ({ ...B }),
       B: () => (drive
         ? { str: fit(B.p1, 58, 74), p2: B.p2, tri: B.tri, pad: B.pad, org: B.org, dr: B.dr, tmp: roots && timp(roots, true) }
         : { fl: fit(B.p1, 70, 86), hrp: chords ? harp(chords, 55) : B.p2, tri: B.tri, pad: B.pad, org: B.org, dr: light(B.dr), tmp: roots && timp(roots, false) }),
-      C: () => ({ brs: chords ? theme(cT(5), 55) : fit(T(B.p1, 5), 55, 72), str: chords ? sustain(cT(5), 67) : undefined, hrp: chords ? harp(cT(5), 60) : undefined,
+      C: () => ({ brs: br ? fit(br, 53, 74) : chords ? theme(cT(5), 55) : fit(T(B.p1, 5), 55, 72), fl: br && reps > 1 ? [['-', L / 2]].concat(cut(fit(br, 70, 88), L / 2, L)) : undefined,
+        str: chords ? sustain(cT(5), 67) : undefined, hrp: chords ? harp(cT(5), 60) : undefined,
         p2: chords ? undefined : near(B.p2, 5), tri: near(B.tri, 5), pad: near(B.pad, 5), org: near(B.org, 5), dr: B.dr, tmp: roots && timp(rT(5), true) }),
       D: () => ({ p1: B.p1, str: fit(T(B.p1, -12), 55, 76), glk: glock(B.p1), p2: B.p2, tri: B.tri, pad: B.pad, org: B.org, dr: B.dr, tmp: roots && timp(roots, true) }),
       E: () => ({ str: fit(T(B.p1, 3), 60, 79), fl: fit(T(B.p1, 3), 72, 88), hrp: chords ? harp(cT(3), 55) : undefined, tri: near(B.tri, 3), pad: near(B.pad, 3), org: near(B.org, 3),
