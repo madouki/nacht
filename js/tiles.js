@@ -2298,6 +2298,8 @@ const Tiles = (() => {
       [[60, 204, 0], [210, 124, 1], [330, 200, 0], [455, 94, 1], [140, 44, 0]].forEach(([kx, ky, v]) => crystal(kx, ky, v));
       for (let i = 0; i < 7; i++) { const mx = ri(10, 500), my = ri(150, 205); ditherDisc(x2, mx, my - 3, 1, 9, '#1c4c2c', 0.35); for (let k = 0; k < 3; k++) { const ox = mx + k * 4 - 4, h = 3 + (k % 2) * 2; px(x2, '#c8c0a8', ox + 1, my - h, 1, h); px(x2, '#58f898', ox, my - h - 2, 3, 2); px(x2, '#c8fcd8', ox + 1, my - h - 2, 1, 1); } } // Glühpilze
       add('near', n, 0.55, { vtile: true });
+      // HD-3D (20261113): Felswand mit echtem Relief und Tropfsteinsäulen aus Blender (die nahe Ebene mit Kristallen und Pilzen bleibt)
+      if (typeof BG3D !== 'undefined') BG3D.on('cave', (im) => { const a = L.find(l => l.name === 'far'), b = L.find(l => l.name === 'pillars'); if (a) a.c = im.far; if (b) b.c = im.pillars; });
     } else if (theme === 'crypt') {
       const c = C(512, 208), x = c.getContext('2d');
       wallBricks(x, 512, 208, ['#283460', '#161e40', '#04040c']);
@@ -2362,6 +2364,15 @@ const Tiles = (() => {
         frames.push(g);
       }
       L.push({ name: 'gears', c: frames[0], frames, fps: 6, par: 0.5, wrap: true, vtile: true });
+      // HD-3D (20261113): Quaderwand mit Pilastern, Eichenbalken, Spitzbogenfenstern und Steinring um die Uhr aus Blender;
+      // Zifferblatt und Lichtbahnen der Fenster kommen wie bisher darüber (Zeiger und Pendel zeichnet drawClockLive)
+      if (typeof BG3D !== 'undefined') BG3D.on('tower', (im) => {
+        const w = L.find(l => l.name === 'wall'); if (!w) return;
+        const c2 = C(512, 208), x2 = c2.getContext('2d');
+        x2.drawImage(im.wall, 0, 0); clockFace(x2, CLOCK.x, CLOCK.y, CLOCK.r);
+        [40, 250, 470].forEach(wx => lightShaft(x2, wx, 84, 6, 60, '#5c0818', 0.4));
+        w.c = c2;
+      });
     }
     return L;
   }

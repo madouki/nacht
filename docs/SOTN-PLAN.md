@@ -535,8 +535,12 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
       Bogensteine als einzelne Quader, Punktlichter in den Nischen), `pack_bg.py` verkleinert und tönt sie nach `img/bg/`.
       `js/bg3d.js` lädt die Bilder; `buildBg('crypt')` meldet sich mit `BG3D.on` an und tauscht die Ebene `wall` aus, davor
       liegt neu `far3d` (Parallaxe 0,22). Weitere Themen lassen sich genauso anhängen (Eintrag in `SRC`, Haken im Thema).
-    - Nächste Schritte der Leitlinie (noch offen): weitere schlichte Hintergründe (Pendelhalle/Turm, Grotte); später eine
-      höher aufgelöste Ebene für Figuren.
+    - *Achtes Stück (20261113):* Themen `tower` und `cave` aus `tools/blender/bg2_bl.py` – Uhrturm: Quaderwand mit Pilastern,
+      Balken, Spitzbogenfenstern, Steinring um die Uhr (Zifferblatt und Lichtbahnen legt `buildBg` weiter darüber); Grotte:
+      Felswand als verschobene Fläche aus periodischem Sinus-Rauschen (darum nahtlos), flach schattiert, und Tropfsteinsäulen.
+      `pack_bg.py` hat je Bild eigene Tönung (`JOBS`).
+    - Nächste Schritte der Leitlinie (noch offen): die übrigen Hintergründe sind schon aufwendig gezeichnet oder in Echtzeit-3D;
+      später eine höher aufgelöste Ebene für Figuren.
   - **Sechster Stand – alle Bosse im Wegweiser, weniger Lauferei** (20261112; Rückmeldung „zu viel Backtracking“, „neue Bosse
     nicht einbezogen“, „Infernax-Fluss“):
     - *Nebenbosse als Ziele:* `goal()` wählt jetzt zwischen dem Hauptweg (`mainGoal()`, Liste `GOALS`) und dem nächsten

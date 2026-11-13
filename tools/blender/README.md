@@ -25,7 +25,8 @@ aufgebaut, mit drei Lichtern beleuchtet, stark überabgetastet gerendert und auf
 
 6. **Hintergründe:** `python bl.py crypt_bg_bl.py '{"dir": "<dieser Ordner>", "out": ".../r_bg", "ss": 4}'` rendert die
    Arkadenwand der Gruft und die ferne Ebene (je 512×208, kachelbar); `python pack_bg.py r_bg ../../img/bg` verkleinert und
-   tönt sie. Geladen werden sie von `js/bg3d.js`.
+   tönt sie. Geladen werden sie von `js/bg3d.js`. Uhrturm und Grotte: `bg2_bl.py` (nutzt die Helfer aus `crypt_bg_bl.py`),
+   dann wieder `pack_bg.py` (`JOBS` enthält die Tönung je Bild).
 
 Aussehen der Helden steht in `LOOK` (hero_bl.py), die Posen des Grafen in `count()` (count_bl.py). Bildgrößen, Anker und
 Kartenschlüssel bleiben, damit im Spiel nichts verrutscht.

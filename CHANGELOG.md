@@ -8,6 +8,21 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 
 ---
 
+## 20261113-1822 – Hintergründe: Uhrturm und Grotte aus Blender
+
+**Neu – Grafik**
+- **Uhrturm** (Bergfried: Uhrwerk-Räume, Pendelhalle): statt der glatten Ziegelwand eine Quaderwand mit Pilastern,
+  Eichenbalken mit Eisenbändern und Nieten, Kopfbändern, hängenden Ketten und drei Spitzbogenfenstern mit rotem Glas.
+  Die große Uhr sitzt jetzt in einem Ring aus Bogensteinen. Zifferblatt, Zeiger, Pendel und Zahnräder sind unverändert.
+- **Grotte** (Katakomben-Eingang, unterirdischer Kanal, Golemstollen): die Felswand hat echtes
+  Relief mit Graten und Spalten, von links warm und von rechts kühl beleuchtet, dazu ferner Kristallschein; die
+  Tropfsteinsäulen sind neu. Kristalle, Pilze, Wurzeln und Tropfsteine im Vordergrund bleiben.
+
+**Beim Testen ansehen**
+- Bergfried: erster Raum, Uhrwerk mit den großen Zahnrädern, Pendelhalle (hoher Raum – die Wand stapelt sich nach oben).
+  Sitzen Uhr und Pendel sauber im Steinring, fallen die roten Lichtbahnen aus den Fenstern?
+- Katakomben-Eingang und Golemstollen: ist die Felswand zu unruhig oder zu hell hinter Held und Gegnern?
+
 ## 20261113-1353 – Hintergrund: die Gruft als Steinarkade aus Blender
 
 **Neu – Grafik**
