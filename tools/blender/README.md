@@ -23,5 +23,9 @@ aufgebaut, mit drei Lichtern beleuchtet, stark überabgetastet gerendert und auf
    Kristallkugel). Die Paternoster-Kabine: `pcabin_bl.py`, dann
    `python pack_pcabin.py r_pcabin/pcabin.png ../../js/castle.js ../../img/krat3d.png`.
 
+6. **Hintergründe:** `python bl.py crypt_bg_bl.py '{"dir": "<dieser Ordner>", "out": ".../r_bg", "ss": 4}'` rendert die
+   Arkadenwand der Gruft und die ferne Ebene (je 512×208, kachelbar); `python pack_bg.py r_bg ../../img/bg` verkleinert und
+   tönt sie. Geladen werden sie von `js/bg3d.js`.
+
 Aussehen der Helden steht in `LOOK` (hero_bl.py), die Posen des Grafen in `count()` (count_bl.py). Bildgrößen, Anker und
 Kartenschlüssel bleiben, damit im Spiel nichts verrutscht.

@@ -8,6 +8,22 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 
 ---
 
+## 20261113-1353 – Hintergrund: die Gruft als Steinarkade aus Blender
+
+**Neu – Grafik**
+- **Gruft-Räume** (Kerker, Gruft, Gruftgang, versunkene Kapelle, Verlies) haben einen neuen Hintergrund aus Blender:
+  eine Arkadenwand aus Quadern mit Bogensteinen, Pfeilern und Gesims statt der glatten blauen Ziegelwand. In den Bögen
+  wechseln sich ab: ein Beinhaus mit Schädelregalen im Kerzenschein, ein offener Bogen, ein Sarkophag mit Goldkreuz und
+  zwei Kerzen, ein Eisengitter vor bläulichem Schimmer.
+- **Zweite Ebene in der Tiefe:** durch den offenen Bogen sieht man ferne Arkaden in zwei Geschossen, die sich beim Laufen
+  langsamer verschieben als die Wand. Die Säulen im Vordergrund bleiben.
+- Bis die Bilder geladen sind, steht kurz der alte Hintergrund da; Spielfläche und Kacheln sind unverändert.
+
+**Beim Testen ansehen**
+- Katakomben: Kerker, Gruft (Bossraum des Knochenriesen), Gruftgang; dazu die versunkene Kapelle (hoher Raum – dort
+  stapelt sich die Arkade nach oben) und das Verlies. Sind Held, Gegner und Kerzen vor der neuen Wand gut zu erkennen?
+- Ist die Wand zu hell, zu dunkel oder zu unruhig? Stört irgendwo eine Naht, wenn die Kamera läuft?
+
 ## 20261113-1334 – Eigene Mittelteile für die Hauptthemen, flottere Aufzüge, Sammelgegenstände neu
 
 **Neu – Musik**

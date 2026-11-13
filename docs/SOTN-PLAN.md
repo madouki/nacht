@@ -530,7 +530,13 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
       gezeichnet (die Wurfwaffen sind zugleich Geschoss und HUD-Bild). Musik: `bridge` je Lied = eigene Mittelteil-Melodie in der
       Grundtonart (Burghof, Katakomben, Bergfried, Boss). Aufzüge: `Elevator` 1,2 px je Schritt, kurze Pausen, kommt auf Wunsch;
       `ShortcutLift` Grundtempo 4,2.
-    - Nächste Schritte der Leitlinie (noch offen): Hintergründe; später eine höher aufgelöste Ebene für Figuren.
+    - *Siebtes Stück (20261113), erster Hintergrund:* Thema `crypt` – Arkadenwand und ferne Ebene aus
+      `tools/blender/crypt_bg_bl.py` (orthografisch, 512×208, nahtlos; Mauerwerk als Ziegeltextur über die Weltposition,
+      Bogensteine als einzelne Quader, Punktlichter in den Nischen), `pack_bg.py` verkleinert und tönt sie nach `img/bg/`.
+      `js/bg3d.js` lädt die Bilder; `buildBg('crypt')` meldet sich mit `BG3D.on` an und tauscht die Ebene `wall` aus, davor
+      liegt neu `far3d` (Parallaxe 0,22). Weitere Themen lassen sich genauso anhängen (Eintrag in `SRC`, Haken im Thema).
+    - Nächste Schritte der Leitlinie (noch offen): weitere schlichte Hintergründe (Pendelhalle/Turm, Grotte); später eine
+      höher aufgelöste Ebene für Figuren.
   - **Sechster Stand – alle Bosse im Wegweiser, weniger Lauferei** (20261112; Rückmeldung „zu viel Backtracking“, „neue Bosse
     nicht einbezogen“, „Infernax-Fluss“):
     - *Nebenbosse als Ziele:* `goal()` wählt jetzt zwischen dem Hauptweg (`mainGoal()`, Liste `GOALS`) und dem nächsten

@@ -2318,6 +2318,13 @@ const Tiles = (() => {
       for (let i = 0; i < 5; i++) { const cx = ri(0, 500), len = ri(20, 60); for (let y = 0; y < len; y += 3) px(x, y % 6 ? '#3c3c4c' : '#6c6c7c', cx, y, 2, 2); }
       add('wall', c, 0.5, { vtile: true });
       L.push({ name: 'cols3d', custom: (cx2, cam, f) => drawDepthColumns(cx2, cam, f, theme), par: 1, c: C(1, 1) }); // Säulen in der Tiefe (PS1-Look)
+      // HD-3D (20261113): aus Blender gerenderte Arkadenwand aus Quadern (Beinhaus, offener Bogen, Sarkophag, Gitter) ersetzt die
+      // Ziegelwand, sobald die Bilder da sind; durch den offenen Bogen sieht man eine ferne Ebene mit Arkaden in zwei Geschossen
+      if (typeof BG3D !== 'undefined') BG3D.on('crypt', (im) => {
+        const w = L.find(l => l.name === 'wall'); if (!w) return;
+        w.c = im.wall; w.wrap = true;
+        L.splice(L.indexOf(w), 0, { name: 'far3d', c: im.far, par: 0.22, wrap: true, vtile: true });
+      });
     } else if (theme === 'cathedral') { // Sonnenkathedrale: PS2-3D-Stadt im ewigen Sonnenuntergang, dreht sich beim Laufen weg
       L.push({ name: 'city', custom: (cx2, cam, f) => PS2.drawCathedral(cx2, cam, f), par: 0, c: C(1, 1) });
     } else if (theme === 'spire') { // Sonnenturm: die Stadt kreist um den Turm, an dem der Held emporsteigt
