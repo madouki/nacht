@@ -43,6 +43,7 @@ def meshes():
     bpy.ops.mesh.primitive_uv_sphere_add(segments=24, ring_count=14, radius=1); o = bpy.context.object; MESH['s'] = o.data; bpy.ops.object.shade_smooth(); bpy.data.objects.remove(o, do_unlink=True)
     bpy.ops.mesh.primitive_torus_add(major_radius=1, minor_radius=0.16, major_segments=28, minor_segments=8); o = bpy.context.object; MESH['t'] = o.data; bpy.ops.object.shade_smooth(); bpy.data.objects.remove(o, do_unlink=True)
     bpy.ops.mesh.primitive_torus_add(major_radius=1, minor_radius=0.3, major_segments=28, minor_segments=10); o = bpy.context.object; MESH['T'] = o.data; bpy.ops.object.shade_smooth(); bpy.data.objects.remove(o, do_unlink=True)
+    bpy.ops.mesh.primitive_cone_add(vertices=16, radius1=1, radius2=0, depth=2); o = bpy.context.object; MESH['k'] = o.data; bpy.ops.object.shade_smooth(); bpy.data.objects.remove(o, do_unlink=True)
     bpy.ops.mesh.primitive_cube_add(size=2); o = bpy.context.object; MESH['c'] = o.data; bpy.data.objects.remove(o, do_unlink=True)
 
 MATS = {}
@@ -85,7 +86,38 @@ LOOK = {
                    bracer=None, flap='#5e3a44', sash='#5e3a44', trim='#f0c040', pauld=None, arm=1.6, leg=0.9, pony=False, bandOn=False, sleeve='#5e3a44', joints='#f0c040', pole=True, cravat='#a02c3c', eye='#f0a020'),
     'henrikAdv': dict(whip=True, skin='#e8a676', hair='#6c3816', hairD='#2c1408', band=None, torso='#7a4a22', torsoD='#4e2c12', shirt='#b4a47c', legs='#8c7c58', boot='#623214', bootL='#8c4e22',
                       bracer=None, flap=None, sash=None, trim='#f0c040', pauld=None, arm=1.85, leg=1.0, pony=False, bandOn=False, sleeve='#7a4a22', hat='#7a5630', hatD='#3a2410', satchel='#5a3416', kerchief='#d4ae70'),
+    # ---- Gegner aus demselben Rig (HEROES.exportRig('monsters')) ----
+    'ghoul': dict(head='zombie', skin='#86a65a', hair='#2c2018', hairD='#140c08', band=None, torso='#6e5238', torsoD='#4a3622', shirt=None, legs='#5a442e', boot='#86a65a', bootL='#9cba6c',
+                  bracer=None, flap='#5a442e', sash=None, trim='#4a3622', pauld=None, arm=1.55, leg=0.9, pony=False, bandOn=False, belt='#3a2a1a'),
+    'fish': dict(head='fish', skin='#3aa860', hair='#145c40', hairD='#0c2c24', band=None, torso='#3aa860', torsoD='#2c8c50', shirt='#d8d880', legs='#2f9856', boot='#2c8c50', bootL='#58b478',
+                 bracer=None, flap=None, sash=None, trim='#2c8c50', pauld=None, arm=1.65, leg=1.0, pony=False, bandOn=False, belt='#2c8c50', fin='#d83020'),
+    'knight': dict(head='helmet', skin='#b4b4d0', hair='#3c3c58', hairD='#1c1c2c', band=None, torso='#a4a4c4', torsoD='#7c7c9c', shirt=None, legs='#8c8cac', boot='#a4a4c4', bootL='#d0d0e8',
+                   bracer='#f0c040', flap='#8c8cac', sash=None, trim='#f0c040', pauld='#c8c8e4', arm=2.0, leg=1.1, pony=False, bandOn=False, metal=True, shield='#2c50d0', plume='#e02818'),
 }
+
+def monster_head(L, hc, sh, flare, fA):
+    st = L['head']; skin = M(L['skin'], 0.6)
+    if st == 'zombie':  # kahler, eingefallener Schädel, Augenhöhlen mit roter Glut, offener Mund, Haarsträhnen im Nacken
+        S(hc[0] + 0.4, hc[1] + 0.2, 0, 4.3, skin, 4.0, 4.5); S(hc[0] + 1.6, hc[1] + 3.0, 0, 2.6, skin, 2.8, 2.0)
+        S(hc[0] + 2.9, hc[1] - 0.4, -3.2, 1.25, M('#141c0c', 0.8), 0.6, 1.1); S(hc[0] + 3.0, hc[1] - 0.4, -3.7, 0.5, M('#fc3020', 0.3), 0.3, 0.5)
+        S(hc[0] + 3.4, hc[1] + 2.9, -2.4, 1.2, M('#1c0808', 0.7), 0.6, 0.9)
+        S(hc[0] + 4.4, hc[1] + 1.0, 0, 0.7, skin, 0.7, 0.8)
+        chain((hc[0] - 3.2, hc[1] - 2.2), (hc[0] - 4.6 - flare * 0.5, hc[1] + 3.4), 0, 1.3, 0.6, M(L['hair'], 0.9), 4)
+    elif st == 'fish':  # Fischkopf: Schnauze nach vorn, großes Auge, roter Flossenkamm, heller Kehlsack
+        S(hc[0] + 0.6, hc[1] + 0.6, 0, 4.6, skin, 3.9, 4.1); S(hc[0] + 3.6, hc[1] + 1.8, 0, 2.9, skin, 2.9, 2.3)
+        S(hc[0] + 2.4, hc[1] + 3.6, 0, 3.0, M(L['shirt'], 0.6), 2.8, 1.5)
+        S(hc[0] + 2.2, hc[1] - 0.9, -3.2, 1.7, M('#fcfcf4', 0.3), 0.8, 1.7); S(hc[0] + 2.7, hc[1] - 0.9, -3.8, 0.8, M('#080808', 0.3), 0.4, 0.9)
+        S(hc[0] + 5.2, hc[1] + 2.6, -1.6, 1.4, M('#0c1c14', 0.6), 0.9, 0.35)
+        for i in range(4): add('k', hc[0] - 3.0 + i * 1.6, hc[1] - 3.3 - (0.5 if i in (1, 2) else 0), 0, 0.95, 0.5, 1.5, M(L['fin'], 0.5), rot=(0, math.radians(-16 + i * 5), 0))   # Kamm bleibt im Bildfeld
+    elif st == 'helmet':  # Topfhelm mit Sehschlitz, Kamm und rotem Federbusch
+        steel, dark = M(L['torso'], 0.3, 1, 0.8), M('#10101c', 0.6)
+        S(hc[0] + 0.2, hc[1] + 0.3, 0, 4.5, steel, 4.2, 4.7); S(hc[0] + 0.6, hc[1] + 3.4, 0, 3.7, steel, 3.8, 1.6)
+        S(hc[0] + 2.6, hc[1] + 0.2, -2.9, 2.4, dark, 1.6, 0.62); S(hc[0] + 3.9, hc[1] + 2.0, -1.8, 0.5, dark, 1.2, 1.5)
+        S(hc[0] - 0.2, hc[1] - 4.2, 0, 3.6, M('#d0d0e8', 0.25, 1, 0.8), 0.8, 0.9)
+        chain((hc[0] - 0.6, hc[1] - 5.0), (hc[0] - 5.4 - flare, hc[1] - 3.0), 0, 1.5, 0.7, M(L['plume'], 0.7), 5); chain((hc[0] - 3.0, hc[1] - 4.6), (hc[0] - 6.4 - flare, hc[1] - 0.6), 0, 1.2, 0.5, M(L['plume'], 0.7, 0.8), 4)
+    if L.get('shield'):  # runder Schild am vorderen Arm: blau mit goldenem Rand und Buckel
+        hx, hy = fA[4] + 0.6, fA[5] - 0.6
+        S(hx, hy, -5.2, 5.2, M('#f0c040', 0.3, 1, 0.8), 0.7, 5.2); S(hx, hy, -5.6, 4.4, M(L['shield'], 0.35, 1, 0.3), 0.7, 4.4); S(hx, hy, -6.2, 1.5, M('#f0c040', 0.25, 1, 0.9), 0.9, 1.5)
 
 def figure(r, L):
     CX = FW / 2
@@ -134,8 +166,8 @@ def figure(r, L):
     if L.get('shirt'): S(sh[0] + 1.9, sh[1] + 2.6, -1.2, 1.9, M(L['shirt'], 0.7), 2.6, 3.4, ang)                   # Hemdbrust
     if L.get('bare'):                                                                                             # Brustmuskel, Gurt
         S(sh[0] + 2.2, sh[1] + 1.8, -2.0, 1.9, tor, 2.2, 1.7); chain((sh[0] - 2.6, sh[1] - 0.6), (hip[0] + 2.8, hip[1] - 3.2), -3.6, 0.7, 0.7, M('#3c1c0c', 0.6), 9)
-    S(hip[0], hip[1] - 2.0, 0, 3.3, M(L['trim'] if not L.get('bare') else '#3c1c0c', 0.35, 1, 0.6 if not L.get('bare') else 0), 4.0, 0.6)   # Gürtel
-    S(hip[0] + 3.0, hip[1] - 2.0, -2.2, 0.95, M('#f0c040', 0.25, 1, 0.9), 0.9, 0.95)                               # Schnalle
+    S(hip[0], hip[1] - 2.0, 0, 3.3, M(L.get('belt') or (L['trim'] if not L.get('bare') else '#3c1c0c'), 0.35, 1, 0.6 if not (L.get('bare') or L.get('belt')) else 0), 4.0, 0.6)   # Gürtel
+    if not L.get('belt'): S(hip[0] + 3.0, hip[1] - 2.0, -2.2, 0.95, M('#f0c040', 0.25, 1, 0.9), 0.9, 0.95)                               # Schnalle
     if L.get('flap'):
         S(hip[0] - 0.4, hip[1] + 1.9, -3.5, 2.7, M(L['flap'], 0.65), 0.9, 3.3); S(hip[0] - 0.4, hip[1] + 4.9, -3.7, 2.2, M(L['trim'], 0.35, 1, 0.5), 0.6, 0.4)
     if L.get('sash'):
@@ -154,6 +186,7 @@ def figure(r, L):
     S(sh[0] + 0.4, sh[1] - 1.9, 0, 1.6, skin, 1.7, 1.9)
     if L.get('cravat'): S(sh[0] + 1.3, sh[1] - 0.6, -1.4, 1.5, M(L['cravat'], 0.6), 1.6, 1.3); chain((sh[0] + 0.4, sh[1] - 0.6), (sh[0] - 3.0 - flare, sh[1] + 1.2), 3.0, 1.0, 0.6, M(L['cravat'], 0.6), 4)
     if L.get('kerchief'): S(sh[0] + 0.8, sh[1] - 0.9, 0, 2.3, M(L['kerchief'], 0.7), 2.5, 1.2); chain((sh[0] - 1.4, sh[1] - 0.8), (sh[0] - 4.4 - flare, sh[1] + 0.6), 0, 1.0, 0.5, M(L['kerchief'], 0.7), 4)
+    if L.get('head'): monster_head(L, hc, sh, flare, fA); return
     hair, hairD = M(L['hair'], 0.5, 1, 0, 0.5), M(L['hairD'], 0.5)
     S(hc[0] + 1.0, hc[1] + 0.9, 0, 3.9, skin, 3.9, 4.0)                               # Gesicht
     S(hc[0] + 1.3, hc[1] + 2.9, 0, 2.6, skin, 2.9, 1.9)                               # Kinn
@@ -179,6 +212,7 @@ def run():
     only = CFG.get('only'); n = 0
     for r in rig:
         if only and r['key'] not in only: continue
+        if CFG.get('rid') and (r.get('id') != CFG['rid'] or r.get('S', 1) != 1): continue
         clear(); figure(r, L)
         bpy.context.scene.render.filepath = os.path.join(out, r['key'] + '.png'); bpy.ops.render.render(write_still=True); n += 1
     clear(); print('gerendert', n)

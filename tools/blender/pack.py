@@ -55,7 +55,7 @@ else:
     d, js, hid, out = sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]
     s = open(js, encoding='utf-8').read()
     mp = json.loads(re.search(r"load3d\('%s', '[^']+', (\{.*?\})\)" % hid, s).group(1))
-    atlas = Image.new('RGBA', (340, 180), (0, 0, 0, 0)); miss = 0
+    atlas = Image.new('RGBA', (max(v[0] for v in mp.values()) + FW, max(v[1] for v in mp.values()) + FH), (0, 0, 0, 0)); miss = 0
     for k, (x, y) in mp.items():
         f = os.path.join(d, k + '.png')
         if not os.path.exists(f): miss += 1; continue

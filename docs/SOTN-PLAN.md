@@ -503,8 +503,11 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
       Achtel-Nebenzeiten, Tom-Wirbel statt Rausch-Anstieg), die Zufallsbetonung der Hi-Hats ist weg, das Pumpen der Melodie bei
       jeder Kick fast weg (0,45 → 0,88), Schlagzeug-Bus leiser (0,5–0,9), zweite Stimme und Streicherfläche lauter, Kratzbass
       leiser. test_songs.js spielt alle 31 Lieder an und prüft die Spurlängen.
-    - Nächste Schritte der Leitlinie (noch offen): weitere Gegner und Bosse neu rendern, Requisiten, dann Hintergründe; später
-      eine höher aufgelöste Ebene für Figuren.
+    - *Zweites Stück (20261112):* Riesenfledermaus neu (gbat_bl.py: 8 Schlagphasen × Maul zu/auf + ruhend, 128×84, Hautfelder
+      als gewölbte Gitterflächen zwischen den Fingern) und die Rig-Gegner Ghul, Fischmensch, Ritter (hero_bl.py mit `head`-Stil
+      'zombie' / 'fish' / 'helmet', Posen aus `HEROES.exportRig('monsters')`, Aufruf mit `rid`).
+    - Nächste Schritte der Leitlinie (noch offen): Skelett, Knochenriese, Sonnenwächter, Medusa, Raben, Geister; Requisiten,
+      dann Hintergründe; später eine höher aufgelöste Ebene für Figuren.
   - **Sechster Stand – alle Bosse im Wegweiser, weniger Lauferei** (20261112; Rückmeldung „zu viel Backtracking“, „neue Bosse
     nicht einbezogen“, „Infernax-Fluss“):
     - *Nebenbosse als Ziele:* `goal()` wählt jetzt zwischen dem Hauptweg (`mainGoal()`, Liste `GOALS`) und dem nächsten

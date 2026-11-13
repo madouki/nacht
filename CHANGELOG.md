@@ -8,6 +8,22 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 
 ---
 
+## 20261113-0128 – Grafik: Riesenfledermaus und Gegner neu aus Blender
+
+**Neu**
+- **Riesenfledermaus** (erster Hauptboss) ist in Blender neu modelliert: pelziger Leib mit hellem Bauch, Kopf mit Ohren und
+  glühenden Augen, Flügel mit Arm, vier Fingerknochen und gewölbten Hautfeldern, aufgerissenes Maul mit Fängen beim Sturzflug
+  und beim Schießen, ruhend mit angelegten Flügeln. 17 Bilder, gleiche Größe und Lage wie vorher.
+- **Ghul, Fischmensch und Ritter** neu aus derselben Render-Strecke wie die Helden: runder, mit Licht von oben links,
+  der Ritter mit Helm, Federbusch und blauem Schild, der Fischmensch mit Flossenkamm und hellem Kehlsack.
+- Diese Version liegt nur auf GitHub Pages (itch.io und Game Jolt stehen noch auf 20261112-0614).
+
+**Beim Testen ansehen**
+- Große Halle: Riesenfledermaus in allen Phasen – schlafend an der Decke, Flügelschlag, Sturzflug mit offenem Maul.
+  Passt die Trefferfläche noch zum Bild?
+- Ghule (Katakomben), Fischmenschen (am Wasser), Ritter (Burghof/Bergfried): passen sie neben den neuen Helden ins Bild?
+- Noch im alten Stil: Skelette, Knochenriese, Sonnenwächter, Medusa, Raben, Geister.
+
 ## 20261112-1414 – Fluss: schneller zurück zum Boss, Lohn nach jedem Sieg
 
 **Neu**
