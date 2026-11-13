@@ -513,8 +513,12 @@ heute pro Kapitel (`W.songName()`), Regionsname als Einblendung beim ersten Betr
       (↑ öffnet die Schnellreise; wird vor Türen geprüft und nicht auf Türen gestellt).
     - *Musik dazu:* `harmonyP2` – gebrochene Achtel-Akkorde (`alberti`), in der Wiederholung die Melodie eine Terz tiefer
       (`thirdBelow`, natürliches Moll; leiterfremde Töne bekommen die große Terz).
-    - Nächste Schritte der Leitlinie (noch offen): Medusa, Raben, Geister, Seeadler; Requisiten, dann Hintergründe; später
-      eine höher aufgelöste Ebene für Figuren.
+    - *Viertes Stück (20261113):* Medusa (ruhig / fauchend, 72×64), Medusenhaupt, Gespenst, Flammenschädel, Seeadler, Rabe
+      und Knochensäule aus `tools/blender/rest_bl.py` (frei modelliert, kein Rig); `pack_rest.py` setzt die 18 Bilder an ihre
+      Plätze in `img/creatures3d.png`. Damit sind alle Kreaturen des Atlas neu; das Schlangenhaar und der Schwanz der Medusa
+      werden weiter im Spiel gezeichnet (Farben des Leibs darauf abgestimmt).
+    - Nächste Schritte der Leitlinie (noch offen): Requisiten, dann Hintergründe; später eine höher aufgelöste Ebene für
+      Figuren.
   - **Sechster Stand – alle Bosse im Wegweiser, weniger Lauferei** (20261112; Rückmeldung „zu viel Backtracking“, „neue Bosse
     nicht einbezogen“, „Infernax-Fluss“):
     - *Nebenbosse als Ziele:* `goal()` wählt jetzt zwischen dem Hauptweg (`mainGoal()`, Liste `GOALS`) und dem nächsten

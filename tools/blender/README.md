@@ -13,5 +13,9 @@ aufgebaut, mit drei Lichtern beleuchtet, stark überabgetastet gerendert und auf
    die Plätze der vorhandenen Karte. Die drei Graf-Bilder kommen an die Plätze `count_closed/open/cast` in
    `img/creatures3d.png` (Karte in `js/creatures3d.js`).
 
+4. **Kreaturen ohne Rig:** `python bl.py rest_bl.py '{"dir": "<dieser Ordner>", "out": ".../r_rest", "what": ["medusa", "pillar"]}'`
+   rendert Medusa, Medusenhaupt, Gespenst, Flammenschädel, Seeadler, Rabe und Knochensäule (`what` weglassen = alle);
+   `python pack_rest.py r_rest ../../js/creatures3d.js ../../img/creatures3d.png` setzt sie in den Atlas.
+
 Aussehen der Helden steht in `LOOK` (hero_bl.py), die Posen des Grafen in `count()` (count_bl.py). Bildgrößen, Anker und
 Kartenschlüssel bleiben, damit im Spiel nichts verrutscht.

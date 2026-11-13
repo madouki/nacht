@@ -8,6 +8,29 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 
 ---
 
+## 20261113-0229 – Grafik: Medusa und die kleinen Kreaturen neu aus Blender
+
+**Neu – Grafik**
+- **Medusa** neu modelliert: Gesicht mit leuchtenden Schlitzaugen, Diadem mit Rubin, Goldkragen, Schuppenmieder, Gürtel,
+  Armreife und Krallenhände; beim Fauchen reißt sie beide Arme hoch und zeigt die Giftzähne. Der Schlangenleib beginnt
+  als zwei Windungen mit hellen Bauchschilden und geht in den gezeichneten Schwanz über. Das bewegte Schlangenhaar bleibt.
+- **Medusenhäupter** (fliegende Köpfe): größeres Gesicht mit Augen, Diadem und kurzem Schlangenhaar.
+- **Gespenst:** Laken mit Zipfel, welligem Saum und kleinen Ärmchen.
+- **Flammenschädel:** runder Schädel mit glühender Augenhöhle und Kiefer, dahinter ein dreifarbiger Flammenschweif.
+- **Seeadler:** weißer Kopf und Schwanz, gelber Schnabel, breitere Schwingen mit dunklen Schwungfedern.
+- **Rabe:** etwas kräftiger, blauschwarzes Gefieder, rotes Auge.
+- **Knochensäule:** zwei gehörnte Drachenschädel mit Zahnreihe auf einer Wirbelsäule; beim Feuern klappt der obere
+  Rachen auf und zeigt die Glut.
+- Bildgrößen, Trefferflächen und Verhalten sind unverändert – nur die Bilder sind neu.
+
+**Beim Testen ansehen**
+- Bergfried, Boss Medusa: passt der Übergang vom Leib zum Schwanz am Boden, liegen die glühenden Augen beim
+  Versteinerungsblick auf dem Gesicht, verdeckt das Schlangenhaar das Gesicht nicht zu sehr?
+- Medusenhäupter (Medusas Angriff) und Flammenschädel: gut zu erkennen, auch wenn sie leuchten?
+- Bergfried, erster Raum: Knochensäule – sieht das aufklappende Maul beim Feuern richtig aus, in beide Blickrichtungen?
+- Ankunft (Schiff): Seeadler und Raben; Burghof und Katakomben: Gespenster. Sind die kleinen Vögel vor dunklem
+  Hintergrund noch gut zu sehen?
+
 ## 20261113-0153 – Grafik, Gameplay, Musik: Skelette und Sonnenwächter neu, Kopfgeld-Seite, Portal, zweite Stimme
 
 **Neu – Grafik**
