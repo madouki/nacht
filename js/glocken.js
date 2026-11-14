@@ -154,3 +154,55 @@ class BatWave extends Ent {
     for (let i = 0; i < (d.n || 6); i++) W.spawn(new StreamBat(x0 + (i % 3) * 22 + (i >> 1) * 6, y0 + 4 + (i * 11) % Math.max(4, h - 12), -1, i));
   }
 }
+
+// ---------------- Zeigerkammer (Bergfried): Ankerring an der Spitze eines riesigen Uhrzeigers ----------------
+// Der Zeiger dreht sich stetig um die Achse (d.dir 1 = im Uhrzeigersinn, -1 = gegen); wer am Ring hängt, wird im Kreis getragen –
+// unten warten Zahnräder mit Stacheln (Seil kürzen), in der Mitte sitzt eine Stachelnabe: wer oben über die Achse fährt, hält
+// das Seil ganz kurz oder lässt es ganz lang (darunter hindurch). Zum Nachbarzeiger springt man bei neun bzw. drei Uhr.
+// d: x, y (Achse, Kacheln), r (Zeigerlänge px), period (Schritte je Umdrehung), dir, phase (rad, 0 = zwölf Uhr), hub (Nabe px, 18)
+class HandRing extends Ring {
+  constructor(d) { super(d); this.d = d; this.px = d.x * T + 8; this.py = d.y * T + 8; this.place(); }
+  ang() { return (this.d.phase || 0) + (this.d.dir || 1) * Math.PI * 2 * (this.t || 0) / (this.d.period || 540); }
+  place() { const a = this.ang(); this.x = this.px + Math.sin(a) * this.d.r - 5; this.y = this.py - Math.cos(a) * this.d.r - 5; }
+  update() {
+    super.update(); this.place(); const p = W.player; if (!p) return;
+    if (p.state === 'swing' && p.ring === this && this.t % 30 === 0) Audio8.sfx('tick', this.cx);
+    const H = this.d.hub ?? 18, nx = clamp(this.px, p.x + 1, p.x + p.w - 1), ny = clamp(this.py, p.y + 2, p.y + p.h - 2); // Stachelnabe: Kreis gegen Helden-Rechteck (Ränder verzeihen etwas)
+    if (H > 0 && p.alive && p.inv <= 0 && Math.hypot(nx - this.px, ny - this.py) < H) { p.hurt(2, this.px); W.sparks(nx, ny, 6); Audio8.sfx('clank', this.px); }
+  }
+  draw(ctx) {
+    const cx = Math.round(this.px - W.cam.x), cy = Math.round(this.py - W.cam.y), R = this.d.r, a = this.ang();
+    if (cx + R + 30 < 0 || cx - R - 30 > View.w || cy + R + 30 < 0 || cy - R - 30 > 260) return;
+    const F = R + 18; // Zifferblatt: Messingring, cremefarbenes Blatt, zwölf Striche, römische Drei, Sechs, Neun und Zwölf als Kerben
+    ctx.save();
+    ctx.globalAlpha = 0.9; ctx.fillStyle = '#5c3c14'; ctx.beginPath(); ctx.arc(cx, cy, F + 4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#c89020'; ctx.beginPath(); ctx.arc(cx, cy, F + 2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#e8dcb8'; ctx.beginPath(); ctx.arc(cx, cy, F, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1; ctx.fillStyle = '#3c2c1c';
+    for (let k = 0; k < 60; k++) { const b = k * Math.PI / 30, big = k % 5 === 0, r0 = F - (big ? 9 : 4); ctx.fillRect(Math.round(cx + Math.sin(b) * r0) - (big ? 1 : 0), Math.round(cy - Math.cos(b) * r0) - (big ? 1 : 0), big ? 3 : 1, big ? 3 : 1); }
+    ctx.strokeStyle = '#2c2418'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx, cy, F - 12, 0, Math.PI * 2); ctx.stroke();
+    const H = this.d.hub ?? 18, b0 = -a * 1.5; // Stachelnabe: Zahnrad aus Eisen, dreht gegenläufig, Spitzen ragen bis an den Gefahrenkreis
+    ctx.fillStyle = '#2c2c34';
+    for (let k = 0; k < 10; k++) { const b = b0 + k * Math.PI / 5, s1 = Math.sin(b), c1 = Math.cos(b), s2 = Math.sin(b + 0.2), c2 = Math.cos(b + 0.2), s3 = Math.sin(b - 0.2), c3 = Math.cos(b - 0.2);
+      ctx.beginPath(); ctx.moveTo(cx + s1 * (H + 1), cy - c1 * (H + 1)); ctx.lineTo(cx + s2 * (H - 7), cy - c2 * (H - 7)); ctx.lineTo(cx + s3 * (H - 7), cy - c3 * (H - 7)); ctx.fill(); }
+    ctx.fillStyle = '#4c4c5c'; ctx.beginPath(); ctx.arc(cx, cy, H - 6, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#a8a8b8'; for (let k = 0; k < 10; k++) { const b = b0 + k * Math.PI / 5; ctx.fillRect(Math.round(cx + Math.sin(b) * (H - 1)), Math.round(cy - Math.cos(b) * (H - 1)), 1, 1); } // blanke Spitzen
+    ctx.strokeStyle = '#2c2c34'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, H - 10, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = '#c89020'; ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#5c3c14'; ctx.fillRect(cx - 1, cy - 1, 2, 2); // Nabe
+    // der Zeiger: geschmiedet, mit Gegengewicht, die Spitze trägt den Ring
+    const ex = cx + Math.sin(a) * R, ey = cy - Math.cos(a) * R, bx = cx - Math.sin(a) * 18, by = cy + Math.cos(a) * 18;
+    ctx.strokeStyle = '#1c1c24'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.strokeStyle = '#5c5c6c'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(ex, ey); ctx.stroke();
+    const mx = cx + Math.sin(a) * R * 0.62, my = cy - Math.cos(a) * R * 0.62; ctx.fillStyle = '#1c1c24'; ctx.beginPath(); ctx.arc(mx, my, 4, 0, Math.PI * 2); ctx.fill(); // Zierknoten
+    ctx.restore();
+    // Ring an der Spitze (wie die Ankerringe: golden, glimmt in Reichweite)
+    const x = Math.round(this.cx - W.cam.x), y = Math.round(this.cy - W.cam.y), p = W.player;
+    if (p.alive && !p.onGround && p.state === 'normal' && p.nearRing && p.nearRing() === this) {
+      const k = 0.5 + 0.5 * Math.sin(this.t * 0.35);
+      ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = `rgba(252,224,140,${(0.25 + 0.3 * k).toFixed(2)})`;
+      for (let b = 0; b < Math.PI * 2; b += 0.15) ctx.fillRect(x + Math.round(Math.cos(b) * (7 + k * 2)), y + Math.round(Math.sin(b) * (7 + k * 2)), 1, 1);
+      ctx.restore();
+    }
+    for (let b = 0; b < Math.PI * 2; b += 0.2) { ctx.fillStyle = (b > 3.4 && b < 5.2) ? '#fce0a8' : (b > 0.2 && b < 2.2) ? '#9c6400' : '#f8b800'; ctx.fillRect(x + Math.round(Math.cos(b) * 4), y + Math.round(Math.sin(b) * 4), 1, 1); }
+  }
+}

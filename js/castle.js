@@ -737,6 +737,24 @@ const Castle = (() => {
       .candle(6, 8, 'H').candle(30, 13).candle(45, 10, 'H').candle(58, 12, '$').candle(70, 15)
       .music('stage2').label('TROPFSTEINKLAMM').start(2, 10).done());
     LINKS.push([['side', 'kanal'], { e: 'R', y: 10 }, ['side', 'klamm'], { e: 'L', y: 10 }, {}]); // Kanal: rechtes Ende → Tropfsteinklamm
+    // Zeigerkammer (links unten an der Pendelhalle, js/glocken.js): zwei riesige Zifferblätter, an den Zeigerspitzen Ankerringe.
+    // Zeiger A dreht im, Zeiger B gegen den Uhrzeigersinn – spiegelbildlich, einmal je Umdrehung (9 s) stehen A bei neun und B bei
+    // drei Uhr nah beieinander: dann hinüberschwingen und B greifen. Unten unter beiden Zifferblättern Zahnräder mit Stacheln:
+    // dort kurz hängen (↑). Für den Sprung zu B hilft mehr Seil (↓). Links die Werkstatt des Uhrmachers: Truhe, Gefäß, Portal.
+    add('zeiger', 2, 4, null, R(80, 'tower', 26)
+      .fill(0, 0, 79, 0, '#').fill(0, 0, 0, 25, '#').fill(79, 0, 79, 25, '#').fill(79, 10, 79, 11, '.') // Mauern, rechts die Tür zur Pendelhalle
+      .fill(1, 23, 78, 23, '^').fill(1, 24, 78, 25, '#')                           // Grube: Stacheln
+      .fill(66, 12, 78, 13, '#').statue(72, 11)                                    // Eingang
+      .prop('hand', { x: 58, y: 10, r: 72, period: 540, dir: 1, phase: Math.PI / 2 })   // Zeiger A (startet bei drei Uhr, nah am Eingang)
+      .fill(56, 18, 60, 18, '^').fill(56, 19, 60, 22, '#')                         // Zahnrad mit Stacheln unter A
+      .prop('hand', { x: 45, y: 10, r: 72, period: 540, dir: -1, phase: -Math.PI / 2 }) // Zeiger B (spiegelbildlich)
+      .fill(43, 18, 47, 18, '^').fill(43, 19, 47, 22, '#')                         // Zahnrad mit Stacheln unter B
+      .fill(1, 12, 38, 13, '#').statue(20, 11)                                     // Werkstatt des Uhrmachers
+      .chest(8, 11, 'big').prop('vessel', { x: 5, y: 11 }).prop('rgate', { x: 2, y: 11 }) // hinten Truhe, Gefäß, Portal; vorn (x 31) der Uhrmacher
+      .prop('hint', { x: 66, y: 8, w: 6, h: 4, key: 'hintHand' })
+      .candle(75, 9, 'H').candle(68, 9).candle(24, 9, 'H').candle(14, 9, '$').candle(4, 9)
+      .music('stage3').label('ZEIGERKAMMER').start(76, 11).done());
+    LINKS.push([['side', 'pendelhalle'], { e: 'L', y: 35 }, ['side', 'zeiger'], { e: 'R', y: 11 }, {}]); // Pendelhalle: unten links (Treppenfuß) → Zeigerkammer
     // Kaleidoskop (über der Sonnenkathedrale: Aufzug links im Vorplatz hinauf durch die Luke; js/kaleido.js): eine liegende Röhre
     // aus Buntglas in fünf Trommeln, die sich abwechselnd vorwärts und rückwärts um die Längsachse drehen. Unter den Trommeln nur
     // Abgrund – hinüber nur am Ankerring mit der Peitsche (je Trommel zwei Ringe), zwischen den Trommeln Steinringe zum
@@ -2153,6 +2171,7 @@ const Castle = (() => {
     }
     spawnNpcs(s, r); roomT = 0; // Figuren der Geschichte (nach dem Fluch: der zweite Held wartet schon im Burghof)
     spawnFinds(s, r); // Einzelstücke der Ausrüstung
+    markNew(s, r, def); // neu in dieser Ausgabe: Band und Rahmen (Abschnittswahl: immer)
     hpSeen.clear(); applyHp(W.player); // neuer Raum: Gegner des alten zählen nicht als besiegt
     const sc = chambersOf(s, r).find(c => c.kind === 'save');
     inSave = arrive && arrive.place && arrive.place.chamber === 'save' && sc ? sc.key : null; // beim Fortsetzen nicht gleich noch einmal speichern
@@ -3924,8 +3943,9 @@ const Castle = (() => {
     { id: 'cook2', who: 'cook', at: [['side', 'kantine'], 16, 17], when: () => !!flag.pat_flip },    // ... nach der Fahrt durch die obere Wende
     { id: 'bell', who: 'bell', at: [['side', 'glockenstuhl'], 7, 19], when: () => true, gold: 1500 },   // Glockenstuhl: der Glöckner im Stollen (Schweigegeld)
     { id: 'guide', who: 'guide', at: [['side', 'klamm'], 74, 16], when: () => true, gold: 1500 },  // Tropfsteinklamm: der Bergführer im Stollen (Trostprämie)
+    { id: 'clock', who: 'clock', at: [['side', 'zeiger'], 31, 11], when: () => true, gold: 1500 },  // Zeigerkammer: der Uhrmacher in seiner Werkstatt
   ];
-  const WHO = ['ally', 'lib', 'tent', 'pris', 'conc', 'gramo', 'speed', 'bones', 'chick', 'barber', 'carto', 'clerk', 'cook', 'bell', 'guide'], VOICE = { ally: 'A', lib: 'L', tent: 'T', pris: 'P', conc: 'C', speed: 'S', bones: 'B', chick: 'W', barber: 'F', carto: 'M', clerk: 'O', cook: 'E', bell: 'K', guide: 'G' };
+  const WHO = ['ally', 'lib', 'tent', 'pris', 'conc', 'gramo', 'speed', 'bones', 'chick', 'barber', 'carto', 'clerk', 'cook', 'bell', 'guide', 'clock'], VOICE = { ally: 'A', lib: 'L', tent: 'T', pris: 'P', conc: 'C', speed: 'S', bones: 'B', chick: 'W', barber: 'F', carto: 'M', clerk: 'O', cook: 'E', bell: 'K', guide: 'G', clock: 'U' };
   const allyId = () => { const ids = HEROES.list.map(d => d.id), i = Math.max(0, ids.indexOf(Options.character)); return ids[(i + 1) % ids.length]; };
   const beatDone = (b) => b.lines === false || !!flag['story_' + b.id];
   function beatNow(who) { let b = null; for (const x of BEATS) if (x.who === who && x.when()) b = x; return b; }
@@ -4072,6 +4092,20 @@ const Castle = (() => {
     R(1, -26 + bob, 4, 1, '#a89c8c');                                                                  // Mund
   }
   // Kantinenchefin Schöpfkelle: weiße Kochjacke, Haube, Schürze, rote Wangen; rührt mit der Kelle im Topf
+  // der Uhrmacher (Zeigerkammer): Lupenbrille mit einem dicken Glas, Lederschürze, Taschenuhr an der Kette, Schraubenzieher
+  function drawClockmaker(ctx, cx, feet, t, flip) {
+    const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
+    const bob = (t >> 5) & 1, sw = Math.round(Math.sin(t * 0.08) * 2);
+    R(-5, -2, 4, 2, '#2c1c10'); R(1, -2, 4, 2, '#2c1c10');                                    // Schuhe
+    R(-4, -10, 3, 8, '#3c3c4c'); R(1, -10, 3, 8, '#3c3c4c');                                  // Hose
+    R(-6, -22, 12, 12, '#6c4c8c'); R(-6, -22, 2, 12, '#5c3c7c');                              // Weste
+    R(-5, -20, 10, 12, '#8c5c2c'); R(-5, -20, 10, 1, '#a87444');                              // Lederschürze
+    R(4, -16, 1, 4, '#c89020'); R(3 + sw, -12, 3, 3, '#f8d878'); R(4 + sw, -11, 1, 1, '#3c2c1c'); // Taschenuhr an der Kette (pendelt)
+    R(-4, -30 + bob, 8, 8, '#d0905c'); R(-4, -31 + bob, 8, 2, '#8c8c9c'); R(-5, -29 + bob, 1, 3, '#8c8c9c'); R(4, -29 + bob, 1, 3, '#8c8c9c'); // Kopf, graues Haar (Glatze mit Kranz)
+    R(-5, -27 + bob, 4, 4, '#1c1c24'); R(-4, -26 + bob, 2, 2, '#7cdcfc'); R(1, -26 + bob, 2, 2, '#1c1c24'); // Lupe vorm Auge, anderes Auge
+    R(-3, -24 + bob, 6, 1, '#a8a8b8'); R(-3, -23 + bob, 1, 1, '#a8a8b8'); R(2, -23 + bob, 1, 1, '#a8a8b8'); // Schnurrbart (Zwirbel)
+    R(6, -18, 1, 6, '#c8c8d8'); R(6, -20, 1, 2, '#a83c2c');                                   // Schraubenzieher
+  }
   // der Bergführer (Tropfsteinklamm): Skelett mit Bergsteigerhut samt Feder, Kniebundhose, Seil über der Schulter, Pickel
   function drawMountainGuide(ctx, cx, feet, t, flip) {
     const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
@@ -4116,8 +4150,8 @@ const Castle = (() => {
     R(-5, -38 + bob, 10, 6, '#fcfcfc'); R(-4, -40 + bob, 8, 2, '#fcfcfc'); R(-5, -33 + bob, 10, 1, '#d8d8d8');                     // Haube
     R(0, -30 + bob, 1, 1, '#1c1c24'); R(3, -30 + bob, 1, 1, '#1c1c24'); R(0, -28 + bob, 3, 1, '#a84848');                         // Augen, Lächeln
   }
-  const EGG = { speed: drawSpeedGhost, bones: drawBones, chick: drawChicken, barber: drawBarber, carto: drawCarto, clerk: drawClerk, cook: drawCook, bell: drawBellRinger, guide: drawMountainGuide }; // Figur je Sprecher
-  const EGG_OF = { S: 'speed', B: 'bones', W: 'chick', F: 'barber', M: 'carto', O: 'clerk', E: 'cook', K: 'bell', G: 'guide' };
+  const EGG = { speed: drawSpeedGhost, bones: drawBones, chick: drawChicken, barber: drawBarber, carto: drawCarto, clerk: drawClerk, cook: drawCook, bell: drawBellRinger, guide: drawMountainGuide, clock: drawClockmaker }; // Figur je Sprecher
+  const EGG_OF = { S: 'speed', B: 'bones', W: 'chick', F: 'barber', M: 'carto', O: 'clerk', E: 'cook', K: 'bell', G: 'guide', U: 'clock' };
   const noseOf = (npc) => { if (!talk || talk.npc !== npc) return 0; const pg = talk.pages[talk.i]; return pg && pg.lie ? Math.min(9, (Game.t - (talk.lieAt || 0)) * 0.35) : 0; };
   // Kammern im Hotel: Sternlampe (Speichern) und Aufzug (Schnellreise) statt Steinnische – Blender-Modelle
   function drawHotelChamber(ch, ctx) {
@@ -4301,7 +4335,7 @@ const Castle = (() => {
     else if (who === 'T') { ctx.translate(x + 18, y + 80); ctx.scale(2, 2); drawTentacle(ctx, 0, 0, t, false); }
     else if (who === 'P') { ctx.translate(x + 20, y + 66); ctx.scale(2, 2); drawPrisoner(ctx, 0, 0, t, false); }
     else if (who === 'C') { ctx.translate(x + 18, y + 70); ctx.scale(2, 2); drawConcierge(ctx, 0, 0, t, false, talk ? noseOf(talk.npc) : 0); }
-    else if (EGG_OF[who]) { const lift = { S: 66, B: 74, W: 54, F: 70, M: 66, O: 70, E: 84 , K: 70 , G: 74 }[who]; ctx.translate(x + 18, y + lift); ctx.scale(2, 2); EGG[EGG_OF[who]](ctx, 0, 0, t, false); }
+    else if (EGG_OF[who]) { const lift = { S: 66, B: 74, W: 54, F: 70, M: 66, O: 70, E: 84 , K: 70 , G: 74 , U: 70 }[who]; ctx.translate(x + 18, y + lift); ctx.scale(2, 2); EGG[EGG_OF[who]](ctx, 0, 0, t, false); }
     else {
       const H = HEROES.get(who === 'A' ? allyId() : Options.character), spr = H.idle[0], img = who === 'H' ? spr.f : spr.c;
       ctx.imageSmoothingEnabled = false;
@@ -4319,7 +4353,7 @@ const Castle = (() => {
     ctx.fillStyle = '#fce0a8'; for (const [ex, ey] of [[x, y], [x + w - 1, y], [x, y + h - 1], [x + w - 1, y + h - 1]]) { ctx.fillRect(ex - 1, ey, 3, 1); ctx.fillRect(ex, ey - 1, 1, 3); }
     const px = hero ? x + w - 48 : x + 8, tx = hero ? x + 10 : x + 56;
     portrait(ctx, pg.who, px, y + 10, t);
-    const EGN = { S: 'npcSpeed', B: 'npcBones', W: 'npcChicken', F: 'npcBarber', M: 'npcCarto', O: 'npcClerk', E: 'npcCook' }, EGC = { S: '#b8d4ff', B: '#e8e4d0', W: '#fcf4c8', F: '#f0a0a0', M: '#e8dcb8', O: '#c8e0b0', E: '#f8d8a0' };
+    const EGN = { S: 'npcSpeed', B: 'npcBones', W: 'npcChicken', F: 'npcBarber', M: 'npcCarto', O: 'npcClerk', E: 'npcCook', K: 'npcBell', G: 'npcGuide', U: 'npcClock' }, EGC = { S: '#b8d4ff', B: '#e8e4d0', W: '#fcf4c8', F: '#f0a0a0', M: '#e8dcb8', O: '#c8e0b0', E: '#f8d8a0', K: '#f0d890', G: '#a8d8f8', U: '#e8c8a0' };
     const name = pg.who === 'L' ? tr('npcLib') : pg.who === 'T' ? tr('bossTentacle') : pg.who === 'P' ? tr('npcPrisoner') : pg.who === 'C' ? tr('npcConcierge') : EGN[pg.who] ? tr(EGN[pg.who]) : HEROES.def(pg.who === 'A' ? allyId() : Options.character).name;
     Font.draw(ctx, name, tx, y + 7, hero ? '#7cdcfc' : pg.who === 'L' ? '#c8a0fc' : pg.who === 'T' ? '#d880fc' : pg.who === 'P' ? '#e8e0c8' : pg.who === 'C' ? '#a8e8c0' : EGC[pg.who] || '#f8b800', { shadow: '#000' });
     let left = Math.floor(talk.n);
@@ -4394,28 +4428,70 @@ const Castle = (() => {
     S().forEach((st, i) => { const [x, y] = stats(i); a += x; n += y; });
     return pct(a, n);
   }
-  // Neueste Änderungen (zum Testen): die Abschnittswahl markiert diese Räume mit NEU und zeigt darunter, was sich geändert hat;
-  // SUB springt zum nächsten markierten Abschnitt. Bei jeder Auslieferung neu füllen
+  // Neueste Änderungen: die Abschnittswahl markiert diese Räume mit NEU und zeigt darunter, was sich geändert hat (SUB springt zum
+  // nächsten). Betritt man so einen Raum, zeigt ein grünes Band die Neuerung und ein pulsierender Rahmen mit NEU-Schild die Stelle
+  // (markNew). Bei jeder Auslieferung neu füllen. Eintrag: [Raum, Text, Stellen [x, y, b, h] in Kacheln (x < 0: vom rechten Rand)]
   const RECENT = [
-    [['side', 'kolosseum'], 'chgMahr'], // Mahre: Gegnerkräfte fangen (↑ + SUB), kritische Treffer, neues HUD
-    [['side', 'mondmeer'], 'chgMond'], // Mondkanone, Mondmeer (geringe Schwerkraft), Mann im Mond; Abwärtshieb federt
-    [['side', 'planetarium'], 'chgStern'], // Sternwarte: Orrery, Sternschnuppen, Astrolabien, Sternbild
-    [['side', 'rohrpost'], 'chgExpress2'], // Rohrpost-Express: schöner und gnädiger (früher sichtbar, Lenkhilfe, Countdown)
-    [['side', 'hotel'], 'chgFeel'],        // Taktduell am Grammophon; Glühen, Konter, Perfekt-Ausweichen, adaptive Musik
-    [['side', 'chefetage'], 'chgChef'], // Laufzettel, Chefetage und der Schreibtischtäter
-    [['side', 'hauptpost'], 'chgPost'], // Hauptpoststelle: Förderbänder, Pakete, Frankiermaschine
-    [['side', 'rohrpost'], 'chgExpress'], // Rohrpost-Express in Ego-Sicht (Aktenkeller – Rohrpostamt)
-    [['side', 'aktenkeller'], 'chgKeller'], // Aktenkeller mit Rollregalen und dem Reißwolf
-    [['side', 'paternoster'], 'chgTrakt'], // Behördentrakt: Paternoster, Kantine, Registratur
-    [['side', 'heldenamt'], 'chgSchimmel'], // Amtsschimmel setzt sich aus Leitz-Ordnern zusammen, Urschrei mit Wackelwänden (vorher chgAmt)
-    [['side', 'versuchsstrecke'], 'chgMoto'], [['side', 'fundbuero'], 'chgFund'], [['side', 'rohrpost'], 'chgTube'], // Dampfrad-Fahrt (links am Automatenwerk), Schalterrätsel (links an der Passage)
-    [['side', 'kaleido'], 'chgKaleido'], [['side', 'pendelhalle'], 'chgPendel'], [['side', 'passage'], 'chgPassage'],
-    [['side', 'golemstollen'], 'chgGolem'], [['side', 'galvani'], 'chgLab'],
-    [[0, 1], 'chgPortrait'], [[0, 3], 'chgPortrait'], [[3, 4], 'chgPortrait'], // Ahnenbilder im Foyer, in der Halle und im Thronsaal
+    [['side', 'zeiger'], 'chgZeiger', [[52, 4, 13, 13], [39, 4, 13, 13]]],   // Zeigerkammer: zwei Zifferblätter mit Ankerring am Zeiger
+    [['side', 'pendelhalle'], 'chgDoorZeiger', [[0, 33, 2, 3]]],          // Pendelhalle: Tür unten links zur Zeigerkammer
+    [['side', 'klamm'], 'chgKlamm', [[8, 2, 5, 6]]],                      // Tropfsteinklamm: Laufkatzen an der Seilbahn
+    [['side', 'kanal'], 'chgDoorKlamm', [[-2, 8, 2, 3]]],                 // Kanal: Ausgang rechts zur Klamm
+    [['side', 'glockenstuhl'], 'chgGlocken', [[58, 1, 5, 4]]],            // Glockenstuhl: Ring über der Stachelsäule
+    [[2, 1], 'chgDoorGlocken', [[0, 1, 2, 3]]],                          // Bibliothek: Tür oben links zum Glockenstuhl
   ];
-  function recentNote(s, r) {
-    for (const [R, k] of RECENT) { const a = ref(R); if (a && a.s === s && a.r === r) return k; }
-    const d = S()[s] && S()[s].rooms[r]; return d && (d.arena || d.mini) ? 'chgBanter' : null; // Bosse: Wortgeplänkel zum Kampfbeginn
+  const recentEntry = (s, r) => { for (const e of RECENT) { const a = ref(e[0]); if (a && a.s === s && a.r === r) return e; } return null; };
+  function recentNote(s, r) { const e = recentEntry(s, r); return e ? e[1] : null; }
+  // „Neu“-Markierung (Wunsch 20261114: beim Abschnittswechsel hervorheben, was neu ist – nur wenn etwas neu ist): über die
+  // Abschnittswahl immer, beim normalen Spielen einmal je Ausgabe (BUILD) und Raum
+  function markNew(s, r, def) {
+    const force = Game.secArrive; Game.secArrive = false;
+    const e = recentEntry(s, r); if (!e) return;
+    const b = String(window.BUILD || ''), k = roomKey(s, r); let sn = { b, k: [] };
+    try { const v = JSON.parse(localStorage.getItem('nachtmahr.newSeen') || 'null'); if (v && v.b === b && Array.isArray(v.k)) sn = v; } catch (err) { /* privat */ }
+    if (!force && sn.k.includes(k)) return;
+    if (!sn.k.includes(k)) { sn.k.push(k); try { localStorage.setItem('nachtmahr.newSeen', JSON.stringify(sn)); } catch (err) { /* privat */ } }
+    W.spawn(new NewMark(e[1], (e[2] || []).map(([x, y, w, h]) => ({ x: (x < 0 ? def.w + x : x) * T, y: y * T, w: w * T, h: h * T }))));
+  }
+  class NewMark extends Ent {
+    constructor(key, spots) { super(0, 0, 1, 1); this.kind = 'fx'; this.key = key; this.spots = spots; this.noWrap = true; this.life = 540; }
+    update() { if (++this.t > this.life) this.dead = true; }
+    draw() {}
+    drawLit(ctx) { // nach Licht und Nebel: der Rahmen leuchtet auch im dunklen Raum
+      const t = this.t, a = Math.max(0, Math.min(1, (this.life - t) / 60, t / 8)), g = (t >> 4) % 2 ? '#3cb860' : '#2c9c4c', tag = tr('secNew'), bw = Font.width(tag) + 6;
+      ctx.save(); ctx.globalAlpha = a;
+      const label = (x, y) => { ctx.fillStyle = g; ctx.fillRect(x, y, bw, 11); ctx.fillStyle = '#0c3c1c'; ctx.fillRect(x, y + 10, bw, 1); Font.draw(ctx, tag, x + 3, y + 2, '#fcfcfc', { shadow: '#000' }); };
+      for (const sp of this.spots) {
+        const x = Math.round(sp.x - W.cam.x), y = Math.round(sp.y - W.cam.y);
+        if (x + sp.w > 0 && x < View.w && y + sp.h > 0 && y < 240) { // im Bild: Eckwinkel und Strichrahmen, darüber das Schild
+          const p = 2 + Math.round(1.5 + 1.5 * Math.sin(t * 0.15)), X = x - p, Y = y - p, Wd = sp.w + 2 * p, Hd = sp.h + 2 * p, c = 7;
+          ctx.fillStyle = '#7cf0a0';
+          ctx.fillRect(X, Y, c, 2); ctx.fillRect(X, Y, 2, c); ctx.fillRect(X + Wd - c, Y, c, 2); ctx.fillRect(X + Wd - 2, Y, 2, c);
+          ctx.fillRect(X, Y + Hd - 2, c, 2); ctx.fillRect(X, Y + Hd - c, 2, c); ctx.fillRect(X + Wd - c, Y + Hd - 2, c, 2); ctx.fillRect(X + Wd - 2, Y + Hd - c, 2, c);
+          ctx.globalAlpha = a * 0.55; const o = (t >> 2) % 6;
+          for (let i = c + o; i < Wd - c; i += 6) { ctx.fillRect(X + i, Y, 3, 1); ctx.fillRect(X + Wd - i - 3, Y + Hd - 1, 3, 1); }
+          for (let i = c + o; i < Hd - c; i += 6) { ctx.fillRect(X, Y + Hd - i - 3, 1, 3); ctx.fillRect(X + Wd - 1, Y + i, 1, 3); }
+          ctx.globalAlpha = a; label(clamp(Math.round(x + sp.w / 2 - bw / 2), 2, View.w - bw - 2), Y - 14 >= 72 ? Y - 14 : Y + Hd + 14 <= 226 ? Y + Hd + 3 : clamp(Y + 4, 72, 226)); // oben kein Platz (HUD, Band): Schild unter den Rahmen, sonst hinein
+        } else { // außerhalb: Pfeil am Bildrand, daneben das Schild
+          const cx = x + sp.w / 2, cy = y + sp.h / 2, ex = clamp(cx, 12, View.w - 12), ey = clamp(cy, 44, 226), an = Math.atan2(cy - ey, cx - ex), bob = Math.sin(t * 0.2) * 2;
+          const hx = ex + Math.cos(an) * bob, hy = ey + Math.sin(an) * bob;
+          ctx.fillStyle = '#0c3c1c'; ctx.beginPath(); ctx.moveTo(hx + Math.cos(an) * 9, hy + Math.sin(an) * 9); ctx.lineTo(hx + Math.cos(an + 2.4) * 8, hy + Math.sin(an + 2.4) * 8); ctx.lineTo(hx + Math.cos(an - 2.4) * 8, hy + Math.sin(an - 2.4) * 8); ctx.fill();
+          ctx.fillStyle = '#7cf0a0'; ctx.beginPath(); ctx.moveTo(hx + Math.cos(an) * 7, hy + Math.sin(an) * 7); ctx.lineTo(hx + Math.cos(an + 2.4) * 6, hy + Math.sin(an + 2.4) * 6); ctx.lineTo(hx + Math.cos(an - 2.4) * 6, hy + Math.sin(an - 2.4) * 6); ctx.fill();
+          label(clamp(Math.round(ex - bw / 2 - Math.cos(an) * 18), 2, View.w - bw - 2), clamp(Math.round(ey - 5 - Math.sin(an) * 14), 34, 226));
+        }
+      }
+      ctx.restore();
+    }
+    drawHud(ctx) { // Band: was ist hier neu (unter dem Hinweisband, im HUD – nicht abgedunkelt)
+      const t = this.t, a = Math.max(0, Math.min(1, (this.life - t) / 60, t / 8)), g = (t >> 4) % 2 ? '#3cb860' : '#2c9c4c';
+      ctx.save(); ctx.globalAlpha = a;
+      {
+        const lines = Game.wrapLine(tr('newHere', tr(this.key)), View.w - 40), y = Game.noteT > 0 ? Game.noteBox().bottom + 3 : 48;
+        const wm = Math.max(...lines.map(l => Font.width(l))) + 12, x = Math.round(View.w / 2 - wm / 2), h = lines.length * 10 + 4;
+        ctx.fillStyle = 'rgba(4,28,12,0.92)'; ctx.fillRect(x, y, wm, h); ctx.fillStyle = g; ctx.fillRect(x, y, wm, 1); ctx.fillRect(x, y + h - 1, wm, 1); ctx.fillRect(x, y, 1, h); ctx.fillRect(x + wm - 1, y, 1, h);
+        lines.forEach((l, i) => Font.draw(ctx, l, View.w / 2, y + 3 + i * 10, '#c8fcd8', { align: 'center', shadow: '#000' }));
+      }
+      ctx.restore();
+    }
   }
   function roomPercent(s, r) {
     const rm = layout(s)[r], set = seen[rm.key];
@@ -4826,7 +4902,7 @@ const Castle = (() => {
     for (const q of QUESTS) need.push('quest_' + q.id, 'questHint_' + q.id);
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
-    need.push('hintRopeUp', 'hintRopeHold', 'hintRopeDown', 'hintTrolley', 'hintTrolley2'); // Glockenstuhl, Tropfsteinklamm
+    need.push('hintRopeUp', 'hintRopeHold', 'hintRopeDown', 'hintTrolley', 'hintTrolley2', 'hintHand', 'npcBell', 'npcGuide', 'npcClock', 'newHere', 'chgZeiger', 'chgDoorZeiger', 'chgKlamm', 'chgDoorKlamm', 'chgGlocken', 'chgDoorGlocken'); // Glockenstuhl, Tropfsteinklamm, Zeigerkammer, NEU-Markierung
     need.push('castleBossCount', 'castleGoalBoss', 'pauseTravel', 'bounty', 'travelTip', 'bountyTitle', 'travelRoom', 'mahrTitle', 'mahrCount', 'mahrRuf', 'mahrBann', 'mahrHelp', 'mahrSwap', 'mahrOn', 'mahrFrom', 'mahrUnknown', 'mahrGot', 'mahrFirst', 'mahrDodge', 'crit', 'chgMahr');
     { // Erreichbarkeit: vom Wald aus über Türen und Ausgänge (alles geöffnet) – kein Raum darf abgeschnitten sein
       const key = (s, r) => s + ':' + r, seenR = new Set(), queue = [], s0 = sIdx('arrival');

@@ -8,6 +8,34 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 
 ---
 
+## 20261114-1036 – Zeigerkammer: am Uhrzeiger im Kreis, und „NEU“ zeigt, was neu ist
+
+**Neu – Raum: die Zeigerkammer** (Bergfried, unten links an der Pendelhalle, Gefahr ****)
+- Zwei **riesige Zifferblätter**, an der Spitze jedes Zeigers ein Ankerring. Der Zeiger dreht sich weiter, während du
+  hängst – du wirst im Kreis getragen (eine Umdrehung: 9 Sekunden). Zeiger A läuft im, Zeiger B gegen den Uhrzeigersinn.
+- **Unten** warten Zahnräder mit Stacheln: dort mit ↑ ganz kurz hängen. Mit langem Seil schleift man über die Spitzen.
+- **In der Mitte** jedes Zifferblatts eine **Stachelnabe**: wer oben über die Achse fährt, hält das Seil ganz kurz oder
+  lässt es mit ↓ ganz lang und schwingt darunter durch – mittellang trifft es.
+- **Bei neun Uhr** stehen beide Zeiger nah beieinander: loslassen, nach links, B greifen. B trägt dich über seine Nabe
+  hinweg zur Werkstatt.
+- **Die Werkstatt des Uhrmachers:** Truhe, Lebensgefäß, Rückweg-Portal und der Uhrmacher, der die Zeit angehalten hat –
+  leider an der falschen Uhr (Gespräch in 8 Sprachen, 1500 G).
+
+**Neu – „NEU“-Markierung beim Abschnittswechsel**
+- Kommst du in einen Raum, in dem sich etwas geändert hat, nennt ein **grünes Band** die Neuerung, und ein
+  **pulsierender Rahmen mit NEU-Schild** zeigt die Stelle (liegt sie außerhalb des Bilds: grüner Pfeil am Rand).
+- Nur wenn dort wirklich etwas neu ist. Über die Abschnittswahl jedes Mal, beim normalen Spielen einmal je Version.
+- Die Abschnittswahl markiert jetzt die aktuellen Neuerungen: Zeigerkammer, Pendelhalle (neue Tür), Tropfsteinklamm,
+  Kanal (neuer Ausgang), Glockenstuhl, Bibliothek (neue Tür). Alte Einträge (Bosse u. a.) sind raus.
+
+**Behoben**
+- Im Gespräch stand bei Glöckner und Bergführer der Name des Helden. Jetzt: DER GLÖCKNER, DER BERGFÜHRER,
+  DER UHRMACHER (8 Sprachen).
+
+**Beim Testen ansehen**
+- Zeigerkammer: ist der Moment bei neun Uhr gut zu erkennen? Ist das Kürzen am Zahnrad zu knapp oder zu leicht?
+- Abschnittswahl → ein grün markierter Raum: erscheinen Band und Rahmen, und stören sie nicht beim Losspielen?
+
 ## 20261114-0711 – Tropfsteinklamm: Seilbahn mit Laufkatzen
 
 **Neu – Laufkatze am Ring**

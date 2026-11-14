@@ -503,7 +503,7 @@ const Game = {
         if (!g || !this.secShown) break;
         if (!g.pre) { g.pre = true; this.prewarmStage(g.s, g.r); this.warmFor = null; this.warmJobs.pop(); this.warmTotal = this.warmJobs.length; break; } // ohne warmRoom: den Raum gibt es noch nicht
         if (this.warming()) break;
-        this.secGo = null; this.quickStart = true; // startStage: nur noch den Raum einmal vorzeichnen
+        this.secGo = null; this.quickStart = true; this.secArrive = true; // startStage: nur noch den Raum einmal vorzeichnen; secArrive: dort zeigen, was neu ist (Castle.markNew)
         if (g.ms !== undefined) this.startMilestone(g.ms);
         else if (g.ingame) { Audio8.setMusicVolume(0.5); Audio8.muffle(false); W.player.hp = W.player.maxHp; this.startStage(g.s, g.r); }
         else this.newGame(g.s, g.r);
@@ -782,6 +782,7 @@ const Game = {
         if (this.state === 'play' && this.shoutT > 0) this.drawShout(ctx);
         if (this.state === 'play') this.drawTut(ctx);
         if (this.state === 'play' && this.noteT > 0) this.drawNote(ctx);
+        if (this.state === 'play') for (const e of W.ents) if (e.drawHud && !e.dead) e.drawHud(ctx); // Bänder einzelner Dinge im Raum (Schloss: was ist hier neu)
         if (this.state === 'play' && Castle.on) Castle.drawGoalToast(ctx); // Schloss: Wegweiser unten im Bild
         if (this.state === 'clear') this.drawClear(ctx);
         if (this.state === 'demo') this.drawDemo(ctx);
