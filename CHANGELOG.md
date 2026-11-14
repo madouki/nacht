@@ -8,6 +8,27 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 
 ---
 
+## 20261114-0711 – Tropfsteinklamm: Seilbahn mit Laufkatzen
+
+**Neu – Laufkatze am Ring**
+- Ein Ankerring an einer **Laufkatze**: hakst du ein, rollt sie an der Schiene los und trägt dich mit. Die Seillänge bleibst
+  du selbst (↑ kürzer, ↓ länger). Ohne Fahrgast rollt sie nach kurzer Pause leer zurück.
+- **Fledermausschwärme** fliegen in festen Höhen quer durch die Klamm – am Seil weichst du mit der Länge aus.
+
+**Neu – Raum: die Tropfsteinklamm** (Katakomben, am rechten Ende des unterirdischen Kanals, Gefahr ****)
+- **1. Bahn:** Stalagmiten von unten, ein Schwarm in mittlerer Höhe (kurz hängen – oder ganz lang), ein hoher Stalagmit
+  (kurz!) und ein tiefer Schwarm. Am Ende auf den Sims fallen lassen (Engel, Kontrollpunkt).
+- **2. Bahn** (tiefer): ein Schwarm knapp unter der Schiene – Seil lang lassen –, dann ein Stalagmit, über den nur
+  mittellang passt. Am Ende mit langem Seil unter den Felsüberhang in den Stollen pendeln.
+- **Im Stollen:** Truhe, Lebensgefäß, Rückweg-Portal und **der Bergführer**, der seit 1840 auf die Talfahrt wartet
+  (Gespräch in 8 Sprachen, Trostprämie 1500 G).
+- Ein Sturz in die Spitzen setzt an den Anfang der laufenden Bahn zurück, nicht an den Raumanfang.
+
+**Beim Testen ansehen**
+- Tropfsteinklamm (Kanal bis ganz nach rechts): fühlt sich die Fahrt gut an, sieht man die Schwärme früh genug kommen?
+  Zu schnell, zu langsam, zu knapp?
+- Bleibt man nach dem Absturz in der 2. Bahn wirklich auf dem Mittelsims?
+
 ## 20261114-0519 – Glockenstuhl: Hängeprüfungen am Ring, Seil länger und kürzer
 
 **Neu – Peitsche am Ring**

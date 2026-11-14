@@ -711,6 +711,32 @@ const Castle = (() => {
       .candle(74, 9, 'H').candle(66, 9).candle(51, 8).candle(26, 12, 'H').candle(5, 16, '$')
       .music('stage3').label('GLOCKENSTUHL').start(76, 11).done());
     LINKS.push([[2, 1], { e: 'L', y: 3 }, ['side', 'glockenstuhl'], { e: 'R', y: 11 }, {}]); // Bibliothek: oben links (Steg) → Glockenstuhl
+    // Tropfsteinklamm (rechts am Ende des unterirdischen Kanals, js/glocken.js): eine Seilbahn über die Stachelgrube. Hakt man an
+    // der Laufkatze ein, fährt sie los und trägt einen mit; die Seillänge bestimmt man selbst. Stalagmiten von unten (kurz hängen),
+    // Fledermausschwärme in festen Höhen (je nach Lage kurz oder lang), am Ende pendelt man mit langem Seil unter einem Felsüberhang
+    // in den Stollen: Truhe, Lebensgefäß, Rückweg-Portal und der Bergführer, der seit 1840 auf die Talfahrt wartet.
+    // Zwischen den Bahnen ein Sims (Kontrollpunkt): ein Sturz setzt nur an den Anfang der laufenden Bahn zurück.
+    add('klamm', 1, 4, null, R(80, 'cave', 26)
+      .fill(0, 0, 79, 0, '#').fill(0, 0, 0, 25, '#').fill(79, 0, 79, 25, '#').fill(0, 9, 0, 10, '.') // Mauern, links die Öffnung zum Kanal
+      .fill(1, 23, 78, 23, '^').fill(1, 24, 78, 25, '#')                           // Grube: Tropfsteinspitzen
+      .fill(1, 11, 8, 12, '#').statue(4, 10)                                       // Eingang
+      .prop('trolley', { x: 10, y: 3, x0: 9, x1: 44, speed: 1.2 })                 // 1. Bahn
+      .fill(16, 10, 18, 10, '^').fill(16, 11, 18, 22, '#')                         // Stalagmit (Seil < ~90)
+      .prop('batwave', { at: 20, ring: 10, y0: 7, y1: 8, n: 6 })                   // Schwarm in mittlerer Höhe: kurz (≤ ~42) oder ganz lang hängen
+      .fill(33, 8, 35, 8, '^').fill(33, 9, 35, 22, '#')                            // hoher Stalagmit (Seil < ~58)
+      .prop('batwave', { at: 34, ring: 10, y0: 8, y1: 9, n: 6 })                   // tiefer Schwarm: kurz hängen
+      .fill(44, 13, 46, 14, '#').statue(45, 12)                                    // Sims zwischen den Bahnen
+      .prop('trolley', { x: 48, y: 7, x0: 47, x1: 73, speed: 1.2 })                // 2. Bahn (tiefer)
+      .fill(52, 15, 53, 15, '^').fill(52, 16, 53, 22, '#')                         // Stalagmit (Seil < ~106)
+      .prop('batwave', { at: 51, ring: 48, y0: 9, y1: 10, n: 7 })                  // Schwarm knapp unter der Bahn: lang hängen
+      .fill(64, 14, 66, 14, '^').fill(64, 15, 66, 22, '#')                         // Stalagmit (Seil < ~90)
+      .fill(74, 1, 78, 11, '#').fill(74, 17, 78, 22, '#')                          // Felsüberhang, darunter der Stollen (Reihen 12–16)
+      .prop('rgate', { x: 78, y: 16 }).chest(77, 16, 'big').prop('vessel', { x: 76, y: 16 }) // vorn (x 74) der Bergführer
+      .prop('hint', { x: 2, y: 7, w: 6, h: 4, key: 'hintTrolley' })
+      .prop('hint', { x: 44, y: 9, w: 3, h: 4, key: 'hintTrolley2' })
+      .candle(6, 8, 'H').candle(30, 13).candle(45, 10, 'H').candle(58, 12, '$').candle(70, 15)
+      .music('stage2').label('TROPFSTEINKLAMM').start(2, 10).done());
+    LINKS.push([['side', 'kanal'], { e: 'R', y: 10 }, ['side', 'klamm'], { e: 'L', y: 10 }, {}]); // Kanal: rechtes Ende → Tropfsteinklamm
     // Kaleidoskop (über der Sonnenkathedrale: Aufzug links im Vorplatz hinauf durch die Luke; js/kaleido.js): eine liegende Röhre
     // aus Buntglas in fünf Trommeln, die sich abwechselnd vorwärts und rückwärts um die Längsachse drehen. Unter den Trommeln nur
     // Abgrund – hinüber nur am Ankerring mit der Peitsche (je Trommel zwei Ringe), zwischen den Trommeln Steinringe zum
@@ -3897,8 +3923,9 @@ const Castle = (() => {
     { id: 'cook', who: 'cook', at: [['side', 'kantine'], 16, 17], when: () => true },                // Kantine: Kantinenchefin Schöpfkelle (danach ihr Laden)
     { id: 'cook2', who: 'cook', at: [['side', 'kantine'], 16, 17], when: () => !!flag.pat_flip },    // ... nach der Fahrt durch die obere Wende
     { id: 'bell', who: 'bell', at: [['side', 'glockenstuhl'], 7, 19], when: () => true, gold: 1500 },   // Glockenstuhl: der Glöckner im Stollen (Schweigegeld)
+    { id: 'guide', who: 'guide', at: [['side', 'klamm'], 74, 16], when: () => true, gold: 1500 },  // Tropfsteinklamm: der Bergführer im Stollen (Trostprämie)
   ];
-  const WHO = ['ally', 'lib', 'tent', 'pris', 'conc', 'gramo', 'speed', 'bones', 'chick', 'barber', 'carto', 'clerk', 'cook', 'bell'], VOICE = { ally: 'A', lib: 'L', tent: 'T', pris: 'P', conc: 'C', speed: 'S', bones: 'B', chick: 'W', barber: 'F', carto: 'M', clerk: 'O', cook: 'E', bell: 'K' };
+  const WHO = ['ally', 'lib', 'tent', 'pris', 'conc', 'gramo', 'speed', 'bones', 'chick', 'barber', 'carto', 'clerk', 'cook', 'bell', 'guide'], VOICE = { ally: 'A', lib: 'L', tent: 'T', pris: 'P', conc: 'C', speed: 'S', bones: 'B', chick: 'W', barber: 'F', carto: 'M', clerk: 'O', cook: 'E', bell: 'K', guide: 'G' };
   const allyId = () => { const ids = HEROES.list.map(d => d.id), i = Math.max(0, ids.indexOf(Options.character)); return ids[(i + 1) % ids.length]; };
   const beatDone = (b) => b.lines === false || !!flag['story_' + b.id];
   function beatNow(who) { let b = null; for (const x of BEATS) if (x.who === who && x.when()) b = x; return b; }
@@ -4045,6 +4072,21 @@ const Castle = (() => {
     R(1, -26 + bob, 4, 1, '#a89c8c');                                                                  // Mund
   }
   // Kantinenchefin Schöpfkelle: weiße Kochjacke, Haube, Schürze, rote Wangen; rührt mit der Kelle im Topf
+  // der Bergführer (Tropfsteinklamm): Skelett mit Bergsteigerhut samt Feder, Kniebundhose, Seil über der Schulter, Pickel
+  function drawMountainGuide(ctx, cx, feet, t, flip) {
+    const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
+    const BN = '#e8e4d0', BD = '#a8a490', bob = (t >> 5) & 1, wave = Math.round(Math.sin(t * 0.06) * 1);
+    R(-5, -3, 4, 3, '#4c3420'); R(1, -3, 4, 3, '#4c3420');                                    // Bergschuhe
+    R(-4, -10, 3, 7, '#c8a868'); R(1, -10, 3, 7, '#c8a868'); R(-4, -6, 3, 1, '#a83c2c'); R(1, -6, 3, 1, '#a83c2c'); // Strümpfe mit roter Borte
+    R(-5, -16, 10, 6, '#5c4428'); R(-5, -16, 10, 1, '#7c5c34');                               // Kniebundhose
+    R(-1, -25, 2, 9, BN); for (let k = 0; k < 4; k++) R(-4, -24 + k * 2, 8, 1, BN);           // Rippen
+    R(-5, -24, 2, 9, '#a87c40'); R(3, -24, 2, 9, '#a87c40'); R(-5, -17, 10, 1, '#a87c40');    // Hosenträger
+    R(-7, -23 + bob, 3, 8, '#c8a868'); R(-8, -21 + bob, 5, 4, '#c8a868'); R(-7, -20 + bob, 3, 2, '#a87c40'); // Seil über der Schulter
+    R(-4, -32 + bob, 8, 7, BN); R(-3, -30 + bob, 2, 2, '#1c1c24'); R(1, -30 + bob, 2, 2, '#1c1c24'); R(-2, -26 + bob, 5, 1, BD); // Schädel
+    R(-6, -34 + bob, 12, 2, '#3c5c34'); R(-4, -38 + bob, 8, 4, '#3c5c34'); R(-4, -35 + bob, 8, 1, '#a83c2c'); // Hut mit Band
+    R(4, -42 + bob + wave, 1, 6, '#fcfcfc'); R(5, -43 + bob + wave, 1, 3, '#d8d8d8');         // Feder
+    R(6, -24, 1, 22, '#7c5c34'); R(4, -26, 6, 2, '#7c7c8c'); R(9, -25, 2, 1, '#5c5c6c');      // Pickel
+  }
   // der Glöckner (Glockenstuhl): gebückt, Kutte mit Strick, Glatze mit Haarkranz, dicke Wattebäusche in den Ohren, Glockenseil in der Hand
   function drawBellRinger(ctx, cx, feet, t, flip) {
     const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
@@ -4074,8 +4116,8 @@ const Castle = (() => {
     R(-5, -38 + bob, 10, 6, '#fcfcfc'); R(-4, -40 + bob, 8, 2, '#fcfcfc'); R(-5, -33 + bob, 10, 1, '#d8d8d8');                     // Haube
     R(0, -30 + bob, 1, 1, '#1c1c24'); R(3, -30 + bob, 1, 1, '#1c1c24'); R(0, -28 + bob, 3, 1, '#a84848');                         // Augen, Lächeln
   }
-  const EGG = { speed: drawSpeedGhost, bones: drawBones, chick: drawChicken, barber: drawBarber, carto: drawCarto, clerk: drawClerk, cook: drawCook, bell: drawBellRinger }; // Figur je Sprecher
-  const EGG_OF = { S: 'speed', B: 'bones', W: 'chick', F: 'barber', M: 'carto', O: 'clerk', E: 'cook', K: 'bell' };
+  const EGG = { speed: drawSpeedGhost, bones: drawBones, chick: drawChicken, barber: drawBarber, carto: drawCarto, clerk: drawClerk, cook: drawCook, bell: drawBellRinger, guide: drawMountainGuide }; // Figur je Sprecher
+  const EGG_OF = { S: 'speed', B: 'bones', W: 'chick', F: 'barber', M: 'carto', O: 'clerk', E: 'cook', K: 'bell', G: 'guide' };
   const noseOf = (npc) => { if (!talk || talk.npc !== npc) return 0; const pg = talk.pages[talk.i]; return pg && pg.lie ? Math.min(9, (Game.t - (talk.lieAt || 0)) * 0.35) : 0; };
   // Kammern im Hotel: Sternlampe (Speichern) und Aufzug (Schnellreise) statt Steinnische – Blender-Modelle
   function drawHotelChamber(ch, ctx) {
@@ -4259,7 +4301,7 @@ const Castle = (() => {
     else if (who === 'T') { ctx.translate(x + 18, y + 80); ctx.scale(2, 2); drawTentacle(ctx, 0, 0, t, false); }
     else if (who === 'P') { ctx.translate(x + 20, y + 66); ctx.scale(2, 2); drawPrisoner(ctx, 0, 0, t, false); }
     else if (who === 'C') { ctx.translate(x + 18, y + 70); ctx.scale(2, 2); drawConcierge(ctx, 0, 0, t, false, talk ? noseOf(talk.npc) : 0); }
-    else if (EGG_OF[who]) { const lift = { S: 66, B: 74, W: 54, F: 70, M: 66, O: 70, E: 84 , K: 70 }[who]; ctx.translate(x + 18, y + lift); ctx.scale(2, 2); EGG[EGG_OF[who]](ctx, 0, 0, t, false); }
+    else if (EGG_OF[who]) { const lift = { S: 66, B: 74, W: 54, F: 70, M: 66, O: 70, E: 84 , K: 70 , G: 74 }[who]; ctx.translate(x + 18, y + lift); ctx.scale(2, 2); EGG[EGG_OF[who]](ctx, 0, 0, t, false); }
     else {
       const H = HEROES.get(who === 'A' ? allyId() : Options.character), spr = H.idle[0], img = who === 'H' ? spr.f : spr.c;
       ctx.imageSmoothingEnabled = false;
@@ -4784,7 +4826,7 @@ const Castle = (() => {
     for (const q of QUESTS) need.push('quest_' + q.id, 'questHint_' + q.id);
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
-    need.push('hintRopeUp', 'hintRopeHold', 'hintRopeDown'); // Glockenstuhl
+    need.push('hintRopeUp', 'hintRopeHold', 'hintRopeDown', 'hintTrolley', 'hintTrolley2'); // Glockenstuhl, Tropfsteinklamm
     need.push('castleBossCount', 'castleGoalBoss', 'pauseTravel', 'bounty', 'travelTip', 'bountyTitle', 'travelRoom', 'mahrTitle', 'mahrCount', 'mahrRuf', 'mahrBann', 'mahrHelp', 'mahrSwap', 'mahrOn', 'mahrFrom', 'mahrUnknown', 'mahrGot', 'mahrFirst', 'mahrDodge', 'crit', 'chgMahr');
     { // Erreichbarkeit: vom Wald aus über Türen und Ausgänge (alles geöffnet) – kein Raum darf abgeschnitten sein
       const key = (s, r) => s + ':' + r, seenR = new Set(), queue = [], s0 = sIdx('arrival');

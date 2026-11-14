@@ -1,4 +1,5 @@
-// Glockenstuhl (Schloss-Modus, Bergfried): Hängeprüfungen am Ankerring. Die Seillänge entscheidet – ↑ kürzt, ↓ lässt nach.
+// Glockenstuhl (Bergfried) und Tropfsteinklamm (Katakomben): Hängeprüfungen am Ankerring. Die Seillänge entscheidet – ↑ kürzt,
+// ↓ lässt nach.
 //  SwingBell: große Bronzeglocke im Gebälk. Fest wie eine Mauer (unsichtbare 'G'-Kacheln im Raster), die Glocke wird darüber
 //             gezeichnet. Wer am Seil oder im Flug dagegen prallt, läutet sie: BONG – sie schwingt nach, der Held fällt.
 //  FlameJet:  Feuerdüse in der Wand; der Strahl schießt waagerecht durch den Schacht. Erst züngelt es (Warnung), dann brennt
@@ -96,5 +97,60 @@ class FlameJet extends Ent {
   lightUp(L, cx, cy) {
     if (!this.on()) return;
     for (let k = 0; k <= 3; k++) L.push({ x: this.x + this.w * k / 3 - cx, y: this.cy - cy, r: 44, c: [252, 130, 40], a: 0.35 });
+  }
+}
+
+// ---------------- Seilbahn (Tropfsteinklamm): Laufkatze mit Ankerring an einer Schiene ----------------
+// Hakt der Held ein, rollt die Katze los (sanft anfahrend) bis ans Ende der Schiene und trägt ihn mit; die Seillänge bleibt
+// in seiner Hand (↑↓). Ohne Fahrgast rollt sie nach kurzer Pause leer zurück an den Anfang. d: x, y (Ring, Kacheln), x0/x1 (Schiene).
+class TrolleyRing extends Ring {
+  constructor(d) { super(d); this.d = d; this.home = this.x; this.end = d.x1 * T + 3; this.sp = d.speed || 1.2; this.v = 0; this.idle = 0; }
+  update() {
+    super.update();
+    const p = W.player, on = p && p.alive && p.state === 'swing' && p.ring === this;
+    if (on && this.x < this.end) {
+      this.idle = 0; this.v = Math.min(this.sp, this.v + 0.03); this.x = Math.min(this.end, this.x + this.v);
+      if (this.t % 14 === 0) Audio8.sfx('creak', this.cx);
+      if (this.x >= this.end) { Audio8.sfx('klack', this.cx); W.sparks(this.cx, this.y - 6, 4); }
+    } else if (!on) { this.v = 0; if (++this.idle > 90 && this.x > this.home) this.x = Math.max(this.home, this.x - 2.5); }
+  }
+  draw(ctx) {
+    const d = this.d, ry = d.y * T - 6 - W.cam.y, x0 = d.x0 * T - W.cam.x, x1 = (d.x1 + 1) * T - W.cam.x;
+    if (x1 > -20 && x0 < View.w + 20 && ry > -20 && ry < 250) { // Schiene: Eichenbalken mit Eisenband und Nieten, an Ketten unter der Decke
+      ctx.fillStyle = '#3c2814'; ctx.fillRect(Math.round(x0), Math.round(ry - 5), Math.round(x1 - x0), 6);   // Eichenbalken
+      ctx.fillStyle = '#8c6438'; ctx.fillRect(Math.round(x0), Math.round(ry - 5), Math.round(x1 - x0), 1);   // Lichtkante
+      ctx.fillStyle = '#a8a8b8'; ctx.fillRect(Math.round(x0), Math.round(ry), Math.round(x1 - x0), 2);       // Laufschiene aus Eisen
+      ctx.fillStyle = '#e8e8f0'; ctx.fillRect(Math.round(x0), Math.round(ry), Math.round(x1 - x0), 1);       // Glanz auf der Schiene
+      for (let x = Math.ceil(x0 / 32) * 32; x < x1; x += 32) { ctx.fillStyle = '#7c7c8c'; ctx.fillRect(Math.round(x), Math.round(ry - 3), 1, 1); ctx.fillStyle = '#1c1c24'; for (let y = ry - 6; y > -W.cam.y + 16 && y > ry - 70; y -= 4) ctx.fillRect(Math.round(x) + 8, Math.round(y), 1, 3); }
+      const cx = Math.round(this.cx - W.cam.x), turn = (this.x - this.home) * 0.4; // Laufkatze: zwei Räder auf der Schiene, Gehänge zum Ring
+      ctx.fillStyle = '#c89020'; ctx.fillRect(cx - 8, Math.round(ry + 2), 16, 4); ctx.fillStyle = '#fce0a0'; ctx.fillRect(cx - 8, Math.round(ry + 2), 16, 1); // Messinggehäuse unter der Schiene
+      for (const wx of [cx - 5, cx + 5]) { ctx.fillStyle = '#24242c'; ctx.fillRect(wx - 2, Math.round(ry - 2), 4, 4); ctx.fillStyle = '#e8e8f0'; ctx.fillRect(wx - 1 + (Math.floor(turn) & 1), Math.round(ry - 1), 1, 1); } // Räder
+      ctx.fillStyle = '#7c7c8c'; ctx.fillRect(cx - 1, Math.round(ry + 6), 2, 3);
+    }
+    super.draw(ctx);
+  }
+}
+
+// Fledermausschwarm: fliegt in einem festen Höhenband quer durch die Klamm (nicht auf den Helden zu) – am Seil weicht man
+// mit der Länge aus. Ausgelöst, wenn die Laufkatze die Stelle at (Kachel) erreicht; die Tiere kommen von vorn ins Bild.
+class StreamBat extends Bat {
+  constructor(x, y, dir, k) { super(0, 0); this.x = x; this.y = y; this.baseY = y; this.state = 'fly'; this.dir = dir; this.face = dir; this.t = k * 7; }
+  update() {
+    Enemy.prototype.update.call(this); // Treffer-Blinken, Rückstoß usw. wie bei jedem Gegner
+    this.x += this.dir * 1.15; this.y = this.baseY + Math.sin(this.t * 0.16) * 3;
+    this.touch();
+    if (this.x < W.cam.x - 60 || this.x > W.cam.x + View.w + 260) this.dead = true;
+  }
+}
+class BatWave extends Ent {
+  constructor(d) { super(0, 0, 1, 1); this.kind = 'fx'; this.d = d; this.done = false; } // d: at (Kachel der Laufkatze), y0/y1 (Reihen des Bands), n, ring (Ring-x in Kacheln, Startplatz)
+  update() {
+    const d = this.d, k = W.rings.find(r => r instanceof TrolleyRing && r.d.x === d.ring);
+    if (!k) return;
+    if (k.x <= k.home + 1) this.done = false; // Katze wieder am Anfang: der Schwarm kommt beim nächsten Mal wieder
+    if (this.done || k.cx < d.at * T) return;
+    this.done = true; Audio8.sfx('bat', k.cx + 200);
+    const x0 = W.cam.x + View.w + 12, y0 = d.y0 * T, h = (d.y1 - d.y0 + 1) * T;
+    for (let i = 0; i < (d.n || 6); i++) W.spawn(new StreamBat(x0 + (i % 3) * 22 + (i >> 1) * 6, y0 + 4 + (i * 11) % Math.max(4, h - 12), -1, i));
   }
 }
