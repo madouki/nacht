@@ -8,6 +8,28 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 
 ---
 
+## 20261114-0138 – Feinschliff: Texte passen in allen Sprachen, keine Überlappungen mehr
+
+**Behoben**
+- **Heldenauswahl:** lange Titel und Waffen liefen über den Kartenrand (z. B. „BARBARIAN OF THE NORTH“, „PUPPET
+  WITHOUT STRINGS“, „CACCIATORE DI VAMPIRI“, „FOUET ÉTOILE DU MATIN“). Die Karten sind etwas breiter; was dann noch zu
+  lang wäre, wird sanft schmaler gesetzt.
+- **Kopfgeld-Seite** (Pause → STATUS, ganz nach rechts): die Namensspalte ist nur so breit wie nötig, der Ort bekommt
+  den Rest – „GALVANI-LABORATORIUM“ steht jetzt ungestaucht da. Auf schmalen Handy-Schirmen werden lange Orte ohne
+  Artikel und an Wortgrenzen gekürzt („THRON DER NACHT“) statt auf die Hälfte zusammengequetscht.
+- **Einblendungen am Bildrand** („KOPFGELD +4000 G“, „NEU IM BESTIARIUM“): nach einem Bosssieg schwankt die Kamera –
+  dabei wurden sie am rechten Rand abgeschnitten. Sie bleiben jetzt ganz im Bild.
+- **„LEVEL UP!“** lag nach dem Bosssieg halb hinter dem Hinweisband („SIEGEL 1/5 – EIN NEUER WEG IST OFFEN“) und
+  steht jetzt darunter.
+- **COMBO-Zähler** lugte oben links unter dem Gesprächskasten hervor; solange jemand redet, ist er ausgeblendet.
+- **Urkunden- und Hinweis-Einblendungen** brechen auf schmalen Schirmen in zwei Zeilen um, statt gestaucht zu werden.
+
+**Beim Testen ansehen**
+- Heldenauswahl in Englisch, Französisch und Italienisch: steht jeder Titel sauber innerhalb seiner Karte?
+- Einen Boss besiegen (z. B. Knochenriese in der Gruft) und am rechten Rand stehen bleiben: Kopfgeld-Zahl ganz zu
+  sehen, „LEVEL UP!“ unter dem Siegel-Band?
+- Auf dem Handy hochkant: Kopfgeld-Seite und Urkunden-Einblendung lesbar?
+
 ## 20261113-1822 – Hintergründe: Uhrturm und Grotte aus Blender
 
 **Neu – Grafik**
