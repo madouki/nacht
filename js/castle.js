@@ -3386,16 +3386,28 @@ const Castle = (() => {
     for (const b of sideBosses()) out.push({ id: 'm' + b.id, name: tr(MINI_NAME[b.id]), where: b.d.label || '', done: sideDone(b), gold: tierOf(b.s, b.r) * 1000 });
     return out;
   }
+  const shortTo = (s, ww) => { // schmaler Schirm: erst den Artikel weglassen, dann an Wortgrenzen kürzen, erst zuletzt hart („GALVANI-LAB.“)
+    const fits = (x) => Font.width(x) * 0.8 <= ww;
+    if (fits(s)) return s;
+    const b = s.replace(/^(?:DER|DIE|DAS|THE|LE|LA|LES|EL|LOS|LAS|IL|LO|GLI) +/, '').replace(/^L['’]/, '');
+    if (fits(b)) return b;
+    const wd = b.split(' ');
+    while (wd.length > 1 && !fits(wd.join(' '))) { wd.pop(); while (wd.length > 1 && wd[wd.length - 1].length <= 3) wd.pop(); } // „THRON DER“ → „THRON“
+    if (wd.length > 1 || fits(wd[0])) return wd.join(' ');
+    let c = wd[0]; while (c.length > 4 && Font.width(c + '.') * 0.85 > ww) c = c.slice(0, -1);
+    return c.replace(/[\s'’\-]+$/, '') + '.';
+  };
   function drawBounties(ctx, t) {
     const cx = View.cx, lx = cx - Math.min(150, View.w / 2 - 12), rx = cx + Math.min(150, View.w / 2 - 12), L = bountyList(), bt = bossTally(), g = goal(), gid = g && g.id;
     Font.draw(ctx, tr('castleBossCount', bt[0], bt[1]), cx, 34, '#fc9c6c', { align: 'center', shadow: '#000' });
+    const nw = Math.min(Math.max(60, (rx - lx) * 0.52), Math.max(60, ...L.map(b => Font.width(b.name)))); // Namensspalte nur so breit wie nötig: der Rest gehört dem Ort
     L.forEach((b, i) => {
       const y = 47 + i * 10.6, cur = !b.done && gid === b.id, rw = b.done ? '✓' : b.gold ? b.gold + ' G' : '???', rww = Font.width(rw);
       if (cur && (t >> 4) & 1) { ctx.fillStyle = 'rgba(248,184,0,0.16)'; ctx.fillRect(lx - 3, y - 2, rx - lx + 6, 10); }
-      Font.draw(ctx, b.name, lx, y, b.done ? '#58a868' : cur ? '#fcfcfc' : '#f8d878', { shadow: '#000', fit: Math.max(60, (rx - lx) * 0.52) });
+      Font.draw(ctx, b.name, lx, y, b.done ? '#58a868' : cur ? '#fcfcfc' : '#f8d878', { shadow: '#000', fit: nw });
       Font.draw(ctx, rw, rx, y, b.done ? '#58f898' : '#f8b800', { align: 'right', shadow: '#000' });
-      const wx = lx + Math.max(60, (rx - lx) * 0.52) + 6, ww = rx - rww - 8 - wx;
-      if (ww > 40) Font.draw(ctx, b.where, wx, y, b.done ? '#4c5c50' : '#8c9cc8', { fit: ww });
+      const wx = lx + nw + 6, ww = rx - rww - 8 - wx;
+      if (ww > 40) Font.draw(ctx, shortTo(b.where, ww), wx, y, b.done ? '#4c5c50' : '#8c9cc8', { fit: ww });
     });
   }
   function drawStatus(ctx, t) {
@@ -3514,13 +3526,14 @@ const Castle = (() => {
   function drawAchToast(ctx) {
     const c = ach.cur;
     if (!c) return;
-    const k = c.t, a = Math.min(1, (240 - k) / 16, k / 24), w = Math.min(View.w - 8, Math.max(Font.width(c.a), Font.width(c.b)) + 32), x = Math.round(View.cx - w / 2), y = 206;
+    const k = c.t, a = Math.min(1, (240 - k) / 16, k / 24), bl = Game.wrapLine(c.b, View.w - 44).slice(0, 3); // schmaler Schirm: Beschreibung umbrechen, der Kasten wächst nach oben
+    const w = Math.min(View.w - 8, Math.max(Font.width(c.a), ...bl.map(l => Font.width(l))) + 32), h = 14 + bl.length * 10, x = Math.round(View.cx - w / 2), y = 230 - h;
     ctx.globalAlpha = a;
-    ctx.fillStyle = 'rgba(12,6,0,0.86)'; ctx.fillRect(x, y, w, 24);
-    ctx.fillStyle = '#f8d878'; ctx.fillRect(x, y, w, 1); ctx.fillRect(x, y + 23, w, 1);
-    achSeal(ctx, x + 10, y + 12, true, k);
-    Font.draw(ctx, c.a, View.cx + 8, y + 4, '#f8d878', { align: 'center', shadow: '#000' });
-    Font.draw(ctx, c.b, View.cx + 8, y + 14, '#e0d0b0', { align: 'center', shadow: '#000' });
+    ctx.fillStyle = 'rgba(12,6,0,0.86)'; ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = '#f8d878'; ctx.fillRect(x, y, w, 1); ctx.fillRect(x, y + h - 1, w, 1);
+    achSeal(ctx, x + 10, y + Math.round(h / 2), true, k);
+    Font.draw(ctx, c.a, View.cx + 8, y + 4, '#f8d878', { align: 'center', shadow: '#000', fit: w - 30 });
+    bl.forEach((l, i) => Font.draw(ctx, l, View.cx + 8, y + 14 + i * 10, '#e0d0b0', { align: 'center', shadow: '#000', fit: w - 30 }));
     ctx.globalAlpha = 1;
   }
   function drawAch(ctx, t) {

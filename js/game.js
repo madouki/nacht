@@ -389,16 +389,22 @@ const Game = {
   },
   // kleine Nachricht oben im Bild (z. B. Gruß an Infernax)
   note(key, ...args) { this.noteT = 240; this.noteKey = key; this.noteArgs = args; },
-  drawNote(ctx) {
+  noteBox() { // Lage des Hinweisbands (auch für den großen Ausruf, der darunter ausweicht)
     const band = W.boss && this.bossName > 0 && this.bossName < 150; // Namensband des Bosses (y 40–62) steht: Hinweis darunter
-    const s = tr(this.noteKey, ...(this.noteArgs || [])), y = band ? 66 : 48;
-    let lines = [s];
-    const max = View.w - 20;
-    if (Font.width(s) > max) { // zu breit (schmaler Bildschirm): am Gedankenstrich, wenn beide Teile passen, sonst wortweise umbrechen
-      const d = s.indexOf(' – '), two = d > 0 ? [s.slice(0, d), s.slice(d + 3)] : null;
-      if (two && two.every(l => Font.width(l) <= max)) lines = two;
-      else { lines = []; let cur = ''; for (const w of s.split(' ')) { const t = cur ? cur + ' ' + w : w; if (cur && Font.width(t) > max) { lines.push(cur); cur = w; } else cur = t; } if (cur) lines.push(cur); }
-    }
+    const lines = this.wrapLine(tr(this.noteKey, ...(this.noteArgs || [])), View.w - 20), y = band ? 66 : 48;
+    return { lines, y, bottom: y + lines.length * 10 + 3 };
+  },
+  wrapLine(s, max) { // zu breit (schmaler Bildschirm): am Gedankenstrich, wenn beide Teile passen, sonst wortweise umbrechen
+    if (Font.width(s) <= max) return [s];
+    const d = s.indexOf(' – '), two = d > 0 ? [s.slice(0, d), s.slice(d + 3)] : null;
+    if (two && two.every(l => Font.width(l) <= max)) return two;
+    const lines = []; let cur = '';
+    for (const w of s.split(' ')) { const t = cur ? cur + ' ' + w : w; if (cur && Font.width(t) > max) { lines.push(cur); cur = w; } else cur = t; }
+    if (cur) lines.push(cur);
+    return lines;
+  },
+  drawNote(ctx) {
+    const { lines, y } = this.noteBox();
     const w = Math.max(...lines.map(l => Font.width(l))) + 12, h = lines.length * 10 + 3, x = Math.round(View.cx - w / 2);
     ctx.globalAlpha = this.noteT < 20 ? this.noteT / 20 : 1;
     ctx.fillStyle = 'rgba(0,0,0,0.78)'; ctx.fillRect(x, y, w, h);
@@ -410,8 +416,10 @@ const Game = {
   shout(key) { this.shoutT = 100; this.shoutKey = key; Audio8.sfx('announce'); },
   drawShout(ctx) {
     const k = 100 - this.shoutT, sc = k < 6 ? 5 - Math.floor(k / 2) : 2;
+    const want = this.noteT > 0 ? Math.max(60, this.noteBox().bottom + 6) : 60; // Hinweisband steht (z. B. „Siegel 1/5“): darunter, nicht dahinter
+    this.shoutY = k < 2 || this.shoutY == null ? want : this.shoutY + (want - this.shoutY) * 0.25;
     ctx.globalAlpha = this.shoutT < 15 ? this.shoutT / 15 : 1;
-    this.big(ctx, tr(this.shoutKey), View.cx, 60 - (sc - 2) * 3, sc, ['#fcfcfc', '#d8f0fc', '#a4e4fc', '#3cbcfc', '#0078f8', '#0040a8', '#001038'], null, '#000');
+    this.big(ctx, tr(this.shoutKey), View.cx, Math.round(this.shoutY) - (sc - 2) * 3, sc, ['#fcfcfc', '#d8f0fc', '#a4e4fc', '#3cbcfc', '#0078f8', '#0040a8', '#001038'], null, '#000');
     ctx.globalAlpha = 1;
   },
   announce(i) { this.annT = 72; this.annIdx = i; Audio8.sfx('announce'); },
@@ -797,7 +805,7 @@ const Game = {
 
   drawCombo(ctx) {
     const c = W.combo;
-    if (c.n < 3) return;
+    if (c.n < 3 || this.state === 'talk' || this.state === 'shop') return; // Gesprächskasten oben: der Zähler lugte halb darunter hervor
     ctx.globalAlpha = c.t < 30 ? c.t / 30 : 1;
     const s = c.pop > 0 ? 3 : 2, mul = W.comboMul();
     this.big(ctx, c.n + ' COMBO', 8 + Font.width(c.n + ' COMBO') * s / 2, 38 - (s - 2) * 2, s, ['#fcfcfc', '#fce0a8', '#f8b800', '#f8b800', '#f87800', '#d82800', '#881400'], null, '#000');
@@ -975,10 +983,11 @@ const Game = {
   drawToast(ctx) {
     const t = Input.toast;
     if (!t) return;
-    const w = Font.width(t.text) + 16, x = Math.round(View.cx - w / 2), y = 36;
-    ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(x, y, w, 13);
-    ctx.fillStyle = '#c89020'; ctx.fillRect(x, y, w, 1); ctx.fillRect(x, y + 12, w, 1);
-    Font.draw(ctx, t.text, View.cx, y + 3, '#a4e4fc', { align: 'center' });
+    const lines = this.wrapLine(t.text, View.w - 20); // lange Urkunden-Texte auf schmalen Schirmen umbrechen statt stauchen
+    const w = Math.min(View.w - 4, Math.max(...lines.map(l => Font.width(l))) + 16), h = lines.length * 10 + 3, x = Math.round(View.cx - w / 2), y = 36;
+    ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = '#c89020'; ctx.fillRect(x, y, w, 1); ctx.fillRect(x, y + h - 1, w, 1);
+    lines.forEach((l, i) => Font.draw(ctx, l, View.cx, y + 3 + i * 10, '#a4e4fc', { align: 'center', fit: w - 8 }));
   },
 
   // Großschrift mit Zeilen-Farbverlauf, optionaler Kontur und Schatten
@@ -1639,11 +1648,12 @@ const Game = {
     if (!bg) { this.drawSkyScene(ctx); return null; }
     bg.title(title); bg.paint(); ctx.drawImage(bg.canvas, 0, 0); return bg;
   },
-  bootText(ctx, s, x, y, col, sh = '#000', align = 'center') { // 5x7-Schrift des Ladebildschirms; CJK über die Spielschrift
-    const B = this.bootBg;
-    if (!B || I18N.cjk) { Font.draw(ctx, s, x, y, col, { align, shadow: sh }); return; }
-    const n = B.norm(s), c = B.label(n, col, sh), w = n.length * 6 - 1;
-    ctx.drawImage(c, Math.round(align === 'center' ? x - w / 2 : align === 'right' ? x - w : x), Math.round(y));
+  bootText(ctx, s, x, y, col, sh = '#000', align = 'center', maxW = 0) { // 5x7-Schrift des Ladebildschirms; CJK über die Spielschrift
+    const B = this.bootBg; // maxW: breitere Zeilen werden waagerecht gestaucht (höchstens auf 75 %), statt über einen Rahmen zu laufen
+    if (!B || I18N.cjk) { Font.draw(ctx, s, x, y, col, maxW ? { align, shadow: sh, fit: maxW } : { align, shadow: sh }); return; }
+    const n = B.norm(s), c = B.label(n, col, sh), w = n.length * 6 - 1, k = maxW && w > maxW ? Math.max(0.75, maxW / w) : 1, dw = Math.round(c.width * k);
+    const x0 = Math.round(align === 'center' ? x - (w * k) / 2 : align === 'right' ? x - w * k : x);
+    if (k === 1) ctx.drawImage(c, x0, Math.round(y)); else ctx.drawImage(c, x0, Math.round(y), dw, c.height);
   },
   drawBootHeading(ctx, s, cx, y) { // glühende Lettern wie NACHTMAHR, wippend, mit Glut dahinter und Blut, das herabläuft
     const B = this.bootBg;
@@ -1685,7 +1695,7 @@ const Game = {
     const sel = Math.max(0, HEROES.list.findIndex(d => d.id === Options.character));
     this.selX = this.selX === undefined ? sel : this.selX + (sel - this.selX) * 0.25;
     HEROES.list.forEach((d, i) => {
-      const on = Options.character === d.id, pw = 134, px = Math.round(cx - pw / 2 + (i - this.selX) * (pw + 8)), py = 52, ph = 150, mid = px + pw / 2;
+      const on = Options.character === d.id, pw = 146, px = Math.round(cx - pw / 2 + (i - this.selX) * (pw + 8)), py = 52, ph = 150, mid = px + pw / 2;
       if (px > View.w || px + pw < 0) return;
       ctx.fillStyle = on ? 'rgba(42,6,22,0.5)' : 'rgba(6,2,10,0.7)'; ctx.fillRect(px, py, pw, ph); // Rahmen wie der Ladebalken: dunkles Violett, goldene Zier
       ctx.fillStyle = on ? '#c89020' : '#3c2848';
@@ -1696,9 +1706,9 @@ const Game = {
       if (!on) ctx.globalAlpha = 0.7;
       ctx.drawImage(spr.c, mid - spr.c.width, py + 10, spr.c.width * 2, spr.c.height * 2);
       ctx.globalAlpha = 1;
-      this.bootText(ctx, d.name, mid, py + 96, on ? '#fce0a8' : '#8c7a9c', on ? '#400008' : '#000');
-      this.bootText(ctx, tr(d.id + 'Title'), mid, py + 108, on ? '#fc7460' : '#5c4a6c', '#14000c');
-      tr(d.id + 'Desc').forEach((l, k) => this.bootText(ctx, l, mid, py + 121 + k * 11, on ? '#e8d4f0' : '#5c4a6c', '#14000c'));
+      this.bootText(ctx, d.name, mid, py + 96, on ? '#fce0a8' : '#8c7a9c', on ? '#400008' : '#000', 'center', pw - 8);
+      this.bootText(ctx, tr(d.id + 'Title'), mid, py + 108, on ? '#fc7460' : '#5c4a6c', '#14000c', 'center', pw - 8); // Rand frei lassen: bis 22 Zeichen passen ungestaucht
+      tr(d.id + 'Desc').forEach((l, k) => this.bootText(ctx, l, mid, py + 121 + k * 11, on ? '#e8d4f0' : '#5c4a6c', '#14000c', 'center', pw - 8));
       if (on && (this.t >> 4) % 2 === 0) Sprites.draw(ctx, Sprites.S.heartS, mid - 4, py + ph - 8);
     });
     const pulse = 0.55 + 0.45 * Math.sin(this.t * 0.1);

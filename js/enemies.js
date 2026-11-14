@@ -47,6 +47,13 @@ class Popup extends Ent {
   draw(ctx) { // am Bildrand nicht abschneiden: steht der Held ganz außen, rückt der Text ins Bild (und nicht hinter die Statusleiste)
     const hw = Font.width(this.text) / 2, ax = this.x - W.cam.x, ay = this.y - W.cam.y;
     if (ax < -hw - 12 || ax > View.w + hw + 12 || ay < -24 || ay > View.h + 8) return;
+    const m = ctx.getTransform ? ctx.getTransform() : null;
+    if (m && ctx.canvas && ctx.canvas.id === 'screen' && (Math.abs(m.a - 1) > 1e-3 || Math.abs(m.b) > 1e-3)) { // Kamera dreht oder zoomt (Schwanken nach dem Bosssieg, Auftritt): im Schirmmaß begrenzen, sonst läuft der Text trotzdem aus dem Bild
+      const X = m.a * ax + m.c * ay + m.e, Y = m.b * ax + m.d * ay + m.f;
+      ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+      Font.draw(ctx, this.text, Math.round(clamp(X, hw + 3, View.w - hw - 3)), Math.round(Math.max(68, Y)), this.color, { align: 'center', shadow: '#000' });
+      ctx.restore(); return;
+    }
     Font.draw(ctx, this.text, Math.round(clamp(ax, hw + 3, View.w - hw - 3)), Math.round(Math.max(36, ay)), this.color, { align: 'center', shadow: '#000' });
   }
 }
