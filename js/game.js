@@ -388,7 +388,7 @@ const Game = {
     ctx.globalAlpha = 1;
   },
   // kleine Nachricht oben im Bild (z. B. Gruß an Infernax)
-  note(key, ...args) { this.noteT = 240; this.noteKey = key; this.noteArgs = args; },
+  note(key, ...args) { this.noteT = 240; this.noteKey = key; this.noteArgs = args; this.noteAt = typeof W !== 'undefined' ? W.stage + ':' + W.roomIdx : null; }, // noteAt: der Hinweis gehört zu diesem Raum
   noteBox() { // Lage des Hinweisbands (auch für den großen Ausruf, der darunter ausweicht)
     const band = W.boss && this.bossName > 0 && this.bossName < 150; // Namensband des Bosses (y 40–62) steht: Hinweis darunter
     const lines = this.wrapLine(tr(this.noteKey, ...(this.noteArgs || [])), View.w - 20), y = band ? 66 : 48;
@@ -691,6 +691,7 @@ const Game = {
     if (this.restT > 0) this.restT--;
     if (this.shoutT > 0) this.shoutT--;
     if (this.noteT > 0) this.noteT--;
+    if (this.noteT > 20 && this.noteAt && this.noteAt !== W.stage + ':' + W.roomIdx) this.noteT = 20; // Raum verlassen: sein Hinweis („Spring von Lüster zu Lüster!“) blendet aus, statt im nächsten Raum weiterzustehen
     if (W.slowmo > 0) { W.slowmo--; if (this.t % 3) return; } // Zeitlupe
     if (Castle.on) Castle.preUpdate(P); // Schloss: Zauberbefehl erkannt → Angriff wird zum Zauber
     W.update(); this.updateBars();
@@ -805,7 +806,7 @@ const Game = {
 
   drawCombo(ctx) {
     const c = W.combo;
-    if (c.n < 3 || this.state === 'talk' || this.state === 'shop') return; // Gesprächskasten oben: der Zähler lugte halb darunter hervor
+    if (c.n < 3 || this.state === 'talk' || this.state === 'shop' || this.banter || (W.boss && this.bossName > 0 && this.bossName < 150)) return; // Gesprächskasten, Wortgeplänkel oder Namensband des Bosses: der Zähler lag darunter bzw. darüber
     ctx.globalAlpha = c.t < 30 ? c.t / 30 : 1;
     const s = c.pop > 0 ? 3 : 2, mul = W.comboMul();
     this.big(ctx, c.n + ' COMBO', 8 + Font.width(c.n + ' COMBO') * s / 2, 38 - (s - 2) * 2, s, ['#fcfcfc', '#fce0a8', '#f8b800', '#f8b800', '#f87800', '#d82800', '#881400'], null, '#000');
