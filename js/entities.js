@@ -18,6 +18,11 @@ const Phys = {
     if (cy < 0 || cy >= r.h) return false;
     return SOLID.has(r.grid[cy][cx]);
   },
+  rectHas(x, y, w, h, ch) { // liegt eine Kachel dieser Art im Rechteck (z. B. Stacheln am Seil)?
+    const x0 = Math.floor(x / T), x1 = Math.floor((x + w - 0.001) / T), y0 = Math.floor(y / T), y1 = Math.floor((y + h - 0.001) / T);
+    for (let cy = y0; cy <= y1; cy++) for (let cx = x0; cx <= x1; cx++) if (Phys.tile(cx, cy) === ch) return true;
+    return false;
+  },
   rectSolid(x, y, w, h) {
     const x0 = Math.floor(x / T), x1 = Math.floor((x + w - 0.001) / T);
     const y0 = Math.floor(y / T), y1 = Math.floor((y + h - 0.001) / T);
@@ -69,6 +74,7 @@ const WHIP_DIRS = {
   downd: { hx: 18, hy: 15, a: Math.PI / 4 }, down: { hx: 13, hy: 17, a: Math.PI / 2 },
 };
 const FLIP_LEN = 26; // Salto-Dauer in Frames
+const ROPE_MAX = 120; // längstes Seil am Ring (↓ lässt nach)
 const RING_REACH = 96; // Ankerringe: so weit (vom Oberkörper) hakt ein Schlag in der Luft noch ein – großzügig, kein Pixel-Zielen
 const SLIDE_H = 14; // Rutschen: flacher als eine Kachel – passt durch Spalten, durch die man weder geht noch kriecht
 const DASH_LEN = 20, AIRDASH_LEN = 15, DASH_V = 3.7, DASH_AIR = 2.5; // Dash am Boden / in der Luft, Schwung danach
@@ -777,7 +783,7 @@ class Player {
       if (!air && Math.abs(angDiff(Math.atan2(dy, dx), wa)) > 1.15) continue;
       this.state = 'swing'; this.ring = r; this.atkT = 0; this.ringBuf = 0; this.dangle = false; this.setCrouch(false); this.ropeT = 0;
       if (Math.abs(r.cx - this.cx) > 2) this.face = r.cx > this.cx ? 1 : -1; // zum Ring drehen: die Hand liegt auf seiner Seite
-      this.swL = clamp(Math.hypot(rel, this.cy - r.cy), 26, RING_REACH); // langes Seil zieht sich danach sanft ein
+      this.swL = clamp(Math.hypot(rel, this.cy - r.cy), 26, RING_REACH); this.swPull = this.swL > 76; this.creakL = this.swL; // langes Seil zieht sich danach sanft ein
       this.swA = Math.atan2(rel, this.cy - r.cy);
       this.swW = clamp((this.vx * Math.cos(this.swA) - this.vy * Math.sin(this.swA)) / this.swL, -0.08, 0.08);
       this.onGround = false; this.vy = 0;
@@ -793,14 +799,29 @@ class Player {
     if (I.left) this.swW -= 0.0034;
     if (I.right) this.swW += 0.0034;
     this.swW = clamp(this.swW * 0.996, -0.13, 0.13);
-    if (this.swL > 76) this.swL = Math.max(76, this.swL - 1.2); // aus großer Entfernung eingehakt: heranziehen
-    else if (I.up) this.swL = Math.max(24, this.swL - 0.7);
-    if (I.down && this.swL <= 80) this.swL = Math.min(80, this.swL + 0.7);
+    const quiet = !I.left && !I.right;
+    if (quiet && (I.up || I.down)) this.swW *= 0.975; // beim Ein- und Ausfahren kommt man zur Ruhe (ruhig hängen, um Hindernissen auszuweichen)
+    else if (quiet && Math.abs(this.swW) < 0.02 && Math.abs(this.swA) < 0.35) this.swW *= 0.95; // kleine Schwünge laufen rasch aus (Feinarbeit an der Seillänge)
+    const L0 = this.swL;
+    if (this.swPull && !I.up && !I.down) { this.swL = Math.max(76, this.swL - 1.2); if (this.swL <= 76) this.swPull = false; } // aus großer Entfernung eingehakt: heranziehen
+    else { // ↑ kürzt das Seil, ↓ lässt es nach (bis ROPE_MAX) – Hängeprüfungen im Glockenstuhl
+      this.swPull = false;
+      if (I.up) this.swL = Math.max(24, this.swL - (this.swL > 60 ? 1.4 : 1.1));
+      else if (I.down) this.swL = Math.min(ROPE_MAX, this.swL + 1.2);
+    }
+    if (Math.abs(this.swL - (this.creakL ?? this.swL)) > 14) { this.creakL = this.swL; Audio8.sfx('creak', this.cx); } // das Seil knarzt beim Nachlassen und Einholen
     this.swA += this.swW;
     if (Math.abs(this.swA) > 1.5) { this.swA = Math.sign(this.swA) * 1.5; this.swW *= -0.3; }
-    const nx = r.cx + Math.sin(this.swA) * this.swL - this.w / 2, ny = r.cy + Math.cos(this.swA) * this.swL - this.h / 2;
-    if (Phys.rectSolid(nx, ny, this.w, this.h)) this.swW *= -0.4;
-    else { this.x = nx; this.y = ny; }
+    const at = (L) => [r.cx + Math.sin(this.swA) * L - this.w / 2, r.cy + Math.cos(this.swA) * L - this.h / 2];
+    const [nx, ny] = at(this.swL);
+    if (Phys.rectSolid(nx, ny, this.w, this.h)) {
+      if (this.inv <= 0 && Phys.rectHas(nx, ny, this.w, this.h, '^')) { this.hurt(2, r.cx); return; } // Stacheln streifen: Treffer, man fällt vom Seil
+      for (const e of W.ents) if (e instanceof SwingBell && nx < e.x + e.w + 1 && nx + this.w > e.x - 1 && ny < e.y + e.h + 1 && ny + this.h > e.y - 1) e.ring(this); // gegen die Glocke: BONG
+      const [ox, oy] = at(L0);
+      if (Phys.rectSolid(this.x, this.y, this.w, this.h)) { this.x = nx; this.y = ny; } // steckt schon fest: weiter, statt hängen zu bleiben
+      else if (this.swL !== L0 && !Phys.rectSolid(ox, oy, this.w, this.h)) { this.swL = L0; this.x = ox; this.y = oy; } // nur die Seillänge passt nicht: nicht weiter ein-/ausfahren
+      else { this.swW *= -0.4; this.swL = L0; } // gegen Mauer oder Glocke: zurückprallen
+    } else { this.x = nx; this.y = ny; }
     if (Math.abs(this.swW) > 0.004 && this.ropeT > 6) this.face = this.swW > 0 ? 1 : -1;
     this.ropeT = (this.ropeT || 0) + 1;
     if (W.frame % 18 === 0 && Math.abs(this.swW) > 0.05) Audio8.sfx('whoosh');

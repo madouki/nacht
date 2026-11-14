@@ -152,7 +152,8 @@ const Castle = (() => {
   function edgeKeep() {
     const room = (id, i) => { const s = sIdx(id); return s >= 0 ? S()[s].rooms[i] : null; };
     const lib = room(2, 1), gal = room(2, 3), glass = room(3, 1), ball = room(3, 3), gear = room(2, 2);
-    if (lib) { for (let x = 29; x <= 34; x++) lib.grid[17][x] = '='; lib.grid[15][35] = lib.grid[16][35] = '.'; } // Bibliothek: Steg zur Öffnung rechts
+    if (lib) { for (let x = 29; x <= 34; x++) lib.grid[17][x] = '='; lib.grid[15][35] = lib.grid[16][35] = '.'; }
+    if (lib) { lib.grid[2][0] = lib.grid[3][0] = '.'; for (let x = 1; x <= 4; x++) lib.grid[4][x] = '='; } // Bibliothek: oben links eine Tür zum Glockenstuhl (Steg bis an die Wand) // Bibliothek: Steg zur Öffnung rechts
     if (gal) for (let y = gal.h - 2; y < gal.h; y++) for (let x = 22; x <= 23; x++) gal.grid[y][x] = '.';      // Marmorgalerie: Loch ins Kabinett
     if (glass) glass.grid[14][26] = glass.grid[14][27] = '=';                                                 // Glasturm: Steg zur Öffnung rechts
     if (ball) { // Ballsaal: Treppe mit Podest hinauf zur Luke – Fuß auf dem sicheren Zielpodest (das Parkett davor ist verflucht)
@@ -679,6 +680,37 @@ const Castle = (() => {
     for (const [x, phase] of [[105, 0], [90, Math.PI], [75, 0], [51, 0], [36, Math.PI], [21, 0]]) ph.prop('bigpend', { x, y: 20, len: 274, amp: 0.36, speed: 0.021, phase }); // am Umkehrpunkt je ~3 Kacheln Sprung
     { const pd = ph.music('stage3').label('PENDELHALLE').start(120, 35).done(); pd.mapH = 3; add('pendelhalle', 2, 4, null, pd); }
     LINKS.push([[2, 2], { e: 'L', y: 17 }, ['side', 'pendelhalle'], { e: 'R', y: 35 }, {}]); // Uhrturm: Öffnung über dem Mauervorsprung → Pendelhalle (untere Etage)
+    // Glockenstuhl (links oben aus der Bibliothek, js/glocken.js): drei Hängeprüfungen am Ankerring, nach rechts → links.
+    //  1) Seil kürzen: unter dem Ring eine Stachelsäule – wer mit dem eingeholten Seil (76 px) hängt, streift die Spitzen.
+    //  2) ruhig hängen: Feuerdüsen im Pfeiler schießen im Wechsel auf drei Höhen (oben+unten, dann Mitte, dann eine Atempause);
+    //     mit ↑↓ ausweichen, in der Pause hinüberschwingen. Unter dem Ring Stacheln: ganz lang hängen gilt nicht.
+    //  3) Seil lang lassen: vor dem Stollen hängt die große Glocke. Mit kurzem Seil prallt man dagegen (BONG) und fällt, mit langem
+    //     Seil (≥ ~90 px) schwingt man unter ihrem Rand hindurch in den Stollen: Truhe, Lebensgefäß, der Glöckner, Rückweg-Portal.
+    // Die ganze Grube ist mit Stacheln ausgelegt: ein Sturz kostet etwas Leben und setzt an den Anfang des Abschnitts zurück
+    // (letzter sicherer Boden) – kein Rückweg durch den ganzen Raum. Engel als Kontrollpunkte.
+    add('glockenstuhl', 2, 4, null, R(80, 'tower', 26)
+      .fill(0, 0, 79, 0, '#').fill(0, 0, 0, 25, '#').fill(79, 0, 79, 25, '#').fill(79, 10, 79, 11, '.') // Mauern, rechts die Tür zur Bibliothek
+      .fill(1, 23, 78, 23, '^').fill(1, 24, 78, 25, '#')                           // Grube: Stacheln
+      .fill(64, 12, 78, 13, '#').statue(70, 11)                                    // Eingang
+      .ring(60, 3).fill(57, 9, 61, 9, '^').fill(57, 10, 61, 22, '#')               // 1) Ring über der Stachelsäule (mit eingeholtem Seil, 76 px, streift man die Spitzen)
+      .fill(44, 11, 56, 12, '#').statue(48, 10)                                    // Sims 1 an der Säule
+      .ring(38, 3).fill(34, 11, 41, 11, '^').fill(34, 12, 41, 22, '#')             // 2) Ring im Feuerschacht, darunter Stacheln (ganz lang hängen gilt nicht)
+      .fill(26, 1, 27, 10, '#')                                                    // Pfeiler mit den Düsen
+      .prop('fjet', { x0: 28, x1: 41, y: 4, from: 'L', period: 360, on: 70, phase: 0 })   // Takt (360 Schritte = 6 s): A = Reihen 4+8 brennen 0–70
+      .prop('fjet', { x0: 28, x1: 41, y: 8, from: 'L', period: 360, on: 70, phase: 0 })   // (sicher: Seil ~32–64 oder ~96–105), dann Zeit zum Umgreifen,
+      .prop('fjet', { x0: 28, x1: 41, y: 6, from: 'L', period: 360, on: 70, phase: 250 }) // B = Reihen 6+10 brennen 110–180 (sicher: ~64–96 oder ganz kurz),
+      .prop('fjet', { x0: 28, x1: 41, y: 10, from: 'L', period: 360, on: 70, phase: 250 }) // dann drei Sekunden Ruhe zum Hinüberschwingen
+      .fill(19, 15, 29, 16, '#').statue(23, 14)                                    // Sims 2 unter dem Pfeiler (wer am Pfeiler anschlägt, fällt noch darauf)
+      .ring(14, 10)                                                                // 3) Ring vor der Glocke (auf Sprunghöhe: man hakt kurz ein und muss nachlassen)
+      .fill(10, 10, 13, 14, 'G').prop('sbell', { x: 10, y: 10, w: 4, h: 5 })       // die große Glocke (fest: G), Rand bei Reihe 15: erst ab ~87 px Seil frei
+      .fill(1, 1, 9, 14, '#').fill(1, 20, 9, 22, '#')                              // Fels über und unter dem Stollen (Reihen 15–19 frei)
+      .chest(4, 19, 'big').prop('vessel', { x: 2, y: 19 }).prop('rgate', { x: 1, y: 19 }) // hinten Truhe und Gefäß, vorn (x 7) der Glöckner
+      .prop('hint', { x: 64, y: 8, w: 6, h: 4, key: 'hintRopeUp' })
+      .prop('hint', { x: 44, y: 7, w: 6, h: 4, key: 'hintRopeHold' })
+      .prop('hint', { x: 19, y: 11, w: 6, h: 4, key: 'hintRopeDown' })
+      .candle(74, 9, 'H').candle(66, 9).candle(51, 8).candle(26, 12, 'H').candle(5, 16, '$')
+      .music('stage3').label('GLOCKENSTUHL').start(76, 11).done());
+    LINKS.push([[2, 1], { e: 'L', y: 3 }, ['side', 'glockenstuhl'], { e: 'R', y: 11 }, {}]); // Bibliothek: oben links (Steg) → Glockenstuhl
     // Kaleidoskop (über der Sonnenkathedrale: Aufzug links im Vorplatz hinauf durch die Luke; js/kaleido.js): eine liegende Röhre
     // aus Buntglas in fünf Trommeln, die sich abwechselnd vorwärts und rückwärts um die Längsachse drehen. Unter den Trommeln nur
     // Abgrund – hinüber nur am Ankerring mit der Peitsche (je Trommel zwei Ringe), zwischen den Trommeln Steinringe zum
@@ -2085,6 +2117,7 @@ const Castle = (() => {
     for (const g of def.grates || []) W.spawn(new CastleGrate(g)); // Gitter (nur Nebel kommt durch)
     for (const c of chambersOf(s, r)) W.spawn(new CastleChamber(c));
     for (const e of def.ents) if (e.type === 'vessel') { const k = key + ':v' + (e.id ?? e.x); if (!vessel[k]) W.spawn(new LifeVessel(e, k)); } // Lebensgefäße
+    for (const e of def.ents) if (e.type === 'rgate') W.spawn(new ReturnGate((e.x + 0.5) * T, (e.y + 1) * T)); // fester Rückweg (Glockenstuhl: Stollen am Ende)
     if (arrive && def.side) Game.note('castleSideRoom', def.label, '*'.repeat(def.tier)); // Zusatzraum: Name und Gefahrenstufe
     if (arrive && arrive.place && (arrive.place.chamber === 'save' || arrive.place.resume)) announceGoal(90); // Fortsetzen: woran war ich?
     spawnRelics(s, r, def, arrive);
@@ -3863,8 +3896,9 @@ const Castle = (() => {
     { id: 'clerk4', who: 'clerk', at: [['side', 'heldenamt'], 56, 17], when: () => !!best.Schreibtisch },  // ... nach dem Schreibtischtäter
     { id: 'cook', who: 'cook', at: [['side', 'kantine'], 16, 17], when: () => true },                // Kantine: Kantinenchefin Schöpfkelle (danach ihr Laden)
     { id: 'cook2', who: 'cook', at: [['side', 'kantine'], 16, 17], when: () => !!flag.pat_flip },    // ... nach der Fahrt durch die obere Wende
+    { id: 'bell', who: 'bell', at: [['side', 'glockenstuhl'], 7, 19], when: () => true, gold: 1500 },   // Glockenstuhl: der Glöckner im Stollen (Schweigegeld)
   ];
-  const WHO = ['ally', 'lib', 'tent', 'pris', 'conc', 'gramo', 'speed', 'bones', 'chick', 'barber', 'carto', 'clerk', 'cook'], VOICE = { ally: 'A', lib: 'L', tent: 'T', pris: 'P', conc: 'C', speed: 'S', bones: 'B', chick: 'W', barber: 'F', carto: 'M', clerk: 'O', cook: 'E' };
+  const WHO = ['ally', 'lib', 'tent', 'pris', 'conc', 'gramo', 'speed', 'bones', 'chick', 'barber', 'carto', 'clerk', 'cook', 'bell'], VOICE = { ally: 'A', lib: 'L', tent: 'T', pris: 'P', conc: 'C', speed: 'S', bones: 'B', chick: 'W', barber: 'F', carto: 'M', clerk: 'O', cook: 'E', bell: 'K' };
   const allyId = () => { const ids = HEROES.list.map(d => d.id), i = Math.max(0, ids.indexOf(Options.character)); return ids[(i + 1) % ids.length]; };
   const beatDone = (b) => b.lines === false || !!flag['story_' + b.id];
   function beatNow(who) { let b = null; for (const x of BEATS) if (x.who === who && x.when()) b = x; return b; }
@@ -4011,6 +4045,21 @@ const Castle = (() => {
     R(1, -26 + bob, 4, 1, '#a89c8c');                                                                  // Mund
   }
   // Kantinenchefin Schöpfkelle: weiße Kochjacke, Haube, Schürze, rote Wangen; rührt mit der Kelle im Topf
+  // der Glöckner (Glockenstuhl): gebückt, Kutte mit Strick, Glatze mit Haarkranz, dicke Wattebäusche in den Ohren, Glockenseil in der Hand
+  function drawBellRinger(ctx, cx, feet, t, flip) {
+    const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
+    const bob = (t >> 5) & 1, sh = t % 160 < 12 ? 1 : 0; // ab und zu ein „Psst“-Zucken
+    R(-6, -2, 5, 2, '#3c2c1c'); R(1, -2, 5, 2, '#3c2c1c');                                    // Sandalen
+    R(-6, -20, 12, 18, '#5c4c34'); R(-6, -20, 2, 18, '#4c3c28'); R(3, -18, 3, 16, '#6c5c40');   // Kutte
+    R(-6, -12, 12, 1, '#c8a868'); R(4, -12, 1, 6, '#c8a868'); R(4, -6, 2, 1, '#c8a868');       // Strick
+    R(-7, -24 + bob, 10, 6, '#5c4c34');                                                       // Buckel, Schultern
+    R(-5, -31 + bob, 9, 8, '#e8c098'); R(-5, -31 + bob, 9, 2, '#fce0b8');                      // Kopf (Glatze glänzt)
+    R(-6, -27 + bob, 2, 3, '#a8a8b0'); R(4, -27 + bob, 1, 3, '#a8a8b0');                       // Haarkranz
+    R(-7, -26 + bob, 2, 2, '#fcfcfc'); R(5, -26 + bob, 2, 2, '#fcfcfc');                       // Ohrstöpsel aus Watte
+    R(0, -27 + bob, 1, 1, '#1c1c24'); R(2, -27 + bob, 1, 1, '#1c1c24'); R(0, -24 + bob, 3, 1, '#a86858'); // Augen, Mund
+    R(-2 - sh, -25 + bob, 1, 3, '#e8c098');                                                   // Finger vor den Lippen
+    R(6, -40, 1, 22, '#c8a868'); R(5, -19, 3, 3, '#a87c40');                                  // Glockenseil mit Griff
+  }
   function drawCook(ctx, cx, feet, t, flip) {
     const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
     const bob = (t >> 5) & 1, st = (t >> 3) % 8, SK = '#f0c0a0', sw = [0, 1, 2, 1, 0, -1, -2, -1][st];
@@ -4025,8 +4074,8 @@ const Castle = (() => {
     R(-5, -38 + bob, 10, 6, '#fcfcfc'); R(-4, -40 + bob, 8, 2, '#fcfcfc'); R(-5, -33 + bob, 10, 1, '#d8d8d8');                     // Haube
     R(0, -30 + bob, 1, 1, '#1c1c24'); R(3, -30 + bob, 1, 1, '#1c1c24'); R(0, -28 + bob, 3, 1, '#a84848');                         // Augen, Lächeln
   }
-  const EGG = { speed: drawSpeedGhost, bones: drawBones, chick: drawChicken, barber: drawBarber, carto: drawCarto, clerk: drawClerk, cook: drawCook }; // Figur je Sprecher
-  const EGG_OF = { S: 'speed', B: 'bones', W: 'chick', F: 'barber', M: 'carto', O: 'clerk', E: 'cook' };
+  const EGG = { speed: drawSpeedGhost, bones: drawBones, chick: drawChicken, barber: drawBarber, carto: drawCarto, clerk: drawClerk, cook: drawCook, bell: drawBellRinger }; // Figur je Sprecher
+  const EGG_OF = { S: 'speed', B: 'bones', W: 'chick', F: 'barber', M: 'carto', O: 'clerk', E: 'cook', K: 'bell' };
   const noseOf = (npc) => { if (!talk || talk.npc !== npc) return 0; const pg = talk.pages[talk.i]; return pg && pg.lie ? Math.min(9, (Game.t - (talk.lieAt || 0)) * 0.35) : 0; };
   // Kammern im Hotel: Sternlampe (Speichern) und Aufzug (Schnellreise) statt Steinnische – Blender-Modelle
   function drawHotelChamber(ch, ctx) {
@@ -4210,7 +4259,7 @@ const Castle = (() => {
     else if (who === 'T') { ctx.translate(x + 18, y + 80); ctx.scale(2, 2); drawTentacle(ctx, 0, 0, t, false); }
     else if (who === 'P') { ctx.translate(x + 20, y + 66); ctx.scale(2, 2); drawPrisoner(ctx, 0, 0, t, false); }
     else if (who === 'C') { ctx.translate(x + 18, y + 70); ctx.scale(2, 2); drawConcierge(ctx, 0, 0, t, false, talk ? noseOf(talk.npc) : 0); }
-    else if (EGG_OF[who]) { const lift = { S: 66, B: 74, W: 54, F: 70, M: 66, O: 70, E: 84 }[who]; ctx.translate(x + 18, y + lift); ctx.scale(2, 2); EGG[EGG_OF[who]](ctx, 0, 0, t, false); }
+    else if (EGG_OF[who]) { const lift = { S: 66, B: 74, W: 54, F: 70, M: 66, O: 70, E: 84 , K: 70 }[who]; ctx.translate(x + 18, y + lift); ctx.scale(2, 2); EGG[EGG_OF[who]](ctx, 0, 0, t, false); }
     else {
       const H = HEROES.get(who === 'A' ? allyId() : Options.character), spr = H.idle[0], img = who === 'H' ? spr.f : spr.c;
       ctx.imageSmoothingEnabled = false;
@@ -4735,6 +4784,7 @@ const Castle = (() => {
     for (const q of QUESTS) need.push('quest_' + q.id, 'questHint_' + q.id);
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
+    need.push('hintRopeUp', 'hintRopeHold', 'hintRopeDown'); // Glockenstuhl
     need.push('castleBossCount', 'castleGoalBoss', 'pauseTravel', 'bounty', 'travelTip', 'bountyTitle', 'travelRoom', 'mahrTitle', 'mahrCount', 'mahrRuf', 'mahrBann', 'mahrHelp', 'mahrSwap', 'mahrOn', 'mahrFrom', 'mahrUnknown', 'mahrGot', 'mahrFirst', 'mahrDodge', 'crit', 'chgMahr');
     { // Erreichbarkeit: vom Wald aus über Türen und Ausgänge (alles geöffnet) – kein Raum darf abgeschnitten sein
       const key = (s, r) => s + ':' + r, seenR = new Set(), queue = [], s0 = sIdx('arrival');

@@ -106,6 +106,8 @@ const W = {
         case 'raven': this.spawn(new Raven(d.x, d.y)); break;
         case 'ghost': this.spawn(new Ghost(d.x, d.y)); break;
         case 'ring': this.spawn(new Ring(d)); break;
+        case 'sbell': this.spawn(new SwingBell(d)); break; // Glockenstuhl: Glocke im Gebälk (glocken.js)
+        case 'fjet': this.spawn(new FlameJet(d)); break;   // Glockenstuhl: Feuerdüse in der Wand
         case 'statue': this.spawn(new Statue(d)); break;
         case 'chest': this.spawn(new Chest(d)); break;
         case 'cargo': this.spawn(new Cargo(d)); break;

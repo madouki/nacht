@@ -8,6 +8,39 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 
 ---
 
+## 20261114-0519 – Glockenstuhl: Hängeprüfungen am Ring, Seil länger und kürzer
+
+**Neu – Peitsche am Ring**
+- **Seillänge** am Ankerring: ↑ holt das Seil ein, ↓ lässt es nach – jetzt bis 120 px (vorher 80), Einholen geht oben
+  flotter. Das Seil knarzt dabei.
+- **Ruhig hängen:** solange du das Seil ein- oder ausfährst (ohne ←/→), kommt der Schwung rasch zur Ruhe – so kannst du
+  still hängen und dich nur in der Höhe bewegen. Kleine Restschwünge laufen von selbst aus.
+- **Stacheln am Seil** verletzen jetzt (vorher prallte man nur ab) – wer zu lang hängt, fällt.
+
+**Neu – Raum: der Glockenstuhl** (Bergfried, Bibliothek ganz oben links durch die neue Tür, Gefahr ****)
+- **1) Seil kürzen:** unter dem ersten Ring eine Stachelsäule. Mit dem normal eingeholten Seil streift man die Spitzen –
+  also ↑ halten, dann hinüberschwingen auf den Sims.
+- **2) Ruhig hängen und ausweichen:** Feuerdüsen im Pfeiler schießen im Takt auf vier Höhen. Phase A (oben + Mitte-unten):
+  mittellang hängen; Phase B (Mitte + ganz unten): etwas länger hängen. Dazwischen Zeit zum Umgreifen, danach drei
+  Sekunden Ruhe zum Hinüberschwingen. Unter dem Ring Stacheln: „einfach ganz lang hängen“ gilt nicht.
+- **3) Seil lang lassen:** vor dem Stollen hängt die große Glocke. Mit kurzem Seil prallst du dagegen – **BONG** – und
+  fällst. Erst mit langem Seil (über ~86 px) schwingst du unter ihrem Rand hindurch in den Stollen.
+- **Im Stollen:** Truhe, Lebensgefäß, ein Rückweg-Portal und **der Glöckner**, der seit 1702 Ohrstöpsel trägt (Gespräch in
+  8 Sprachen, Schweigegeld 1500 G).
+- Die ganze Grube ist mit Stacheln ausgelegt: ein Sturz kostet etwas Leben und setzt an den Anfang des Abschnitts zurück –
+  kein Weg zurück durch den ganzen Raum. Engel auf jedem Sims.
+
+**Neu – Feinschliff**
+- Hinweise eines Raums („Spring von Lüster zu Lüster!“) blenden beim Verlassen aus, statt im nächsten Raum zu stehen.
+- COMBO-Zähler aus, solange das Namensband eines Bosses oder ein Wortgeplänkel steht.
+- Ballsaal: etwas weniger Glühen, die Lüster (Sprungziele) bleiben als Form erkennbar.
+
+**Beim Testen ansehen**
+- Glockenstuhl: Tür in der Bibliothek ganz oben links (Steg an der Wand). Gelingen die drei Prüfungen? Ist eine zu schwer
+  oder zu knapp getaktet (vor allem das Feuer)? Kommt man nach einem Sturz an der richtigen Stelle wieder heraus?
+- Andere Ringe (Kathedrale, Sonnenturm, Kaleidoskop, Seelenstrudel, Eisrutsche): fühlt sich das Schwingen noch richtig an?
+- Ballsaal: angenehmer hell oder jetzt zu dunkel?
+
 ## 20261114-0138 – Feinschliff: Texte passen in allen Sprachen, keine Überlappungen mehr
 
 **Behoben**
