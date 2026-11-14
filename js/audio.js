@@ -173,6 +173,7 @@ const Audio8 = (() => {
     crack: () => { noise(0.05, 0.42, 'highpass', 3500); tone('square', 2600, 900, 0.025, 0.07); },
     watch: () => { arp(['c6', 'g5', 'c6', 'g5', 'c6'], 0.08, 'pulse', 0.12, 0.125); tone('triangle', 1760, 1720, 0.9, 0.1); },
     creak: () => { tone('sawtooth', 74, 56, 0.55, 0.05); noise(0.45, 0.05, 'bandpass', 420, 240); },
+    cuckoo: () => { if (!ac) return; const t = ac.currentTime; tone('triangle', 784, 780, 0.2, 0.34, 0, t); tone('pulse', 1568, 1560, 0.16, 0.05, 0.25, t); tone('triangle', 659, 655, 0.34, 0.34, 0, t + 0.24); tone('pulse', 1318, 1310, 0.28, 0.05, 0.25, t + 0.24); }, // Kuckucksruf (große Terz abwärts)
     cog: () => { noise(0.03, 0.1, 'highpass', 3200); tone('pulse', 1900, 1750, 0.025, 0.045, 0.125); },
     latch: () => { tone('pulse', 1800, 2600, 0.06, 0.12, 0.125); noise(0.08, 0.2, 'highpass', 5000); },
     whoosh: () => noise(0.22, 0.28, 'bandpass', 600, 3000),
@@ -495,6 +496,22 @@ const Audio8 = (() => {
     'f#6:3 e6:1 d6:4 a5:4 f#5:4', 'g#5:3 b5:1 e6:4 g#6:4 b6:4', 'a6:4 e6:4 c#6:4 a5:4', 'f#6:2 f#6:1 f#6:1 c#6:4 a5:4 f#5:4',
     'b5:2 d6:2 f#6:4 e6:2 d6:2 b5:4', 'b5:2 d6:2 g6:4 f#6:2 d6:2 b5:4', 'c#6:4 f6:4 g#6:4 b6:4', 'c#7:4 g#6:4 f6:4 c#6:4',
   ];
+  // Kuckucksuhr: verspielter Walzer (C-Dur, B-Teil a-Moll, 3/4, 12 Schritte pro Takt) – Spieluhr-Melodie mit dem fallenden
+  // Kuckucksruf, Fagott-Bass auf der Eins, Nachschläge der Begleitung, Uhrticken (y) statt Becken, alle acht Takte die Stundenglocke
+  const KU = { C: ['c4', 'e4', 'g4'], G7: ['b3', 'd4', 'f4'], F: ['a3', 'c4', 'f4'], Am: ['a3', 'c4', 'e4'], Dm: ['a3', 'd4', 'f4'], E7: ['g#3', 'b3', 'd4'] };
+  const KU_B = { C: 'c3', G7: 'g2', F: 'f2', Am: 'a2', Dm: 'd2', E7: 'e2' };
+  const KU_C = ['C', 'C', 'G7', 'G7', 'C', 'F', 'G7', 'C', 'Am', 'Am', 'Dm', 'G7', 'C', 'F', 'G7', 'C',
+    'Am', 'E7', 'Am', 'E7', 'F', 'C', 'Dm', 'E7', 'Am', 'E7', 'Am', 'E7', 'F', 'G7', 'C', 'E7'];
+  const KU_L = [
+    'g5:4 e5:4 -:4', 'g5:4 e5:4 c5:2 e5:2', 'f5:4 d5:4 b4:2 d5:2', 'g5:4 f5:2 e5:2 d5:4',
+    'g5:4 e5:4 -:4', 'a5:4 f5:4 c5:2 f5:2', 'b4:2 d5:2 f5:2 a5:2 g5:2 f5:2', 'e5:8 -:4',
+    'e6:4 c6:4 -:4', 'e6:4 c6:4 a5:2 c6:2', 'd6:4 a5:4 f5:2 a5:2', 'g5:2 a5:2 b5:2 d6:2 f6:2 d6:2',
+    'e6:4 c6:4 g5:4', 'a5:2 c6:2 f6:4 e6:2 d6:2', 'd6:2 c6:2 b5:2 g5:2 a5:2 b5:2', 'c6:8 -:4',
+    'a5:2 c6:2 e6:2 c6:2 a5:2 e5:2', 'g#5:2 b5:2 e6:2 d6:2 b5:2 g#5:2', 'a5:2 c6:2 e6:4 c6:4', 'b5:4 g#5:4 e5:4',
+    'f5:2 a5:2 c6:2 f6:2 e6:2 d6:2', 'e6:4 c6:4 g5:4', 'f5:2 a5:2 d6:4 c6:2 a5:2', 'b5:4 -:2 g#5:2 e6:4',
+    'e6:4 c6:4 -:4', 'e6:4 b5:4 -:4', 'e6:4 c6:4 a5:4', 'g#5:2 a5:2 b5:2 d6:2 c6:2 b5:2',
+    'a5:4 f5:4 c6:4', 'b5:4 g5:4 d6:4', 'g5:4 e5:4 c6:4', 'b5:2 g#5:2 e5:2 g#5:2 b5:2 d6:2',
+  ];
   const SB_DR = ['k:2 h:1 h:1 s:2 h:1 k:1 k:2 h:1 h:1 s:2 h:2', 'k:1 s:1 s:1 s:1 t:2 t:2 u:2 u:2 s:1 s:1 x:2'];
   // Mondmeer: schwebend und ein wenig unheimlich, a-Moll mit neapolitanischem B, 84 BPM – lange Melodietöne (das Vibrato macht
   // daraus ein Theremin), Sci-Fi-Piepser in den Lücken, tiefer Liegebass, sparsames Schlagzeug, Röhrenglocke alle acht Takte
@@ -806,6 +823,14 @@ const Audio8 = (() => {
       tri: SB_C.map(c => { const b = SBB[c], o = up8(b); return [0, 1, 2, 3].map(() => `${b}:2 ${o}:1 ${b}:1`).join(' '); }).join(' '),
       org: SB_C.map(c => SB[c].join('+') + ':16').join(' '),
       dr: SB_C.map((c, i) => SB_DR[i % 8 === 7 ? 1 : 0]).join(' '),
+    },
+    kuckuck: { // Kuckucksuhr (Nebenboss links an der Zeigerkammer)
+      bpm: 156, loop: true, echo: { delay: 3, vol: 0.28 },
+      p1: KU_L.join(' '),
+      p2: KU_C.map(c => `-:4 ${KU[c][1]}:2 -:2 ${KU[c][2]}:2 -:2`).join(' '),
+      tri: KU_C.map(c => `${KU_B[c]}:4 -:8`).join(' '),
+      pad: KU_C.map(c => KU[c].join('+') + ':12').join(' '),
+      dr: KU_C.map((c, i) => i % 8 === 7 ? 'd:4 y:2 y:2 b:4' : i >= 16 ? 'd:4 y:2 h:2 s:2 y:2' : 'd:4 y:2 y:2 y:2 y:2').join(' '),
     },
     mondmeer: {
       bpm: 84, loop: true, echo: { delay: 4, vol: 0.38 },

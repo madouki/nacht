@@ -206,3 +206,170 @@ class HandRing extends Ring {
     for (let b = 0; b < Math.PI * 2; b += 0.2) { ctx.fillStyle = (b > 3.4 && b < 5.2) ? '#fce0a8' : (b > 0.2 && b < 2.2) ? '#9c6400' : '#f8b800'; ctx.fillRect(x + Math.round(Math.cos(b) * 4), y + Math.round(Math.sin(b) * 4), 1, 1); }
   }
 }
+
+// ---------------- Kuckucksuhr (Nebenboss links an der Zeigerkammer): der Kuckuck kommt nur zur vollen Stunde heraus ----------------
+// Unten Stachelboden, links und rechts ein Sims, darüber zwei Ankerringe. Zur vollen Stunde schlägt die Uhr, das Türchen springt
+// auf und der Kuckuck fährt auf einem Scherengitter bis neben den Ring, an dem der Held hängt – in wechselnder Höhe und meist zur
+// Mitte hin (vom Sims aus nicht zu erreichen). Treffen: mit dem Seil hineinschwingen (Rammstoß, die Seillänge bestimmt die Höhe)
+// oder mit der Peitsche. Er ruft „KUCKUCK!“ – Noten fliegen auf den Helden zu (↑↓ ausweichen, zurückschlagen). Das Pendel fegt
+// durch die Mitte. Ab halber Kraft: viertelstündlich (öfter, Noten-Fächer, weiteres Pendel).
+class KuckuckNote extends EProj {
+  constructor(x, y, vx, vy) { super('note', x, y, vx, vy, 0, 2); this.w = 8; this.h = 8; this.x = x - 4; this.y = y - 4; this.ph = rnd(0, 6); }
+  update() { super.update(); this.y += Math.sin(this.t * 0.18 + this.ph) * 0.35; }
+  draw(ctx) {
+    const x = Math.round(this.x - W.cam.x), y = Math.round(this.y - W.cam.y), c = this.reflected ? '#a4e4fc' : (this.t >> 3) % 2 ? '#fcfcfc' : '#f8d878';
+    ctx.fillStyle = '#1c1028'; ctx.fillRect(x, y + 4, 5, 4); ctx.fillRect(x + 4, y - 3, 2, 8); // Schatten-Rand
+    ctx.fillStyle = c; ctx.fillRect(x + 1, y + 4, 3, 3); ctx.fillRect(x + 4, y - 2, 1, 7); ctx.fillRect(x + 5, y - 2, 2, 1); ctx.fillRect(x + 6, y - 1, 1, 1); // Achtelnote
+  }
+}
+class Kuckucksuhr extends Boss {
+  constructor(ax, aw) {
+    const cx = ax + aw / 2;
+    super(cx - 44, 88, 88, 62, 48, 2);
+    this.ax = ax; this.aw = aw; this.cxC = cx; this.mini = true; this.score = 14000; this.nameKey = 'bossKuckuck'; this.music = 'kuckuck'; this.keepMusic = true;
+    this.door = { x: cx, y: 102 }; this.piv = { x: cx, y: 150 }; this.len = 70; this.lootY = 200; // sichtbar: Welt-y 64 bis 272
+    this.state = 'intro'; this.timer = 0; this.ph2 = false; this.ext = 0; this.open = 0; this.hx = cx; this.hy = 102; this.tx = cx; this.ty = 160;
+    this.popN = 0; this.popHits = 0; this.hour = 9; this.handA = 0; this.bonkT = 0; this.limp = 0;
+  }
+  rings() { return (W.rings || []).filter(r => !(r instanceof HandRing) && !(r instanceof TrolleyRing)); }
+  pend() { // Pendel: Winkel und Lage des Gewichts
+    const per = this.ph2 ? 170 : 220, amp = this.ph2 ? 0.95 : 0.75, a = this.dying ? 0 : amp * Math.sin(this.t * Math.PI * 2 / per);
+    return { a, x: this.piv.x + Math.sin(a) * this.len, y: this.piv.y + Math.cos(a) * this.len };
+  }
+  headBox() { return { x: this.hx - 12, y: this.hy - 10, w: 24, h: 20 }; }
+  out() { return (this.state === 'out' || this.state === 'shout') && this.ext > 0.6 && !this.dying; }
+  hurtBoxes() { return this.out() ? [this.headBox()] : []; }
+  vulnerable() { return this.out(); }
+  go(s) { this.state = s; this.timer = 0; }
+  say(k, col) { W.popup(clamp(this.hx, W.cam.x + 80, W.cam.x + View.w - 80), Math.max(this.hy - 26, W.cam.y + 46), tr(k), col); }
+  hit(dmg, id) {
+    const r = super.hit(dmg, id);
+    if (r && !this.dying) { this.popHits++; if (this.popHits >= 2) this.go('in'); }
+    return r;
+  }
+  pickTarget() {
+    const p = W.player, rs = this.rings(); if (!rs.length) { this.tx = this.cxC; this.ty = 170; return; }
+    const r = p.state === 'swing' && rs.includes(p.ring) ? p.ring : rs.reduce((a, b) => Math.abs(b.cx - p.cx) < Math.abs(a.cx - p.cx) ? b : a);
+    const inward = Math.random() < (this.ph2 ? 0.85 : 0.7), side = (Math.sign(this.cxC - r.cx) || 1) * (inward ? 1 : -1);
+    const high = Math.random() < 0.5, a = side * (high ? rnd(0.5, 1.2) : rnd(0.8, 1.1)), d = high ? rnd(26, 40) : rnd(104, 116); // ganz nah (Seil kurz) oder weit unten (Seil lang) – mittellang trifft nie
+    this.tx = clamp(r.cx + Math.sin(a) * d, this.ax + 20, this.ax + this.aw - 20); this.ty = clamp(r.cy + Math.cos(a) * d, 116, 212);
+  }
+  shoot() {
+    const p = W.player, n = this.ph2 ? 3 : 1, sp = this.ph2 ? 1.45 : 1.2, a0 = Math.atan2(p.cy - this.hy, p.cx - this.hx);
+    for (let i = 0; i < n; i++) { const a = a0 + (i - (n - 1) / 2) * 0.32; W.spawn(new KuckuckNote(this.hx, this.hy - 4, Math.cos(a) * sp, Math.sin(a) * sp)); }
+    this.say('bossKuckuckShout', '#f8d878'); Audio8.sfx('cuckoo', this.hx);
+  }
+  update() {
+    this.tick();
+    const p = W.player, P = this.pend();
+    if (this.bonkT > 0) this.bonkT--;
+    this.handA += this.ph2 ? 0.05 : 0.012; // Zeiger auf dem Zifferblatt: ab halber Kraft rasen sie
+    if (this.dying) { // Feder springt: Zahnräder fliegen heraus, der Kuckuck hängt schlaff am Gitter
+      this.limp = Math.min(1, this.limp + 0.02); this.ext = Math.max(this.ext, 0.7); this.open = 1;
+      this.hx = this.door.x + (this.tx - this.door.x) * this.ext; this.hy = this.door.y + (this.ty - this.door.y) * this.ext + this.limp * 10;
+      if (this.dying === 1) { Audio8.sfx('cuckoo', this.hx); this.say('bossKuckuckDie', '#f8d878'); }
+      if (this.dying % 6 === 0) W.spawn(new Particle(this.cxC + rnd(-40, 40), rnd(96, 150), rnd(-2.4, 2.4), rnd(-3.2, -0.8), ['#c89020', '#8c8ca0', '#f8d878'][this.dying % 3], 60, 2, 0.14));
+      if (this.dying % 11 === 0) Audio8.sfx('cog', this.cxC);
+      return this.updateDeath(140);
+    }
+    if (!this.ph2 && this.hp <= this.maxHp / 2) { this.ph2 = true; this.say('bossKuckuckRage', '#fc7c5c'); W.flash = 6; Audio8.tempo(1.1); Audio8.sfx('bell', this.cxC); }
+    // Pendel trifft (Kreis gegen Helden-Rechteck)
+    if (p.alive && p.inv <= 0) { const nx = clamp(P.x, p.x, p.x + p.w), ny = clamp(P.y, p.y, p.y + p.h); if (Math.hypot(nx - P.x, ny - P.y) < 12) { p.hurt(this.dmg, P.x); Audio8.sfx('clank', P.x); } }
+    if (this.t % 26 === 0 && Math.abs(P.a) > 0.6) Audio8.sfx('tick', this.cxC); // Tick am Umkehrpunkt
+    const lerp = (v, to, k) => v + (to - v) * k;
+    if (this.state === 'intro') { // Uhr schlägt, Türchen klappt einmal auf und zu
+      if (this.timer === 20 || this.timer === 60) Audio8.sfx('bell', this.cxC);
+      this.open = this.timer > 70 && this.timer < 130 ? 1 : 0; this.ext = this.open ? 0.15 : 0;
+      if (this.timer === 80) { this.hx = this.door.x; this.hy = this.door.y; this.say('bossKuckuckShout', '#f8d878'); Audio8.sfx('cuckoo', this.cxC); }
+      if (this.timer > 140) this.go('wait');
+    } else if (this.state === 'wait') { // Türchen zu, die Uhr tickt
+      this.open = 0; this.ext = lerp(this.ext, 0, 0.3);
+      if (this.timer > (this.ph2 ? 95 : 150)) { this.pickTarget(); this.popN++; this.popHits = 0; this.go('out'); Audio8.sfx('bell', this.cxC); this.hour = this.hour % 12 + 1; }
+    } else if (this.state === 'out') { // Scherengitter fährt aus
+      this.open = 1; this.ext = Math.min(1, this.ext + (this.ph2 ? 0.06 : 0.045));
+      if (this.ext >= 1) this.go('shout');
+    } else if (this.state === 'shout') { // Kuckuck ruft – zwei- bzw. dreimal
+      const at = this.ph2 ? [20, 60, 100] : [34, 96];
+      if (at.includes(this.timer)) this.shoot();
+      if (this.timer > (this.ph2 ? 125 : 150)) this.go('in');
+    } else if (this.state === 'in') { // zurück ins Türchen
+      this.ext = Math.max(0, this.ext - 0.07);
+      if (this.ext <= 0) { this.open = 0; this.go('wait'); }
+    }
+    this.hx = this.door.x + (this.tx - this.door.x) * this.ext; this.hy = this.door.y + (this.ty - this.door.y) * this.ext;
+    // Rammstoß: wer am Seil hängt und in den Kuckuck schwingt, trifft (einmal je Auftritt)
+    if (this.out() && p.alive && p.state === 'swing' && this.ramN !== this.popN && Phys.overlap(p, this.headBox())) {
+      this.ramN = this.popN;
+      if (super.hit(6 * Options.dmgMul, 'kram' + this.popN)) { this.bonkT = 40; this.say('bossKuckuckBonk', '#fcfcfc'); Audio8.sfx('clank', this.hx); W.shake = Math.max(W.shake, 8); p.swW = -p.swW * 0.6; if (!this.dying) this.go('in'); }
+    }
+  }
+  draw(ctx) {
+    const cx = Math.round(this.cxC - W.cam.x), cy = -Math.round(W.cam.y), fl = this.flashT > 0 && (this.flashT & 2);
+    const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), w, h); };
+    ctx.save();
+    // Gehäuse: geschnitztes Holz, Giebeldach mit Blattwerk, darunter das Türchen; ein Hirschgeweih über dem Zifferblatt (natürlich)
+    const top = cy + 88, bot = cy + 150;
+    R(cx - 46, top, 92, bot - top, '#3c2410'); R(cx - 44, top + 2, 88, bot - top - 4, '#6c4420'); R(cx - 40, top + 6, 80, bot - top - 12, '#5c3818');
+    for (let k = 0; k < 6; k++) R(cx - 44 + k * 16, bot - 6, 10, 4, '#8c5c2c'); // Zierleiste
+    ctx.fillStyle = '#2c1808'; ctx.beginPath(); ctx.moveTo(cx - 60, top + 6); ctx.lineTo(cx, top - 18); ctx.lineTo(cx + 60, top + 6); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#7c4c20'; ctx.beginPath(); ctx.moveTo(cx - 54, top + 4); ctx.lineTo(cx, top - 14); ctx.lineTo(cx + 54, top + 4); ctx.closePath(); ctx.fill();
+    for (let k = -3; k <= 3; k++) { const ly = top + 2 - (3 - Math.abs(k)) * 5; R(cx + k * 15 - 3, ly, 6, 4, '#3c6c2c'); R(cx + k * 15 - 1, ly - 1, 2, 2, '#5c9c3c'); } // Blattwerk am Giebel
+    // Türchen (zwei Flügel)
+    const dx = cx, dy = cy + this.door.y, op = this.open;
+    R(dx - 11, dy - 9, 22, 18, '#1c0c04');
+    R(dx - 10 - op * 6, dy - 8, 10 - op * 6, 16, '#8c5c2c'); R(dx + op * 6, dy - 8, 10 - op * 6, 16, '#8c5c2c');
+    R(dx - 12, dy + 9, 24, 2, '#a87444'); // Sitzstange
+    // Zifferblatt mit Geweih darüber
+    const fx = cx, fy = cy + 130;
+    for (const s2 of [-1, 1]) { R(fx + s2 * 22 - (s2 < 0 ? 2 : 0), fy - 20, 2, 8, '#d8c8a0'); R(fx + s2 * 24 - (s2 < 0 ? 2 : 0), fy - 22, 2, 4, '#d8c8a0'); R(fx + s2 * 20 - (s2 < 0 ? 2 : 0), fy - 23, 2, 3, '#d8c8a0'); }
+    ctx.fillStyle = '#c89020'; ctx.beginPath(); ctx.arc(fx, fy, 19, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#efe4c4'; ctx.beginPath(); ctx.arc(fx, fy, 16, 0, Math.PI * 2); ctx.fill();
+    for (let k = 0; k < 12; k++) { const b = k * Math.PI / 6; R(fx + Math.sin(b) * 13 - 1, fy - Math.cos(b) * 13 - 1, 2, 2, '#3c2c1c'); }
+    const hA = (this.hour / 12) * Math.PI * 2 + this.handA * 0.08, mA = this.handA;
+    ctx.strokeStyle = '#1c1c24'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(fx + Math.sin(hA) * 8, fy - Math.cos(hA) * 8); ctx.stroke();
+    ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(fx + Math.sin(mA) * 13, fy - Math.cos(mA) * 13); ctx.stroke();
+    R(fx - 1, fy - 1, 3, 3, '#a83c2c');
+    // Tannenzapfen-Gewichte an Ketten
+    for (const s of [-1, 1]) { const wx = cx + s * 30, wy = cy + 150 + 22 + s * Math.sin(this.t * 0.01) * 5; for (let y = cy + 150; y < wy; y += 4) R(wx, y, 1, 2, '#8c8ca0'); R(wx - 4, wy, 9, 14, '#6c4420'); for (let k = 0; k < 3; k++) R(wx - 3, wy + 2 + k * 4, 7, 2, '#a87444'); }
+    // Pendel
+    const P = this.pend(), px = Math.round(P.x - W.cam.x), py = Math.round(P.y - W.cam.y), qx = cx, qy = cy + this.piv.y;
+    ctx.strokeStyle = '#a8801c'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(qx, qy); ctx.lineTo(px, py); ctx.stroke();
+    ctx.fillStyle = '#5c3c14'; ctx.beginPath(); ctx.arc(px, py, 13, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#e8b830'; ctx.beginPath(); ctx.arc(px, py, 11, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fce890'; ctx.beginPath(); ctx.arc(px - 3, py - 3, 4, 0, Math.PI * 2); ctx.fill();
+    R(px - 1, py - 6, 2, 12, '#a8801c'); R(px - 6, py - 1, 12, 2, '#a8801c'); // Blattrosette
+    // Scherengitter und Kuckuck
+    if (this.ext > 0.02) {
+      const hx = Math.round(this.hx - W.cam.x), hy = Math.round(this.hy - W.cam.y), L = Math.hypot(hx - dx, hy - dy), n = Math.max(2, Math.round(L / 12)), ux = (hx - dx) / L || 0, uy = (hy - dy) / L || 0, w = 5 + (1 - this.ext) * 5;
+      ctx.strokeStyle = '#3c2410'; ctx.lineWidth = 3; ctx.beginPath();
+      for (let k = 0; k <= n; k++) { const t = k / n, x = dx + (hx - dx) * t, y = dy + (hy - dy) * t, s = k % 2 ? w : -w; ctx.lineTo(x - uy * s, y + ux * s); } ctx.stroke();
+      ctx.strokeStyle = '#a87444'; ctx.lineWidth = 1; ctx.beginPath();
+      for (let k = 0; k <= n; k++) { const t = k / n, x = dx + (hx - dx) * t, y = dy + (hy - dy) * t, s = k % 2 ? -w : w; ctx.lineTo(x - uy * s, y + ux * s); } ctx.stroke();
+      const f = hx < cx ? -1 : 1, beak = this.state === 'shout' && (this.timer % 62) < 26 ? 3 : 0, wb = Math.round(Math.sin(this.t * 0.3) * (this.out() ? 1 : 0));
+      const B = (x, y, w2, h, c) => R(f > 0 ? hx + x : hx - x - w2, hy + y + this.limp * 0, w2, h, fl ? '#fcfcfc' : c);
+      B(-10, -6 + wb, 16, 12, '#8c4c1c'); B(-12, -3 + wb, 6, 8, '#6c3410'); B(-10, 4 + wb, 14, 3, '#c87c3c'); // Leib, Flügel, Bauch
+      B(2, -10 + wb, 10, 9, '#9c5c24'); B(8, -8 + wb, 2, 2, this.limp > 0.5 ? '#3c2c1c' : '#fcfcfc'); B(9, -7 + wb, 1, 1, '#1c1c24'); // Kopf, Auge
+      B(12, -6 + wb - beak, 6, 2, '#f8b800'); B(12, -4 + wb + beak, 5, 2, '#d89000'); // Schnabel (offen beim Rufen)
+      B(-14, -2 + wb, 4, 2, '#5c2c0c'); B(-15, 0 + wb, 3, 2, '#5c2c0c'); // Schwanz
+      if (this.bonkT > 0) for (let k = 0; k < 3; k++) { const a = this.t * 0.2 + k * 2.1; R(hx + Math.cos(a) * 10, hy - 14 + Math.sin(a) * 3, 2, 2, '#f8d878'); } // Sternchen nach dem Rammstoß
+      if (this.out() && !this.dying && (this.t >> 3) % 2) { ctx.globalAlpha = 0.5; ctx.strokeStyle = '#fce890'; ctx.lineWidth = 1; ctx.strokeRect(hx - 14, hy - 12, 28, 24); ctx.globalAlpha = 1; } // verwundbar: Rahmen blinkt
+    }
+    ctx.restore();
+  }
+}
+// Die Uhr ohne Kampf: vor dem Kampf steht sie still (das Pendel ruht, bis der Held die Arena betritt), nach dem Sieg bleibt sie als
+// Wrack – Türchen offen, der Kuckuck hängt schlaff am halb ausgefahrenen Gitter. Zeichnet mit Kuckucksuhr.prototype.draw.
+class KuckuckWrack extends Ent {
+  constructor(d) { super(0, 0, 1, 1); this.kind = 'prop'; this.d = d; this.noWrap = true; this.k = null; }
+  update() { this.t++; }
+  draw(ctx) {
+    if (W.boss && W.boss instanceof Kuckucksuhr) return;
+    const done = !!(W.miniDone && W.miniDone[W.stage + ':' + W.roomIdx]);
+    if (!this.k || this.k.done !== done) {
+      const ax = this.d.x0 * T, aw = (this.d.x1 - this.d.x0) * T, cx = ax + aw / 2, k = Object.create(Kuckucksuhr.prototype);
+      Object.assign(k, { cxC: cx, door: { x: cx, y: 102 }, piv: { x: cx, y: 150 }, len: 70, t: 0, hour: done ? 1 : 9, handA: done ? 0.42 : 0, open: done ? 1 : 0, ext: done ? 0.45 : 0, tx: cx + 46, ty: 186, limp: 1, dying: 1, state: 'dead', flashT: 0, bonkT: 0, ph2: false, done });
+      k.hx = k.door.x + (k.tx - k.door.x) * k.ext; k.hy = k.door.y + (k.ty - k.door.y) * k.ext + 10; this.k = k;
+    }
+    this.k.t = this.t; this.k.draw(ctx);
+  }
+}

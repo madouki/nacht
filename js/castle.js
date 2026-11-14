@@ -742,7 +742,7 @@ const Castle = (() => {
     // drei Uhr nah beieinander: dann hinüberschwingen und B greifen. Unten unter beiden Zifferblättern Zahnräder mit Stacheln:
     // dort kurz hängen (↑). Für den Sprung zu B hilft mehr Seil (↓). Links die Werkstatt des Uhrmachers: Truhe, Gefäß, Portal.
     add('zeiger', 2, 4, null, R(80, 'tower', 26)
-      .fill(0, 0, 79, 0, '#').fill(0, 0, 0, 25, '#').fill(79, 0, 79, 25, '#').fill(79, 10, 79, 11, '.') // Mauern, rechts die Tür zur Pendelhalle
+      .fill(0, 0, 79, 0, '#').fill(0, 0, 0, 25, '#').fill(79, 0, 79, 25, '#').fill(79, 10, 79, 11, '.').fill(0, 10, 0, 11, '.') // Mauern, rechts die Tür zur Pendelhalle, links zur Kuckucksuhr
       .fill(1, 23, 78, 23, '^').fill(1, 24, 78, 25, '#')                           // Grube: Stacheln
       .fill(66, 12, 78, 13, '#').statue(72, 11)                                    // Eingang
       .prop('hand', { x: 58, y: 10, r: 72, period: 540, dir: 1, phase: Math.PI / 2 })   // Zeiger A (startet bei drei Uhr, nah am Eingang)
@@ -755,6 +755,23 @@ const Castle = (() => {
       .candle(75, 9, 'H').candle(68, 9).candle(24, 9, 'H').candle(14, 9, '$').candle(4, 9)
       .music('stage3').label('ZEIGERKAMMER').start(76, 11).done());
     LINKS.push([['side', 'pendelhalle'], { e: 'L', y: 35 }, ['side', 'zeiger'], { e: 'R', y: 11 }, {}]); // Pendelhalle: unten links (Treppenfuß) → Zeigerkammer
+    // Kuckucksuhr (links an der Zeigerkammer, Tür hinter der Werkstatt; js/glocken.js): Nebenboss über einem Stachelboden. Links und
+    // rechts ein Sims, dazwischen zwei Ankerringe; oben in der Mitte die Uhr, ihr Pendel fegt durch die Mitte. Der Kuckuck fährt nur
+    // kurz heraus – Rammstoß vom Seil (die Seillänge bestimmt die Höhe) oder Peitsche. Danach: Truhe und Kuckucksfeder links.
+    const kd = R(44, 'tower', 17)
+      .fill(0, 0, 43, 0, '#').fill(0, 0, 0, 16, '#').fill(43, 0, 43, 16, '#').fill(43, 12, 43, 13, '.') // Mauern, rechts die Tür zur Zeigerkammer
+      .fill(1, 14, 6, 16, '#')                                     // linker Sims
+      .fill(7, 15, 24, 15, '^').fill(7, 16, 24, 16, '#')           // Stachelboden
+      .fill(25, 14, 42, 16, '#')                                   // rechter Boden und Gang
+      .ring(9, 6).ring(22, 6)                                      // Ringe hoch genug: auch das längste Seil (120) streift die Stacheln nicht
+      .mini('kuckuck', 3, 29, 3, 0).prop('kwrack', { x0: 3, x1: 29 })      // die Uhr steht schon vor dem Kampf da und bleibt als Wrack
+      .statue(36, 13)
+      .prop('hint', { x: 30, y: 10, w: 5, h: 4, key: 'hintKuckuck' })
+      .chest(2, 13, 'big')
+      .candle(4, 11).candle(27, 11, 'H').candle(34, 11).candle(40, 11, '$')
+      .music('stage3').label('KUCKUCKSUHR').start(41, 13).done();
+    kd.mapH = 1; add('kuckuck', 2, 4, null, kd);
+    LINKS.push([['side', 'zeiger'], { e: 'L', y: 11 }, ['side', 'kuckuck'], { e: 'R', y: 13 }, {}]); // Zeigerkammer: Werkstatt links → Kuckucksuhr
     // Kaleidoskop (über der Sonnenkathedrale: Aufzug links im Vorplatz hinauf durch die Luke; js/kaleido.js): eine liegende Röhre
     // aus Buntglas in fünf Trommeln, die sich abwechselnd vorwärts und rückwärts um die Längsachse drehen. Unter den Trommeln nur
     // Abgrund – hinüber nur am Ankerring mit der Peitsche (je Trommel zwei Ringe), zwischen den Trommeln Steinringe zum
@@ -2035,6 +2052,7 @@ const Castle = (() => {
   if (on && typeof BOSSES !== 'undefined' && typeof MannImMond !== 'undefined') BOSSES.mond = MannImMond;           // Mann im Mond im Krater (js/mond.js)
   if (on && typeof BOSSES !== 'undefined' && typeof Reisswolf !== 'undefined') BOSSES.reiss = Reisswolf;     // Reißwolf im Aktenkeller (js/keller.js)
   if (on && typeof BOSSES !== 'undefined' && typeof GolemBoss !== 'undefined') BOSSES.golem = GolemBoss; // Steingolem im Golemstollen (js/golem.js)
+  if (on && typeof BOSSES !== 'undefined' && typeof Kuckucksuhr !== 'undefined') BOSSES.kuckuck = Kuckucksuhr; // Kuckucksuhr links an der Zeigerkammer (js/glocken.js)
   // Spiegel im Kabinett: zeigen den Helden – solange der Doppelgänger lebt, mit Verzögerung (das Spiegelbild ist nicht ganz
   // bei der Sache), danach wieder brav. Der Doppelgänger selbst hat kein Spiegelbild.
   const mirrorHist = [];
@@ -2601,6 +2619,7 @@ const Castle = (() => {
     posthorn: { slot: 'acc', luck: 3, greed: 1, col: '#f8d048' },
     goldstempel: { slot: 'acc', atk: 4, def: 3, luck: 2, col: '#f8d048' },       // Goldener Stempel (Lohn des Schreibtischtäters)
     orrery: { slot: 'acc', mp: 12, luck: 2, def: 1, col: '#c8dcff' },              // Taschen-Orrery (Lohn des Sternbilds)
+    kuckucksfeder: { slot: 'acc', luck: 3, mp: 6, def: 1, col: '#c8a060' },          // Kuckucksfeder (Lohn der Kuckucksuhr)
     mondstein: { slot: 'acc', float: 1, luck: 1, col: '#e8e4d0' },                 // Mondstein (Lohn des Mannes im Mond): Schwerkraft −15 %               // Posthorn (Lohn der Frankiermaschine)                // Reißzahn (Lohn des Reißwolfs): Schneidwalze am Stiel
     dienstsiegel: { slot: 'acc', def: 1, cert: 1, col: '#c8182c' },     // Dienstsiegel (Lohn des Amtsschimmels): Urkunden zahlen doppelt
     galvheart: { slot: 'acc', hp: 6, atk: 3, col: '#58f8b0' },          // Glasherz des Erweckten (Galvani-Laboratorium)
@@ -2641,7 +2660,7 @@ const Castle = (() => {
   const STOCK = ['potion', 'elixir', 'leather', 'chain', 'silver', 'heartamulet', 'fairy', 'map', 'book_spirit', 'book_hellfire', 'book_soulsteal'];
   const once = (g) => !!(g.slot || g.key || g.spell || g.rec || g.quest); // gibt es nur einmal
   const BOSS_LOOT = [[[0, -1], 'batcard']];
-  const MINI_LOOT = [[['side', 'spiegel'], 'shadowcard', 20, 10], [['side', 'golemstollen'], 'steinhaut', 12, 10], [['side', 'galvani'], 'galvheart', 97, 25], [['side', 'heldenamt'], 'dienstsiegel', 14, 17], [['side', 'aktenkeller'], 'reisszahn', 8, 15], [['side', 'hauptpost'], 'posthorn', 100, 19], [['side', 'chefetage'], 'goldstempel', 69, 19], [['side', 'sternkuppel'], 'orrery', 30, 21], [['side', 'krater'], 'mondstein', 30, 19]]; // nach dem Doppelgänger: sein Schatten; nach dem Steingolem: Steinhaut; nach dem Erweckten: sein Glasherz
+  const MINI_LOOT = [[['side', 'spiegel'], 'shadowcard', 20, 10], [['side', 'golemstollen'], 'steinhaut', 12, 10], [['side', 'galvani'], 'galvheart', 97, 25], [['side', 'heldenamt'], 'dienstsiegel', 14, 17], [['side', 'aktenkeller'], 'reisszahn', 8, 15], [['side', 'hauptpost'], 'posthorn', 100, 19], [['side', 'chefetage'], 'goldstempel', 69, 19], [['side', 'sternkuppel'], 'orrery', 30, 21], [['side', 'krater'], 'mondstein', 30, 19], [['side', 'kuckuck'], 'kuckucksfeder', 4, 13]]; // nach dem Doppelgänger: sein Schatten; nach dem Steingolem: Steinhaut; nach dem Erweckten: sein Glasherz
   const FINDS = [ // Einzelstücke: [Raum, Gegenstand, Kachel-x, Standreihe]
     [['side', 'kolosseum'], 'leather', 12, 7], [['side', 'kanal'], 'bloodstone', 43, 7], [['side', 'schatz'], 'greedring', 25, 6],
     [['side', 'verlies'], 'dragonfang', 28, 6], [['side', 'wehrgang'], 'luckcoin', 37, 6], [['side', 'himmel'], 'mirror', 44, 5],
@@ -3413,9 +3432,9 @@ const Castle = (() => {
 
   // ---------------- Bestiarium wie die Gegnerliste in SotN (Status, dritte Seite): Siege je Gegnerart, absurde Einträge ----------------
   const BEASTS = ['Bat', 'Skeleton', 'Ghoul', 'Raven', 'Knight', 'LivingArmor', 'Panther', 'Skull', 'Fishman', 'Ghost', 'Snake', 'FlyBook', 'Tome',
-    'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Automat', 'Mannequin', 'Jelly', 'Ordner', 'Flieger', 'Conductor', 'Doppel', 'GolemBoss', 'Awakened', 'Amtsschimmel', 'Reisswolf', 'Brief', 'Nachnahme', 'Frankiermaschine', 'Schreibtisch', 'Sternschnuppe', 'Astrolab', 'Sternbild', 'Mondkalb', 'MannImMond',
+    'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Automat', 'Mannequin', 'Jelly', 'Ordner', 'Flieger', 'Conductor', 'Doppel', 'GolemBoss', 'Awakened', 'Amtsschimmel', 'Reisswolf', 'Brief', 'Nachnahme', 'Frankiermaschine', 'Schreibtisch', 'Sternschnuppe', 'Astrolab', 'Sternbild', 'Mondkalb', 'MannImMond', 'Kuckucksuhr',
     'TentacleBoss', 'GiantBat', 'IceWitch', 'GiantSkeleton', 'Medusa', 'SunWarden', 'ManTrap', 'Count'];
-  const BEAST_BOSS = { TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel', GolemBoss: 'bossGolem', Amtsschimmel: 'bossAmt', Reisswolf: 'bossReiss', Frankiermaschine: 'bossFrank', Schreibtisch: 'bossChef', Sternbild: 'bossStern', MannImMond: 'bossMond', Awakened: 'bossAwakened' };
+  const BEAST_BOSS = { TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel', GolemBoss: 'bossGolem', Amtsschimmel: 'bossAmt', Reisswolf: 'bossReiss', Frankiermaschine: 'bossFrank', Schreibtisch: 'bossChef', Sternbild: 'bossStern', MannImMond: 'bossMond', Awakened: 'bossAwakened', Kuckucksuhr: 'bossKuckuck' };
   const BEAST_SET = new Set(BEASTS);
   const beastName = (k) => tr(BEAST_BOSS[k] || 'beast_' + k);
   const beasts = { sel: 0 };
@@ -3552,6 +3571,7 @@ const Castle = (() => {
     { id: 'post', ok: () => !!best.Frankiermaschine },
     { id: 'lauf', ok: () => lauf() >= LAUF.length },   // Laufzettel vollständig
     { id: 'chef', ok: () => !!best.Schreibtisch },     // Schreibtischtäter (Chefetage)
+    { id: 'kuckuck', ok: () => !!best.Kuckucksuhr },   // Kuckucksuhr (links an der Zeigerkammer)
     { id: 'konter', ok: () => (flag.konter || 0) >= 25 }, // 25 Geschosse zurückgeschleudert
     { id: 'dodge', ok: () => (flag.dodge || 0) >= 10 },   // zehnmal perfekt ausgewichen
     { id: 'takt', ok: () => !!flag.takt_s },              // Taktduell mit Wertung S
@@ -3659,7 +3679,7 @@ const Castle = (() => {
   // Nebenbosse (Zusatzräume mit .mini) gehören seit 20261112 zum Wegweiser: sobald der Hauptweg eine höhere Gefahrenstufe
   // erreicht hat als ihr Raum und ihr Tor offen ist, schickt er den Helden zuerst dorthin (leichtere zuerst, dann der nähere).
   // Der Mond hängt nur an der Mondkanone (kein Türweg): nach dem Sternbild zeigt das Ziel auf die Sternkuppel.
-  const MINI_NAME = { conductor: 'bossConductor', doppel: 'bossDoppel', golem: 'bossGolem', awakened: 'bossAwakened', amt: 'bossAmt', post: 'bossFrank', chef: 'bossChef', stern: 'bossStern', mond: 'bossMond', reiss: 'bossReiss' };
+  const MINI_NAME = { conductor: 'bossConductor', doppel: 'bossDoppel', golem: 'bossGolem', awakened: 'bossAwakened', amt: 'bossAmt', post: 'bossFrank', chef: 'bossChef', stern: 'bossStern', mond: 'bossMond', reiss: 'bossReiss', kuckuck: 'bossKuckuck' };
   let sideMemo = null;
   function sideBosses() {
     if (!sideMemo) { sideMemo = []; S().forEach((st, s) => st.rooms.forEach((d, r) => { if (d.mini && MINI_NAME[d.mini.boss]) sideMemo.push({ s, r, d, id: d.mini.boss }); })); }
@@ -3945,7 +3965,7 @@ const Castle = (() => {
     { id: 'guide', who: 'guide', at: [['side', 'klamm'], 74, 16], when: () => true, gold: 1500 },  // Tropfsteinklamm: der Bergführer im Stollen (Trostprämie)
     { id: 'clock', who: 'clock', at: [['side', 'zeiger'], 31, 11], when: () => true, gold: 1500 },  // Zeigerkammer: der Uhrmacher in seiner Werkstatt
   ];
-  const WHO = ['ally', 'lib', 'tent', 'pris', 'conc', 'gramo', 'speed', 'bones', 'chick', 'barber', 'carto', 'clerk', 'cook', 'bell', 'guide', 'clock'], VOICE = { ally: 'A', lib: 'L', tent: 'T', pris: 'P', conc: 'C', speed: 'S', bones: 'B', chick: 'W', barber: 'F', carto: 'M', clerk: 'O', cook: 'E', bell: 'K', guide: 'G', clock: 'U' };
+  const WHO = ['ally', 'lib', 'tent', 'pris', 'conc', 'gramo', 'speed', 'bones', 'chick', 'barber', 'carto', 'clerk', 'cook', 'bell', 'guide', 'clock'], VOICE = { ally: 'A', lib: 'L', tent: 'T', pris: 'P', conc: 'C', speed: 'S', bones: 'B', chick: 'W', barber: 'F', carto: 'M', clerk: 'O', cook: 'E', bell: 'N', guide: 'G', clock: 'U' }; // K ist Kaspar vorbehalten (startTalk)
   const allyId = () => { const ids = HEROES.list.map(d => d.id), i = Math.max(0, ids.indexOf(Options.character)); return ids[(i + 1) % ids.length]; };
   const beatDone = (b) => b.lines === false || !!flag['story_' + b.id];
   function beatNow(who) { let b = null; for (const x of BEATS) if (x.who === who && x.when()) b = x; return b; }
@@ -4151,7 +4171,7 @@ const Castle = (() => {
     R(0, -30 + bob, 1, 1, '#1c1c24'); R(3, -30 + bob, 1, 1, '#1c1c24'); R(0, -28 + bob, 3, 1, '#a84848');                         // Augen, Lächeln
   }
   const EGG = { speed: drawSpeedGhost, bones: drawBones, chick: drawChicken, barber: drawBarber, carto: drawCarto, clerk: drawClerk, cook: drawCook, bell: drawBellRinger, guide: drawMountainGuide, clock: drawClockmaker }; // Figur je Sprecher
-  const EGG_OF = { S: 'speed', B: 'bones', W: 'chick', F: 'barber', M: 'carto', O: 'clerk', E: 'cook', K: 'bell', G: 'guide', U: 'clock' };
+  const EGG_OF = { S: 'speed', B: 'bones', W: 'chick', F: 'barber', M: 'carto', O: 'clerk', E: 'cook', N: 'bell', G: 'guide', U: 'clock' };
   const noseOf = (npc) => { if (!talk || talk.npc !== npc) return 0; const pg = talk.pages[talk.i]; return pg && pg.lie ? Math.min(9, (Game.t - (talk.lieAt || 0)) * 0.35) : 0; };
   // Kammern im Hotel: Sternlampe (Speichern) und Aufzug (Schnellreise) statt Steinnische – Blender-Modelle
   function drawHotelChamber(ch, ctx) {
@@ -4335,7 +4355,7 @@ const Castle = (() => {
     else if (who === 'T') { ctx.translate(x + 18, y + 80); ctx.scale(2, 2); drawTentacle(ctx, 0, 0, t, false); }
     else if (who === 'P') { ctx.translate(x + 20, y + 66); ctx.scale(2, 2); drawPrisoner(ctx, 0, 0, t, false); }
     else if (who === 'C') { ctx.translate(x + 18, y + 70); ctx.scale(2, 2); drawConcierge(ctx, 0, 0, t, false, talk ? noseOf(talk.npc) : 0); }
-    else if (EGG_OF[who]) { const lift = { S: 66, B: 74, W: 54, F: 70, M: 66, O: 70, E: 84 , K: 70 , G: 74 , U: 70 }[who]; ctx.translate(x + 18, y + lift); ctx.scale(2, 2); EGG[EGG_OF[who]](ctx, 0, 0, t, false); }
+    else if (EGG_OF[who]) { const lift = { S: 66, B: 74, W: 54, F: 70, M: 66, O: 70, E: 84 , N: 70 , G: 74 , U: 70 }[who]; ctx.translate(x + 18, y + lift); ctx.scale(2, 2); EGG[EGG_OF[who]](ctx, 0, 0, t, false); }
     else {
       const H = HEROES.get(who === 'A' ? allyId() : Options.character), spr = H.idle[0], img = who === 'H' ? spr.f : spr.c;
       ctx.imageSmoothingEnabled = false;
@@ -4353,7 +4373,7 @@ const Castle = (() => {
     ctx.fillStyle = '#fce0a8'; for (const [ex, ey] of [[x, y], [x + w - 1, y], [x, y + h - 1], [x + w - 1, y + h - 1]]) { ctx.fillRect(ex - 1, ey, 3, 1); ctx.fillRect(ex, ey - 1, 1, 3); }
     const px = hero ? x + w - 48 : x + 8, tx = hero ? x + 10 : x + 56;
     portrait(ctx, pg.who, px, y + 10, t);
-    const EGN = { S: 'npcSpeed', B: 'npcBones', W: 'npcChicken', F: 'npcBarber', M: 'npcCarto', O: 'npcClerk', E: 'npcCook', K: 'npcBell', G: 'npcGuide', U: 'npcClock' }, EGC = { S: '#b8d4ff', B: '#e8e4d0', W: '#fcf4c8', F: '#f0a0a0', M: '#e8dcb8', O: '#c8e0b0', E: '#f8d8a0', K: '#f0d890', G: '#a8d8f8', U: '#e8c8a0' };
+    const EGN = { S: 'npcSpeed', B: 'npcBones', W: 'npcChicken', F: 'npcBarber', M: 'npcCarto', O: 'npcClerk', E: 'npcCook', N: 'npcBell', G: 'npcGuide', U: 'npcClock' }, EGC = { S: '#b8d4ff', B: '#e8e4d0', W: '#fcf4c8', F: '#f0a0a0', M: '#e8dcb8', O: '#c8e0b0', E: '#f8d8a0', N: '#f0d890', G: '#a8d8f8', U: '#e8c8a0' };
     const name = pg.who === 'L' ? tr('npcLib') : pg.who === 'T' ? tr('bossTentacle') : pg.who === 'P' ? tr('npcPrisoner') : pg.who === 'C' ? tr('npcConcierge') : EGN[pg.who] ? tr(EGN[pg.who]) : HEROES.def(pg.who === 'A' ? allyId() : Options.character).name;
     Font.draw(ctx, name, tx, y + 7, hero ? '#7cdcfc' : pg.who === 'L' ? '#c8a0fc' : pg.who === 'T' ? '#d880fc' : pg.who === 'P' ? '#e8e0c8' : pg.who === 'C' ? '#a8e8c0' : EGC[pg.who] || '#f8b800', { shadow: '#000' });
     let left = Math.floor(talk.n);
@@ -4432,12 +4452,8 @@ const Castle = (() => {
   // nächsten). Betritt man so einen Raum, zeigt ein grünes Band die Neuerung und ein pulsierender Rahmen mit NEU-Schild die Stelle
   // (markNew). Bei jeder Auslieferung neu füllen. Eintrag: [Raum, Text, Stellen [x, y, b, h] in Kacheln (x < 0: vom rechten Rand)]
   const RECENT = [
-    [['side', 'zeiger'], 'chgZeiger', [[52, 4, 13, 13], [39, 4, 13, 13]]],   // Zeigerkammer: zwei Zifferblätter mit Ankerring am Zeiger
-    [['side', 'pendelhalle'], 'chgDoorZeiger', [[0, 33, 2, 3]]],          // Pendelhalle: Tür unten links zur Zeigerkammer
-    [['side', 'klamm'], 'chgKlamm', [[8, 2, 5, 6]]],                      // Tropfsteinklamm: Laufkatzen an der Seilbahn
-    [['side', 'kanal'], 'chgDoorKlamm', [[-2, 8, 2, 3]]],                 // Kanal: Ausgang rechts zur Klamm
-    [['side', 'glockenstuhl'], 'chgGlocken', [[58, 1, 5, 4]]],            // Glockenstuhl: Ring über der Stachelsäule
-    [[2, 1], 'chgDoorGlocken', [[0, 1, 2, 3]]],                          // Bibliothek: Tür oben links zum Glockenstuhl
+    [['side', 'kuckuck'], 'chgKuckuck', [[13, 2, 6, 7]]],                // Kuckucksuhr: das Uhrgehäuse oben in der Mitte
+    [['side', 'zeiger'], 'chgDoorKuckuck', [[0, 9, 2, 3]]],              // Zeigerkammer: neue Tür links hinter der Werkstatt
   ];
   const recentEntry = (s, r) => { for (const e of RECENT) { const a = ref(e[0]); if (a && a.s === s && a.r === r) return e; } return null; };
   function recentNote(s, r) { const e = recentEntry(s, r); return e ? e[1] : null; }
@@ -4462,7 +4478,7 @@ const Castle = (() => {
       const label = (x, y) => { ctx.fillStyle = g; ctx.fillRect(x, y, bw, 11); ctx.fillStyle = '#0c3c1c'; ctx.fillRect(x, y + 10, bw, 1); Font.draw(ctx, tag, x + 3, y + 2, '#fcfcfc', { shadow: '#000' }); };
       for (const sp of this.spots) {
         const x = Math.round(sp.x - W.cam.x), y = Math.round(sp.y - W.cam.y);
-        if (x + sp.w > 0 && x < View.w && y + sp.h > 0 && y < 240) { // im Bild: Eckwinkel und Strichrahmen, darüber das Schild
+        if (x + sp.w > 0 && x < View.w && y + sp.h > 0 && y < 208) { // im Bild (Weltbild: 208 px unter dem HUD): Eckwinkel und Strichrahmen, darüber das Schild
           const p = 2 + Math.round(1.5 + 1.5 * Math.sin(t * 0.15)), X = x - p, Y = y - p, Wd = sp.w + 2 * p, Hd = sp.h + 2 * p, c = 7;
           ctx.fillStyle = '#7cf0a0';
           ctx.fillRect(X, Y, c, 2); ctx.fillRect(X, Y, 2, c); ctx.fillRect(X + Wd - c, Y, c, 2); ctx.fillRect(X + Wd - 2, Y, 2, c);
@@ -4470,13 +4486,13 @@ const Castle = (() => {
           ctx.globalAlpha = a * 0.55; const o = (t >> 2) % 6;
           for (let i = c + o; i < Wd - c; i += 6) { ctx.fillRect(X + i, Y, 3, 1); ctx.fillRect(X + Wd - i - 3, Y + Hd - 1, 3, 1); }
           for (let i = c + o; i < Hd - c; i += 6) { ctx.fillRect(X, Y + Hd - i - 3, 1, 3); ctx.fillRect(X + Wd - 1, Y + i, 1, 3); }
-          ctx.globalAlpha = a; label(clamp(Math.round(x + sp.w / 2 - bw / 2), 2, View.w - bw - 2), Y - 14 >= 72 ? Y - 14 : Y + Hd + 14 <= 226 ? Y + Hd + 3 : clamp(Y + 4, 72, 226)); // oben kein Platz (HUD, Band): Schild unter den Rahmen, sonst hinein
+          ctx.globalAlpha = a; label(clamp(Math.round(x + sp.w / 2 - bw / 2), 2, View.w - bw - 2), Y - 14 >= 42 ? Y - 14 : Y + Hd + 14 <= 196 ? Y + Hd + 3 : clamp(Y + 4, 42, 196)); // oben kein Platz (HUD, Band): Schild unter den Rahmen, sonst hinein
         } else { // außerhalb: Pfeil am Bildrand, daneben das Schild
-          const cx = x + sp.w / 2, cy = y + sp.h / 2, ex = clamp(cx, 12, View.w - 12), ey = clamp(cy, 44, 226), an = Math.atan2(cy - ey, cx - ex), bob = Math.sin(t * 0.2) * 2;
+          const cx = x + sp.w / 2, cy = y + sp.h / 2, ex = clamp(cx, 12, View.w - 12), ey = clamp(cy, 46, 196), an = Math.atan2(cy - ey, cx - ex), bob = Math.sin(t * 0.2) * 2;
           const hx = ex + Math.cos(an) * bob, hy = ey + Math.sin(an) * bob;
           ctx.fillStyle = '#0c3c1c'; ctx.beginPath(); ctx.moveTo(hx + Math.cos(an) * 9, hy + Math.sin(an) * 9); ctx.lineTo(hx + Math.cos(an + 2.4) * 8, hy + Math.sin(an + 2.4) * 8); ctx.lineTo(hx + Math.cos(an - 2.4) * 8, hy + Math.sin(an - 2.4) * 8); ctx.fill();
           ctx.fillStyle = '#7cf0a0'; ctx.beginPath(); ctx.moveTo(hx + Math.cos(an) * 7, hy + Math.sin(an) * 7); ctx.lineTo(hx + Math.cos(an + 2.4) * 6, hy + Math.sin(an + 2.4) * 6); ctx.lineTo(hx + Math.cos(an - 2.4) * 6, hy + Math.sin(an - 2.4) * 6); ctx.fill();
-          label(clamp(Math.round(ex - bw / 2 - Math.cos(an) * 18), 2, View.w - bw - 2), clamp(Math.round(ey - 5 - Math.sin(an) * 14), 34, 226));
+          label(clamp(Math.round(ex - bw / 2 - Math.cos(an) * 18), 2, View.w - bw - 2), clamp(Math.round(ey - 5 - Math.sin(an) * 14), 40, 196));
         }
       }
       ctx.restore();
@@ -4902,7 +4918,7 @@ const Castle = (() => {
     for (const q of QUESTS) need.push('quest_' + q.id, 'questHint_' + q.id);
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
-    need.push('hintRopeUp', 'hintRopeHold', 'hintRopeDown', 'hintTrolley', 'hintTrolley2', 'hintHand', 'npcBell', 'npcGuide', 'npcClock', 'newHere', 'chgZeiger', 'chgDoorZeiger', 'chgKlamm', 'chgDoorKlamm', 'chgGlocken', 'chgDoorGlocken'); // Glockenstuhl, Tropfsteinklamm, Zeigerkammer, NEU-Markierung
+    need.push('hintRopeUp', 'hintRopeHold', 'hintRopeDown', 'hintTrolley', 'hintTrolley2', 'hintHand', 'npcBell', 'npcGuide', 'npcClock', 'newHere', 'chgZeiger', 'chgDoorZeiger', 'chgKlamm', 'chgDoorKlamm', 'chgGlocken', 'chgDoorGlocken', 'hintKuckuck', 'bossKuckuck', 'bossKuckuckShout', 'bossKuckuckBonk', 'bossKuckuckRage', 'bossKuckuckDie', 'bossKuckuckNote', 'banter_bossKuckuck', 'beastD_Kuckucksuhr', 'ach_kuckuck', 'achD_kuckuck', 'item_kuckucksfeder', 'itemD_kuckucksfeder', 'chgKuckuck', 'chgDoorKuckuck'); // Glockenstuhl, Tropfsteinklamm, Zeigerkammer, NEU-Markierung, Kuckucksuhr
     need.push('castleBossCount', 'castleGoalBoss', 'pauseTravel', 'bounty', 'travelTip', 'bountyTitle', 'travelRoom', 'mahrTitle', 'mahrCount', 'mahrRuf', 'mahrBann', 'mahrHelp', 'mahrSwap', 'mahrOn', 'mahrFrom', 'mahrUnknown', 'mahrGot', 'mahrFirst', 'mahrDodge', 'crit', 'chgMahr');
     { // Erreichbarkeit: vom Wald aus über Türen und Ausgänge (alles geöffnet) – kein Raum darf abgeschnitten sein
       const key = (s, r) => s + ':' + r, seenR = new Set(), queue = [], s0 = sIdx('arrival');

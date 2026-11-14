@@ -8,6 +8,33 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 
 ---
 
+## 20261114-1148 – Nebenboss: die Kuckucksuhr (Rammstoß am Seil)
+
+**Neu – Nebenboss: die Kuckucksuhr** (links hinter der Werkstatt in der Zeigerkammer, Gefahr ****)
+- Unten ein Stachelboden, links und rechts ein Sims, dazwischen zwei Ankerringe. Oben in der Mitte hängt eine riesige
+  Kuckucksuhr, ihr Pendel fegt durch die Mitte des Raums.
+- Zur vollen Stunde schlägt die Uhr, das Türchen springt auf und der Kuckuck fährt auf einem Scherengitter heraus – bis
+  neben den Ring, an dem du hängst. Nur dann ist er verwundbar (sein Rahmen blinkt).
+- **Rammstoß:** schwing am Seil in ihn hinein. Er kommt entweder **ganz nah am Ring** heraus (Seil mit ↑ ganz kurz) oder
+  **weit unten** (Seil mit ↓ ganz lang) – mit mittlerer Länge triffst du nie. Peitschenhiebe zählen auch.
+- „KUCKUCK!“ – Noten fliegen auf dich zu (ausweichen mit ↑↓, mit der Peitsche zurückschlagen). Mit langem Seil
+  kommst du dem Pendel gefährlich nah.
+- Ab halber Kraft: **viertelstündlich** – er kommt öfter, ruft Noten-Fächer, das Pendel schwingt weiter.
+- Eigenes Lied: der **Kuckuckswalzer** (3/4, Uhrticken statt Becken, alle acht Takte die Stundenglocke).
+- Lohn: die **Kuckucksfeder** (Glück +3, MP +6), Bestiarium-Eintrag, Urkunde „ES HAT DREIZEHN GESCHLAGEN“.
+- Vor dem Kampf steht die Uhr still im Raum, nach dem Sieg bleibt sie als Wrack: Türchen offen, Kuckuck schlaff.
+
+**Behoben**
+- Der Glöckner (Glockenstuhl) sprach nur mit Kaspar – mit allen anderen Helden fehlten seine Zeilen
+  (sein Sprecherbuchstabe war für Kaspar reserviert). Jetzt redet er mit allen.
+- NEU-Markierung: Rahmen, Schilder und Pfeile richten sich jetzt nach dem Weltbild unter dem HUD (Pfeile am unteren
+  Rand konnten abgeschnitten werden).
+
+**Beim Testen ansehen**
+- Kuckucksuhr: erkennt man früh genug, ob der Kuckuck nah oder weit unten herauskommt? Ist der Kampf zu lang?
+  (Testbot: 8 Rammstöße, gut 45 Sekunden – mit menschlichen Fehlschlägen eher 2 Minuten.)
+- Glockenstuhl: spricht der Glöckner jetzt mit jedem Helden?
+
 ## 20261114-1036 – Zeigerkammer: am Uhrzeiger im Kreis, und „NEU“ zeigt, was neu ist
 
 **Neu – Raum: die Zeigerkammer** (Bergfried, unten links an der Pendelhalle, Gefahr ****)
