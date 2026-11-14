@@ -111,7 +111,8 @@ const W = {
         case 'trolley': this.spawn(new TrolleyRing(d)); break; // Tropfsteinklamm: Laufkatze mit Ring an der Schiene
         case 'batwave': this.spawn(new BatWave(d)); break;     // Tropfsteinklamm: Fledermausschwarm im Höhenband
         case 'hand': this.spawn(new HandRing(d)); break;       // Zeigerkammer: Ring an der Spitze eines drehenden Uhrzeigers
-        case 'kwrack': this.spawn(new KuckuckWrack(d)); break;   // Kuckucksuhr: still vor dem Kampf, Wrack danach
+        case 'kwrack': this.spawn(new KuckuckWrack(d)); break;
+        case 'gearwall': this.spawn(new GearWall(d)); break;     // Uhrwerk-Räume: Zahnräder hinter den Kacheln   // Kuckucksuhr: still vor dem Kampf, Wrack danach
         case 'statue': this.spawn(new Statue(d)); break;
         case 'chest': this.spawn(new Chest(d)); break;
         case 'cargo': this.spawn(new Cargo(d)); break;

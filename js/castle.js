@@ -709,7 +709,8 @@ const Castle = (() => {
       .prop('hint', { x: 44, y: 7, w: 6, h: 4, key: 'hintRopeHold' })
       .prop('hint', { x: 19, y: 11, w: 6, h: 4, key: 'hintRopeDown' })
       .candle(74, 9, 'H').candle(66, 9).candle(51, 8).candle(26, 12, 'H').candle(5, 16, '$')
-      .music('stage3').label('GLOCKENSTUHL').start(76, 11).done());
+      .prop('gearwall', { y: 3, y2: 14 })
+      .music('uhrwerk').label('GLOCKENSTUHL').start(76, 11).done());
     LINKS.push([[2, 1], { e: 'L', y: 3 }, ['side', 'glockenstuhl'], { e: 'R', y: 11 }, {}]); // Bibliothek: oben links (Steg) → Glockenstuhl
     // Tropfsteinklamm (rechts am Ende des unterirdischen Kanals, js/glocken.js): eine Seilbahn über die Stachelgrube. Hakt man an
     // der Laufkatze ein, fährt sie los und trägt einen mit; die Seillänge bestimmt man selbst. Stalagmiten von unten (kurz hängen),
@@ -753,7 +754,8 @@ const Castle = (() => {
       .chest(8, 11, 'big').prop('vessel', { x: 5, y: 11 }).prop('rgate', { x: 2, y: 11 }) // hinten Truhe, Gefäß, Portal; vorn (x 31) der Uhrmacher
       .prop('hint', { x: 66, y: 8, w: 6, h: 4, key: 'hintHand' })
       .candle(75, 9, 'H').candle(68, 9).candle(24, 9, 'H').candle(14, 9, '$').candle(4, 9)
-      .music('stage3').label('ZEIGERKAMMER').start(76, 11).done());
+      .prop('gearwall', { y: 2, y2: 16 })
+      .music('uhrwerk').label('ZEIGERKAMMER').start(76, 11).done());
     LINKS.push([['side', 'pendelhalle'], { e: 'L', y: 35 }, ['side', 'zeiger'], { e: 'R', y: 11 }, {}]); // Pendelhalle: unten links (Treppenfuß) → Zeigerkammer
     // Kuckucksuhr (links an der Zeigerkammer, Tür hinter der Werkstatt; js/glocken.js): Nebenboss über einem Stachelboden. Links und
     // rechts ein Sims, dazwischen zwei Ankerringe; oben in der Mitte die Uhr, ihr Pendel fegt durch die Mitte. Der Kuckuck fährt nur
@@ -769,7 +771,8 @@ const Castle = (() => {
       .prop('hint', { x: 30, y: 10, w: 5, h: 4, key: 'hintKuckuck' })
       .chest(2, 13, 'big')
       .candle(4, 11).candle(27, 11, 'H').candle(34, 11).candle(40, 11, '$')
-      .music('stage3').label('KUCKUCKSUHR').start(41, 13).done();
+      .prop('gearwall', { y: 7 })
+      .music('uhrwerk').label('KUCKUCKSUHR').start(41, 13).done();
     kd.mapH = 1; add('kuckuck', 2, 4, null, kd);
     LINKS.push([['side', 'zeiger'], { e: 'L', y: 11 }, ['side', 'kuckuck'], { e: 'R', y: 13 }, {}]); // Zeigerkammer: Werkstatt links → Kuckucksuhr
     // Kaleidoskop (über der Sonnenkathedrale: Aufzug links im Vorplatz hinauf durch die Luke; js/kaleido.js): eine liegende Röhre

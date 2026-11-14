@@ -6,6 +6,24 @@
 //             die ganze Bahn. Mehrere Düsen wechseln sich ab: am Ring ruhig hängen und mit der Seillänge ausweichen.
 'use strict';
 
+// Vorgerenderte Uhrwerk-Teile (Blender, tools/blender/uhr_bl.py → pack_uhr.py → img/uhr3d.png): Kuckucksuhr-Gehäuse, Kuckuck,
+// Pendelgewicht, Tannenzapfen, Zifferblatt, Zeiger, Stachelnabe, Zahnräder. Bis das Bild geladen ist, malen die Klassen selbst.
+const UHR3D = (() => {
+  const UHR_MAP = {"dial":[0,0,188,188],"gearB":[189,0,112,112],"house":[302,0,128,96],"gearS":[431,0,64,64],"hub":[0,189,40,40],"bob":[41,189,28,28],"bird0":[70,189,32,24],"bird1":[103,189,32,24],"cone":[136,189,10,16],"hand":[147,189,96,14]};
+  const C = {}, img = new Image();
+  img.onload = () => { for (const [n, r] of Object.entries(UHR_MAP)) { const c = Sprites.canvas(r[2], r[3]); c.getContext('2d').drawImage(img, r[0], r[1], r[2], r[3], 0, 0, r[2], r[3]); C[n] = c; } };
+  img.src = 'img/uhr3d.png';
+  return {
+    get: (n) => C[n] || null,
+    // Bild n mit Ankerpunkt (ax, ay) an (x, y); a = Drehung (dann geglättet), flip = waagerecht gespiegelt
+    draw(ctx, n, x, y, ax = 0, ay = 0, a = 0, flip = false) {
+      const c = C[n]; if (!c) return false;
+      ctx.save(); ctx.translate(a ? x : Math.round(x), a ? y : Math.round(y)); if (a) { ctx.rotate(a); ctx.imageSmoothingEnabled = true; } if (flip) ctx.scale(-1, 1);
+      ctx.drawImage(c, -ax, -ay); ctx.restore(); return true;
+    },
+  };
+})();
+
 class SwingBell extends Ent {
   constructor(d) { // d: x, y (linke obere Kachel des festen Glockenkörpers), w, h (Kacheln)
     super(d.x * T, d.y * T, d.w * T, d.h * T); this.kind = 'prop'; this.d = d; this.sw = 0; this.swV = 0; this.cd = 0; this.n = 0;
@@ -174,6 +192,11 @@ class HandRing extends Ring {
     const cx = Math.round(this.px - W.cam.x), cy = Math.round(this.py - W.cam.y), R = this.d.r, a = this.ang();
     if (cx + R + 30 < 0 || cx - R - 30 > View.w || cy + R + 30 < 0 || cy - R - 30 > 260) return;
     const F = R + 18; // Zifferblatt: Messingring, cremefarbenes Blatt, zwölf Striche, römische Drei, Sechs, Neun und Zwölf als Kerben
+    if (UHR3D.get('dial') && R === 72) { // Blender-Bilder: Zifferblatt, gegenläufige Stachelnabe, geschmiedeter Zeiger
+      UHR3D.draw(ctx, 'dial', cx, cy, 94, 94);
+      UHR3D.draw(ctx, 'hub', cx, cy, 20, 20, -a * 1.5 + 0.0001);
+      UHR3D.draw(ctx, 'hand', cx, cy, 22, 7, a - Math.PI / 2);
+    } else {
     ctx.save();
     ctx.globalAlpha = 0.9; ctx.fillStyle = '#5c3c14'; ctx.beginPath(); ctx.arc(cx, cy, F + 4, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#c89020'; ctx.beginPath(); ctx.arc(cx, cy, F + 2, 0, Math.PI * 2); ctx.fill();
@@ -195,6 +218,7 @@ class HandRing extends Ring {
     ctx.strokeStyle = '#5c5c6c'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(ex, ey); ctx.stroke();
     const mx = cx + Math.sin(a) * R * 0.62, my = cy - Math.cos(a) * R * 0.62; ctx.fillStyle = '#1c1c24'; ctx.beginPath(); ctx.arc(mx, my, 4, 0, Math.PI * 2); ctx.fill(); // Zierknoten
     ctx.restore();
+    }
     // Ring an der Spitze (wie die Ankerringe: golden, glimmt in Reichweite)
     const x = Math.round(this.cx - W.cam.x), y = Math.round(this.cy - W.cam.y), p = W.player;
     if (p.alive && !p.onGround && p.state === 'normal' && p.nearRing && p.nearRing() === this) {
@@ -307,37 +331,45 @@ class Kuckucksuhr extends Boss {
     const cx = Math.round(this.cxC - W.cam.x), cy = -Math.round(W.cam.y), fl = this.flashT > 0 && (this.flashT & 2);
     const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), w, h); };
     ctx.save();
+    const HD = !!UHR3D.get('house'); // Blender-Gehäuse (Bildfeld 128×96, oben bei Welt-y 60); Türflügel, Zeiger, Pendel, Kuckuck kommen darüber
     // Gehäuse: geschnitztes Holz, Giebeldach mit Blattwerk, darunter das Türchen; ein Hirschgeweih über dem Zifferblatt (natürlich)
     const top = cy + 88, bot = cy + 150;
+    if (HD) UHR3D.draw(ctx, 'house', cx - 64, cy + 60); else {
     R(cx - 46, top, 92, bot - top, '#3c2410'); R(cx - 44, top + 2, 88, bot - top - 4, '#6c4420'); R(cx - 40, top + 6, 80, bot - top - 12, '#5c3818');
     for (let k = 0; k < 6; k++) R(cx - 44 + k * 16, bot - 6, 10, 4, '#8c5c2c'); // Zierleiste
     ctx.fillStyle = '#2c1808'; ctx.beginPath(); ctx.moveTo(cx - 60, top + 6); ctx.lineTo(cx, top - 18); ctx.lineTo(cx + 60, top + 6); ctx.closePath(); ctx.fill();
     ctx.fillStyle = '#7c4c20'; ctx.beginPath(); ctx.moveTo(cx - 54, top + 4); ctx.lineTo(cx, top - 14); ctx.lineTo(cx + 54, top + 4); ctx.closePath(); ctx.fill();
     for (let k = -3; k <= 3; k++) { const ly = top + 2 - (3 - Math.abs(k)) * 5; R(cx + k * 15 - 3, ly, 6, 4, '#3c6c2c'); R(cx + k * 15 - 1, ly - 1, 2, 2, '#5c9c3c'); } // Blattwerk am Giebel
+    }
     // Türchen (zwei Flügel)
     const dx = cx, dy = cy + this.door.y, op = this.open;
-    R(dx - 11, dy - 9, 22, 18, '#1c0c04');
-    R(dx - 10 - op * 6, dy - 8, 10 - op * 6, 16, '#8c5c2c'); R(dx + op * 6, dy - 8, 10 - op * 6, 16, '#8c5c2c');
-    R(dx - 12, dy + 9, 24, 2, '#a87444'); // Sitzstange
+    if (!HD) R(dx - 11, dy - 9, 22, 18, '#1c0c04');
+    const wing = (x, w) => { if (w < 1) return; R(x, dy - 8, w, 16, '#8c5c2c'); R(x, dy - 8, w, 1, '#c8945c'); R(x + (w > 3 ? 1 : 0), dy - 5, Math.max(1, w - 2), 1, '#5c3818'); R(x + (w > 3 ? 1 : 0), dy + 3, Math.max(1, w - 2), 1, '#5c3818'); };
+    wing(dx - 10 - op * 6, 10 - op * 6); wing(dx + op * 6, 10 - op * 6); // Türflügel mit Kassetten
+    if (!HD) R(dx - 12, dy + 9, 24, 2, '#a87444'); // Sitzstange
     // Zifferblatt mit Geweih darüber
     const fx = cx, fy = cy + 130;
-    for (const s2 of [-1, 1]) { R(fx + s2 * 22 - (s2 < 0 ? 2 : 0), fy - 20, 2, 8, '#d8c8a0'); R(fx + s2 * 24 - (s2 < 0 ? 2 : 0), fy - 22, 2, 4, '#d8c8a0'); R(fx + s2 * 20 - (s2 < 0 ? 2 : 0), fy - 23, 2, 3, '#d8c8a0'); }
-    ctx.fillStyle = '#c89020'; ctx.beginPath(); ctx.arc(fx, fy, 19, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#efe4c4'; ctx.beginPath(); ctx.arc(fx, fy, 16, 0, Math.PI * 2); ctx.fill();
-    for (let k = 0; k < 12; k++) { const b = k * Math.PI / 6; R(fx + Math.sin(b) * 13 - 1, fy - Math.cos(b) * 13 - 1, 2, 2, '#3c2c1c'); }
+    if (!HD) for (const s2 of [-1, 1]) { R(fx + s2 * 22 - (s2 < 0 ? 2 : 0), fy - 20, 2, 8, '#d8c8a0'); R(fx + s2 * 24 - (s2 < 0 ? 2 : 0), fy - 22, 2, 4, '#d8c8a0'); R(fx + s2 * 20 - (s2 < 0 ? 2 : 0), fy - 23, 2, 3, '#d8c8a0'); }
+    if (!HD) {
+      ctx.fillStyle = '#c89020'; ctx.beginPath(); ctx.arc(fx, fy, 19, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#efe4c4'; ctx.beginPath(); ctx.arc(fx, fy, 16, 0, Math.PI * 2); ctx.fill();
+      for (let k = 0; k < 12; k++) { const b = k * Math.PI / 6; R(fx + Math.sin(b) * 13 - 1, fy - Math.cos(b) * 13 - 1, 2, 2, '#3c2c1c'); }
+    }
     const hA = (this.hour / 12) * Math.PI * 2 + this.handA * 0.08, mA = this.handA;
     ctx.strokeStyle = '#1c1c24'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(fx + Math.sin(hA) * 8, fy - Math.cos(hA) * 8); ctx.stroke();
     ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(fx + Math.sin(mA) * 13, fy - Math.cos(mA) * 13); ctx.stroke();
     R(fx - 1, fy - 1, 3, 3, '#a83c2c');
     // Tannenzapfen-Gewichte an Ketten
-    for (const s of [-1, 1]) { const wx = cx + s * 30, wy = cy + 150 + 22 + s * Math.sin(this.t * 0.01) * 5; for (let y = cy + 150; y < wy; y += 4) R(wx, y, 1, 2, '#8c8ca0'); R(wx - 4, wy, 9, 14, '#6c4420'); for (let k = 0; k < 3; k++) R(wx - 3, wy + 2 + k * 4, 7, 2, '#a87444'); }
+    for (const s of [-1, 1]) { const wx = cx + s * 30, wy = cy + 150 + 22 + s * Math.sin(this.t * 0.01) * 5; for (let y = cy + 150; y < wy; y += 4) R(wx, y, 1, 2, '#8c8ca0'); if (!UHR3D.draw(ctx, 'cone', wx - 4.5, wy - 1)) { R(wx - 4, wy, 9, 14, '#6c4420'); for (let k = 0; k < 3; k++) R(wx - 3, wy + 2 + k * 4, 7, 2, '#a87444'); } }
     // Pendel
     const P = this.pend(), px = Math.round(P.x - W.cam.x), py = Math.round(P.y - W.cam.y), qx = cx, qy = cy + this.piv.y;
     ctx.strokeStyle = '#a8801c'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(qx, qy); ctx.lineTo(px, py); ctx.stroke();
-    ctx.fillStyle = '#5c3c14'; ctx.beginPath(); ctx.arc(px, py, 13, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#e8b830'; ctx.beginPath(); ctx.arc(px, py, 11, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#fce890'; ctx.beginPath(); ctx.arc(px - 3, py - 3, 4, 0, Math.PI * 2); ctx.fill();
-    R(px - 1, py - 6, 2, 12, '#a8801c'); R(px - 6, py - 1, 12, 2, '#a8801c'); // Blattrosette
+    if (!UHR3D.draw(ctx, 'bob', px, py, 14, 14)) {
+      ctx.fillStyle = '#5c3c14'; ctx.beginPath(); ctx.arc(px, py, 13, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#e8b830'; ctx.beginPath(); ctx.arc(px, py, 11, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fce890'; ctx.beginPath(); ctx.arc(px - 3, py - 3, 4, 0, Math.PI * 2); ctx.fill();
+      R(px - 1, py - 6, 2, 12, '#a8801c'); R(px - 6, py - 1, 12, 2, '#a8801c'); // Blattrosette
+    }
     // Scherengitter und Kuckuck
     if (this.ext > 0.02) {
       const hx = Math.round(this.hx - W.cam.x), hy = Math.round(this.hy - W.cam.y), L = Math.hypot(hx - dx, hy - dy), n = Math.max(2, Math.round(L / 12)), ux = (hx - dx) / L || 0, uy = (hy - dy) / L || 0, w = 5 + (1 - this.ext) * 5;
@@ -347,10 +379,13 @@ class Kuckucksuhr extends Boss {
       for (let k = 0; k <= n; k++) { const t = k / n, x = dx + (hx - dx) * t, y = dy + (hy - dy) * t, s = k % 2 ? -w : w; ctx.lineTo(x - uy * s, y + ux * s); } ctx.stroke();
       const f = hx < cx ? -1 : 1, beak = this.state === 'shout' && (this.timer % 62) < 26 ? 3 : 0, wb = Math.round(Math.sin(this.t * 0.3) * (this.out() ? 1 : 0));
       const B = (x, y, w2, h, c) => R(f > 0 ? hx + x : hx - x - w2, hy + y + this.limp * 0, w2, h, fl ? '#fcfcfc' : c);
+      const bs = UHR3D.get(beak ? 'bird1' : 'bird0');
+      if (bs && !fl) UHR3D.draw(ctx, beak ? 'bird1' : 'bird0', hx, hy + wb, 16, 12, this.limp * 0.7 * f, f < 0); else {
       B(-10, -6 + wb, 16, 12, '#8c4c1c'); B(-12, -3 + wb, 6, 8, '#6c3410'); B(-10, 4 + wb, 14, 3, '#c87c3c'); // Leib, Flügel, Bauch
       B(2, -10 + wb, 10, 9, '#9c5c24'); B(8, -8 + wb, 2, 2, this.limp > 0.5 ? '#3c2c1c' : '#fcfcfc'); B(9, -7 + wb, 1, 1, '#1c1c24'); // Kopf, Auge
       B(12, -6 + wb - beak, 6, 2, '#f8b800'); B(12, -4 + wb + beak, 5, 2, '#d89000'); // Schnabel (offen beim Rufen)
       B(-14, -2 + wb, 4, 2, '#5c2c0c'); B(-15, 0 + wb, 3, 2, '#5c2c0c'); // Schwanz
+      }
       if (this.bonkT > 0) for (let k = 0; k < 3; k++) { const a = this.t * 0.2 + k * 2.1; R(hx + Math.cos(a) * 10, hy - 14 + Math.sin(a) * 3, 2, 2, '#f8d878'); } // Sternchen nach dem Rammstoß
       if (this.out() && !this.dying && (this.t >> 3) % 2) { ctx.globalAlpha = 0.5; ctx.strokeStyle = '#fce890'; ctx.lineWidth = 1; ctx.strokeRect(hx - 14, hy - 12, 28, 24); ctx.globalAlpha = 1; } // verwundbar: Rahmen blinkt
     }
@@ -371,5 +406,34 @@ class KuckuckWrack extends Ent {
       k.hx = k.door.x + (k.tx - k.door.x) * k.ext; k.hy = k.door.y + (k.ty - k.door.y) * k.ext + 10; this.k = k;
     }
     this.k.t = this.t; this.k.draw(ctx);
+  }
+}
+// Zahnrad-Wand (Uhrwerk-Räume): hinter den Kacheln greift eine Kette großer Messing- und kleiner Eisenräder ineinander und dreht
+// sich langsam (Übersetzung nach Zähnezahl 24:14), mit Parallaxe 0,7. Nur mit den Blender-Bildern; sonst bleibt die Wand leer.
+// d: y (Kachelreihe der Kette), y2 (optional zweite Kette), sp (Grundgeschwindigkeit)
+class GearWall extends Ent {
+  constructor(d) {
+    super(0, 0, 1, 1); this.kind = 'prop'; this.d = d; this.noWrap = true; this.g = [];
+    const k = 0.7, span = W.room.w * T * k + 640;
+    for (const row of [d.y, d.y2].filter(v => v !== undefined)) {
+      let x = -40 + (row * 37) % 60, y = row * T * k, big = true, dir = 1, i = 0;
+      while (x < span) {
+        this.g.push({ x, y, big, dir, ph: i * 0.37 });
+        const r0 = big ? 54 : 30, r1 = big ? 30 : 54, dist = r0 + r1 - 7, th = (i % 2 ? -0.55 : 0.55) + Math.sin(i * 1.7) * 0.25;
+        x += Math.cos(th) * dist; y += Math.sin(th) * dist; big = !big; dir = -dir; i++;
+      }
+    }
+  }
+  update() { this.t++; }
+  drawBack(ctx) {
+    if (!UHR3D.get('gearB')) return;
+    const k = 0.7, ox = W.cam.x * k, oy = W.cam.y * k, w0 = (this.d.sp || 0.004) * this.t;
+    ctx.save(); ctx.globalAlpha = 0.5;
+    for (const g of this.g) {
+      const x = g.x - ox, y = g.y - oy, r = g.big ? 56 : 32;
+      if (x + r < 0 || x - r > View.w || y + r < 0 || y - r > 208) continue;
+      UHR3D.draw(ctx, g.big ? 'gearB' : 'gearS', x, y, g.big ? 56 : 32, g.big ? 56 : 32, g.dir * w0 * (g.big ? 1 : 24 / 14) + g.ph);
+    }
+    ctx.restore();
   }
 }

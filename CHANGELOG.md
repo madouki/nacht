@@ -8,6 +8,28 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 
 ---
 
+## 20261114-1928 – Uhrwerk in HD: Blender-Uhren, Zahnrad-Wand, Uhrwerk-Toccata
+
+**Neu – Grafik aus Blender (Richtung HD-3D)**
+- **Kuckucksuhr:** Gehäuse mit Schindel-Giebeldach, geschnitztem Blattwerk, Vögelchen auf dem First, Ecksäulen, Geweih und
+  Zifferblatt neu modelliert und beleuchtet gerendert; dazu der Kuckuck selbst (Schnabel zu/offen, kippt beim Sieg schlaff
+  zur Seite), das Pendelgewicht mit Rosette und die Tannenzapfen-Gewichte. Die Türflügel haben jetzt Kassetten.
+- **Zeigerkammer:** die beiden großen Zifferblätter mit Messingrand, Minutenteilung und römischen Ziffern, geschmiedete
+  Zeiger mit Lanzenspitze und Gegengewicht, die Stachelnabe als Eisenzahnrad – alles aus Blender, im Spiel weich gedreht.
+- **Zahnrad-Wand:** hinter Glockenstuhl, Zeigerkammer und Kuckucksuhr greift eine Kette großer Messing- und kleiner
+  Eisenräder ineinander und dreht sich langsam (richtig übersetzt, mit Tiefenwirkung beim Laufen).
+
+**Neu – Musik: die Uhrwerk-Toccata** (Glockenstuhl, Zeigerkammer, Vorraum der Kuckucksuhr)
+- d-Moll, 40 Takte in drei Teilen: Zahnrad-Ostinato in Sechzehnteln unter einer Orgelmelodie, eine leichtere Dur-Episode in F,
+  dann eine Steigerung über g-Moll und Es-Dur zurück zum Anfang. Uhrticken als Schlagwerk, Stundenglocke an den Phrasenenden.
+- Ein Durchgang dauert 73 Sekunden, mit den vier vom Arrangeur variierten Durchgängen knapp 5 Minuten bis zur Wiederholung.
+- Der Kuckuckswalzer (Bosskampf) ist etwas lauter gemischt und liegt jetzt gleichauf mit den anderen Bossliedern.
+
+**Beim Testen ansehen**
+- Wie klingt die Uhrwerk-Toccata – passt sie zu den Seilräumen, wird sie nicht zu schnell eintönig?
+- Lenkt die Zahnrad-Wand ab, oder gibt sie den Räumen Tiefe? (Zu hell / zu unruhig?)
+- Läuft es auf der Xbox in Zeigerkammer und Kuckucksuhr weiter flüssig?
+
 ## 20261114-1148 – Nebenboss: die Kuckucksuhr (Rammstoß am Seil)
 
 **Neu – Nebenboss: die Kuckucksuhr** (links hinter der Werkstatt in der Zeigerkammer, Gefahr ****)

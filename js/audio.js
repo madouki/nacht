@@ -5,7 +5,7 @@ const Audio8 = (() => {
   let songGain = null; // Lautheitsausgleich je Lied
   // gemessen 2026-11-06 in drei Echtzeit-Läufen (RMS, Ziel: Median aller Lieder). Die Messung schwankt je nach Rechnerlast um
   // ±2 dB – korrigiert ist nur, was in allen Läufen übereinstimmte (Amtsstuben-Walzer rund 5 dB zu leise, Dienstweg, Graf, stage2 zu laut)
-  const SONG_GAIN = { amt: 1.6, sun: 1.2, amtsmarsch: 1.1, posthorn: 1.1, fahrstuhl: 1.15, mondmeer: 1.1, library: 0.92, chapel: 0.88, dienstweg: 0.8, galopp: 0.9, count: 0.82, stage2: 0.8 };
+  const SONG_GAIN = { amt: 1.6, sun: 1.2, amtsmarsch: 1.1, posthorn: 1.1, fahrstuhl: 1.15, mondmeer: 1.1, library: 0.92, chapel: 0.88, dienstweg: 0.8, galopp: 0.9, count: 0.82, stage2: 0.8, kuckuck: 1.1 };
   let ac = null, master, comp, musicBus, melBus, sfxBus, duckBus, voiceBus, muffleF, noiseBuf, pulseWaves = {};
   let muted = false;
   const MUSIC_VOL = 0.28; // ≈ bisher gehörter Pegel: früher 0.82, aber ab der ersten Kick ungewollt × 0.3 (Sidechain rief duck(on) auf)
@@ -512,6 +512,26 @@ const Audio8 = (() => {
     'e6:4 c6:4 -:4', 'e6:4 b5:4 -:4', 'e6:4 c6:4 a5:4', 'g#5:2 a5:2 b5:2 d6:2 c6:2 b5:2',
     'a5:4 f5:4 c6:4', 'b5:4 g5:4 d6:4', 'g5:4 e5:4 c6:4', 'b5:2 g#5:2 e5:2 g#5:2 b5:2 d6:2',
   ];
+  // Uhrwerk-Toccata (Glockenstuhl, Zeigerkammer, Kuckucksuhr): d-Moll, 4/4, 16 Schritte pro Takt. A: Zahnrad-Ostinato in
+  // Sechzehnteln unter einer getragenen Orgelmelodie, Bass in Oktaven, Uhrticken (y) als Schlagwerk; B: Dur-Episode in F mit
+  // Achtel-Begleitung, leichter; C: Steigerung über g-Moll und Es-Dur zurück zur Dominante. 40 Takte, dann von vorn
+  const UW = { Dm: ['d4', 'f4', 'a4'], A7: ['c#4', 'e4', 'g4'], Gm: ['d4', 'g4', 'a#4'], Bb: ['d4', 'f4', 'a#4'], F: ['c4', 'f4', 'a4'], C: ['c4', 'e4', 'g4'], C7: ['c4', 'e4', 'a#4'], Am: ['c4', 'e4', 'a4'], Eb: ['d#4', 'g4', 'a#4'] };
+  const UW_B = { Dm: 'd2', A7: 'a1', Gm: 'g1', Bb: 'a#1', F: 'f2', C: 'c2', C7: 'c2', Am: 'a1', Eb: 'd#2' };
+  const UW_C = ['Dm', 'Dm', 'A7', 'A7', 'Dm', 'Gm', 'A7', 'Dm', 'Bb', 'Bb', 'F', 'F', 'Gm', 'A7', 'Dm', 'A7',
+    'F', 'C', 'Dm', 'Am', 'Bb', 'F', 'Gm', 'C7', 'F', 'C', 'Dm', 'A7', 'Bb', 'Gm', 'A7', 'Dm',
+    'Gm', 'Gm', 'Dm', 'Dm', 'Eb', 'Eb', 'A7', 'A7'];
+  const UW_L = [
+    'd5:6 e5:2 f5:4 a5:4', 'd6:8 c6:4 a5:4', 'c#6:6 d6:2 e6:4 c#6:4', 'a5:12 -:4',
+    'f5:4 a5:4 d6:4 f6:4', 'g6:6 f6:2 d6:4 a#5:4', 'a5:4 g5:4 e5:4 c#5:4', 'd5:12 -:4',
+    'd6:6 c6:2 a#5:4 f5:4', 'a#5:4 d6:4 f6:8', 'f6:6 e6:2 c6:4 a5:4', 'c6:12 -:4',
+    'a#5:4 d6:4 g6:4 f6:4', 'e6:4 c#6:4 a5:4 e6:4', 'f6:6 e6:2 d6:4 a5:4', 'c#6:8 e6:4 a6:4',
+    'a5:8 c6:4 f6:4', 'e6:8 g6:4 c6:4', 'f6:6 e6:2 d6:4 a5:4', 'c6:8 e6:8',
+    'd6:6 c6:2 a#5:4 d6:4', 'c6:6 a5:2 f5:8', 'g5:4 a#5:4 d6:4 g6:4', 'e6:12 -:4',
+    'a6:8 g6:4 f6:4', 'e6:4 g6:4 c6:8', 'd6:4 f6:4 a6:4 f6:4', 'e6:8 c#6:4 a5:4',
+    'f6:6 d6:2 a#5:4 d6:4', 'g6:6 f6:2 d6:4 a#5:4', 'a5:4 c#6:4 e6:4 g6:4', 'f6:12 -:4',
+    'g5:2 a#5:2 d6:2 g6:2 f6:2 d6:2 a#5:2 a5:2', 'g5:8 d6:8', 'f5:2 a5:2 d6:2 f6:2 e6:2 d6:2 a5:2 f5:2', 'd5:8 a5:8',
+    'd#6:6 d6:2 a#5:4 g5:4', 'g5:4 a#5:4 d#6:8', 'e6:4 c#6:4 a5:4 g5:4', 'a5:2 c#6:2 e6:2 g6:2 a6:8',
+  ];
   const SB_DR = ['k:2 h:1 h:1 s:2 h:1 k:1 k:2 h:1 h:1 s:2 h:2', 'k:1 s:1 s:1 s:1 t:2 t:2 u:2 u:2 s:1 s:1 x:2'];
   // Mondmeer: schwebend und ein wenig unheimlich, a-Moll mit neapolitanischem B, 84 BPM – lange Melodietöne (das Vibrato macht
   // daraus ein Theremin), Sci-Fi-Piepser in den Lücken, tiefer Liegebass, sparsames Schlagzeug, Röhrenglocke alle acht Takte
@@ -831,6 +851,14 @@ const Audio8 = (() => {
       tri: KU_C.map(c => `${KU_B[c]}:4 -:8`).join(' '),
       pad: KU_C.map(c => KU[c].join('+') + ':12').join(' '),
       dr: KU_C.map((c, i) => i % 8 === 7 ? 'd:4 y:2 y:2 b:4' : i >= 16 ? 'd:4 y:2 h:2 s:2 y:2' : 'd:4 y:2 y:2 y:2 y:2').join(' '),
+    },
+    uhrwerk: { // Uhrwerk-Toccata (Glockenstuhl, Zeigerkammer, Kuckucksuhr)
+      bpm: 132, loop: true, echo: { delay: 3, vol: 0.24 },
+      p1: UW_L.join(' '),
+      p2: UW_C.map((c, i) => { const [a, b, d] = UW[c]; return i >= 16 && i < 32 ? `${a}:2 ${d}:2 ${b}:2 ${d}:2 ${a}:2 ${d}:2 ${b}:2 ${d}:2` : `${a}:1 ${b}:1 ${d}:1 ${b}:1 `.repeat(4).trim(); }).join(' '),
+      tri: UW_C.map((c, i) => { const b = UW_B[c], o = up8(b); return i >= 16 && i < 32 ? `${b}:6 ${b}:2 ${o}:8` : `${b}:4 ${o}:4 ${b}:4 ${o}:4`; }).join(' '),
+      org: UW_C.map(c => UW[c].join('+') + ':16').join(' '),
+      dr: UW_C.map((c, i) => i === 39 ? 'd:2 d:2 s:2 s:2 t:2 t:2 u:2 b:2' : i % 8 === 7 ? 'd:4 y:2 y:2 s:2 s:2 b:4' : i >= 16 && i < 32 ? 'd:4 y:2 y:2 y:4 y:2 y:2' : i >= 32 ? 'd:2 y:2 d:2 y:2 s:4 y:2 y:2' : 'd:4 y:2 y:2 d:4 y:2 y:2').join(' '),
     },
     mondmeer: {
       bpm: 84, loop: true, echo: { delay: 4, vol: 0.38 },

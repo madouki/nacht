@@ -28,5 +28,10 @@ aufgebaut, mit drei Lichtern beleuchtet, stark überabgetastet gerendert und auf
    tönt sie. Geladen werden sie von `js/bg3d.js`. Uhrturm und Grotte: `bg2_bl.py` (nutzt die Helfer aus `crypt_bg_bl.py`),
    dann wieder `pack_bg.py` (`JOBS` enthält die Tönung je Bild).
 
+7. **Uhrwerk (Glockenstuhl, Zeigerkammer, Kuckucksuhr):** `python bl.py uhr_bl.py '{"dir": "<dieser Ordner>", "out": ".../r_uhr", "ss": 6}'`
+   rendert Kuckucksuhr-Gehäuse, Kuckuck (zu/offen), Pendelgewicht, Tannenzapfen, Zifferblatt, Zeiger, Stachelnabe und zwei
+   Zahnräder; `python pack_uhr.py r_uhr ../../js/glocken.js ../../img/uhr3d.png` packt den Atlas und trägt `UHR_MAP` ein.
+   Zeiger, Nabe und Zahnräder dreht das Spiel (geglättet), Türflügel, Uhrzeiger, Kette und Scherengitter malt es dazu.
+
 Aussehen der Helden steht in `LOOK` (hero_bl.py), die Posen des Grafen in `count()` (count_bl.py). Bildgrößen, Anker und
 Kartenschlüssel bleiben, damit im Spiel nichts verrutscht.
