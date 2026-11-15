@@ -3096,6 +3096,7 @@ const Castle = (() => {
     const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
     const bob = (t >> 5) & 1, B = '#e8e0c8', S = '#a8a088';
     for (let i = 0; i < 6; i++) R(-7 - i * 3, -2, 2, 1, '#5c5c6c'); R(-4, -3, 3, 2, '#6c6c7c'); // Kette zur Wand, Fußfessel
+    if (typeof UHR3D !== 'undefined' && UHR3D.draw(ctx, 'n_prisoner' + ((t >> 3) & 1), cx, feet, 20, 48, 0, flip)) return; // Blender-Figur, der Kiefer klappert
     R(-3, -2, 2, 2, B); R(2, -2, 2, 2, B); R(-2, -10, 1, 8, B); R(2, -10, 1, 8, B); // Beine
     R(-4, -22 + bob, 9, 12, '#6c4c2c'); R(-4, -12 + bob, 2, 2, '#6c4c2c'); R(2, -12 + bob, 3, 3, '#6c4c2c'); R(-3, -21 + bob, 7, 1, '#8c6c44'); // Lumpen
     R(-1, -19 + bob, 3, 1, B); R(-1, -17 + bob, 3, 1, B); R(-1, -15 + bob, 3, 1, B); // Rippen im Riss
@@ -3975,6 +3976,7 @@ const Castle = (() => {
 
   // Bibliothekar (1×, Mitte unten = Füße): Gelehrtenkappe, weißer Bart, Brille, violette Robe mit Goldsaum, aufgeschlagenes Buch
   function drawLibrarian(ctx, cx, feet, t, flip) {
+    if (typeof UHR3D !== 'undefined' && UHR3D.draw(ctx, 'n_librarian' + (t % 170 < 12 ? 1 : 0), cx, feet, 20, 48, 0, flip)) return; // Blender-Figur (npc_bl.py), blättert um
     const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
     const bob = (t >> 5) % 2, turn = t % 170 < 12;
     R(-5, -2, 4, 2, '#2c1c14'); R(1, -2, 4, 2, '#2c1c14'); // Schuhe
@@ -4030,6 +4032,12 @@ const Castle = (() => {
   // ---- Easter-Egg-Figuren (je eine Szene, jederzeit ansprechbar) ----
   // Geist eines Speedrunners (Kaleidoskop): schwebt, flackert vor Ungeduld, Stirnband, Stoppuhr in der Hand (die Uhr ist nicht durchsichtig)
   function drawSpeedGhost(ctx, cx, feet, t, flip) {
+    if (typeof UHR3D !== 'undefined' && UHR3D.get('n_speed0')) { // Blender-Figur: schwebt, flackert vor Ungeduld; die Stoppuhr ist nicht durchsichtig
+      const bob = Math.round(Math.sin(t * 0.08) * 2) - 4, dir = flip ? -1 : 1;
+      ctx.save(); ctx.globalAlpha = 0.55 + 0.25 * Math.sin(t * 0.3) * Math.sin(t * 0.07);
+      UHR3D.draw(ctx, 'n_speed' + ((t >> 2) & 1), cx, feet + bob, 20, 48, 0, flip); ctx.restore();
+      UHR3D.draw(ctx, 'n_watch', cx + dir * 9 - 5, feet + bob - 25); return;
+    }
     const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
     const bob = Math.round(Math.sin(t * 0.08) * 2) - 4;
     ctx.save(); ctx.globalAlpha = 0.55 + 0.25 * Math.sin(t * 0.3) * Math.sin(t * 0.07);
@@ -4060,6 +4068,7 @@ const Castle = (() => {
   }
   // Wandhuhn (Fundbüro): sitzt auf einer Fundkiste, Fundzettel Nr. 13 am Bein, pickt ab und zu, blinzelt
   function drawChicken(ctx, cx, feet, t, flip) {
+    if (typeof UHR3D !== 'undefined' && UHR3D.draw(ctx, 'n_chicken' + (t % 120 < 10 ? 1 : 0), cx, feet, 20, 48, 0, flip)) return; // Blender-Figur, pickt ab und zu
     const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
     const peck = t % 120 < 10 ? 2 : 0, blink = t % 90 < 5;
     R(-8, -10, 16, 10, '#7c5428'); R(-8, -10, 16, 1, '#a07040'); R(-8, -5, 16, 1, '#5c3c1c'); R(-1, -10, 2, 10, '#5c3c1c'); // Kiste
@@ -4104,6 +4113,7 @@ const Castle = (() => {
   // Oberamtsrat Stempelmann (Amt für Heldentaten): blasser Beamter mit grünem Augenschirm, runder Brille, Ärmelschonern und Weste,
   // am Stehpult – der Stempel saust im Takt auf das Kissen
   function drawClerk(ctx, cx, feet, t, flip) {
+    if (typeof UHR3D !== 'undefined' && UHR3D.draw(ctx, 'n_clerk' + ((t >> 3) % 6 < 3 ? 0 : 1), cx, feet, 20, 48, 0, flip)) return; // Blender-Figur, der Stempel saust aufs Kissen
     const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
     const bob = (t >> 5) & 1, st = (t >> 3) % 6, up = st < 3 ? st : 6 - st, SK = '#e0d8c8';
     R(-3, -2, 3, 2, '#1c1418'); R(1, -2, 3, 2, '#1c1418'); R(-3, -12, 2, 10, '#3c3c48'); R(1, -12, 2, 10, '#3c3c48'); // Schuhe, Hose
@@ -4257,7 +4267,7 @@ const Castle = (() => {
     }
     lightUp(L, cx, cy) {
       if (this.b.who === 'conc') { const l = k3pt('desk', 1, this.cx, this.y + this.h); L.push({ x: l.x - cx, y: l.y - cy, r: 36, c: [140, 252, 160], a: 0.35 }); } // grüne Tresenlampe
-      const hd = ['bell', 'guide', 'clock', 'bones', 'barber', 'carto', 'cook'].includes(this.b.who); // Blender-Figuren sind schon beleuchtet: nur ein schwacher, warmer Schein (sonst überstrahlen Glatzen und Schädel)
+      const hd = ['bell', 'guide', 'clock', 'bones', 'barber', 'carto', 'cook', 'lib', 'pris', 'speed', 'clerk', 'chick'].includes(this.b.who); // Blender-Figuren sind schon beleuchtet: nur ein schwacher, warmer Schein (sonst überstrahlen Glatzen und Schädel)
       L.push({ x: this.cx - cx, y: this.y - cy + (hd ? 18 : 10), r: 30 + Math.sin(this.t * 0.05) * 2, c: hd ? [252, 210, 160] : this.b.who === 'lib' || this.b.who === 'conc' || this.b.who === 'gramo' ? [252, 200, 130] : this.b.who === 'tent' ? [200, 110, 250] : [190, 200, 255], a: hd ? 0.14 : 0.4 });
     }
     draw(ctx) {

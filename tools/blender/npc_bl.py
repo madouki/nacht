@@ -148,7 +148,96 @@ def cook(f):  # Kantinenchefin Schöpfkelle: Kochjacke, blaue Schürze, Haube, r
     lathe(20.5, [(8.0 + dy, 3.6), (8.8 + dy, 4.8), (11.5 + dy, 5.2), (13.5 + dy, 4.4), (14.8 + dy, 4.6)], M('#fcfcfc', 0.7), 0, 28)   # Haube
     shot('cook%d' % f)
 
-SS = CFG.get('ss', 8); W = CFG.get('what') or ['bell', 'guide', 'clock', 'kalle', 'anatol', 'carto', 'cook']
+# ---- dritte Runde: 40×48, Füße bei 20/48 ----
+def librarian(f):  # Bibliothekar: Gelehrtenkappe, weißer Bart, runde Brille, violette Robe mit Goldsaum, aufgeschlagenes Buch (f=1: Seite hoch)
+    mats(); skinmats()
+    ROBE, ROBED, GOLDH, CAPR, BEARD, PAGE, COVER = M('#4c3478', 0.7), M('#2c1c4c', 0.75), M('#d8a838', 0.3, 0.9), M('#6c1c2c', 0.6), M('#e8e8f0', 0.8), M('#f4ecd4', 0.7), M('#7c2c1c', 0.6)
+    for x in (17.5, 22.5): box(x, 46.8, -0.8, 4.4, 2.4, 5, M('#2c1c14', 0.5), 0.5)
+    lathe(20, [(25, 4.4), (28, 5.4), (36, 6.4), (44, 7.4), (46, 7.6)], ROBE, 0, 32); ringh(20, 45.4, 0, 7.55, 0.5, GOLDH)   # Robe mit Goldsaum
+    box(20.2, 36, -6.4, 0.7, 19, 0.4, GOLDH, 0)                                                                         # Goldnaht
+    tube((16, 26), (15, 33), 1.6, 1.5, ROBED, -0.5, -1.5)                                                               # Arm
+    tube((24, 26), (26, 31), 1.6, 1.5, ROBED, -0.5, -4); S(26.6, 31.6, -4.6, 1.2, SKIN)                                 # Arm hält das Buch
+    box(28.5, 33.2, -5.6, 9, 1.2, 4, COVER, 0.3); box(26.3, 32.2, -5.8, 4.2, 0.8, 3.6, PAGE, 0.2); box(30.7, 32.2, -5.8, 4.2, 0.8, 3.6, PAGE, 0.2)   # offenes Buch
+    if f: box(30, 29.6, -6.2, 3.8, 0.4, 3.0, PAGE, 0.1, math.radians(-50))                                              # Seite wird umgeblättert
+    head(20.5, 18.5, 4.4, 0)
+    for x, y, r in ((17.4, 22.5, 2.2), (20.6, 23.5, 2.6), (23.2, 22.4, 1.9), (20.4, 26.5, 2.0), (20.6, 29, 1.4)): S(x, y, -2.8, r, BEARD, r, r * 0.8)   # Bart
+    S(16.2, 18, 0, 1.6, BEARD); S(24.6, 17.2, 0.4, 1.3, BEARD)                                                          # Haar an den Seiten
+    for ex in (20.7, 23.3): ring(ex, 17.6, -4.2, 1.15, 0.25, M('#f8e070', 0.3, 0.9))                                    # runde Brille
+    lathe(20.5, [(12.2, 2.6), (13.0, 4.0), (14.6, 4.6), (15.2, 4.6)], CAPR, 0, 28); S(20.5, 12.0, 0, 0.9, M('#a03040', 0.5))   # Kappe mit Knopf
+    shot('librarian%d' % f)
+
+def prisoner(f):  # Gefangener: Skelett in Lumpen, Fußfessel, Teetasse; f=1: Kiefer klappert
+    mats(); skinmats()
+    BONE, BONED, RAG, RAGL, IRONK = M('#e8e0c8', 0.55), M('#a8a088', 0.6), M('#6c4c2c', 0.85), M('#8c6c44', 0.8), M('#5c5c6c', 0.4, 0.8)
+    for x in (18, 22): tube((x, 37), (x, 46.5), 0.75, 0.7, BONE, 0, 0); S(x + 0.6, 47, -0.4, 1.5, BONE, 1.7, 1.0)
+    ringh(18, 45.5, 0, 1.4, 0.55, IRONK)                                                                                # Fußfessel
+    lathe(20, [(25, 4.0), (27, 4.8), (33, 4.6), (37, 4.4), (38.5, 3.6)], RAG, 0, 24)                                     # Lumpen
+    for k in range(3): ringh(20.6, 29 + k * 2.0, -0.4, 3.9, 0.45, BONE)                                                 # Rippen
+    box(20.8, 31, -4.4, 3.4, 6.5, 0.6, M('#1c1410', 0.9), 0)                                                            # Riss im Stoff (dahinter Rippen)
+    for k in range(3): box(20.8, 29 + k * 2.0, -4.7, 3.0, 0.7, 0.3, BONE, 0)
+    for x in (16, 24): S(x, 38.4, -1, 1.6, RAGL, 1.4, 1.0)                                                              # Fransen
+    tube((16, 26), (15, 34), 0.6, 0.55, BONE, -0.5, -1)                                                                 # Arm
+    tube((24, 26), (26.5, 30), 0.6, 0.55, BONE, -0.5, -3); S(26.8, 30.3, -3.3, 0.9, BONE)                               # Arm mit Tasse
+    disc(28.5, 31.6, -3.5, 3.0, 0.5, M('#fcfcfc', 0.3), 24, 0.1).rotation_euler = (math.radians(80), 0, 0)            # Untertasse
+    lathe(28.5, [(28.4, 1.9), (29.5, 1.9), (30.8, 1.5), (31.3, 1.2)], M('#fcfcfc', 0.3), -3.5, 24); ring(30.6, 29.6, -3.5, 0.9, 0.3, M('#fcfcfc', 0.3))   # Tasse mit Henkel
+    S(20.5, 18.5, 0, 4.2, BONE, 4.0, 3.8)                                                                               # Schädel
+    for ex in (19.2, 22.4): S(ex, 18.0, -3.2, 1.1, PUP)
+    S(21.2, 20.4, -3.4, 0.55, PUP)
+    box(21, 23.2 + (0.9 if f else 0), -2.8, 4.4, 1.4, 1.0, BONED, 0.3)                                                  # Kiefer (klappert)
+    shot('prisoner%d' % f)
+
+def speedghost(f):  # Geist eines Speedrunners: durchscheinend (Durchsichtigkeit macht das Spiel), Stirnband, wehender Schweif
+    mats(); skinmats()
+    GH, GHD, BAND, EYE2 = M('#d8e8ff', 0.5, 0, 0.35), M('#a8c4f0', 0.5, 0, 0.25), M('#e83c3c', 0.5), M('#24304c', 0.4)
+    for k in range(6): S(20 - k * 0.5 + (0.6 if (k + f) % 2 else -0.6), 34 + k * 2.2, 0, 4.2 - k * 0.6, GH if k % 2 else GHD)   # Schweif statt Beine
+    S(20, 29, 0, 5.0, GH, 5.0, 4.6)                                                                                     # Leib
+    tube((24, 27), (27.5, 28), 1.3, 1.1, GH, -0.5, -3)                                                                  # Arm (hält die Stoppuhr)
+    S(20.5, 19.5, 0, 4.4, GH)                                                                                           # Kopf
+    ringh(20.5, 17.6, 0, 4.25, 0.7, BAND)                                                                               # Stirnband
+    e = 0.8 if f else -0.6
+    curve([(16.4, 17.6), (13.6, 18 + e), (11.6, 17.4 - e)], 0.7, 0.4, BAND, 0.5)                                       # wehende Enden
+    for ex in (20.6, 23.4): box(ex, 19.8, -4.0, 1.6, 0.6, 0.3, EYE2, 0)                                                 # verbissener Blick
+    box(22, 22.4, -3.8, 2.6, 0.5, 0.3, EYE2, 0)                                                                         # Mund
+    shot('speed%d' % f)
+
+def watch():  # 10×10 Stoppuhr (deckend)
+    mats(); disc(5, 5.6, 0, 4.0, 1.6, M('#c89020', 0.3, 0.9), 32, 0.4); disc(5, 5.6, -0.9, 3.0, 0.4, M('#fcf0c8', 0.5), 32, 0.1)
+    box(5, 1.0, 0, 1.4, 1.4, 1.4, M('#c89020', 0.3, 0.9), 0.3); box(5, 4.6, -1.2, 0.5, 2.2, 0.2, M('#c82828', 0.4), 0)
+    shot('watch')
+
+def clerk(f):  # Oberamtsrat Stempelmann: Augenschirm, runde Brille, Ärmelschoner, Weste, am Stehpult; f=1: Stempel unten
+    mats(); skinmats()
+    SKP, SHIRT, VEST, TIE, SLEEVE, VISOR, DESK, DESKL = M('#e0d8c8', 0.6), M('#f0ece0', 0.6), M('#5c5c6c', 0.65), M('#8c1c2c', 0.5), M('#1c1c24', 0.6), M('#2c7c4c', 0.3), M('#4c3020', 0.6), M('#5c3c24', 0.55)
+    for x in (18, 22): box(x, 46.8, -0.8, 4, 2.2, 5, M('#1c1418', 0.5), 0.5); tube((x, 36), (x, 45.8), 1.2, 1.3, M('#3c3c48', 0.7), 0, 0)
+    lathe(20, [(25, 3.8), (27, 4.6), (33, 4.4), (36.5, 4.2)], SHIRT, 0, 28)
+    prism(20, 30.5, -4.5, [(-3.6, -5), (-1, -5), (0, -1), (1, -5), (3.6, -5), (3.8, 5.5), (-3.8, 5.5)], 0.6, VEST, 0.2)   # Weste
+    prism(20, 28.5, -5.0, [(-0.6, -3), (0.6, -3), (0.9, 3), (0, 4), (-0.9, 3)], 0.4, TIE, 0.1)                            # Krawatte
+    tube((16, 26), (15, 33), 1.3, 1.2, SHIRT, -0.5, -1); tube((15.3, 30), (15, 33), 1.45, 1.35, SLEEVE, -1, -1.2); S(15, 33.4, -1.4, 1.1, SKP)   # Arm mit Ärmelschoner
+    up = 0 if f else 3.5
+    tube((24, 26), (27.5, 31 - up), 1.3, 1.2, SHIRT, -0.5, -3); tube((26, 29.5 - up * 0.5), (27.5, 31 - up), 1.45, 1.35, SLEEVE, -2, -3)
+    S(27.8, 31.3 - up, -3.3, 1.1, SKP); box(28.6, 29.4 - up, -3.3, 2.4, 3.2, 2.4, M('#74482c', 0.5), 0.4); box(28.6, 31.4 - up, -3.3, 3.6, 1.0, 3.0, M('#b81e2a', 0.5), 0.2)   # Stempel
+    box(30.5, 41, -1, 9, 12, 7, DESK, 0.5); box(30.5, 34.6, -1, 10, 1.2, 8, DESKL, 0.3); box(29.5, 33.6, -2, 5, 0.8, 4, M('#2c4c8c', 0.6), 0.2)   # Stehpult mit Stempelkissen
+    tube((20, 22.5), (20, 25), 1.1, 1.1, SKP, 0, 0)
+    S(20.5, 18.5, 0, 4.3, SKP, 4.1, 4.3); S(20, 15.4, 0.4, 3.8, M('#c8c4b8', 0.7), 4.0, 2.2)                           # Kopf, schütteres Haar
+    for ex in (20.6, 23.2): S(ex, 18.2, -3.6, 0.45, PUP); ring(ex, 18.2, -4.0, 1.1, 0.25, M('#c8c8d8', 0.3, 0.9))      # Augen, Brille
+    box(21.6, 21.2, -3.8, 2.4, 0.4, 0.3, M('#a89c8c', 0.5), 0)
+    box(21.6, 14.6, -3.0, 9.5, 0.6, 5.5, VISOR, 0.1, math.radians(-8))                                                 # grüner Augenschirm
+    shot('clerk%d' % f)
+
+def chicken(f):  # Wandhuhn auf der Fundkiste, Fundzettel Nr. 13; f=1: pickt
+    mats(); skinmats()
+    CRATE, CRATED, HEN, HENW, COMB, BEAK = M('#7c5428', 0.7), M('#5c3c1c', 0.75), M('#f4f0e4', 0.6), M('#d8d0bc', 0.65), M('#d82828', 0.5), M('#f8b800', 0.4)
+    box(20, 43, 0, 18, 10, 9, CRATE, 0.5); box(20, 38.4, -4.6, 18, 0.8, 0.3, M('#a07040', 0.6), 0); box(20, 43, -4.6, 18, 0.7, 0.3, CRATED, 0); box(20, 43, -4.7, 1.6, 10, 0.3, CRATED, 0)   # Fundkiste
+    S(19.5, 33.5, 0, 5.4, HEN, 5.6, 4.6); S(18, 33.8, -2.6, 3.4, HENW, 3.8, 1.8)                                        # Leib, Flügel
+    for k in range(3): S(14 - k * 0.6, 29.5 - k * 1.2, 0.5 - k, 1.6, HEN if k % 2 else HENW, 1.2, 2.4)                 # Schwanzfedern
+    hx, hy = (25.8, 30.5) if f else (24.4, 27.2)
+    S(hx, hy, -0.5, 2.6, HEN); S(hx - 0.3, hy - 2.6, -0.5, 1.0, COMB, 1.8, 1.0); S(hx + 0.4, hy + 2.2, -1.4, 0.7, COMB, 0.6, 1.0)   # Kopf, Kamm, Kehllappen
+    o = add('k', hx + 3.0, hy + 0.2, -0.8, 0.8, 0.8, 1.4, BEAK); o.rotation_euler = (0, math.radians(-90), 0)              # Schnabel
+    S(hx + 1.0, hy - 0.6, -2.2, 0.5, PUP)
+    box(22.5, 38.5, -4.2, 0.6, 2.0, 0.6, BEAK, 0); box(24.2, 40, -4.6, 3.4, 2.6, 0.3, M('#fcf4c8', 0.7), 0.1); text(24.2, 40, -4.8, '13', 1.8, M('#8c7c5c', 0.6))   # Fuß, Fundzettel Nr. 13
+    shot('chicken%d' % f)
+
+SS = CFG.get('ss', 8); W = CFG.get('what') or ['bell', 'guide', 'clock', 'kalle', 'anatol', 'carto', 'cook', 'librarian', 'prisoner', 'speed', 'clerk', 'chicken']
 os.makedirs(CFG['out'], exist_ok=True)
 for f in (0, 1):
     if 'bell' in W: stage(28, 44, SS); bellringer(f)
@@ -158,4 +247,10 @@ for f in (0, 1):
     if 'anatol' in W: stage(40, 48, SS); anatol(f)
     if 'carto' in W: stage(40, 48, SS); carto(f)
     if 'cook' in W: stage(40, 48, SS); cook(f)
+    if 'librarian' in W: stage(40, 48, SS); librarian(f)
+    if 'prisoner' in W: stage(40, 48, SS); prisoner(f)
+    if 'speed' in W: stage(40, 48, SS); speedghost(f)
+    if 'clerk' in W: stage(40, 48, SS); clerk(f)
+    if 'chicken' in W: stage(40, 48, SS); chicken(f)
+if 'speed' in W: stage(10, 10, SS); watch()
 print('done', W)

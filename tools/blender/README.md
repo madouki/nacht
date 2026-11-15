@@ -36,7 +36,8 @@ aufgebaut, mit drei Lichtern beleuchtet, stark überabgetastet gerendert und auf
 8. **Figuren der Seil-Räume:** `python bl.py npc_bl.py '{"dir": "<dieser Ordner>", "out": ".../r_npc", "ss": 8}'` rendert Glöckner,
    Bergführer und Uhrmacher (je 28×44, zwei Atembilder); `pack_uhr.py` nimmt den Ordner als viertes Argument mit in den Atlas
    (`n_bell0` …, um 26 % abgedunkelt, damit das Glühen sie nicht überstrahlt). Die Zeichner in castle.js nutzen sie zuerst.
-   Seit 20261115: auch Knochen-Kalle, Anatol, Kartograf, Kantinenchefin (40×48, Füße bei 20/48).
+   Seit 20261115: auch Knochen-Kalle, Anatol, Kartograf, Kantinenchefin, Bibliothekar, Gefangener, Speedrunner-Geist (+ Stoppuhr
+   `n_watch`), Stempelmann und Wandhuhn (40×48, Füße bei 20/48; eigene Bildwahl je Figur in den Zeichnern).
 
 Aussehen der Helden steht in `LOOK` (hero_bl.py), die Posen des Grafen in `count()` (count_bl.py). Bildgrößen, Anker und
 Kartenschlüssel bleiben, damit im Spiel nichts verrutscht.

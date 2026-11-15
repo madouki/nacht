@@ -8,6 +8,23 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 
 ---
 
+## 20261115-0409 – Fünf weitere Figuren aus Blender
+
+**Neu – Figuren aus Blender**
+- **Der Bibliothekar** (Bibliothek): Gelehrtenkappe, weißer Bart, runde Brille, violette Robe mit Goldsaum und -naht; er hält
+  ein aufgeschlagenes Buch und blättert ab und zu um – auch in seinem Laden.
+- **Der Gefangene** (Kerker): Skelett im zerrissenen Lumpen (die Rippen schauen durch), Fußfessel mit Kette zur Wand,
+  Teetasse samt Untertasse; der Kiefer klappert beim Reden.
+- **Der Geist eines Speedrunners** (Kaleidoskop): durchscheinend und flackernd, rotes Stirnband mit wehenden Enden, ein
+  Schweif statt Beinen – nur die Stoppuhr ist nicht durchsichtig.
+- **Oberamtsrat Stempelmann** (Amt für Heldentaten): grüner Augenschirm, runde Brille, schütteres Haar, Weste mit roter
+  Krawatte, Ärmelschoner; am Stehpult saust der Stempel aufs Kissen.
+- **Fundsache Nr. 13** (Fundbüro): das Huhn auf der Fundkiste, mit Fundzettel am Bein; es pickt ab und zu.
+- Damit sind bis auf den Portier (mit der wachsenden Nase) und den Tentakel alle Figuren aus Blender.
+
+**Beim Testen ansehen**
+- Bibliothek, Kerker, Kaleidoskop, Amt, Fundbüro: passen die Figuren, sind die Porträts im Gespräch gut zu erkennen?
+
 ## 20261115-0320 – Vier weitere Figuren aus Blender
 
 **Neu – Figuren aus Blender**
