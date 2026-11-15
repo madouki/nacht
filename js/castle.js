@@ -4045,6 +4045,7 @@ const Castle = (() => {
   }
   // Knochen-Kalle, Betriebsrat der Skelette (Gruftgang): Schiebermütze, rote Armbinde, Protestschild auf dem Stiel
   function drawBones(ctx, cx, feet, t, flip) {
+    if (typeof UHR3D !== 'undefined' && UHR3D.draw(ctx, 'n_kalle' + ((t >> 5) & 1), cx, feet, 20, 48, 0, flip)) return; // Blender-Figur (tools/blender/npc_bl.py)
     const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
     const bob = (t >> 4) & 1, wave = Math.round(Math.sin(t * 0.1) * 1.5), BN = '#e8e4d0', BD = '#a8a490';
     R(-4, -2, 3, 2, BN); R(1, -2, 3, 2, BN); R(-3, -12, 1, 10, BN); R(2, -12, 1, 10, BN);     // Füße, Beine
@@ -4071,6 +4072,7 @@ const Castle = (() => {
   }
   // Friseur Anatol (Lichterpassage): hager, gestreiftes Hemd, Schürze, gezwirbelter Schnurrbart, klappernde Schere, Pflaster an jedem Finger
   function drawBarber(ctx, cx, feet, t, flip) {
+    if (typeof UHR3D !== 'undefined' && UHR3D.draw(ctx, 'n_anatol' + ((t >> 5) & 1), cx, feet, 20, 48, 0, flip)) return; // Blender-Figur (tools/blender/npc_bl.py)
     const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
     const bob = (t >> 5) & 1, snip = (t >> 3) % 4 < 2, SK = '#e8b088';
     R(-4, -2, 3, 2, '#1c1410'); R(1, -2, 3, 2, '#1c1410'); R(-3, -12, 2, 10, '#2c2c3c'); R(1, -12, 2, 10, '#2c2c3c'); // Schuhe, Hose
@@ -4086,6 +4088,7 @@ const Castle = (() => {
   }
   // Der Kartograf (Pendelhalle, oben): alter Mann mit Kneifer und zerzaustem Haar, Kartenrollen unterm Arm, der Federkiel kritzelt, die Karte schleift am Boden
   function drawCarto(ctx, cx, feet, t, flip) {
+    if (typeof UHR3D !== 'undefined' && UHR3D.draw(ctx, 'n_carto' + ((t >> 5) & 1), cx, feet, 20, 48, 0, flip)) return; // Blender-Figur (tools/blender/npc_bl.py)
     const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
     const bob = (t >> 5) & 1, scr = (t >> 2) & 1;
     R(-15, -2, 12, 2, '#e8dcb8'); R(-15, -2, 12, 1, '#c8b890'); R(-12, -1, 3, 1, '#7c5c34'); R(-7, -1, 2, 1, '#2c6c9c'); // Karte am Boden
@@ -4163,6 +4166,7 @@ const Castle = (() => {
     R(6, -40, 1, 22, '#c8a868'); R(5, -19, 3, 3, '#a87c40');                                  // Glockenseil mit Griff
   }
   function drawCook(ctx, cx, feet, t, flip) {
+    if (typeof UHR3D !== 'undefined' && UHR3D.draw(ctx, 'n_cook' + ((t >> 5) & 1), cx, feet, 20, 48, 0, flip)) return; // Blender-Figur (tools/blender/npc_bl.py)
     const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
     const bob = (t >> 5) & 1, st = (t >> 3) % 8, SK = '#f0c0a0', sw = [0, 1, 2, 1, 0, -1, -2, -1][st];
     R(-4, -2, 3, 2, '#e8e8e8'); R(1, -2, 3, 2, '#e8e8e8'); R(-4, -10, 3, 8, '#3c3c58'); R(1, -10, 3, 8, '#3c3c58');                 // Clogs, Beine
@@ -4253,7 +4257,7 @@ const Castle = (() => {
     }
     lightUp(L, cx, cy) {
       if (this.b.who === 'conc') { const l = k3pt('desk', 1, this.cx, this.y + this.h); L.push({ x: l.x - cx, y: l.y - cy, r: 36, c: [140, 252, 160], a: 0.35 }); } // grüne Tresenlampe
-      const hd = this.b.who === 'bell' || this.b.who === 'guide' || this.b.who === 'clock'; // Blender-Figuren sind schon beleuchtet: nur ein schwacher, warmer Schein (sonst überstrahlen Glatzen und Schädel)
+      const hd = ['bell', 'guide', 'clock', 'bones', 'barber', 'carto', 'cook'].includes(this.b.who); // Blender-Figuren sind schon beleuchtet: nur ein schwacher, warmer Schein (sonst überstrahlen Glatzen und Schädel)
       L.push({ x: this.cx - cx, y: this.y - cy + (hd ? 18 : 10), r: 30 + Math.sin(this.t * 0.05) * 2, c: hd ? [252, 210, 160] : this.b.who === 'lib' || this.b.who === 'conc' || this.b.who === 'gramo' ? [252, 200, 130] : this.b.who === 'tent' ? [200, 110, 250] : [190, 200, 255], a: hd ? 0.14 : 0.4 });
     }
     draw(ctx) {
@@ -4362,7 +4366,7 @@ const Castle = (() => {
     else if (who === 'T') { ctx.translate(x + 18, y + 80); ctx.scale(2, 2); drawTentacle(ctx, 0, 0, t, false); }
     else if (who === 'P') { ctx.translate(x + 20, y + 66); ctx.scale(2, 2); drawPrisoner(ctx, 0, 0, t, false); }
     else if (who === 'C') { ctx.translate(x + 18, y + 70); ctx.scale(2, 2); drawConcierge(ctx, 0, 0, t, false, talk ? noseOf(talk.npc) : 0); }
-    else if (EGG_OF[who]) { const lift = { S: 66, B: 74, W: 54, F: 70, M: 66, O: 70, E: 84 , N: 70 , G: 74 , U: 70 }[who]; ctx.translate(x + 18, y + lift); ctx.scale(2, 2); EGG[EGG_OF[who]](ctx, 0, 0, t, false); }
+    else if (EGG_OF[who]) { const lift = { S: 66, B: 74, W: 54, F: 70, M: 70, O: 70, E: 74 , N: 70 , G: 74 , U: 70 }[who]; ctx.translate(x + 18, y + lift); ctx.scale(2, 2); EGG[EGG_OF[who]](ctx, 0, 0, t, false); }
     else {
       const H = HEROES.get(who === 'A' ? allyId() : Options.character), spr = H.idle[0], img = who === 'H' ? spr.f : spr.c;
       ctx.imageSmoothingEnabled = false;

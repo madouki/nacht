@@ -8,6 +8,21 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 
 ---
 
+## 20261115-0320 – Vier weitere Figuren aus Blender
+
+**Neu – Figuren aus Blender**
+- **Knochen-Kalle** (Gruftgang), Betriebsrat der Skelette: Schiebermütze, rote Armbinde und ein Schild mit „STREIK“.
+- **Friseur Anatol** (Lichterpassage): Ringelhemd, weiße Schürze, Pomade, gezwirbelter Schnurrbart, zugekniffene Augen –
+  die Schere klappert, an den Fingern Pflaster.
+- **Der Kartograf** (Pendelhalle, oben): wildes weißes Haar, goldener Kneifer, langer Mantel, Kartenrollen unterm Arm,
+  der Federkiel kritzelt, die Karte schleift am Boden.
+- **Kantinenchefin Schöpfkelle** (Kantine): Kochhaube, rote Wangen, blaue Schürze, die Kelle rührt im Suppentopf –
+  auch im Kantinen-Laden.
+- Alle vier atmen (zwei Bilder) und zeigen sich auch im Gesprächsporträt; die Porträt-Ausschnitte sind angepasst.
+
+**Beim Testen ansehen**
+- Gruftgang, Lichterpassage, Pendelhalle oben, Kantine: passen die neuen Figuren in ihre Räume?
+
 ## 20261115-0214 – Glöckner, Bergführer und Uhrmacher aus Blender
 
 **Neu – Figuren aus Blender**

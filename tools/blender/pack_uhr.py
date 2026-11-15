@@ -10,8 +10,9 @@ SZ = {'house': (128, 96), 'bird0': (32, 24), 'bird1': (32, 24), 'bob': (28, 28),
       'hand': (96, 14), 'hub': (40, 40), 'gearB': (112, 112), 'gearS': (64, 64),
       'bell': (64, 96), 'trolley0': (24, 14), 'trolley1': (24, 14), 'rail': (32, 9), 'lion': (14, 20)}
 if npc: SZ.update({'n_' + k + str(f): (28, 44) for k in ('bell', 'guide', 'clock') for f in (0, 1)})   # Glöckner, Bergführer, Uhrmacher
+if npc: SZ.update({'n_' + k + str(f): (40, 48) for k in ('kalle', 'anatol', 'carto', 'cook') for f in (0, 1)})   # Knochen-Kalle, Anatol, Kartograf, Kantinenchefin
 names = sorted(SZ, key=lambda n: -SZ[n][1])
-W = 512; x = y = rowh = 0; MAP = {}
+W = 640; x = y = rowh = 0; MAP = {}
 for n in names:   # Regale: nach Höhe sortiert, Zeile für Zeile
     w, h = SZ[n]
     if x + w > W: x = 0; y += rowh + 1; rowh = 0
