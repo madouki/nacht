@@ -1,6 +1,7 @@
 # Uhrwerk-Teile für NACHTMAHR in Blender (Glockenstuhl, Zeigerkammer, Kuckucksuhr): Kuckucksuhr-Gehäuse 128×96, Kuckuck
 # (geschlossen/offen) 32×24, Pendelgewicht 28×28, Tannenzapfen 10×16, Zifferblatt 188×188, Zeiger 96×14 (Achse bei 22/7),
-# Stachelnabe 40×40, Zahnräder für die Wand 112×112 und 64×64. Alles in Spielpixeln, SS-fach überabgetastet.
+# Stachelnabe 40×40, Zahnräder für die Wand 112×112 und 64×64; Glocke 64×96, Laufkatze 24×14 (zwei Radstellungen), Schiene
+# 32×9 (kachelbar), Löwenkopf-Düse 14×20. Alles in Spielpixeln, SS-fach überabgetastet.
 # Aufruf über den Add-on-Socket: CFG = {'dir', 'out', 'ss', 'what': [...]}; danach pack_uhr.py.
 import bpy, bmesh, math, os
 _src = open(os.path.join(CFG['dir'], 'count_bl.py'), encoding='utf-8').read()
@@ -45,6 +46,10 @@ def disc(px, py, y, r, d, mat, n=48, bev=0.3):
 def ring(px, py, y, r, t, mat):  # Wulst (Torus) in der Bildebene
     bpy.ops.mesh.primitive_torus_add(major_radius=r, minor_radius=t, major_segments=64, minor_segments=12)
     o = bpy.context.object; bpy.ops.object.shade_smooth(); o.rotation_euler = (math.radians(90), 0, 0); o.location = (px - FW / 2, y, FH - py)
+    o.data.materials.append(mat); OBJ.append(o); return o
+def ringh(px, py, y, r, t, mat):  # waagerechter Wulst (Band um einen Rotationskörper)
+    bpy.ops.mesh.primitive_torus_add(major_radius=r, minor_radius=t, major_segments=64, minor_segments=10)
+    o = bpy.context.object; bpy.ops.object.shade_smooth(); o.location = (px - FW / 2, y, FH - py)
     o.data.materials.append(mat); OBJ.append(o); return o
 def curve(pts, r0, r1, mat, y=0.0, n=10):
     P = []
@@ -153,7 +158,55 @@ def gear(name, size, teeth, ro, ri, mat, matd, holes):
     disc(c, c, -4.4, ri * 0.24, 2.4, mat, 32, 0.5); S(c, c, -5.6, ri * 0.09, IRON)
     shot(name)
 
-SS = CFG.get('ss', 6); W = CFG.get('what') or ['house', 'bird', 'bob', 'cone', 'dial', 'hand', 'hub', 'gears']
+def lathe(cx, prof, mat, y=0.0, n=40):  # Rotationskörper: prof = [(py, Radius), ...] von oben nach unten
+    m = len(prof) - 1
+    def f(u, v):
+        py, r = prof[min(m, int(round(v * m)))]; th = u * 2 * math.pi
+        return (cx + math.cos(th) * r, py, y + math.sin(th) * r)
+    return grid(f, n, m, mat)
+
+def bell():  # 64×96: Glocke mit Krone, Drehpunkt bei (32, 6); Profil wie die gezeichnete (Schulter, Flanke, ausgestellter Schlagring)
+    mats(); cx = 32; top = 6; bh = 90; bw = 64
+    BR, BRD, BRL = M('#b8862c', 0.32, 0.9), M('#6c4414', 0.45, 0.85), M('#e8c070', 0.25, 0.95)
+    prof = lambda k: 0.18 + 0.12 * (k / 0.08) if k < 0.08 else 0.30 + 0.05 * (k - 0.08) / 0.67 if k < 0.75 else 0.35 + 0.15 * ((k - 0.75) / 0.25) ** 1.6
+    P = [(top + k / 60 * bh, min(0.5, prof(k / 60)) * bw * 0.98) for k in range(61)]
+    lathe(cx, [(top - 0.5, 0.1)] + P, BR, 0, 48)
+    for k, t in ((0.3, 1.0), (0.34, 0.8), (0.8, 1.1), (0.93, 1.2)): ringh(cx, top + k * bh, 0, min(0.5, prof(k)) * bw * 0.985, t, BRD)   # Zierbänder
+    for i in range(9): S(cx - 18 + i * 4.5, top + 0.47 * bh, -min(0.5, prof(0.47)) * bw * 0.9, 0.9, BRD)                            # Inschrift (Punkte)
+    disc(cx, top + 0.6 * bh, -21.2, 4.2, 1.2, BRD, 32, 0.3); disc(cx, top + 0.6 * bh, -21.9, 3.2, 0.8, BRL, 32, 0.3); S(cx, top + 0.6 * bh, -22.6, 1.2, BRD)   # Medaillon
+    for dx in (-5, 0, 5): ring(cx + dx, top - 2, 0, 3.0, 1.2, BRD)                                                                 # Krone (Henkel)
+    tube((cx - 8, top - 0.5), (cx + 8, top - 0.5), 1.4, 1.4, BRD, 0, 0)
+    shot('bell')
+
+def trolley(ph):  # 24×14: Laufkatze, Schienenhöhe bei y 4; zwei Räder (Speichen um 45° versetzt), Messinggehäuse, Gehänge
+    mats()
+    for wx in (7, 17):
+        disc(wx, 4, -1.5, 3.2, 2.2, IRON, 24, 0.3); disc(wx, 4, -2.8, 1.0, 1.0, IRONL, 12, 0.2)
+        for k in range(2): a = ph * math.pi / 4 + k * math.pi / 2; box(wx, 4, -2.7, 0.7, 5.6, 0.6, IRONL, 0, a)
+    box(12, 8, 0, 18, 5, 6, BRASS, 0.8); box(12, 6.1, -3.2, 16, 1, 0.8, M('#fce0a0', 0.3, 0.9), 0)
+    S(5, 8, -3.2, 0.8, BRASSD); S(19, 8, -3.2, 0.8, BRASSD)
+    tube((12, 10.5), (12, 13), 1.0, 1.0, IRONL, 0, 0)
+    shot('trolley%d' % ph)
+
+def rail():  # 32×9 kachelbar: Eichenbalken (y 0..6) mit eiserner Laufschiene (y 5..7), eine Niete
+    mats()
+    box(16, 3, 0, 32.02, 6, 6, M('#4c3018', 0.6), 0); box(16, 0.6, -3.05, 32.02, 0.9, 0.2, M('#8c6438', 0.5), 0)
+    for gy in (2.0, 3.6): box(16, gy, -3.1, 32.02, 0.35, 0.1, M('#3c2410', 0.7), 0)                                  # Maserung
+    box(16, 6.2, -1.0, 32.02, 2.0, 5, IRONL, 0); box(16, 5.4, -3.6, 32.02, 0.5, 0.2, M('#e8e8f0', 0.2, 0.9), 0)
+    S(16, 3, -3.4, 1.0, IRON, 1.0, 0.6)
+    shot('rail')
+
+def lion():  # 14×20: Löwenkopf-Düse aus Eisen, Maul nach rechts (Strahl nach rechts); y 1..19
+    mats(); IRD, IRM = M('#2c2834', 0.45, 0.8), M('#4c4858', 0.38, 0.85)
+    box(5, 10, 1, 8, 19, 4, IRD, 0.6)                                                           # Wandplatte
+    for i in range(9): a = -math.pi / 2 + i * math.pi / 8; S(7 + math.cos(a) * 5.2, 10 + math.sin(a) * 6.2, -2, 2.0, IRM, 2.0, 1.4)   # Mähne
+    S(8, 10, -3.2, 4.2, IRM, 3.8, 2.6)                                                           # Kopf
+    S(10.5, 11.5, -4.6, 2.6, IRM, 2.2, 1.6)                                                      # Schnauze
+    S(9.2, 7.6, -5.4, 0.8, M('#c83c1c', 0.3, 0, 0.8)); S(11.6, 7.6, -5.2, 0.6, M('#c83c1c', 0.3, 0, 0.8))   # glühende Augen
+    S(12.4, 12.6, -4.6, 1.5, VOID, 1.2, 1.2)                                                     # offenes Maul
+    shot('lion')
+
+SS = CFG.get('ss', 6); W = CFG.get('what') or ['house', 'bird', 'bob', 'cone', 'dial', 'hand', 'hub', 'gears', 'bell', 'trolley', 'rail', 'lion']
 os.makedirs(CFG['out'], exist_ok=True)
 if 'house' in W: stage(128, 96, SS); house()
 if 'bird' in W: stage(32, 24, SS); bird(False); bird(True)
@@ -162,6 +215,10 @@ if 'cone' in W: stage(10, 16, SS); cone()
 if 'dial' in W: stage(188, 188, max(3, SS // 2)); dial()
 if 'hand' in W: stage(96, 14, SS); hand()
 if 'hub' in W: stage(40, 40, SS); hub()
+if 'bell' in W: stage(64, 96, SS); bell()
+if 'trolley' in W: stage(24, 14, SS); trolley(0); trolley(1)
+if 'rail' in W: stage(32, 9, SS); rail()
+if 'lion' in W: stage(14, 20, SS); lion()
 if 'gears' in W:
     stage(112, 112, max(3, SS // 2)); mats(); gear('gearB', 112, 24, 54, 46, BRASS, BRASSD, 6)
     stage(64, 64, SS); mats(); gear('gearS', 64, 14, 30, 24, IRON, IRONL, 4)

@@ -9,7 +9,7 @@
 // Vorgerenderte Uhrwerk-Teile (Blender, tools/blender/uhr_bl.py → pack_uhr.py → img/uhr3d.png): Kuckucksuhr-Gehäuse, Kuckuck,
 // Pendelgewicht, Tannenzapfen, Zifferblatt, Zeiger, Stachelnabe, Zahnräder. Bis das Bild geladen ist, malen die Klassen selbst.
 const UHR3D = (() => {
-  const UHR_MAP = {"dial":[0,0,188,188],"gearB":[189,0,112,112],"house":[302,0,128,96],"gearS":[431,0,64,64],"hub":[0,189,40,40],"bob":[41,189,28,28],"bird0":[70,189,32,24],"bird1":[103,189,32,24],"cone":[136,189,10,16],"hand":[147,189,96,14]};
+  const UHR_MAP = {"dial":[0,0,188,188],"gearB":[189,0,112,112],"house":[302,0,128,96],"bell":[431,0,64,96],"gearS":[0,189,64,64],"hub":[65,189,40,40],"bob":[106,189,28,28],"bird0":[135,189,32,24],"bird1":[168,189,32,24],"lion":[201,189,14,20],"cone":[216,189,10,16],"hand":[227,189,96,14],"trolley0":[324,189,24,14],"trolley1":[349,189,24,14],"rail":[374,189,32,9]};
   const C = {}, img = new Image();
   img.onload = () => { for (const [n, r] of Object.entries(UHR_MAP)) { const c = Sprites.canvas(r[2], r[3]); c.getContext('2d').drawImage(img, r[0], r[1], r[2], r[3], 0, 0, r[2], r[3]); C[n] = c; } };
   img.src = 'img/uhr3d.png';
@@ -53,6 +53,13 @@ class SwingBell extends Ent {
     ctx.fillStyle = '#3c2414'; ctx.fillRect(x0 - 6, top - 6, w + 12, 7);
     ctx.fillStyle = '#5c3c20'; ctx.fillRect(x0 - 6, top - 6, w + 12, 2);
     ctx.fillStyle = '#24242c'; ctx.fillRect(cx - 7, top - 6, 2, 7); ctx.fillRect(cx + 5, top - 6, 2, 7);
+    if (UHR3D.get('bell')) { // Blender-Glocke: Krone, Zierbänder, Inschrift, Medaillon; darunter Klöppel gezeichnet
+      UHR3D.draw(ctx, 'bell', cx, top, 32, 6, this.sw || 1e-4);
+      ctx.save(); ctx.translate(cx, top); ctx.rotate(this.sw);
+      const bh = h + 10, kl = Math.sin(this.t * 0.05) * 2 + this.sw * 40;
+      ctx.fillStyle = '#3c3c44'; ctx.fillRect(-1 + Math.round(kl * 0.3), bh - 6, 2, 5); ctx.fillStyle = '#1c1c24'; ctx.fillRect(-2 + Math.round(kl * 0.4), bh - 1, 4, 3);
+      ctx.restore(); return;
+    }
     ctx.save(); ctx.translate(cx, top); ctx.rotate(this.sw);
     const bw = w, bh = h + 10; // Glockenform: Krone, schmale Schulter, leicht gebauchte Flanke, weit ausgestellter Schlagring
     const prof = (k) => k < 0.08 ? 0.18 + 0.12 * (k / 0.08) : k < 0.75 ? 0.30 + 0.05 * (k - 0.08) / 0.67 : 0.35 + 0.15 * Math.pow((k - 0.75) / 0.25, 1.6);
@@ -97,7 +104,7 @@ class FlameJet extends Ent {
     const nX = d.from === 'R' ? sx + w : sx, dir = d.from === 'R' ? -1 : 1;
     // Düse: Löwenkopf aus Eisen in der Wand (Maul offen, glüht vor dem Stoß)
     const hx = d.from === 'R' ? nX - 2 : nX - 8;
-    ctx.fillStyle = '#1c1c24'; ctx.fillRect(hx, sy - 4, 10, 18); ctx.fillStyle = '#4c4c5c'; ctx.fillRect(hx + 1, sy - 3, 8, 3); ctx.fillStyle = '#2c2c38'; ctx.fillRect(hx + 1, sy + 10, 8, 3);
+    if (!UHR3D.draw(ctx, 'lion', d.from === 'R' ? hx + 12 : hx - 2, sy - 5, 0, 0, 0, d.from === 'R')) { ctx.fillStyle = '#1c1c24'; ctx.fillRect(hx, sy - 4, 10, 18); ctx.fillStyle = '#4c4c5c'; ctx.fillRect(hx + 1, sy - 3, 8, 3); ctx.fillStyle = '#2c2c38'; ctx.fillRect(hx + 1, sy + 10, 8, 3); }
     const hot = this.on() ? 1 : this.warn() ? 0.5 + 0.5 * Math.sin(this.t * 0.6) : 0.15;
     ctx.fillStyle = `rgba(252,${Math.round(90 + 120 * hot)},40,${(0.4 + 0.6 * hot).toFixed(2)})`; ctx.fillRect(hx + 3, sy + 2, 4, 6);
     if (this.on()) { // Strahl: drei Lagen, zum Ende hin schmaler und flackernd
@@ -135,15 +142,24 @@ class TrolleyRing extends Ring {
   draw(ctx) {
     const d = this.d, ry = d.y * T - 6 - W.cam.y, x0 = d.x0 * T - W.cam.x, x1 = (d.x1 + 1) * T - W.cam.x;
     if (x1 > -20 && x0 < View.w + 20 && ry > -20 && ry < 250) { // Schiene: Eichenbalken mit Eisenband und Nieten, an Ketten unter der Decke
+      const RS = UHR3D.get('rail');
+      if (RS) { // Blender-Schiene, gekachelt (32 px), am Ende abgeschnitten
+        ctx.save(); ctx.beginPath(); ctx.rect(Math.round(x0), Math.round(ry - 6), Math.round(x1 - x0), 12); ctx.clip();
+        for (let x = Math.round(x0); x < x1; x += 32) ctx.drawImage(RS, x, Math.round(ry - 5));
+        ctx.restore();
+      } else {
       ctx.fillStyle = '#3c2814'; ctx.fillRect(Math.round(x0), Math.round(ry - 5), Math.round(x1 - x0), 6);   // Eichenbalken
       ctx.fillStyle = '#8c6438'; ctx.fillRect(Math.round(x0), Math.round(ry - 5), Math.round(x1 - x0), 1);   // Lichtkante
       ctx.fillStyle = '#a8a8b8'; ctx.fillRect(Math.round(x0), Math.round(ry), Math.round(x1 - x0), 2);       // Laufschiene aus Eisen
       ctx.fillStyle = '#e8e8f0'; ctx.fillRect(Math.round(x0), Math.round(ry), Math.round(x1 - x0), 1);       // Glanz auf der Schiene
+      }
       for (let x = Math.ceil(x0 / 32) * 32; x < x1; x += 32) { ctx.fillStyle = '#7c7c8c'; ctx.fillRect(Math.round(x), Math.round(ry - 3), 1, 1); ctx.fillStyle = '#1c1c24'; for (let y = ry - 6; y > -W.cam.y + 16 && y > ry - 70; y -= 4) ctx.fillRect(Math.round(x) + 8, Math.round(y), 1, 3); }
       const cx = Math.round(this.cx - W.cam.x), turn = (this.x - this.home) * 0.4; // Laufkatze: zwei Räder auf der Schiene, Gehänge zum Ring
+      if (!UHR3D.draw(ctx, (Math.floor(turn / 2) & 1) ? 'trolley1' : 'trolley0', cx - 12, Math.round(ry) - 4)) { // Blender-Laufkatze, die Räder drehen sich mit
       ctx.fillStyle = '#c89020'; ctx.fillRect(cx - 8, Math.round(ry + 2), 16, 4); ctx.fillStyle = '#fce0a0'; ctx.fillRect(cx - 8, Math.round(ry + 2), 16, 1); // Messinggehäuse unter der Schiene
       for (const wx of [cx - 5, cx + 5]) { ctx.fillStyle = '#24242c'; ctx.fillRect(wx - 2, Math.round(ry - 2), 4, 4); ctx.fillStyle = '#e8e8f0'; ctx.fillRect(wx - 1 + (Math.floor(turn) & 1), Math.round(ry - 1), 1, 1); } // Räder
       ctx.fillStyle = '#7c7c8c'; ctx.fillRect(cx - 1, Math.round(ry + 6), 2, 3);
+      }
     }
     super.draw(ctx);
   }

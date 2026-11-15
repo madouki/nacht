@@ -8,6 +8,24 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 
 ---
 
+## 20261115-0122 – Seil-Räume in HD und eine Seillängen-Anzeige
+
+**Neu – Grafik aus Blender**
+- **Glockenstuhl:** die große Glocke ist jetzt gegossene Bronze – Krone mit drei Henkeln, Zierbänder, eine Punkt-Inschrift
+  und ein Medaillon; sie schwingt wie bisher nach, wenn man dagegen prallt (BONG). Die Feuerdüsen sind eiserne Löwenköpfe
+  mit glühenden Augen.
+- **Tropfsteinklamm:** die Laufkatzen sind Messinggehäuse mit Speichenrädern, die sich beim Fahren drehen; die Schiene ist ein
+  gemaserter Eichenbalken mit eiserner Laufschiene.
+
+**Neu – Seillängen-Anzeige**
+- Solange du am Ring mit ↑ oder ↓ die Länge verstellst, zeigt eine schmale goldene Leiste neben dem Helden, wie lang das Seil
+  gerade ist (oben ganz kurz, unten ganz lang, Striche bei einem Viertel, der Hälfte und drei Vierteln). Kurz nach dem
+  Loslassen blendet sie aus.
+
+**Beim Testen ansehen**
+- Hilft die Seillängen-Anzeige (z. B. an der Glocke oder bei der Kuckucksuhr), oder stört sie? Zu klein, zu groß?
+- Sehen Glocke, Laufkatze und Löwenköpfe im Spiel stimmig aus?
+
 ## 20261114-1928 – Uhrwerk in HD: Blender-Uhren, Zahnrad-Wand, Uhrwerk-Toccata
 
 **Neu – Grafik aus Blender (Richtung HD-3D)**

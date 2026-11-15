@@ -7,7 +7,8 @@ ns = {}; exec(open(os.path.join(here, 'pack.py'), encoding='utf-8').read().split
 down, grade = ns['down'], ns['grade']
 src, js, png = sys.argv[1:4]
 SZ = {'house': (128, 96), 'bird0': (32, 24), 'bird1': (32, 24), 'bob': (28, 28), 'cone': (10, 16), 'dial': (188, 188),
-      'hand': (96, 14), 'hub': (40, 40), 'gearB': (112, 112), 'gearS': (64, 64)}
+      'hand': (96, 14), 'hub': (40, 40), 'gearB': (112, 112), 'gearS': (64, 64),
+      'bell': (64, 96), 'trolley0': (24, 14), 'trolley1': (24, 14), 'rail': (32, 9), 'lion': (14, 20)}
 names = sorted(SZ, key=lambda n: -SZ[n][1])
 W = 512; x = y = rowh = 0; MAP = {}
 for n in names:   # Regale: nach Höhe sortiert, Zeile für Zeile

@@ -795,6 +795,8 @@ class Player {
 
   updateSwing(I, P) {
     const r = this.ring;
+    if (this.ropeShowT > 0) this.ropeShowT--;
+    if (I.up || I.down) this.ropeShowT = 50; // Seillänge wird verstellt: Anzeige am Helden einblenden
     this.swW += -(GRAV / this.swL) * Math.sin(this.swA);
     if (I.left) this.swW -= 0.0034;
     if (I.right) this.swW += 0.0034;
@@ -1029,6 +1031,16 @@ class Player {
       for (let k = 0; k <= m; k++) {
         ctx.fillStyle = this.sword ? (k % 2 ? '#8c6440' : '#c8a070') : this.whip === 1 ? (k % 3 ? PAL.b : PAL.B) : (k % 2 ? PAL.g : PAL.W);
         ctx.fillRect(Math.round(hx + (rx - hx) * k / n), Math.round(hy + (ry - hy) * k / n), 2, 2);
+      }
+      if (this.ropeShowT > 0) { // Seillänge: senkrechte Leiste neben dem Helden (oben kurz, unten lang), Striche bei 25/50/75 %
+        const a = Math.min(1, this.ropeShowT / 12), gx = Math.round(this.cx - cam.x - this.face * 11) - 1, gy = Math.round(this.feet - 33 - cam.y), H2 = 30;
+        const k = clamp((this.swL - 24) / (ROPE_MAX - 24), 0, 1);
+        ctx.save(); ctx.globalAlpha = a;
+        ctx.fillStyle = 'rgba(8,4,16,0.75)'; ctx.fillRect(gx - 1, gy - 1, 5, H2 + 2);
+        ctx.fillStyle = '#f8d878'; ctx.fillRect(gx, gy, 3, Math.max(1, Math.round(H2 * k)));
+        ctx.fillStyle = '#fcfcfc'; ctx.fillRect(gx - 1, gy + Math.round(H2 * k) - 1, 5, 2);
+        ctx.fillStyle = '#5c4c2c'; for (const q of [0.25, 0.5, 0.75]) ctx.fillRect(gx, gy + Math.round(H2 * q), 1, 1);
+        ctx.restore();
       }
     }
     if (this.rageT > 0) this.drawRage(ctx, cam);
