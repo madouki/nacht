@@ -9,7 +9,7 @@
 // Vorgerenderte Uhrwerk-Teile (Blender, tools/blender/uhr_bl.py → pack_uhr.py → img/uhr3d.png): Kuckucksuhr-Gehäuse, Kuckuck,
 // Pendelgewicht, Tannenzapfen, Zifferblatt, Zeiger, Stachelnabe, Zahnräder. Bis das Bild geladen ist, malen die Klassen selbst.
 const UHR3D = (() => {
-  const UHR_MAP = {"dial":[0,0,188,188],"gearB":[189,0,112,112],"house":[302,0,128,96],"bell":[431,0,64,96],"gearS":[0,189,64,64],"hub":[65,189,40,40],"bob":[106,189,28,28],"bird0":[135,189,32,24],"bird1":[168,189,32,24],"lion":[201,189,14,20],"cone":[216,189,10,16],"hand":[227,189,96,14],"trolley0":[324,189,24,14],"trolley1":[349,189,24,14],"rail":[374,189,32,9]};
+  const UHR_MAP = {"dial":[0,0,188,188],"gearB":[189,0,112,112],"house":[302,0,128,96],"bell":[431,0,64,96],"gearS":[0,189,64,64],"n_bell0":[65,189,28,44],"n_bell1":[94,189,28,44],"n_guide0":[123,189,28,44],"n_guide1":[152,189,28,44],"n_clock0":[181,189,28,44],"n_clock1":[210,189,28,44],"hub":[239,189,40,40],"bob":[280,189,28,28],"bird0":[309,189,32,24],"bird1":[342,189,32,24],"lion":[375,189,14,20],"cone":[390,189,10,16],"hand":[401,189,96,14],"trolley0":[0,254,24,14],"trolley1":[25,254,24,14],"rail":[50,254,32,9]};
   const C = {}, img = new Image();
   img.onload = () => { for (const [n, r] of Object.entries(UHR_MAP)) { const c = Sprites.canvas(r[2], r[3]); c.getContext('2d').drawImage(img, r[0], r[1], r[2], r[3], 0, 0, r[2], r[3]); C[n] = c; } };
   img.src = 'img/uhr3d.png';

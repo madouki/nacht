@@ -4117,6 +4117,7 @@ const Castle = (() => {
   // Kantinenchefin Schöpfkelle: weiße Kochjacke, Haube, Schürze, rote Wangen; rührt mit der Kelle im Topf
   // der Uhrmacher (Zeigerkammer): Lupenbrille mit einem dicken Glas, Lederschürze, Taschenuhr an der Kette, Schraubenzieher
   function drawClockmaker(ctx, cx, feet, t, flip) {
+    if (typeof UHR3D !== 'undefined' && UHR3D.draw(ctx, 'n_clock' + ((t >> 5) & 1), cx, feet, 14, 44, 0, flip)) return; // Blender-Figur (tools/blender/npc_bl.py), zwei Atemphasen
     const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
     const bob = (t >> 5) & 1, sw = Math.round(Math.sin(t * 0.08) * 2);
     R(-5, -2, 4, 2, '#2c1c10'); R(1, -2, 4, 2, '#2c1c10');                                    // Schuhe
@@ -4131,6 +4132,7 @@ const Castle = (() => {
   }
   // der Bergführer (Tropfsteinklamm): Skelett mit Bergsteigerhut samt Feder, Kniebundhose, Seil über der Schulter, Pickel
   function drawMountainGuide(ctx, cx, feet, t, flip) {
+    if (typeof UHR3D !== 'undefined' && UHR3D.draw(ctx, 'n_guide' + ((t >> 5) & 1), cx, feet, 14, 44, 0, flip)) return; // Blender-Figur (tools/blender/npc_bl.py), zwei Atemphasen
     const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
     const BN = '#e8e4d0', BD = '#a8a490', bob = (t >> 5) & 1, wave = Math.round(Math.sin(t * 0.06) * 1);
     R(-5, -3, 4, 3, '#4c3420'); R(1, -3, 4, 3, '#4c3420');                                    // Bergschuhe
@@ -4146,6 +4148,7 @@ const Castle = (() => {
   }
   // der Glöckner (Glockenstuhl): gebückt, Kutte mit Strick, Glatze mit Haarkranz, dicke Wattebäusche in den Ohren, Glockenseil in der Hand
   function drawBellRinger(ctx, cx, feet, t, flip) {
+    if (typeof UHR3D !== 'undefined' && UHR3D.draw(ctx, 'n_bell' + ((t >> 5) & 1), cx, feet, 14, 44, 0, flip)) return; // Blender-Figur (tools/blender/npc_bl.py), zwei Atemphasen
     const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(flip ? cx - x - w : cx + x, feet + y, w, h); };
     const bob = (t >> 5) & 1, sh = t % 160 < 12 ? 1 : 0; // ab und zu ein „Psst“-Zucken
     R(-6, -2, 5, 2, '#3c2c1c'); R(1, -2, 5, 2, '#3c2c1c');                                    // Sandalen
@@ -4250,7 +4253,8 @@ const Castle = (() => {
     }
     lightUp(L, cx, cy) {
       if (this.b.who === 'conc') { const l = k3pt('desk', 1, this.cx, this.y + this.h); L.push({ x: l.x - cx, y: l.y - cy, r: 36, c: [140, 252, 160], a: 0.35 }); } // grüne Tresenlampe
-      L.push({ x: this.cx - cx, y: this.y - cy + 10, r: 30 + Math.sin(this.t * 0.05) * 2, c: this.b.who === 'lib' || this.b.who === 'conc' || this.b.who === 'gramo' ? [252, 200, 130] : this.b.who === 'tent' ? [200, 110, 250] : [190, 200, 255], a: 0.4 });
+      const hd = this.b.who === 'bell' || this.b.who === 'guide' || this.b.who === 'clock'; // Blender-Figuren sind schon beleuchtet: nur ein schwacher, warmer Schein (sonst überstrahlen Glatzen und Schädel)
+      L.push({ x: this.cx - cx, y: this.y - cy + (hd ? 18 : 10), r: 30 + Math.sin(this.t * 0.05) * 2, c: hd ? [252, 210, 160] : this.b.who === 'lib' || this.b.who === 'conc' || this.b.who === 'gramo' ? [252, 200, 130] : this.b.who === 'tent' ? [200, 110, 250] : [190, 200, 255], a: hd ? 0.14 : 0.4 });
     }
     draw(ctx) {
       const cam = W.cam, feet = this.y + this.h;

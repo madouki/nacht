@@ -33,5 +33,9 @@ aufgebaut, mit drei Lichtern beleuchtet, stark überabgetastet gerendert und auf
    Zahnräder; `python pack_uhr.py r_uhr ../../js/glocken.js ../../img/uhr3d.png` packt den Atlas und trägt `UHR_MAP` ein.
    Zeiger, Nabe und Zahnräder dreht das Spiel (geglättet), Türflügel, Uhrzeiger, Kette und Scherengitter malt es dazu.
 
+8. **Figuren der Seil-Räume:** `python bl.py npc_bl.py '{"dir": "<dieser Ordner>", "out": ".../r_npc", "ss": 8}'` rendert Glöckner,
+   Bergführer und Uhrmacher (je 28×44, zwei Atembilder); `pack_uhr.py` nimmt den Ordner als viertes Argument mit in den Atlas
+   (`n_bell0` …, um 26 % abgedunkelt, damit das Glühen sie nicht überstrahlt). Die Zeichner in castle.js nutzen sie zuerst.
+
 Aussehen der Helden steht in `LOOK` (hero_bl.py), die Posen des Grafen in `count()` (count_bl.py). Bildgrößen, Anker und
 Kartenschlüssel bleiben, damit im Spiel nichts verrutscht.

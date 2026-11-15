@@ -8,6 +8,21 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 
 ---
 
+## 20261115-0214 – Glöckner, Bergführer und Uhrmacher aus Blender
+
+**Neu – Figuren aus Blender**
+- **Der Glöckner** (Glockenstuhl): gebückt in der Kutte mit Strick, Glatze mit Haarkranz, Watte in den Ohren, den Finger an
+  den Lippen („Psst!“) und das Glockenseil in der Hand.
+- **Der Bergführer** (Tropfsteinklamm): ein Skelett im Bergsteigerzeug – grüner Hut mit roter Borte und Feder, Kniebundhose,
+  Hosenträger, Seil über der Schulter, Pickel.
+- **Der Uhrmacher** (Zeigerkammer): Lupe vorm Auge, Haarkranz, Schnurrbart, lila Weste, Lederschürze, Taschenuhr an der Kette
+  und Schraubenzieher.
+- Alle drei atmen sichtbar (zwei Bilder) und drehen sich zum Helden; das Porträt im Gespräch zeigt dieselbe Figur.
+- Ihr Licht ist schwächer und wärmer als bei den gezeichneten Figuren, damit Glatzen und Schädel nicht überstrahlen.
+
+**Beim Testen ansehen**
+- Sind die drei im Raum und im Gesprächsfenster gut zu erkennen? Passt die Größe zum Helden?
+
 ## 20261115-0122 – Seil-Räume in HD und eine Seillängen-Anzeige
 
 **Neu – Grafik aus Blender**
