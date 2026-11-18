@@ -41,3 +41,6 @@ aufgebaut, mit drei Lichtern beleuchtet, stark überabgetastet gerendert und auf
 
 Aussehen der Helden steht in `LOOK` (hero_bl.py), die Posen des Grafen in `count()` (count_bl.py). Bildgrößen, Anker und
 Kartenschlüssel bleiben, damit im Spiel nichts verrutscht.
+
+9. **Riegeltür (Abkürzungen):** `python bl.py riegel_bl.py '{"dir": "<dieser Ordner>", "out": ".../r_riegel", "ss": 8}'` rendert die Eichentür in fünf
+   Öffnungswinkeln (34×48) und den Riegelbalken (28×9); `python pack_riegel.py r_riegel ../../js/riegel.js ../../img/riegel3d.png` packt den Atlas und trägt die Karte ein.

@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261118-2149](#20261118-2149--abkürzungstüren-acht-riegeltüren-verbinden-das-schloss) – Abkürzungstüren: acht Riegeltüren verbinden das Schloss
 - [20261118-1356](#20261118-1356--bosskämpfe-taumel-letztes-aufgebot-finisher-und-kampfakte) – Bosskämpfe: Taumel, letztes Aufgebot, Finisher und Kampfakte
 - [20261118-0908](#20261118-0908--laufschritt-gegen-lange-wege-randlicht-auf-allen-figuren) – Laufschritt gegen lange Wege, Randlicht auf allen Figuren
 - [20261118-0852](#20261118-0852--changelog-mit-sprungliste-musik-mit-raumklang-dynamik-und-überleitungen) – Changelog mit Sprungliste, Musik mit Raumklang, Dynamik und Überleitungen
@@ -41,6 +42,35 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261118-2149 – Abkürzungstüren: acht Riegeltüren verbinden das Schloss
+
+**Neu – Abkürzungen**
+- Acht schwere Eichentüren verbinden Räume, die auf der Karte nebeneinanderliegen, zu Fuß aber weit auseinander waren.
+  Die größten sparen über tausend Kacheln Laufweg.
+- Von der Riegelseite öffnest du sie mit ↑ oder einem Peitschenhieb. Danach bleiben sie für immer in beide Richtungen offen.
+- Von der anderen Seite sind sie verriegelt, mit Warnschild und wechselnden Sprüchen. So weißt du früh, dass dort später ein Weg entsteht.
+- Keine Tür überspringt einen Boss, ein Siegel oder ein Relikt: Der Riegel sitzt immer auf der Seite, die man später erreicht.
+
+**Die acht Wege**
+- Kolosseum zur Eingangshalle, gleich hinter dem ersten Relikt
+- Brunnenschacht zur Großen Halle
+- Palmenhaus zur Eishöhle
+- Verlies zum Palmenhaus
+- Automatenwerk zum Fundbüro
+- Ende der Versuchsstrecke zum Amt für Heldentaten: Die Rückfahrt entfällt
+- Thronregion zum Spiegeltunnel
+- Zuschauerraum zur Menschenfalle
+
+**Neu – Karte und Wegweiser**
+- Die Karte zeigt jede Tür nach Zustand: hell mit Riegel, rot von der Gegenseite, grün wenn offen. Offene Abkürzungen erscheinen als Gang.
+- Der Wegweiser nutzt offene Abkürzungen und führt auch zu Riegeln, die du selbst öffnen kannst. An eine verschlossene Gegenseite schickt er dich nie.
+- Neue Urkunde für alle acht Türen.
+
+**Beim Testen ansehen**
+- Fallen die Türen im Vorbeigehen auf, und ist klar, dass man sie öffnen kann?
+- Fühlt sich das Aufschwingen wuchtig an, oder dauert es zu lange?
+- Welche Wege sind dir noch immer zu lang?
 
 ## 20261118-1356 – Bosskämpfe: Taumel, letztes Aufgebot, Finisher und Kampfakte
 

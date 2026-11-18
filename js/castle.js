@@ -44,6 +44,20 @@ const Castle = (() => {
     [[0, -1], 'right', ['expo', 0], 'start', { boss: true }],      // Große Halle hinter der Riesenfledermaus → Wintergarten
     [[2, -1], 'right', ['sun', 0], 'start', { boss: true }],       // Marmorgalerie hinter Medusa → Sonnenkathedrale
   ];
+  // Abkürzungen: Riegeltüren zwischen Räumen, die auf der Karte beieinanderliegen, zu Fuß aber weit auseinander sind. Geöffnet wird
+  // nur von der Riegelseite (↑ oder Peitsche), danach gilt die Tür für immer in beide Richtungen. Die Riegelseite ist stets die, die
+  // man später erreicht: so überspringt keine Tür einen Boss, ein Siegel oder ein Relikt. [id, Riegelseite, x, y, Gegenseite, x, y]
+  const BOLTS = [
+    ['kolo', ['side', 'kolosseum'], 66, 10, [0, 1], 12, 17],                      // Kolosseum (hinter dem ersten Relikt) → Eingangshalle
+    ['well', [1, 1], 17, 4, [0, 3], 18, 10],                                      // Brunnenschacht (oberer Steg) → Große Halle
+    ['palm', ['expo', 0], 21, 27, [1, 2], 90, 10],                                // Palmenhaus → Eishöhle
+    ['verl', ['side', 'verlies'], 85, 10, ['expo', 0], 30, 12],                   // Verlies (Sackgasse) → Palmenhaus
+    ['werk', ['side', 'automatenwerk'], 8, 21, ['side', 'fundbuero'], 52, 17],    // Automatenwerk (Hallenende) → Fundbüro
+    ['test', ['side', 'versuchsstrecke'], 10, 10, ['side', 'heldenamt'], 33, 17], // Versuchsstrecke (am Prellbock) → Amt für Heldentaten
+    ['spie', [3, 2], 33, 8, ['side', 'spiegeltunnel'], 12, 10],                   // Thronregion → Spiegeltunnel
+    ['thea', ['side', 'theater'], 92, 20, ['expo', -1], 23, 10],                 // Zuschauerraum (hinter den Rängen) → Menschenfalle
+  ];
+  for (const [id, A, ax, ay, B, bx, by] of BOLTS) LINKS.push([A, { x: ax, y: ay, door: 'bolt' }, B, { x: bx, y: by, door: 'bolt' }, { bolt: id, back: { bolt: id, far: true } }]);
 
   // ---------------- Spielstand: aufgedeckte Zellen, besiegte Bosse und Zwischengegner, freigeschaltete Warpkammern ----------------
   // seen: Raumschlüssel "<kapitel-id>:<raum>" → Set der Zellnummern; boss/mini/warp/vessel/relic/crack/flag: Schlüssel → 1;
@@ -906,7 +920,7 @@ const Castle = (() => {
       .prop('pz', { k: 'sign', x: 56, y: 10, title: 'pzOpenT', key: 'pzOpen', col: '#1c4c3c' })
       .prop('pz', { k: 'sign', x: 19, y: 10, title: 'pzWayT', key: 'pzWay' })
       .prop('hint', { x: 46, y: 14, w: 5, h: 4, key: 'pzLiftHint' })
-      .candle(52, 15, 'H').candle(60, 15).candle(34, 9, '$').candle(27, 15).candle(12, 13, 'H').candle(2, 15)
+      .candle(50, 15, 'H').candle(60, 15).candle(34, 9, '$').candle(27, 15).candle(12, 13, 'H').candle(2, 15)
       .enemy('ghost', 32, 5).enemy('ghost', 10, 9).enemy('bat', 54, 4)
       .chest(1, 17, 'big').prop('vessel', { x: 3, y: 17 })
       .music('amt').label('FUNDBÜRO').start(61, 17).done();
@@ -1262,6 +1276,7 @@ const Castle = (() => {
   const lauf = () => LAUF.filter(f => f()).length;
   function gateOk(g, s, r) { // Bedingung g einer Tür im Raum (s, r) erfüllt? (boss: der Boss dieses Raums)
     if (!g) return true;
+    if (g.bolt) return !!flag['bolt_' + g.bolt];      // Abkürzung: einmal entriegelt, für immer offen
     if (g.boss) return !!boss[roomKey(s, r)];
     if (g.seals) return seals() >= sealRooms().length;
     if (g.crack) return !!crack[g.crack];
@@ -1360,17 +1375,57 @@ const Castle = (() => {
     }
     ctx.fillStyle = '#fce0a8'; for (let k = 3; k < 10; k++) { const d = 6 - Math.abs(k - 6); ctx.fillRect(x + dir * d + (dir < 0 ? -2 : 2), y + k, 1, 1); } // Lichtkante
   }
+  // Abkürzung: Ablauf des Öffnens in Bildern (Riegel gleitet, Pause, Flügel schwingen)
+  const BOLT_SLIDE = 16, BOLT_SWING = 26, BOLT_END = 60;
+  let boltBusy = 0, boltFarN = 0; // boltBusy: bis zu diesem Bild läuft das Öffnen, die Tür nimmt noch niemanden an
+  const boltsOpen = () => BOLTS.filter(b => flag['bolt_' + b[0]]).length;
+  function openBolt(d) {
+    const id = d.gate.bolt;
+    if (flag['bolt_' + id]) return;
+    flag['bolt_' + id] = 1; save();
+    const e = W.ents.find(o => o instanceof CastleDoor && o.d === d);
+    if (e) e.boltT = 1;
+    boltBusy = W.frame + BOLT_END;
+    Audio8.sfx('latch'); Input.rumble(0.3, 0.2, 100);
+    Game.note('boltOpen', boltsOpen(), BOLTS.length, tr('boltSay_' + id));
+  }
+  class BoltLatch extends Ent { // der Riegel als Ziel: ein Peitschenhieb schiebt ihn auf (↑ vor der Tür geht auch)
+    constructor(d, cx, feet) { super(cx - 15, feet - 38, 30, 26); this.kind = 'candle'; this.d = d; }
+    update() { this.t++; if (flag['bolt_' + this.d.gate.bolt]) this.dead = true; }
+    hit() { openBolt(this.d); this.dead = true; }
+    draw() {}
+  }
+  function drawBoltDoor(d, ctx) {
+    const x = Math.round(d.x - W.cam.x), y = Math.round(d.y - W.cam.y), cx = x + 20, bot = y + d.h, p = W.player, g = d.d.gate, open = gateOpen(d.d), n = d.boltT;
+    const anim = open && n > 0 && n < BOLT_END, ease = (v) => v * v * (3 - 2 * v);
+    const pc = doorBlock(ctx, cx, bot, 3, 4);
+    Riegel.draw(ctx, cx + (d.rattle > 0 ? ((d.rattle >> 1) & 1 ? 1 : -1) : 0), bot, pc, { t: d.t, far: !open && !!g.far, bolt: !g.far && (!open || (anim && n < BOLT_SWING)), slide: anim ? ease(clamp(n / BOLT_SLIDE, 0, 1)) : 0, k: !open ? 0 : anim ? ease(clamp((n - BOLT_SWING) / (BOLT_END - BOLT_SWING), 0, 1)) : 1 });
+    if (Math.abs(p.cx - d.cx) >= 18 || Math.abs(p.feet - (d.y + d.h)) >= 8 || anim) return;
+    const by = y - 22 + Math.round(Math.sin(d.t * 0.12) * 2);
+    if (open) Font.draw(ctx, '↑', cx - 2, by, '#fcfcfc', { shadow: '#000' });
+    else if (!g.far) Font.draw(ctx, '↑ ' + tr('boltHint'), cx, by, '#fce0a8', { align: 'center', shadow: '#000' });
+  }
   class CastleDoor extends Ent {
     constructor(d, def) {
-      const seal = !!(d.place && d.place.door === 'seal');
-      super(0, 0, seal ? 40 : 32, seal ? 52 : 44); this.kind = 'prop'; this.d = d; this.k = kindOf(def, d.place); this.seal = seal;
+      const seal = !!(d.place && d.place.door === 'seal'), bolt = !!(d.place && d.place.door === 'bolt');
+      super(0, 0, seal || bolt ? 40 : 32, seal || bolt ? 52 : 44); this.kind = 'prop'; this.d = d; this.k = kindOf(def, d.place); this.seal = seal; this.bolt = bolt; this.boltT = 0; this.rattle = 0;
       if (this.k === 'up') { const u = upSpot(def, d.place); this.x = u.cx - this.w / 2; this.y = u.feet - this.h; }
       else if (this.k === 'edgeR') { this.x = def.w * T - this.w; this.y = (edgeRow(def, d.place) + 1) * T - this.h; }
       else if (this.k === 'edgeT' || this.k === 'edgeB') { this.x = (d.place.x + 1) * T - this.w / 2; this.y = this.k === 'edgeT' ? 0 : def.h * T - this.h; } // Schacht oben/unten
       else { this.x = 0; this.y = (edgeRow(def, d.place) + 1) * T - this.h; this.noWrap = true; }
     }
-    update() { this.t++; }
+    update() {
+      this.t++;
+      if (this.rattle > 0) this.rattle--;
+      if (this.boltT > 0 && this.boltT < BOLT_END) { // Abkürzung geht auf: Riegel gleitet, fällt, dann schwingen die Flügel nach hinten
+        const n = ++this.boltT;
+        if (n === BOLT_SLIDE) { Audio8.sfx('stamp', this.cx); W.shake = Math.max(W.shake, 3); Input.rumble(0.4, 0.3, 120); }
+        if (n === BOLT_SWING) { Audio8.sfx('creak', this.cx); Audio8.sfx('crumble', this.cx); for (let i = 0; i < 16; i++) W.spawn(new Particle(this.x + rnd(2, this.w - 2), this.y + rnd(0, 8), rnd(-0.4, 0.4), rnd(0.2, 1.1), i % 3 ? '#a89478' : '#6c5c48', 44, 1, 0.05)); }
+        if (n === BOLT_END) { Audio8.sfx('bigItem'); for (let i = 0; i < 18; i++) W.spawn(new Particle(this.cx + rnd(-13, 13), this.y + rnd(8, this.h), rnd(-0.5, 0.5), rnd(-1.3, -0.3), i % 2 ? '#fce0a8' : '#f8b800', 42, 1, 0)); }
+      }
+    }
     lightUp(L, cx, cy) {
+      if (this.bolt && !gateOpen(this.d) && !this.d.gate.far) { L.push({ x: this.cx - cx, y: this.y + 26 - cy, r: 18 + Math.sin(this.t * 0.06) * 2, c: [252, 214, 160], a: 0.1 }); return; } // Riegelseite: warmer Schimmer zieht den Blick an
       if (!gateOpen(this.d)) { if (this.seal && this.k === 'edgeT') L.push({ x: this.cx - cx, y: this.y + 8 - cy, r: 22 + Math.sin(this.t * 0.05) * 3, c: [150, 80, 220], a: 0.3 }); return; } // Siegel glimmen
       if (this.k === 'up') { L.push({ x: this.cx - cx, y: this.y - cy + this.h / 2, r: 30 + Math.sin(this.t * 0.07) * 3, c: this.seal ? [190, 120, 252] : [252, 180, 110], a: 0.45 }); return; }
       if (this.k === 'edgeT' || this.k === 'edgeB') { // Schacht: Licht fällt aus der Öffnung (Siegelschacht violett)
@@ -1417,6 +1472,7 @@ const Castle = (() => {
         ctx.globalAlpha = 1;
         return;
       }
+      if (this.bolt) { drawBoltDoor(this, ctx); return; } // Abkürzung: Eichentür mit Riegel
       if (this.d.place && this.d.place.door === 'hotel') { drawHotelDoor(this, ctx); return; } // Hoteltür
       if (this.d.place && this.d.place.door === 'room13') { drawRoomDoor(this, ctx); return; } // Zimmer 13
       // Torbogen aus Stein wie die Speicherkammer: Quaderring, Schlussstein, dunkler Gang mit Fackelschein; verschlossen: Fallgitter
@@ -2172,13 +2228,14 @@ const Castle = (() => {
     if (W.player && (W.player.batForm || W.player.mistForm || W.player.wolfForm)) { W.player.batForm = false; W.player.mistForm = false; W.player.wolfForm = false; W.player.h = HERO_H; } // Raumwechsel: wieder in Menschengestalt (reset hat Ort und Größe gesetzt)
     if (boss[key] && s < S().length - 1) W.room.arena = null; // Bossarena: Boss besiegt, der Raum ist frei
     if (mini[key]) W.miniDone[s + ':' + r] = true;
-    W.ents = W.ents.filter(e => !(e instanceof CastleDoor) && !(e instanceof CastleChamber) && !(e instanceof CastleNPC) && !(e instanceof CastleLoot) && !(e instanceof CastleGrate) && !(e instanceof CastleDecor) && !(e instanceof Puppet));
+    W.ents = W.ents.filter(e => !(e instanceof CastleDoor) && !(e instanceof BoltLatch) && !(e instanceof CastleChamber) && !(e instanceof CastleNPC) && !(e instanceof CastleLoot) && !(e instanceof CastleGrate) && !(e instanceof CastleDecor) && !(e instanceof Puppet));
     if (def.decor) W.ents.unshift(new CastleDecor(def.decor)); // Blender-Modelle ganz hinten (vor Türen und Figuren)
     for (const [x, y] of def.puppets || []) W.spawn(new Puppet(x, y)); // Puppen im Bahnhof
     W.ents = W.ents.filter(e => !(e instanceof CastleWater) && !(e instanceof Jelly));
     if (def.waterLine !== undefined) W.spawn(new CastleWater(def.waterLine)); // Wasser-Ebene über allem
     for (const [x, y] of def.jellies || []) W.spawn(new Jelly(x, y)); // Quallen
     for (const d of doorsOf(s, r)) W.spawn(new CastleDoor(d, def));
+    for (const d of doorsOf(s, r)) if (d.gate && d.gate.bolt && !d.gate.far && !flag['bolt_' + d.gate.bolt]) { const u = upSpot(def, d.place); W.spawn(new BoltLatch(d, u.cx, u.feet)); } // Abkürzung: Riegel für die Peitsche
     for (const g of def.grates || []) W.spawn(new CastleGrate(g)); // Gitter (nur Nebel kommt durch)
     for (const c of chambersOf(s, r)) W.spawn(new CastleChamber(c));
     for (const e of def.ents) if (e.type === 'vessel') { const k = key + ':v' + (e.id ?? e.x); if (!vessel[k]) W.spawn(new LifeVessel(e, k)); } // Lebensgefäße
@@ -2332,7 +2389,10 @@ const Castle = (() => {
       else if (k === 'edgeB') use = p.y > def.h * T - 10 && p.cx >= d.place.x * T - 6 && p.cx <= (d.place.x + 2) * T + 6; // durch die Öffnung im Boden hinab
       else use = I.right && (p.onGround || p.batForm || p.mistForm) && p.cx > (def.w - 2.5) * T && (!isEdge(d.place) || Math.abs(p.feet - (d.place.y + 1) * T) <= 2 * T) && push >= 6; // Fledermaus und Nebel ziehen durch Seitenausgänge
       if (!use) continue;
+      if (d.gate && d.gate.bolt && W.frame < boltBusy) { push = 0; break; } // die Flügel schwingen noch
+      if (!gateOpen(d) && d.gate.bolt && !d.gate.far) { push = 0; openBolt(d); return; } // Riegelseite: aufschieben
       if (!gateOpen(d)) {
+        if (d.gate.bolt && !lockT) { lockT = 90; Game.note('boltFar' + (boltFarN++ % 3)); Audio8.sfx('wall'); const e = W.ents.find(o => o instanceof CastleDoor && o.d === d); if (e) e.rattle = 14; push = 0; break; } // Gegenseite: rüttelt, bleibt zu
         if (!lockT) { lockT = 90; if (d.gate.seals) Game.note('castleSeals', seals(), sealRooms().length); else if (d.gate.crack) Game.note('castleCrackHard'); else if (d.gate.beat || d.gate.mini) Game.note('castleBarred'); else if (d.gate.laufzettel) Game.note('laufLocked', lauf(), LAUF.length); else if (d.gate.item) Game.note('castleLocked13'); else if (d.gate.relics) Game.note('castleNeedRelic', d.gate.relics.filter(k => !rel(k)).map(k => tr('relic_' + k)).join(' + ')); else Game.note('castleLocked'); Audio8.sfx('select'); }
         push = 0; break;
       }
@@ -3595,6 +3655,7 @@ const Castle = (() => {
     { id: 'spells', ok: () => SPELL_IDS.every(known), arg: () => SPELL_IDS.length },
     { id: 'quests', ok: () => QUESTS.every(q => questState(q) === 'done') },
     { id: 'count', ok: () => !!best.Count },
+    { id: 'bolts', ok: () => BOLTS.every(b => flag['bolt_' + b[0]]), arg: () => BOLTS.length }, // alle Abkürzungen geöffnet
   ];
   const ach = { q: [], cur: null, sel: 0 }, ACH_PAY = 500; // je Urkunde zahlt das Amt 500 Gold Aufwandsentschädigung
   const achGot = (a) => !!flag['ach_' + a.id];
@@ -3791,6 +3852,8 @@ const Castle = (() => {
     } }));
     return out;
   }
+  const boltShut = (g) => !!(g && g.bolt && g.far && !flag['bolt_' + g.bolt]); // Abkürzung von der Gegenseite: von hier aus nie zu öffnen
+  const routeOk = (g, s, r) => gateOk(g, s, r) || !!(g && g.bolt && !g.far);     // Riegelseite: zählt als offen, der Held schiebt selbst auf
   let backEdges = null;
   function edgesInto() { // der Raumgraph rückwärts: 's:r' → alle Schritte, die in diesen Raum führen ({ s, r, gate } = woher, Bedingung)
     if (backEdges) return backEdges;
@@ -3804,7 +3867,7 @@ const Castle = (() => {
       const next = [];
       for (const k of ring) for (const e of into[k] || []) {
         const kk = e.s + ':' + e.r;
-        if (dist[kk] === undefined && (!open || gateOk(e.gate, e.s, e.r))) { dist[kk] = dist[k] + 1; next.push(kk); }
+        if (dist[kk] === undefined && !boltShut(e.gate) && (!open || routeOk(e.gate, e.s, e.r))) { dist[kk] = dist[k] + 1; next.push(kk); }
       }
       ring = next;
     }
@@ -3853,7 +3916,7 @@ const Castle = (() => {
       const dist = hopsFrom(tk, open);
       let best = null, bh = Infinity, bd = Infinity;
       for (const st of stepsOf(s, r)) {
-        if (open && !gateOk(st.gate, s, r)) continue;
+        if (boltShut(st.gate) || (open && !routeOk(st.gate, s, r))) continue;
         const h = dist[st.to.s + ':' + st.to.r];
         if (h === undefined || h > bh) continue;
         const sp = stepSpot(def, st), dx = st === keep ? -1 : Math.abs(seamDx(def, sp.x - p.cx)); // Gleichstand: bisherige Wahl, sonst die nächste Tür
@@ -4657,9 +4720,9 @@ const Castle = (() => {
     // Verbindungen: innerhalb der Regionen die Ausgänge, dazu die Türen zwischen den Regionen
     const links = [];
     for (const r of L) if (r.link) { const f = byKey[r.link.from]; links.push({ a: f, ac: { x: f.exit.x, y: f.exit.y }, b: r, bc: r.start }); }
-    for (const [A, pa, B, pb] of LINKS) {
+    for (const [A, pa, B, pb, lg] of LINKS) {
       const a = ref(A), b = ref(B);
-      if (!a || !b) continue;
+      if (!a || !b || (lg && lg.bolt && !flag['bolt_' + lg.bolt])) continue; // Abkürzung: der Gang erscheint erst, wenn sie offen ist
       const ra = L.find(x => x.s === a.s && x.i === a.r), rb = L.find(x => x.s === b.s && x.i === b.r);
       if (ra && rb) links.push({ a: ra, ac: placeCell(ra, pa), b: rb, bc: placeCell(rb, pb) });
     }
@@ -4697,7 +4760,7 @@ const Castle = (() => {
         if (kindOf(r.def, d.place) !== 'up' || d.place === 'start') continue;
         const c = placeCell(r, d.place);
         if (!set.has(c.y * r.cw + c.x)) continue;
-        ctx.fillStyle = d.place.door === 'seal' ? '#b070fc' : '#f8b800';
+        ctx.fillStyle = d.place.door === 'seal' ? '#b070fc' : d.place.door !== 'bolt' ? '#f8b800' : flag['bolt_' + d.gate.bolt] ? '#58f898' : d.gate.far ? '#fc5c5c' : '#fce0a8'; // Abkürzung: grün offen, hell mit Riegel, rot von der Gegenseite
         ctx.fillRect(ox + (r.ax + c.x) * cs + Math.floor(cs / 2) - 1, oy + (r.ay + c.y) * cs + cs - Math.max(2, m) - 1, 2, Math.max(2, m));
       }
       const half = Math.max(1, Math.floor(cs / 2));
@@ -4942,6 +5005,7 @@ const Castle = (() => {
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
     need.push('hintRopeUp', 'hintRopeHold', 'hintRopeDown', 'hintTrolley', 'hintTrolley2', 'hintHand', 'npcBell', 'npcGuide', 'npcClock', 'newHere', 'chgZeiger', 'chgDoorZeiger', 'chgKlamm', 'chgDoorKlamm', 'chgGlocken', 'chgDoorGlocken', 'hintKuckuck', 'bossKuckuck', 'bossKuckuckShout', 'bossKuckuckBonk', 'bossKuckuckRage', 'bossKuckuckDie', 'bossKuckuckNote', 'banter_bossKuckuck', 'beastD_Kuckucksuhr', 'ach_kuckuck', 'achD_kuckuck', 'item_kuckucksfeder', 'itemD_kuckucksfeder', 'chgKuckuck', 'chgDoorKuckuck'); // Glockenstuhl, Tropfsteinklamm, Zeigerkammer, NEU-Markierung, Kuckucksuhr
+    need.push('boltHint', 'boltOpen', 'boltFar0', 'boltFar1', 'boltFar2', ...BOLTS.map(b => 'boltSay_' + b[0]));
     need.push('castleBossCount', 'castleGoalBoss', 'pauseTravel', 'bounty', 'duelStun', 'duelTip', 'duelLast', 'duelLine0', 'duelLine1', 'duelLine2', 'duelLine3', 'duelTitle', 'duelTime', 'duelHits', 'duelStuns', 'duelBonus', 'duelVS', 'duelVA', 'duelVB', 'duelVC', 'runTip', 'travelTip', 'bountyTitle', 'travelRoom', 'mahrTitle', 'mahrCount', 'mahrRuf', 'mahrBann', 'mahrHelp', 'mahrSwap', 'mahrOn', 'mahrFrom', 'mahrUnknown', 'mahrGot', 'mahrFirst', 'mahrDodge', 'crit', 'chgMahr');
     { // Erreichbarkeit: vom Wald aus über Türen und Ausgänge (alles geöffnet) – kein Raum darf abgeschnitten sein
       const key = (s, r) => s + ':' + r, seenR = new Set(), queue = [], s0 = sIdx('arrival');
@@ -5016,6 +5080,7 @@ const Castle = (() => {
     setBossRank: (k, n) => { if (n > (flag['rank_' + k] | 0)) { flag['rank_' + k] = n; save(); } }, // Kampfakte: bester Rang je Boss (1 = C … 4 = S)
     setFlag: (k) => { flag[k] = 1; save(); }, // z. B. Aufzug als Abkürzung freigeschaltet (lift.js)
     k3at, art, whenArt, dishToday, buffInfo: () => buff && { id: buff.id, k: buff.t / BUFF_T }, // Behördentrakt (js/trakt.js), HUD: Mahlzeit
+    bolts: () => BOLTS.map(b => ({ id: b[0], open: !!flag['bolt_' + b[0]], a: ref(b[1]), ax: b[2], ay: b[3], b: ref(b[4]), bx: b[5], by: b[6] })), gateOk, // Tests
     toolsInput, drawTools, selfCheck, mapReport, mapLayout: () => castle(), doorsOf, get god() { return god; }, get best() { return best; },
     toggleOverlay, get overlay() { return overlayOn; }, travelOk, openTravel, bossTally, shaftAudit, tripInfo: () => ({ n: trip.list.length, sel: trip.sel, cur: trip.list[trip.sel] ? { s: trip.list[trip.sel].s, r: trip.list[trip.sel].r, room: !!trip.list[trip.sel].room, key: trip.list[trip.sel].key } : null, rooms: trip.list.filter(w => w.room).length }), bountyList, get statusPageNo() { return statusPage; }, hasReturnGate: () => W.ents.some(e => e instanceof ReturnGate && !e.dead), sideBosses: () => sideBosses().map(b => ({ id: b.id, s: b.s, r: b.r, done: sideDone(b), label: b.d.label })), goalInfo: () => { const g = goal(); return g ? { text: goalText(g), where: whereText(g), id: g.id || GOALS.indexOf(g) } : null; },
     tier: (s) => (TIER[S()[s].id] || 1) + 2 * (flag.ngp || 0), side: SIDE, startEpilogue, resultsInput, drawResults, ngPlus, ngRestore, drawGoalBanner, drawGoalToast, announceGoal, drawGuide, guidePlan, inPrologue, goal: () => { const g = goal(); return g && { text: goalText(g), where: tr(g.where) }; }, get vessels() { return vessel; }, get relics() { return relic; }, get cracks() { return crack; }, has,
