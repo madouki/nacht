@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-0038](#20261119-0038--gesamtpolitur-lesbare-bosse-eigene-kammern-neue-kulissen-besseres-licht) – Gesamtpolitur: lesbare Bosse, eigene Kammern, neue Kulissen, besseres Licht
 - [20261118-2149](#20261118-2149--abkürzungstüren-acht-riegeltüren-verbinden-das-schloss) – Abkürzungstüren: acht Riegeltüren verbinden das Schloss
 - [20261118-1356](#20261118-1356--bosskämpfe-taumel-letztes-aufgebot-finisher-und-kampfakte) – Bosskämpfe: Taumel, letztes Aufgebot, Finisher und Kampfakte
 - [20261118-0908](#20261118-0908--laufschritt-gegen-lange-wege-randlicht-auf-allen-figuren) – Laufschritt gegen lange Wege, Randlicht auf allen Figuren
@@ -42,6 +43,29 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-0038 – Gesamtpolitur: lesbare Bosse, eigene Kammern, neue Kulissen, besseres Licht
+
+**Neu – Bossangriffe lesen**
+- Alle 18 Bosse kündigen ihre großen Angriffe an: Sie halten kurz inne, blitzen auf, ein Ring zieht sich um sie zusammen, dazu ein heller Warnton.
+- Sturzflüge zeigen ihre Bahn bis zum Ziel. Bei springenden Bossen (Knochenriese, Sonnenwächter, Frankiermaschine, Schreibtischtäter) zeigt ein roter Streifen am Boden den genauen Landepunkt.
+- Geschosse haben jetzt einen dunklen Hof und einen roten Kern. Sie bleiben so vor jedem Hintergrund sichtbar.
+
+**Neu – Räume mit eigenem Gesicht**
+- Die Speicher- und Warpkammern sehen je Region anders aus: Tropfsteine und Kristalle in den Katakomben, Bücherwände im Bergfried, Zahnräder im Turm, Banner in der Kathedrale, Glaswände und Efeu im Wintergarten, Samtvorhänge am Thron, Schädelregale in der Kasematte, Wappen in der Torstube.
+- Neue Kulissen aus Blender: Schleusen mit Wasserfällen und Rohrleitungen im Kanal, Grubenausbau, Laternen und Loren im Stollen, ein Riesenteleskop in der Sternkuppel, Käsebohrtürme auf dem Mond und Palmen im Wintergarten.
+
+**Besser**
+- Licht: Theaterfoyer, Sonnenkathedrale, Sakristei und Orangerie überstrahlen nicht mehr. Die Blitze im Ballsaal sind sanfter und blenden weniger.
+- Weniger Warten: Bekannte Regionen blenden beim Wechsel nur noch kurz auf, das BEREIT?/LOS! kommt nur beim ersten Besuch.
+
+**Beim Testen ansehen**
+- Bosskampf gegen Riesenfledermaus oder Steingolem: Ist jede Ansage rechtzeitig zu sehen, und fühlt sich das kurze Innehalten gut an oder bremst es?
+- Sprünge von Knochenriese, Sonnenwächter, Frankiermaschine und Schreibtischtäter: Hilft der rote Streifen beim Ausweichen?
+- Kanal, Golemstollen und Sternkuppel: Bleiben Held, Gegner und Plattformen vor den neuen Kulissen gut erkennbar?
+- Alle Speicherkammern einmal betreten, besonders Orangerie und Vorzimmer.
+- Ballsaal und Theaterfoyer: Ist das Licht jetzt angenehm?
+- Regionswechsel hin und zurück: Geht es flott weiter? Auf der Xbox bitte besonders auf Ruckler achten.
 
 ## 20261118-2149 – Abkürzungstüren: acht Riegeltüren verbinden das Schloss
 

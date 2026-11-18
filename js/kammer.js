@@ -144,7 +144,64 @@ class ChamberHall extends Ent {
       x.fillStyle = S[2]; x.beginPath(); x.moveTo(px - 11, SPR + 1); x.lineTo(px + 11, SPR + 1); x.lineTo(px + 6, SPR + 10); x.lineTo(px - 6, SPR + 10); x.closePath(); x.fill();
       for (const lx of [-8, -3, 2, 7]) { x.fillStyle = G[0]; x.fillRect(px + lx, SPR + 2, 2, 3); x.fillStyle = G[2]; x.fillRect(px + lx, SPR + 2, 1, 1); x.fillStyle = G[1]; x.fillRect(px + lx + 1, SPR + 5, 1, 2); }
     }
+    ChamberHall.dress(x, R.theme, n, bw, F, SPR, hash, P);
     return c;
+  }
+  // ---------------- Gesicht der Region: was in dieser Kammer an den Wänden hängt ----------------
+  static dress(x, th, n, bw, F, SPR, hash, P) {
+    const S = P.s, G = P.gold, Wr = n * bw, side = [...Array(n).keys()].filter(b => !ChamberHall.main(n, b)).map(b => Math.round((b + 0.5) * bw));
+    const piers = [...Array(n + 1).keys()].map(i => Math.round(i * bw));
+    const tri = (cx, y0, w, h, col) => { x.fillStyle = col; x.beginPath(); x.moveTo(cx - w, y0); x.lineTo(cx + w, y0); x.lineTo(cx, y0 + h); x.closePath(); x.fill(); };
+    const shard = (cx, by, w, h, col, hi) => { x.fillStyle = col; x.beginPath(); x.moveTo(cx - w, by); x.lineTo(cx - w * 0.6, by - h * 0.7); x.lineTo(cx, by - h); x.lineTo(cx + w * 0.7, by - h * 0.62); x.lineTo(cx + w, by); x.closePath(); x.fill(); x.fillStyle = hi; x.fillRect(Math.round(cx - 1), Math.round(by - h + 3), 1, Math.round(h * 0.6)); };
+    const chain = (cx, y0, y1) => { for (let y = y0, k = 0; y < y1; y += 4, k++) { x.fillStyle = k % 2 ? '#3c3c48' : '#6c6c7c'; x.fillRect(cx - (k % 2 ? 0 : 1), y, k % 2 ? 1 : 3, 3); } };
+    if (th === 'cave') { // Felsenkammer: der Berg holt sich das Gewölbe zurück
+      for (const [ex, sgn] of [[0, 1], [Wr, -1]]) for (let i = 0; i < 16; i++) { const y = i * (F / 15), r = 20 + hash(i * 3 + ex) * 26; x.fillStyle = i % 3 ? S[1] : S[0]; x.beginPath(); x.ellipse(ex + sgn * (6 + hash(i + ex) * 10), y, r, 24, 0, 0, Math.PI * 2); x.fill(); x.fillStyle = S[2]; x.fillRect(Math.round(ex + sgn * (r * 0.6)), Math.round(y - 9), 4, 1); }
+      for (let i = 0; i < 46; i++) { const cx = hash(i * 7 + 2) * Wr, w = 3 + hash(i * 5) * 7, h = 14 + hash(i * 11 + 1) * 46; tri(cx, -2, w + 1, h + 2, S[0]); tri(cx, -2, w, h, S[1]); tri(cx - w * 0.4, -2, w * 0.3, h * 0.7, S[3]); }
+      const CR = [['#2c6c9c', '#7cd0f8'], ['#5c3c9c', '#c09cf8'], ['#2c8c7c', '#90f0d8']];
+      for (const px of [...piers, ...side]) for (let i = 0; i < 4; i++) { const c = CR[Math.floor(hash(px + i * 3) * 3)]; shard(px + (i - 1.5) * 9 + 12, F, 4 + hash(i + px) * 3, 12 + hash(px * 2 + i) * 18, c[0], c[1]); }
+    } else if (th === 'library') { // Lesezimmer: Bücherwände zwischen den Pfeilern, eine Leiter für die oberen Reihen
+      const BK = ['#7c2c24', '#2c4c7c', '#3c6c3c', '#8c6c24', '#5c2c6c', '#a84c2c', '#2c6c6c', '#c0a070'];
+      for (const cx of side) {
+        const w = Math.round(bw - 46), x0 = cx - (w >> 1), y0 = SPR + 10, y1 = F - 3;
+        x.fillStyle = '#1c120a'; x.fillRect(x0 - 3, y0 - 5, w + 6, y1 - y0 + 5); x.fillStyle = S[3]; x.fillRect(x0 - 3, y0 - 5, w + 6, 2);
+        for (let row = 0, y = y0; y + 15 <= y1; row++, y += 17) {
+          for (let bx = x0, i = 0; bx < x0 + w - 3; i++) { const bw2 = 3 + Math.floor(hash(row * 53 + i * 7 + cx) * 3), bh = 11 + Math.floor(hash(row * 17 + i * 3 + cx) * 4); x.fillStyle = BK[Math.floor(hash(row * 29 + i * 13 + cx) * BK.length)]; x.fillRect(bx, y + 15 - bh, bw2, bh); x.fillStyle = 'rgba(255,255,255,0.24)'; x.fillRect(bx, y + 15 - bh, 1, bh); x.fillStyle = G[1]; x.fillRect(bx + 1, y + 18 - bh, Math.max(1, bw2 - 2), 1); bx += bw2 + (hash(i * 3 + row) < 0.08 ? 3 : 0); }
+          x.fillStyle = S[2]; x.fillRect(x0 - 3, y + 15, w + 6, 2); x.fillStyle = S[0]; x.fillRect(x0 - 3, y + 17, w + 6, 1);
+        }
+        x.strokeStyle = '#8c6838'; x.lineWidth = 2; for (const d of [-4, 5]) { x.beginPath(); x.moveTo(cx + 24 + d, y0 - 4); x.lineTo(cx + 12 + d, F); x.stroke(); } x.lineWidth = 1;
+        for (let k = 1; k < 8; k++) { const u = k / 8; x.fillStyle = '#a07c44'; x.fillRect(Math.round(cx + 20 - 12 * u), Math.round(y0 - 4 + (F - y0 + 4) * u), 9, 1); }
+      }
+    } else if (th === 'tower') { // Turmstube: das Uhrwerk des Turms läuft durch die Wand
+      const gear = (cx, cy, r, teeth, a0) => { x.fillStyle = '#1c1812'; x.beginPath(); x.arc(cx + 1, cy + 2, r + 3, 0, Math.PI * 2); x.fill(); for (let i = 0; i < teeth; i++) { const a = a0 + i / teeth * Math.PI * 2; x.save(); x.translate(cx, cy); x.rotate(a); x.fillStyle = '#7c5c2c'; x.fillRect(r - 1, -3, 6, 6); x.fillStyle = '#b48c44'; x.fillRect(r - 1, -3, 6, 1); x.restore(); } x.fillStyle = '#7c5c2c'; x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2); x.fill(); x.fillStyle = '#4c3818'; x.beginPath(); x.arc(cx, cy, r * 0.74, 0, Math.PI * 2); x.fill(); x.strokeStyle = '#a07c3c'; x.lineWidth = 3; for (let i = 0; i < 5; i++) { const a = a0 + i / 5 * Math.PI * 2; x.beginPath(); x.moveTo(cx, cy); x.lineTo(cx + Math.cos(a) * r * 0.74, cy + Math.sin(a) * r * 0.74); x.stroke(); } x.lineWidth = 1; x.fillStyle = G[1]; x.beginPath(); x.arc(cx, cy, 4, 0, Math.PI * 2); x.fill(); x.fillStyle = G[2]; x.fillRect(cx - 1, cy - 1, 2, 2); };
+      for (const cx of side) { gear(cx - 16, F - 38, 25, 14, 0.2); gear(cx + 26, F - 54, 14, 9, 0.5); chain(cx + 46, SPR - 34, F - 12); x.fillStyle = '#54504c'; x.fillRect(cx + 42, F - 24, 9, 14); x.fillStyle = '#7c7874'; x.fillRect(cx + 42, F - 24, 9, 2); }
+    } else if (th === 'cathedral') { // Sakristei: lange Banner mit der Sonne der Kathedrale
+      for (const cx of side) for (const d of [-30, 30]) {
+        const bx = cx + d - 10, y0 = SPR - 20, h = 96;
+        x.fillStyle = G[0]; x.fillRect(bx - 3, y0 - 2, 26, 3); x.fillStyle = '#6c1c24'; x.fillRect(bx, y0, 20, h);
+        x.fillStyle = '#8c2830'; x.fillRect(bx + 3, y0, 3, h); x.fillRect(bx + 12, y0, 2, h); x.fillStyle = G[1]; x.fillRect(bx, y0, 1, h); x.fillRect(bx + 19, y0, 1, h);
+        x.fillStyle = S[1]; x.beginPath(); x.moveTo(bx, y0 + h); x.lineTo(bx + 10, y0 + h - 9); x.lineTo(bx + 20, y0 + h); x.lineTo(bx + 20, y0 + h + 2); x.lineTo(bx, y0 + h + 2); x.closePath(); x.fill();
+        const sy = y0 + 34; x.fillStyle = G[1]; x.beginPath(); x.arc(bx + 10, sy, 5, 0, Math.PI * 2); x.fill(); for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; x.fillRect(Math.round(bx + 10 + Math.cos(a) * 8), Math.round(sy + Math.sin(a) * 8), 2, 2); } x.fillStyle = G[2]; x.fillRect(bx + 9, sy - 1, 2, 2);
+      }
+    } else if (th === 'expo') { // Orangerie: Glaswände, Efeu an den Pfeilern und Ranken vom Gewölbe
+      for (const cx of side) { const w = Math.round(bw - 52), x0 = cx - (w >> 1), y0 = SPR + 6, y1 = F - 36, gg = x.createLinearGradient(0, y0, 0, y1); gg.addColorStop(0, '#7cc0b0'); gg.addColorStop(1, '#2c6c64'); x.fillStyle = gg; x.fillRect(x0, y0, w, y1 - y0); x.fillStyle = 'rgba(232,252,236,0.3)'; for (let i = 0; i < 4; i++) { x.beginPath(); x.moveTo(x0 + 10 + i * 26, y1); x.lineTo(x0 + 22 + i * 26, y1); x.lineTo(x0 + 42 + i * 26, y0); x.lineTo(x0 + 30 + i * 26, y0); x.closePath(); x.fill(); } x.fillStyle = '#1c2c28'; for (let gx = x0; gx <= x0 + w; gx += Math.round(w / 6)) x.fillRect(gx, y0, 2, y1 - y0); for (let gy = y0; gy <= y1; gy += 13) x.fillRect(x0, gy, w, 2); x.fillStyle = S[3]; x.fillRect(x0 - 3, y0 - 3, w + 6, 3); x.fillRect(x0 - 3, y1, w + 6, 3); }
+      const leaf = (lx, ly, k) => { x.fillStyle = k % 3 === 0 ? '#2c7c44' : k % 3 === 1 ? '#3c9c54' : '#1c5c38'; x.fillRect(lx - 2, ly - 1, 5, 3); x.fillRect(lx - 1, ly - 2, 3, 5); x.fillStyle = '#7cd088'; x.fillRect(lx, ly - 1, 1, 1); };
+      for (const px of piers) for (let k = 0; k < 34; k++) leaf(Math.round(px + Math.sin(k * 0.9) * 9 + hash(k + px) * 5 - 2), F - 6 - k * 3.2, k);
+      for (let i = 0; i < 24; i++) { const vx = Math.round(hash(i * 9 + 4) * Wr), len = 18 + hash(i * 3 + 1) * 58; x.fillStyle = '#245c34'; x.fillRect(vx, 0, 1, Math.round(len)); for (let k = 0; k < len / 7; k++) leaf(vx + (k % 2 ? 2 : -2), Math.round(4 + k * 7), k + i); }
+    } else if (th === 'throne') { // Vorzimmer: schwerer Samt an den Pfeilern, goldene Quasten, roter Läufer
+      for (const px of piers) for (const sgn of [-1, 1]) {
+        const y0 = SPR - 34, y1 = F - 12, w = 26; x.fillStyle = '#4c0c1c'; x.beginPath(); x.moveTo(px + sgn * 8, y0); x.lineTo(px + sgn * (8 + w), y0); x.quadraticCurveTo(px + sgn * (8 + w * 0.7), y0 + 54, px + sgn * 9, y0 + 74); x.lineTo(px + sgn * 10, y1); x.lineTo(px + sgn * 6, y1); x.closePath(); x.fill();
+        x.strokeStyle = '#8c1c30'; x.lineWidth = 2; for (const f of [0.3, 0.6, 0.85]) { x.beginPath(); x.moveTo(px + sgn * (8 + w * f), y0); x.quadraticCurveTo(px + sgn * (8 + w * f * 0.7), y0 + 50, px + sgn * 9, y0 + 72); x.stroke(); } x.lineWidth = 1;
+        x.fillStyle = G[1]; x.fillRect(px + sgn * 8 - 4, y0 + 72, 8, 3); x.fillStyle = G[2]; x.fillRect(px + sgn * 8 - 1, y0 + 75, 2, 10); x.fillStyle = G[0]; x.fillRect(px + sgn * 8 - 3, y0 + 85, 6, 4);
+        x.fillStyle = G[1]; x.fillRect(px + sgn * 8 - (sgn < 0 ? w : 0), y0 - 3, w, 3);
+      }
+      x.fillStyle = '#6c1020'; x.fillRect(0, F - 6, Wr, 6); x.fillStyle = G[1]; x.fillRect(0, F - 6, Wr, 1);
+    } else if (th === 'crypt') { // Kasematte: Schädelregale und Ketten
+      for (const cx of side) { for (const sy of [F - 66, F - 40]) { x.fillStyle = S[0]; x.fillRect(cx - 54, sy, 108, 5); x.fillStyle = S[3]; x.fillRect(cx - 54, sy, 108, 1); for (let i = 0; i < 11; i++) { const qx = cx - 50 + i * 10; x.fillStyle = '#c8c0a4'; x.fillRect(qx, sy - 9, 8, 7); x.fillRect(qx + 1, sy - 2, 6, 2); x.fillStyle = '#ece4c8'; x.fillRect(qx + 1, sy - 9, 3, 1); x.fillStyle = '#141018'; x.fillRect(qx + 1, sy - 6, 2, 2); x.fillRect(qx + 5, sy - 6, 2, 2); x.fillRect(qx + 3, sy - 1, 1, 1); x.fillRect(qx + 5, sy - 1, 1, 1); } } chain(cx - 62, SPR - 48, F - 22); chain(cx + 62, SPR - 48, F - 34); }
+    } else if (th === 'hall') { // Torstube: Wachstube mit Wappenschilden und gekreuzten Hellebarden
+      for (const cx of side) { const cy = F - 58, A = 0.62; x.lineWidth = 2; for (const sg of [-1, 1]) { x.strokeStyle = '#5c4020'; x.beginPath(); x.moveTo(cx - sg * Math.sin(A) * 46, cy + Math.cos(A) * 46); x.lineTo(cx + sg * Math.sin(A) * 46, cy - Math.cos(A) * 46); x.stroke(); const hx = cx + sg * Math.sin(A) * 46, hy = cy - Math.cos(A) * 46; x.fillStyle = '#a8a8b8'; x.beginPath(); x.moveTo(hx, hy - 10); x.lineTo(hx + sg * 9, hy - 2); x.lineTo(hx + sg * 9, hy + 6); x.lineTo(hx, hy + 2); x.closePath(); x.fill(); x.fillStyle = '#e4e4f0'; x.fillRect(hx - 1, hy - 8, 1, 8); } x.lineWidth = 1;
+        x.fillStyle = S[0]; x.beginPath(); x.moveTo(cx - 19, cy - 21); x.lineTo(cx + 19, cy - 21); x.lineTo(cx + 19, cy + 3); x.quadraticCurveTo(cx + 15, cy + 18, cx, cy + 26); x.quadraticCurveTo(cx - 15, cy + 18, cx - 19, cy + 3); x.closePath(); x.fill();
+        x.save(); x.beginPath(); x.moveTo(cx - 16, cy - 18); x.lineTo(cx + 16, cy - 18); x.lineTo(cx + 16, cy + 2); x.quadraticCurveTo(cx + 13, cy + 15, cx, cy + 22); x.quadraticCurveTo(cx - 13, cy + 15, cx - 16, cy + 2); x.closePath(); x.clip(); x.fillStyle = '#7c1c24'; x.fillRect(cx - 18, cy - 20, 18, 22); x.fillRect(cx, cy + 2, 18, 22); x.fillStyle = '#1c2c5c'; x.fillRect(cx, cy - 20, 18, 22); x.fillRect(cx - 18, cy + 2, 18, 22); x.fillStyle = G[1]; x.fillRect(cx - 2, cy - 20, 4, 44); x.fillRect(cx - 18, cy - 1, 36, 4); x.restore(); x.fillStyle = G[2]; x.beginPath(); x.arc(cx, cy + 1, 4, 0, Math.PI * 2); x.fill(); }
+    }
   }
 }
 

@@ -44,3 +44,5 @@ Kartenschlüssel bleiben, damit im Spiel nichts verrutscht.
 
 9. **Riegeltür (Abkürzungen):** `python bl.py riegel_bl.py '{"dir": "<dieser Ordner>", "out": ".../r_riegel", "ss": 8}'` rendert die Eichentür in fünf
    Öffnungswinkeln (34×48) und den Riegelbalken (28×9); `python pack_riegel.py r_riegel ../../js/riegel.js ../../img/riegel3d.png` packt den Atlas und trägt die Karte ein.
+
+10. Kulissen hinter der Spielebene: `python bl.py kulisse_bl.py '{"dir": "<dieser Ordner>", "out": "<Ausgabe>", "ss": 4}'`, danach `python pack_kulisse.py <Ausgabe> ../../js/kulisse.js ../../img/kulisse3d.png`. Welche Stücke in welchem Raum stehen, steht in `ROOMS` in `js/kulisse.js`.

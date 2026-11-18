@@ -4,6 +4,8 @@
 // – Letztes Aufgebot: unter einem Viertel der Energie wird der Boss sichtbar wütend und rund 12 % schneller.
 // – Finisher: der letzte Treffer friert das Bild ein (Scherenschnitt mit Strahlen und Schnitt), danach läuft der Tod des Bosses.
 // – Kampfakte: nach dem Sieg ein kleiner Bericht mit Zeit, kassierten Treffern, Taumeln, Rang (S bis C) und Bonusgold.
+// – Ansagen: vor jedem großen Angriff hält der Boss kurz inne und blitzt auf, ein Ring zieht sich um ihn zusammen; Sturzflüge zeigen
+//   ihre Bahn, Sprünge und Stürze den Einschlag am Boden. Alle Bosse sprechen damit dieselbe Bildsprache.
 'use strict';
 
 const Duell = (() => {
@@ -15,6 +17,32 @@ const Duell = (() => {
     B: ['#fcfcfc', '#ececf4', '#d8d8e4', '#c8c8d8', '#a0a0b4', '#74748c', '#484860'], C: ['#fcecd8', '#f0d8bc', '#e0c0a0', '#c89878', '#a87858', '#7c5438', '#503420'],
   };
   let imp = null, rep = null;
+  // Ansagen je Boss und Zustand: [Bilder Innehalten, Markierung]. 0 Bilder: der Boss holt ohnehin sichtbar aus, es kommt nur das Zeichen dazu
+  const TELL = {
+    GiantBat: { swoop: [24, 'line'], shoot: [16] },
+    GiantSkeleton: { throw: [14], jump: [16] },
+    Count: { open: [10] },
+    Medusa: { aim: [0], coil: [0], warn: [0], spit: [12], gaze: [12], heads: [12] },
+    SunWarden: { charge: [0], leap: [14], bolts: [12] },
+    Amtsschimmel: { raise: [0], snort: [0], rear: [0] },
+    Schreibtisch: { jump: [14], chair: [12], drawers: [12], stamps: [12] },
+    ManTrap: { attack: [14], roots: [14] },
+    Kuckucksuhr: { out: [0] },
+    GolemBoss: { charge: [0], crouch: [0], raise: [0], roar: [0] },
+    IceWitch: { shards: [14], rain: [14], swoop: [18, 'line'], summon: [10] },
+    Reisswolf: { howl: [0], wind: [0], suck: [10], spit: [12] },
+    Awakened: { charge: [14], slamUp: [0] },
+    MannImMond: { quake: [14], rain: [12], sickle: [14], blowWind: [0], cheese: [12] },
+    Frankiermaschine: { roll: [16], salvo: [14], jump: [14] },
+    Sternbild: { swipeWind: [0], chargeWind: [0], stingWind: [0], volley: [12], slamUp: [0], rain: [12] },
+    Conductor: { raise: [0], swing: [12], whistle: [12] },
+    Doppel: { atk: [0] },
+    TentacleBoss: { aim: [0], coil: [0], warn: [0], spit: [0] },
+  };
+  // Sprünge mit eigener Bahn: der Boden zeigt, wo der Boss wirklich aufkommt (g: Schwerkraft, m: Abstand zur Arenawand, k: Tempo im Endspurt)
+  const LEAP = { GiantSkeleton: { st: 'jump' }, SunWarden: { st: 'leap', vy: -6.4, reach: 52, max: 2.6 }, Frankiermaschine: { st: 'jump', g: 0.24, m: 56, k: (b) => (b.ph2 ? 1.3 : 1) }, Schreibtisch: { st: 'jump', g: 0.26, m: 64, k: (b) => (b.phase >= 3 ? 1.3 : 1), base: (b) => (b.phase >= 3 ? b.leg * 0.95 : 0) } };
+  const TELL_SHOW = 24;
+  const tellKey = (b) => b.arms ? ([...b.arms, b.burst].map(a => a && a.state).find(s => s === 'aim' || s === 'coil' || s === 'warn' || s === 'spit') || '') : b.atkT ? 'atk' : b.state; // Krake: seine Arme, Doppelgänger: sein Hieb
 
   const rec = (b) => b.du || (b.du = { t: 0, g: 0, need: NEED0, idle: 0, stun: 0, n: 0, last: false, hits0: (W.stats && W.stats.hits) || 0 });
   const stunned = (b) => !!(b && b.du && b.du.stun > 0 && !b.dying);
@@ -52,12 +80,29 @@ const Duell = (() => {
 
   // Von der Spielschleife je Boss und Schritt gefragt: true = dieser Boss steht gerade und bekommt keinen eigenen Schritt
   function hold(b) {
-    const d = b.du; if (!d || d.stun <= 0) return false;
+    const d = b.du; if (!d) return false;
+    if (d.stun <= 0) return announce(b, d);
     if (b.dying) { d.stun = 0; return false; }
     d.stun--;
     if (b.flashT > 0) b.flashT--; if (b.invT > 0) b.invT--;
     if (d.stun % 30 === 29) b.flashT = Math.max(b.flashT, 4);
     if (d.stun === 0) wake(b, d);
+    return true;
+  }
+  // Ansage: neuer Zustand aus der Tabelle → kurz innehalten (der Boss blitzt), das Zeichen bleibt, bis der Angriff läuft
+  function announce(b, d) {
+    if (b.dying || b.holdIntro) { d.tell = null; return false; }
+    const key = tellKey(b);
+    if (key !== d.ts) {
+      d.ts = key;
+      const e = (TELL[b.constructor.name] || {})[key];
+      if (e) { d.tell = { t: 0, n: Math.round(e[0] * (d.last ? 0.7 : 1)), show: Math.max(TELL_SHOW, e[0]), mark: e[1] }; Audio8.sfx('tell', b.cx); }
+      else d.tell = null;
+    }
+    const A = d.tell; if (!A) return false;
+    if (++A.t > A.show) { d.tell = null; return false; }
+    if (A.t > A.n) return false;
+    if (A.t === 1 || A.t === 13) b.flashT = Math.max(b.flashT || 0, 3);
     return true;
   }
 
@@ -159,7 +204,54 @@ const Duell = (() => {
   }
 
   // Sterne über dem benommenen Boss
+  // Boden unter einem Punkt (Weltkoordinaten): erste feste Kachel darunter
+  function floorBelow(x, y) {
+    const col = Math.floor(x / T), last = W.room.h - 1;
+    for (let r = Math.max(0, Math.floor(y / T)); r <= last; r++) if (Phys.solidTile(col, r)) return r * T;
+    return (W.room.h - 2) * T;
+  }
+  function floorMark(ctx, wx, fy, w, k) { // Warnstreifen am Boden: zieht sich mit nahendem Einschlag zusammen und wird heller
+    const x = Math.round(wx - W.cam.x), y = Math.round(fy - W.cam.y), hw = Math.round(w / 2 * (1.5 - 0.5 * k)), p = 0.55 + 0.45 * Math.sin(W.frame * 0.55);
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = 0.28 + 0.3 * k * p; ctx.fillStyle = '#e83018'; ctx.fillRect(x - hw, y - 3, hw * 2, 3);
+    ctx.globalAlpha = 0.5 + 0.4 * p; ctx.fillStyle = '#fc6840'; ctx.fillRect(x - hw, y - 1, hw * 2, 1);
+    ctx.fillStyle = '#fce070'; ctx.fillRect(x - hw - 1, y - 5, 2, 5); ctx.fillRect(x + hw - 1, y - 5, 2, 5);
+    ctx.restore();
+  }
+  // Wo der Sprung endet: die Bahn wird mit den Regeln des Bosses bis zum Boden vorausgerechnet
+  function landing(b) {
+    const A = LEAP[b.constructor.name]; if (!A || b.state !== A.st) return null;
+    if (A.g) {
+      let by = b.by, vy = b.vy, x = b.bx, n = 0; const k = A.k(b), base = A.base ? A.base(b) : 0;
+      while (n++ < 160) { vy += A.g; by -= vy; x = clamp(x + b.jx * k, b.ax + A.m, b.ax + b.aw - A.m); if (by <= base && vy > 0) break; }
+      return { x, y: b.gy, n };
+    }
+    const wait = A.vy !== undefined && b.timer < 1, p = W.player; // der Sonnenwächter springt erst nach dem Innehalten ab und zielt dann auf den Helden
+    const vx = wait ? clamp((p.cx - b.cx) / A.reach, -A.max, A.max) : b.vx || 0, e = { x: b.x, y: b.y, w: b.w, h: b.h }; let vy = wait ? A.vy : b.vy || 0, n = 0; // dieselben Stoßregeln wie im Sprung selbst
+    while (n++ < 160) { vy = Math.min(vy + 0.21, 4.2); Phys.moveX(e, vx); const hit = Phys.moveY(e, vy); if (hit) vy = 0; e.x = clamp(e.x, b.ax + 4, b.ax + b.aw - 4 - e.w); if (hit === 1) break; }
+    return { x: e.x + e.w / 2, y: e.y + e.h, n };
+  }
+  function drawTell(ctx) {
+    const b = W.boss, d = b && b.du; if (!d || b.dying || b.holdIntro || d.stun > 0) return;
+    const L = landing(b);
+    if (L) floorMark(ctx, L.x, L.y, clamp(b.w + 14, 30, 96), clamp(1 - L.n / 50, 0, 1));
+    const A = d.tell; if (!A) return;
+    const k = clamp(A.t / A.show, 0, 1), h = head(b), sx = Math.round(h.x - W.cam.x), sy = Math.round(h.y + 14 - W.cam.y), r = 10 + 40 * (1 - k) * (1 - k);
+    ctx.save();
+    ctx.globalAlpha = 0.3 + 0.6 * k; ctx.lineWidth = 4; ctx.strokeStyle = '#140408'; ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI * 2); ctx.stroke(); // dunkler Grund: der Ring bleibt auch vor hellen Sälen sichtbar
+    ctx.globalAlpha = 0.45 + 0.55 * k; ctx.lineWidth = 2; ctx.strokeStyle = k > 0.65 ? '#fce070' : '#fc4830';
+    ctx.setLineDash([7, 5]); ctx.lineDashOffset = -W.frame * 1.5; ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+    if (A.mark === 'line' && Number.isFinite(b.tx) && Number.isFinite(b.ty)) { // Sturzflug: die Bahn bis zum Ziel
+      const tx = Math.round(b.tx - W.cam.x), ty = Math.round(b.ty - W.cam.y);
+      ctx.globalAlpha = 0.3 + 0.45 * k; ctx.strokeStyle = '#fc4830'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]); ctx.lineDashOffset = -W.frame; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(tx, ty); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = '#fce070'; for (const [ax, ay] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ctx.fillRect(tx + ax * 7 - (ax ? 2 : 0), ty + ay * 7 - (ay ? 2 : 0), ax ? 5 : 1, ay ? 5 : 1);
+    }
+    const s = Math.round(3 + 6 * Math.sin(k * Math.PI)); // Glanzstern am Kopf: das Zeichen „jetzt kommt was“
+    ctx.globalAlpha = 1; ctx.fillStyle = '#fff4d0'; ctx.fillRect(sx - s, sy - 15, s * 2 + 1, 1); ctx.fillRect(sx, sy - 15 - s, 1, s * 2 + 1); ctx.fillStyle = '#fc6840'; ctx.fillRect(sx - 1, sy - 16, 3, 3);
+    ctx.restore();
+  }
   function drawWorld(ctx) {
+    drawTell(ctx);
     const b = W.boss; if (!stunned(b)) return;
     const h = head(b), sx = h.x - W.cam.x, sy = h.y - W.cam.y, f = W.frame;
     for (let i = 0; i < 5; i++) {
@@ -175,5 +267,5 @@ const Duell = (() => {
   }
   function clear() { imp = null; rep = null; }
 
-  return { rec, stunned, holding, struck, bonus, hold, tick, finish, report, drawImpact, drawReport, drawWorld, gauge, clear, wrap, STUN, LAST_AT, get rep() { return rep; }, get imp() { return imp; } };
+  return { landing, rec, stunned, holding, struck, bonus, hold, tick, finish, report, drawImpact, drawReport, drawWorld, gauge, clear, wrap, STUN, LAST_AT, get rep() { return rep; }, get imp() { return imp; } };
 })();

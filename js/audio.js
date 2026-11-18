@@ -211,6 +211,7 @@ const Audio8 = (() => {
     hoovesFar: () => { const t = ac.currentTime; [0, 0.08, 0.19, 0.26].forEach(d => noise(0.07, 0.07, 'lowpass', 320, 100, t + d)); },
     djump: () => { tone('pulse', 420, 1250, 0.11, 0.11, 0.25); noise(0.12, 0.12, 'highpass', 3500, 7000); },
     ready: () => arp(['e6', 'a6', 'e7'], 0.04, 'pulse', 0.12, 0.125),
+    tell: () => { tone('triangle', 1320, 1760, 0.1, 0.07); tone('sine', 660, 880, 0.14, 0.05); }, // Boss holt aus: heller, kurzer Warnton
     crash: () => { arp(['a4', 'e5', 'a5', 'c#6', 'e6', 'a6', 'c#7'], 0.035, 'pulse', 0.16, 0.5); noise(0.9, 0.4, 'highpass', 5000, 800); tone('triangle', 220, 55, 0.7, 0.4); },
     checkpoint: () => arp(['g5', 'c6', 'e6', 'g6', 'c7'], 0.07, 'pulse', 0.14, 0.25),
     chest: () => { tone('triangle', 140, 90, 0.2, 0.3); arp(['c6', 'e6', 'g6', 'c7'], 0.05, 'pulse', 0.13, 0.25); },

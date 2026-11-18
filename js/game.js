@@ -527,7 +527,8 @@ const Game = {
         break;
       case 'card': // Schloss-Modus: Regionsname nur kurz (30–90 Bilder statt 75–140)
         if (this.warming()) break; // erst wenn die Stage fertig vorgebaut ist (Ladebalken auf der Karte)
-        if ((this.t > (Castle.on ? 30 : 75) && !Voice.busy()) || this.t > (Castle.on ? 90 : 140) || ((P.start || P.jump || P.attack) && this.t > 12)) { this.go('play'); Audio8.play(W.songName()); Audio8.tempo(1); this.bossName = 0; this.hurryT = 0; this.readyT = 1; }
+        { const again = Castle.on && this.regionsSeen && this.regionsSeen.has(W.stage); // Schloss: bekannte Region nur als kurzes Aufblenden, ohne BEREIT?/LOS!
+        if ((this.t > (again ? 8 : Castle.on ? 30 : 75) && (again || !Voice.busy())) || this.t > (Castle.on ? 90 : 140) || ((P.start || P.jump || P.attack) && this.t > 12)) { this.go('play'); Audio8.play(W.songName()); Audio8.tempo(1); this.bossName = 0; this.hurryT = 0; this.readyT = again ? 0 : 1; if (Castle.on) (this.regionsSeen || (this.regionsSeen = new Set())).add(W.stage); } }
         break;
       case 'play': this.updatePlay(P); break;
       case 'pause': { // Pausenmenü: WEITER / (KARTE) / LEICHT-MODUS / ABSCHNITT WÄHLEN / ZUM TITEL

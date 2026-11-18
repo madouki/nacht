@@ -5,7 +5,7 @@
 // Licht fürs 3D-Tor: warm von vorn links (Fackeln), dazu kühles Umgebungslicht
 const DOOR_ENV = (() => { const v = [-0.35, 0.55, -0.75], l = Math.hypot(...v); return { static: true, sun: v.map(c => c / l), sunC: [0.85, 0.66, 0.46], amb: [0.36, 0.34, 0.44], sky: [0.16, 0.14, 0.22], fog: [0, 0, 0], fogD: 0 }; })();
 const STORMY = { courtyard: null, ship: null, bridge: null, glass: [0.44, 0.12], foyer: [0.88, 0.02], library: [0.52, 0.08], hall: [0.5, 0.1], tower: [0.5, 0.1], throne: [0.46, 0.1], lab: [0.5, 0.06], werk: [0.5, 0.12], passage: [0.6, 0.06], kaleido: [0.5, 0.06] };
-const BLOOM = { ice: 0.5, expo: 0.6, glass: 0.6, courtyard: 0.55, bridge: 0.7, kaleido: 0.6, sun: 0.45, cathedral: 0.5, spire: 0.5, ballroom: 0.4, theater: 0.5, vortex: 0.7 }; // Glühen je Gebiet (helle Säle weniger; Ballsaal 0.4: die Lüster sind Sprungziele und sollen als Form lesbar bleiben)
+const BLOOM = { ice: 0.5, expo: 0.6, glass: 0.6, courtyard: 0.55, bridge: 0.7, kaleido: 0.6, sun: 0.16, cathedral: 0.28, spire: 0.26, ballroom: 0.4, theater: 0.5, vortex: 0.7 }; // Glühen je Gebiet (helle Säle weniger; Ballsaal 0.4: die Lüster sind Sprungziele und sollen als Form lesbar bleiben)
 // Fenster in der Wandebene (x, Oberkante, Breite, Höhe): werfen im Blitz Lichtbahnen in den Raum
 const STORM_WINS = { foyer: [[44, 20, 56, 216], [300, 20, 56, 216]], library: [[296, 24, 48, 98]], hall: [[64, 40, 32, 88], [320, 40, 32, 88]], throne: [[59, 24, 32, 108], [315, 24, 32, 108]] };
 const W = {
@@ -150,6 +150,7 @@ const W = {
         case 'crumble': this.platforms.push(this.spawn(new Crumble(d))); break;
       }
     });
+    Kulisse.populate(this); // große Stücke hinter der Spielebene (js/kulisse.js)
     this.stairs = this.findStairs();
     this.rings = this.ents.filter(e => e instanceof Ring);
     this.player.reset(def.start.x * T + 8, (def.start.y + 1) * T);
@@ -679,7 +680,7 @@ const W = {
     const order = ['prop', 'candle', 'platform', 'item', 'enemy', 'boss', 'sub', 'eproj', 'fx'];
     if (this.room.wrap) this.drawOnTower(ctx, order);
     else if (bend) this.drawBent(ctx, order);
-    else { this.drawGroundShadows(ctx); order.forEach(k => { for (const e of this.ents) if (e.kind === k) e.draw(ctx); if (k === 'boss') this.player.draw(ctx, this.cam); }); }
+    else { this.drawGroundShadows(ctx); order.forEach(k => { if (k === 'eproj') this.drawDanger(ctx); for (const e of this.ents) if (e.kind === k) e.draw(ctx); if (k === 'boss') this.player.draw(ctx, this.cam); }); }
     for (const e of this.ents) if (e.drawFront && !e.dead) e.drawFront(ctx); // Bauwerke, die vor dem Helden liegen (Torhaus beim Durchgehen)
     Duell.drawWorld(ctx); // Sterne über dem taumelnden Boss
     this.drawReflections(ctx, sx, sy);
@@ -696,7 +697,7 @@ const W = {
     FX.drawMotes(ctx, lights, this.cam, this.frame); // Staub tanzt im Fackelschein
     Rays.draw(ctx, this.room, this.cam, this.frame);
     for (const e of this.ents) if (e.drawLit && !e.dead) e.drawLit(ctx); // Riesen (Steingolem): nach Licht und Nebel, mit eigener 3D-Beleuchtung
-    if (Options.bloom) FX.bloom(ctx, this.room.bloom ?? BLOOM[theme] ?? 1); // Glühen über allem, was leuchtet (je Raum dämpfbar)
+    if (Options.bloom) FX.bloom(ctx, theme === 'ballroom' ? 0.4 - 0.3 * Ball.FL.a : this.room.bloom ?? BLOOM[theme] ?? 1); // Glühen über allem, was leuchtet (je Raum dämpfbar)
     this.drawGates(ctx); // Fallgitter der Bosskammer (nach dem Licht: Eisen bleibt auch im dunklen Stollen sichtbar)
     if (theme === 'mirror') Mirror.capture(ctx); // Spiegelgalerie: dieses Bild spiegelt sich im nächsten (vor Blitz, Blutmond und Warnrand)
     if (this.bloodT > 0) this.drawBloodMoon(ctx, vw);
@@ -778,6 +779,18 @@ const W = {
   },
   // Blitz: jede Figur (Held, Gegner, Rüstungen, Kronleuchter, Kerzen) wirft einen harten, vergrößerten Schlagschatten
   // an die Wand – weg vom nächsten Fenster und nach oben, als stünde das Licht tief vorn (Stummfilm-Horror)
+  drawDanger(ctx) { // Geschosse heben sich von jedem Hintergrund ab: dunkler Hof, darin ein pulsierender roter Kern
+    const cam = this.cam, vw = View.w, pulse = 0.72 + 0.28 * Math.sin(this.frame * 0.45);
+    for (const e of this.ents) {
+      if (e.kind !== 'eproj' || e.dead || e.reflected || e.w > 28 || e.h > 28) continue;
+      const x = e.x + e.w / 2 - cam.x, y = e.y + e.h / 2 - cam.y; if (x < -16 || x > vw + 16 || y < -16 || y > 224) continue;
+      const r = Math.round(Math.max(e.w, e.h) / 2 + 7);
+      ctx.globalAlpha = 0.72; ctx.drawImage(FX.disc(r, [8, 0, 6], [0.8, 0.6, 0.3, 0.1]), Math.round(x - r), Math.round(y - r));
+      ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.6 * pulse; ctx.drawImage(FX.disc(r - 2, [252, 56, 28], [0.5, 0.3, 0.12, 0.03]), Math.round(x - r + 2), Math.round(y - r + 2));
+      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+    }
+  },
+
   // Bodenschatten: unter Held, Gegnern und Beute liegt ein weicher dunkler Fleck auf dem Boden darunter – je höher die Figur über
   // dem Boden, desto kleiner und blasser (ab 72 px keiner mehr). Wer steht (onGround, Treppe), hat ihn direkt unter den Füßen
   drawGroundShadows(ctx) {

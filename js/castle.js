@@ -487,7 +487,7 @@ const Castle = (() => {
       .statue(10, 23)
       .music('hotel').label('FOYER DES HOFTHEATERS').start(5, 23).done();
     thFoyer.puppets = [[38, 23], [52, 23]];
-    add('theaterfoyer', 3, 6, null, thFoyer);
+    thFoyer.bloom = 0.12; add('theaterfoyer', 3, 6, null, thFoyer);
     // Zuschauerraum: man steht mitten im Rund – vier Logenränge, Kaiserloge, Geisterpublikum; das Rund dreht sich beim Durchlaufen
     // perspektivisch mit (tiles.js drawTheaterRound). Im Parkett Marionetten, Logenbalkone als Kletterweg, zwei Kronleuchter über
     // dem Orchestergraben, dahinter die Bühne: oben hebt sich der Vorhang und gibt Truhe und Lebensgefäß frei.
@@ -630,7 +630,7 @@ const Castle = (() => {
     const kammer = (key, id, theme, music, label, walls, save) => { // save: Speicherkammer mit dem Brunnen der Rast (sonst Warpkammer mit dem Kugelportal)
       const k = R(32, theme).ground(0, 31).candle(1, 9).candle(30, 9).prop('kammerhall', { bays: 3 });
       if (save) k.prop('fountain', { x: 16, big: true });
-      add(key, id, 1, null, hall(k.music(music).label(label).start(2, 10).done()));
+      const kd = hall(k.music(music).label(label).start(2, 10).done()); kd.bloom = 0.2; add(key, id, 1, null, kd);
     };
     kammer('felsenkammer', 1, 'cave', 'stage2', 'FELSENKAMMER', null, true);                 // Katakomben: rechts am Brunnenschacht
     kammer('grottenportal', 1, 'cave', 'stage2', 'GROTTENPORTAL', 'R');
@@ -4538,8 +4538,10 @@ const Castle = (() => {
   // nächsten). Betritt man so einen Raum, zeigt ein grünes Band die Neuerung und ein pulsierender Rahmen mit NEU-Schild die Stelle
   // (markNew). Bei jeder Auslieferung neu füllen. Eintrag: [Raum, Text, Stellen [x, y, b, h] in Kacheln (x < 0: vom rechten Rand)]
   const RECENT = [
-    [['side', 'kuckuck'], 'chgKuckuck', [[13, 2, 6, 7]]],                // Kuckucksuhr: das Uhrgehäuse oben in der Mitte
-    [['side', 'zeiger'], 'chgDoorKuckuck', [[0, 9, 2, 3]]],              // Zeigerkammer: neue Tür links hinter der Werkstatt
+    [['side', 'kanal'], 'chgKanal', [[20, 5, 9, 6]]],                    // Kanal: Schleuse und Wasserfall
+    [['side', 'golemstollen'], 'chgStollen', [[32, 4, 6, 7]]],           // Stollen: Grubenausbau mit Laterne
+    [['side', 'sternkuppel'], 'chgKuppel', [[17, 13, 12, 9]]],           // Sternkuppel: das Teleskop
+    [['side', 'lesezimmer'], 'chgKammer', [[1, 4, 8, 7]]],               // Kammern: jede Region sieht anders aus
   ];
   const recentEntry = (s, r) => { for (const e of RECENT) { const a = ref(e[0]); if (a && a.s === s && a.r === r) return e; } return null; };
   function recentNote(s, r) { const e = recentEntry(s, r); return e ? e[1] : null; }
@@ -5004,7 +5006,7 @@ const Castle = (() => {
     for (const q of QUESTS) need.push('quest_' + q.id, 'questHint_' + q.id);
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
-    need.push('hintRopeUp', 'hintRopeHold', 'hintRopeDown', 'hintTrolley', 'hintTrolley2', 'hintHand', 'npcBell', 'npcGuide', 'npcClock', 'newHere', 'chgZeiger', 'chgDoorZeiger', 'chgKlamm', 'chgDoorKlamm', 'chgGlocken', 'chgDoorGlocken', 'hintKuckuck', 'bossKuckuck', 'bossKuckuckShout', 'bossKuckuckBonk', 'bossKuckuckRage', 'bossKuckuckDie', 'bossKuckuckNote', 'banter_bossKuckuck', 'beastD_Kuckucksuhr', 'ach_kuckuck', 'achD_kuckuck', 'item_kuckucksfeder', 'itemD_kuckucksfeder', 'chgKuckuck', 'chgDoorKuckuck'); // Glockenstuhl, Tropfsteinklamm, Zeigerkammer, NEU-Markierung, Kuckucksuhr
+    need.push('chgKanal', 'chgStollen', 'chgKuppel', 'chgKammer', 'hintRopeUp', 'hintRopeHold', 'hintRopeDown', 'hintTrolley', 'hintTrolley2', 'hintHand', 'npcBell', 'npcGuide', 'npcClock', 'newHere', 'chgZeiger', 'chgDoorZeiger', 'chgKlamm', 'chgDoorKlamm', 'chgGlocken', 'chgDoorGlocken', 'hintKuckuck', 'bossKuckuck', 'bossKuckuckShout', 'bossKuckuckBonk', 'bossKuckuckRage', 'bossKuckuckDie', 'bossKuckuckNote', 'banter_bossKuckuck', 'beastD_Kuckucksuhr', 'ach_kuckuck', 'achD_kuckuck', 'item_kuckucksfeder', 'itemD_kuckucksfeder', 'chgKuckuck', 'chgDoorKuckuck'); // Glockenstuhl, Tropfsteinklamm, Zeigerkammer, NEU-Markierung, Kuckucksuhr
     need.push('boltHint', 'boltOpen', 'boltFar0', 'boltFar1', 'boltFar2', ...BOLTS.map(b => 'boltSay_' + b[0]));
     need.push('castleBossCount', 'castleGoalBoss', 'pauseTravel', 'bounty', 'duelStun', 'duelTip', 'duelLast', 'duelLine0', 'duelLine1', 'duelLine2', 'duelLine3', 'duelTitle', 'duelTime', 'duelHits', 'duelStuns', 'duelBonus', 'duelVS', 'duelVA', 'duelVB', 'duelVC', 'runTip', 'travelTip', 'bountyTitle', 'travelRoom', 'mahrTitle', 'mahrCount', 'mahrRuf', 'mahrBann', 'mahrHelp', 'mahrSwap', 'mahrOn', 'mahrFrom', 'mahrUnknown', 'mahrGot', 'mahrFirst', 'mahrDodge', 'crit', 'chgMahr');
     { // Erreichbarkeit: vom Wald aus über Türen und Ausgänge (alles geöffnet) – kein Raum darf abgeschnitten sein

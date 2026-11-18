@@ -146,6 +146,7 @@ const Theater = (() => {
       put(X, Y, pe ? GOLD[3] : mix(marble(X, Y), [214, 204, 186], panel ? 0.25 : 0));
     }
     x.putImageData(img, 0, 0);
+    x.globalCompositeOperation = 'multiply'; x.fillStyle = '#a89c98'; x.fillRect(0, 0, Wd, Hd); x.globalCompositeOperation = 'source-over'; // Marmor im Abendlicht: hell, aber nicht grell
     return (foyer = c);
   }
   return { roundTex, foyerTex, WINX, TW, TH };

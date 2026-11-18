@@ -199,7 +199,7 @@ const Ball = (() => {
       const xc = o + bb * BAY + BAY / 2, sx = w / 2 + (xc - camX) * k + os; if (sx < -60 || sx > w + 60) continue;
       if ((sx < w / 2) !== (FL.side < 0)) continue;
       const hw = WW / 2 * k, y0 = 60 - (WY0 - camY) * k, ya = 60 - (WY1 - WW / 2 - camY) * k;
-      const g = ctx.createLinearGradient(0, ya - hw, 0, y0); g.addColorStop(0, `rgba(235,240,255,${(0.95 * a).toFixed(3)})`); g.addColorStop(1, `rgba(150,170,255,${(0.6 * a).toFixed(3)})`);
+      const g = ctx.createLinearGradient(0, ya - hw, 0, y0); g.addColorStop(0, `rgba(235,240,255,${(0.62 * a).toFixed(3)})`); g.addColorStop(1, `rgba(150,170,255,${(0.34 * a).toFixed(3)})`);
       ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(sx - hw, y0); ctx.lineTo(sx - hw, ya); ctx.arc(sx, ya, hw, Math.PI, 0); ctx.lineTo(sx + hw, y0); ctx.closePath(); ctx.fill();
       let s = FL.seed + Math.round(xc), px = sx + (((s = (s * 16807) % 2147483647) % 100) / 100 - 0.5) * hw, py = ya - hw;
       ctx.strokeStyle = `rgba(255,255,255,${Math.min(1, a * 1.3).toFixed(3)})`; ctx.lineWidth = Math.max(1, 1.6 * k * 2); ctx.beginPath(); ctx.moveTo(px, py);
@@ -207,7 +207,7 @@ const Ball = (() => {
       ctx.stroke();
       ctx.fillStyle = 'rgba(70,40,10,0.85)'; ctx.fillRect(Math.round(sx) - 1, ya - hw, 1, y0 - ya + hw);
       for (const y of [WY0 + 50, WY0 + 100]) ctx.fillRect(sx - hw, Math.round(60 - (y - camY) * k), hw * 2, 1);
-      ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = `rgba(150,170,255,${(0.22 * a).toFixed(3)})`;
+      ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = `rgba(150,170,255,${(0.11 * a).toFixed(3)})`;
       ctx.beginPath(); ctx.moveTo(sx - hw, y0 + 2); ctx.lineTo(sx + hw, y0 + 2); ctx.lineTo(sx + hw * 2.6, 170); ctx.lineTo(sx - hw * 2.6, 170); ctx.closePath(); ctx.fill();
       ctx.globalCompositeOperation = 'source-over';
     }
@@ -224,7 +224,7 @@ const Ball = (() => {
     const t = ++FL.t;
     FL.a = t < 3 ? 1 : t < 5 ? 0.3 : t < 7 ? 0.85 : Math.max(0, 0.85 - (t - 7) * 0.08);
   }
-  const amb = () => 0.34 - 0.22 * FL.a; // Dunkelheit im Saal (FX.render)
+  const amb = () => 0.34 - 0.1 * FL.a; // Dunkelheit im Saal (FX.render)
 
   // ---------------- Geister-Tanzpaare und Geistervorhänge ----------------
   // Paare: ein Schritt auf jedem Schlag (vorwärts auf der Kreisbahn und eine Vierteldrehung), Saal-Drehung wie alles andere
@@ -272,7 +272,7 @@ const Ball = (() => {
       ctx.save(); ctx.globalAlpha = base * 0.3; ctx.translate(0, g.ry); ctx.scale(1, -1); ctx.drawImage(fr, x, -dh * 0.985, dw, dh); ctx.restore();
     }
     ctx.globalAlpha = base + fa * 0.15; ctx.drawImage(fr, x, g.sy - dh * 0.985, dw, dh);
-    ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = base * 0.45 + fa * 0.3; ctx.drawImage(fr, x, g.sy - dh * 0.985, dw, dh);
+    ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = base * 0.3 + fa * 0.1; ctx.drawImage(fr, x, g.sy - dh * 0.985, dw, dh);
     ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
   }
 
