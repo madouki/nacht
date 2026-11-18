@@ -572,7 +572,7 @@ const W = {
         if (!this.boss.lateIntro) this.bossEntrance(this.boss); // Amtsschimmel: Auftritt erst, wenn er sich zusammengesetzt hat
       }
     } else if (!this.camLock) {
-      const want = Math.abs(p.vx) > 0.1 ? p.face * 28 : p.face * 10;
+      const want = Math.abs(p.vx) > 0.1 ? p.face * (28 + 46 * (p.runK || 0)) : p.face * 10; // im Laufschritt schaut die Kamera weiter voraus
       this.look += (want - this.look) * 0.035;
       const cx = this.camXFor(p);
       if (this.camEase) { const d = cx - this.cam.x; this.cam.x += clamp(d, -3, 3); if (Math.abs(d) <= 3) this.camEase = 0; } // nach dem Miniboss weich zurück zum Helden
@@ -689,6 +689,7 @@ const W = {
     const tl = (theme === 'cathedral' || theme === 'spire') && PS2.dayNight(this.frame); // Zeitraffer: nachts dunkel und blau, Kerzen leuchten
     const lights = this.collectLights();
     FX.render(ctx, lights, theme, this.room.amb !== undefined ? this.room.amb : theme === 'ballroom' ? Ball.amb() : dark ? (flashOn ? dark[1] : dark[0]) : tl ? 0.05 + tl.night * 0.5 : undefined, tl && tl.night > 0.2 ? '6,8,34' : undefined); // zwischen den Blitzen dunkel, im Blitz taghell
+    Rim.draw(ctx, lights); // Randlicht: Fackeln und Zauber zeichnen helle Kanten auf Held und Gegner (js/rim.js)
     FX.drawMotes(ctx, lights, this.cam, this.frame); // Staub tanzt im Fackelschein
     Rays.draw(ctx, this.room, this.cam, this.frame);
     for (const e of this.ents) if (e.drawLit && !e.dead) e.drawLit(ctx); // Riesen (Steingolem): nach Licht und Nebel, mit eigener 3D-Beleuchtung

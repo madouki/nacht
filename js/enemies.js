@@ -22,7 +22,7 @@ class Ent {
   }
   // Zeichnen + merken (Weltkoordinaten), damit der Pixel-Zerfall die exakte Figur zerlegen kann
   ds(ctx, s, x, y, flip = false, flash = false) {
-    this.lastDraw = { s, x: x + W.cam.x, y: y + W.cam.y, flip };
+    this.lastDraw = { s, x: x + W.cam.x, y: y + W.cam.y, flip, f: W.frame };
     Sprites.draw(ctx, s, x, y, flip, flash);
   }
 }

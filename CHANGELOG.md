@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261118-0908](#20261118-0908--laufschritt-gegen-lange-wege-randlicht-auf-allen-figuren) – Laufschritt gegen lange Wege, Randlicht auf allen Figuren
 - [20261118-0852](#20261118-0852--changelog-mit-sprungliste-musik-mit-raumklang-dynamik-und-überleitungen) – Changelog mit Sprungliste, Musik mit Raumklang, Dynamik und Überleitungen
 - [20261115-0409](#20261115-0409--fünf-weitere-figuren-aus-blender) – Fünf weitere Figuren aus Blender
 - [20261115-0320](#20261115-0320--vier-weitere-figuren-aus-blender) – Vier weitere Figuren aus Blender
@@ -39,6 +40,23 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261118-0908 – Laufschritt gegen lange Wege, Randlicht auf allen Figuren
+
+**Neu – Gameplay**
+- **Laufschritt:** wer gut eine halbe Sekunde ohne Unterbrechung am Boden läuft, wird um 60 % schneller (Staub, Nachbilder, die Kamera
+  schaut weiter voraus). Angriff, Ducken, Treffer, Richtungswechsel und Wände beenden ihn.
+- Gilt nur am Boden: in der Luft zählt das normale Tempo, Sprungweiten bleiben praktisch gleich. Im Bosskampf und auf Eis gibt es
+  keinen Laufschritt.
+
+**Neu – Grafik**
+- **Randlicht:** Kerzen, Fackeln, Feuerschalen, Feuerbälle und Zauber zeichnen jetzt eine helle Kante in ihrer Farbe auf Held,
+  Gegner und Bosse – auf der Seite, die dem Licht zugewandt ist. Die Figuren stehen dadurch sichtbar im Raum (im Spar-Modus aus).
+
+**Beim Testen ansehen**
+- Lange Gänge entlanglaufen: fühlt sich der Laufschritt gut an, kommt er zu früh oder zu spät? Stört er auf kurzen Plattformen?
+- Sprünge aus vollem Lauf: landest du noch dort, wo du willst?
+- Dunkle Räume mit Kerzen (Gruft, Kerker): wandert das Licht an Held und Gegnern mit, ist es zu stark oder zu schwach?
 
 ## 20261118-0852 – Changelog mit Sprungliste, Musik mit Raumklang, Dynamik und Überleitungen
 

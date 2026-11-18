@@ -63,6 +63,7 @@ const Phys = {
   },
 };
 
+const RUN_AT = 34, RUN_RAMP = 26, RUN_MUL = 1.6; // Laufschritt: ab wann, wie rasch, wie schnell
 const WALK = 1.45, JUMP = -4.3, GRAV = 0.21, MAXFALL = 4.2, ATK_LEN = 19; // flotter: schneller laufen, kürzere Peitschen-Erholung
 const WHIP_LEN = [0, 23, 23, 38];
 const SWORD_LEN = [0, 17, 19, 27];
@@ -98,7 +99,7 @@ class Player {
     this.stairUpPose = true; this.deadT = 0; this.plat = null; this.powerT = 0;
     this.canDouble = true; this.flipT = 0; this.scarf = null; this.hidden = false; this.coyote = 0; this.jumpBuf = 0; this.rageT = 0; this.sunk = false;
     this.chargeT = 0; this.crashT = 0; this.landT = 0; this.lastSafe = { cx: fx, feet: fy };
-    this.atkDir = 'fwd'; this.slideT = 0; this.flingT = 0; this.trail = []; this.dangle = false; this.ring = null;
+    this.atkDir = 'fwd'; this.slideT = 0; this.flingT = 0; this.trail = []; this.dangle = false; this.ring = null; this.runT = 0; this.runK = 0; this.runDir = 0;
     this.ledge = null; this.ledgeCool = 0; this.ledgeT = 0; this.climbT = 0; this.wallSlide = 0;
     this.dashT = 0; this.dashCool = 0; this.airDash = false; this.canAirDash = true; this.dashCarry = false; this.tapDir = 0; this.tapT = 0; this.wallT = 0; this.wallLast = 0;
     this.stoneT = 0; this.stoneMax = 1; this.stoneSpr = null; this.stoneShake = 0;
@@ -235,7 +236,20 @@ class Player {
     Audio8.sfx(this.sub === 'axe' ? 'axe' : 'throw');
   }
 
+  // Laufschritt (Schloss-Modus): wer gut eine halbe Sekunde ohne Unterbrechung am Boden läuft, wird schneller – gegen die langen Wege
+  // durchs Schloss. Gilt nur am Boden: in der Luft zählt das normale Tempo, Sprungweiten und Relikt-Sperren bleiben also, wie sie sind.
+  // Nicht im Bosskampf und nicht auf Eis; Angriff, Ducken, Treffer, Richtungswechsel und Wände beenden ihn
+  runMul(mx) {
+    const moved = this.runT < 2 || Math.abs(this.x - this.runX) > 0.2; this.runX = this.x;
+    if (!Castle.on || !mx || mx !== this.runDir || !moved || W.room.ice || W.arenaOn || W.boss) { this.runDir = mx; this.runT = 0; this.runK = 0; return 1; }
+    this.runT = Math.min(RUN_AT + RUN_RAMP, this.runT + 1);
+    this.runK = clamp((this.runT - RUN_AT) / RUN_RAMP, 0, 1);
+    if (this.runK >= 1 && !Castle.flags.run_tip) { Castle.setFlag('run_tip'); Game.note('runTip'); }
+    if (this.runK > 0.5 && W.frame % 9 === 0) W.dust(this.cx - mx * 6, this.feet, 1);
+    return 1 + (RUN_MUL - 1) * this.runK * (2 - this.runK);
+  }
   hurt(dmg, srcX) {
+    this.runT = 0; this.runK = 0;
     if (this.state === 'cannon') return; // im Flug zum Mond
     if (this.inv > 0 || !this.alive || W.cleared || Game.state === 'demo' || Options.god) return; // Demo und Testhilfe: unverwundbar
     if (W.dodgeCd <= 0 && W.perfectDodge && this.state === 'normal' && ((this.dashT > 0 && this.dashT > (this.airDash ? AIRDASH_LEN : DASH_LEN) - 10) || this.slideT > 15)) { W.perfectDodge(this); return; } // Perfekt-Ausweichen
@@ -416,8 +430,8 @@ class Player {
 
     const mx = (I.right ? 1 : 0) - (I.left ? 1 : 0);
     if (this.onGround) {
-      if (this.atkT > 0 || this.crouch) { if (W.room.ice) this.vx *= W.room.iceRamps ? (this.crouch ? 0.998 : 0.993) : 0.975; else this.vx = 0; } // auf Eis rutscht man beim Hieb und Ducken weiter (im Eisturm geduckt fast ungebremst)
-      else { const tv = mx * WALK, ice = W.room.ice; if (W.room.iceRamps && mx && Math.sign(this.vx) === mx && Math.abs(this.vx) > WALK) this.vx *= this.boostT > 0 ? 0.999 : 0.993; else this.vx += (tv - this.vx) * (ice ? (mx ? 0.045 : 0.018) : (mx ? 0.38 : 0.5)); if (Math.abs(this.vx) < 0.06) this.vx = 0; if (mx) this.face = mx; } // Eis: träge anfahren, lange nachrutschen; im Eisturm hält der Rampenschwung
+      if (this.atkT > 0 || this.crouch) { this.runT = 0; this.runK = 0; if (W.room.ice) this.vx *= W.room.iceRamps ? (this.crouch ? 0.998 : 0.993) : 0.975; else this.vx = 0; } // auf Eis rutscht man beim Hieb und Ducken weiter (im Eisturm geduckt fast ungebremst)
+      else { const tv = mx * WALK * this.runMul(mx), ice = W.room.ice; if (W.room.iceRamps && mx && Math.sign(this.vx) === mx && Math.abs(this.vx) > WALK) this.vx *= this.boostT > 0 ? 0.999 : 0.993; else this.vx += (tv - this.vx) * (ice ? (mx ? 0.045 : 0.018) : (mx ? 0.38 : 0.5)); if (Math.abs(this.vx) < 0.06) this.vx = 0; if (mx) this.face = mx; } // Eis: träge anfahren, lange nachrutschen; im Eisturm hält der Rampenschwung
       if (W.room.iceRamps && this.crouch && Math.abs(this.vx) > 0.7 && this.atkT === 0) { const la = Math.max(20, Math.abs(this.vx) * 12), ax = this.vx > 0 ? this.x + this.w : this.x - la; if (Phys.rectSolid(ax, this.feet - 28, la, 12) && !Phys.rectSolid(ax, this.feet - 13, la, 12)) return this.startSlide(true); } // nur, wo flach Platz ist // Eisrutsche: geduckt mit Tempo vor eine niedrige Eisdecke – Bauchrutscher, der Schwung bleibt
       this.coyote = 7;
       this.iceV = !!W.room.iceRamps && Math.abs(this.vx) > WALK + 0.1; // Rutschschwung, der mit in die Luft geht (Schanze)
@@ -434,7 +448,7 @@ class Player {
       if (W.room.iceRamps) this.airT = (this.airT || 0) + 1;
       if (this.flingT > 0) { this.flingT--; this.vx += (mx * WALK - this.vx) * 0.05; } // Schwung nach dem Pendeln
       else if (this.iceV && !this.dashCarry) { if (this.airT === 1) this.skiFly = true; if (mx && mx !== Math.sign(this.vx)) this.vx += (mx * WALK - this.vx) * 0.1; else this.vx *= 0.997; if (Math.abs(this.vx) <= WALK) this.iceV = false; } // Eisturm: der Rutschschwung trägt über die Schanze, Gegenlenken bremst
-      else this.vx = mx * (this.dashCarry ? DASH_AIR : WALK); // nach einem Dash bleibt der Schwung bis zur Landung
+      else { const tv = mx * (this.dashCarry ? DASH_AIR : WALK); this.vx = this.runK > 0 && mx && Math.sign(this.vx) === mx && Math.abs(this.vx) > Math.abs(tv) + 0.02 ? this.vx + (tv - this.vx) * 0.6 : tv; } // nach einem Dash bleibt der Schwung bis zur Landung; aus dem Laufschritt gleitet das Tempo sofort aufs normale Maß
       if (mx && this.atkT === 0) this.face = mx;
       if (this.coyote > 0) this.coyote--;
       if (this.jumpBuf > 0) this.jumpBuf--;
@@ -456,7 +470,7 @@ class Player {
       this.wallSlide = w2 && mx === w2 && this.vy > 0.4 && this.atkT === 0 && this.flingT <= 0 ? w2 : 0;
       if (this.wallSlide) { this.face = -w2; if (W.frame % 6 === 0) W.dust(this.cx + w2 * 6, this.y + 6, 1); }
     }
-    if (this.vx !== 0 && this.onGround) { this.walkT++; if (this.walkT % 20 === 1) { W.dust(this.cx - this.face * 4, this.feet, 1); this.footstep(); } } else if (this.onGround) this.walkT = 0;
+    if (this.vx !== 0 && this.onGround) { this.walkT++; this.walkA = (this.walkA || 0) + 1 + 0.6 * this.runK; if (this.walkT % (this.runK > 0.5 ? 13 : 20) === 1) { W.dust(this.cx - this.face * 4, this.feet, 1); this.footstep(); } } else if (this.onGround) this.walkT = 0;
 
     this.vy = Math.min(this.vy + this.g(), this.wallSlide ? 1.25 : this.mf());
     Phys.moveX(this, this.vx);
@@ -956,7 +970,7 @@ class Player {
     this.trail.forEach(t => t.life--);
     this.trail = this.trail.filter(t => t.life > 0);
     const fast = this.flipT > 0 || this.crashT > 0 || this.slideT > 0 || this.dashT > 0 || this.state === 'swing' || this.state === 'zip' || this.flingT > 25;
-    if (!fast || W.frame % 2) return;
+    if (fast ? W.frame % 2 : !(this.runK >= 1 && this.onGround && W.frame % 6 === 0)) return; // Laufschritt: nur ab und zu ein Nachbild
     if (this.flipT > 0 && !this.atkT && this.state === 'normal' && !this.onGround) {
       this.trail.push({ tuck: true, rot: this.saltoAngle(), x: this.cx, y: this.feet - 15, flip: this.face < 0, life: 10 });
       if (this.trail.length > 6) this.trail.shift();
@@ -995,7 +1009,7 @@ class Player {
     if (!this.onGround) return this.vy < -1.2 ? H.jumpUp : this.vy < 1.3 ? H.jumpApex : H.jumpFall;
     if (this.crouch) return H.crouch;
     if (this.landT > 0) return H.land;
-    if (this.vx !== 0) return H.walk[Math.floor(this.walkT / 5) % 8];
+    if (this.vx !== 0) return H.walk[Math.floor((this.walkA || 0) / 5) % 8];
     if (W.frame % 230 < 7) return H.blink;
     return H.idle[Math.floor(W.frame / 40) % 2];
   }
@@ -1050,6 +1064,7 @@ class Player {
       return;
     }
     const sx = Math.round(this.x - 3 - cam.x), sy = Math.round(this.feet - 32 - cam.y); // Bezugspunkt für Waffen
+    this.rimDraw = { s: spr, x: sx - (spr.mx || 0) + cam.x, y: Math.round(this.feet - spr.h - cam.y) + cam.y, flip: this.face < 0, f: W.frame }; // für das Randlicht (js/rim.js)
     let scx = 1, scy = 1; // Squash & Stretch
     if (this.landT > 0 && this.onGround) { const k = this.landT / 7; scx = 1 + 0.09 * k; scy = 1 - 0.11 * k; }
     else if (!this.onGround && this.vy < -2.6 && this.state === 'normal') { scx = 0.94; scy = 1.07; }
