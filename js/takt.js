@@ -54,7 +54,7 @@ const Takt = (() => {
     for (let l = 0; l < 3; l++) if (D.flash[l] > 0) D.flash[l]--;
     if (D.res) { D.res.t++; if (D.res.t > 40 && (P.jump || P.attack || P.start)) { const r = D.res; D = null; return r; } return null; }
     if (P.start) { D = null; Audio8.stop(); return { quit: true }; }
-    if (D.wait > 0) { if (--D.wait === 0) { Audio8.play(D.id); D.f = 0; } else if (D.wait % 50 === 0) Audio8.sfx('select'); }
+    if (D.wait > 0) { if (--D.wait === 0) { Audio8.play(D.id, null, 0, 0, true); D.f = 0; } else if (D.wait % 50 === 0) Audio8.sfx('select'); }
     else D.f++;
     const s = now(), msPer = 15000 / D.bpm;
     const press = [P.left, P.up || P.jump || P.attack, P.right];

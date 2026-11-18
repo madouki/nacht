@@ -1,9 +1,17 @@
 # Erzeugt js/changelog.js aus CHANGELOG.md, damit das Changelog im Spiel (Optionen → CHANGELOG) lesbar ist.
-# Aufruf im Projektstamm:  python tools/make_changelog.py
+# Aufruf im Projektstamm:  python tools/make_changelog.py   (schreibt auch das Inhaltsverzeichnis oben in CHANGELOG.md)
 # Je Version: { build, title, rows: [[art, text]] } mit art 'h' = Zwischenüberschrift, 'b' = Aufzählungspunkt, 'p' = Absatz.
 import io, json, re
 
 src = io.open('CHANGELOG.md', encoding='utf-8').read()
+
+# Inhaltsverzeichnis oben in CHANGELOG.md: je Version ein Link direkt zu ihrem Abschnitt (Anker wie auf GitHub)
+heads = re.findall(r'^## (\S+) [–-] (.*)$', src, re.M)
+slug = lambda h: re.sub(r'[^\w\- ]', '', h.lower()).replace(' ', '-')
+toc = '<!-- INHALT -->\n**Direkt zu einer Version:**\n\n' + '\n'.join('- [%s](#%s) – %s' % (b, slug(b + ' – ' + t), t.replace('**', '')) for b, t in heads) + '\n<!-- /INHALT -->'
+if '<!-- INHALT -->' in src: src2 = re.sub(r'<!-- INHALT -->.*?<!-- /INHALT -->', lambda m: toc, src, count=1, flags=re.S)
+else: src2 = src.replace('\n---\n', '\n' + toc + '\n\n---\n', 1)
+if src2 != src: io.open('CHANGELOG.md', 'w', encoding='utf-8', newline='').write(src2); src = src2
 clean = lambda t: re.sub(r'\s+', ' ', t.replace('**', '').replace('`', '').replace('„', '"').replace('“', '"').replace('”', '"').replace('×', 'x')).strip()
 out, cur, buf = [], None, None
 

@@ -548,6 +548,7 @@ const Game = {
           this.castleGo({ s: Levels.STAGES.findIndex(st => st.id === 0), r: 0, place: 'start' });
         }
         else if (ok && it === 'sec') { this.go('pausesec'); Audio8.sfx('select'); } // Abschnittswahl mitten im Spiel
+        else if (ok && it === 'changelog') this.openChangelog('pause'); // was ist neu, was testen – ohne Umweg über den Titel
         else if (ok && it === 'title' && this.t > 10) {
           this.unpause = false; Audio8.setMusicVolume(0.5); Audio8.muffle(false); Audio8.sfx('select'); this.finishRun(false); // Score zählt trotzdem
         } else if (P.start || this.unpause || (ok && it === 'resume')) {
@@ -659,7 +660,7 @@ const Game = {
     const it = OPTION_ITEMS[this.optSel];
     const left = P.left, right = P.right || P.jump || P.attack;
     if (P.start || (it.key === 'back' && (P.jump || P.attack))) { this.go('title'); Audio8.sfx('pause'); return; }
-    if (it.key === 'changelog') { if (right) { this.chg = { y: 0, lay: null }; this.go('changelog'); Audio8.sfx('select'); } return; }
+    if (it.key === 'changelog') { if (right) this.openChangelog('options'); return; }
     if (!(left || right)) return;
     if (it.key === 'music') {
       Options.set('music', clamp(Options.music + (left ? -1 : 1), 0, 10));
@@ -946,30 +947,32 @@ const Game = {
     Audio8.sfx('select'); return null;
   },
   // Touch im Pausenmenü: Tipp auf einen Menüpunkt wählt ihn (true), sonst geht es weiter
-  pauseItems() { return Castle.on ? ['resume', 'map', ...(Castle.travelOk() ? ['travel'] : []), 'status', 'equip', ...(Castle.inPrologue() ? ['skip'] : []), Castle.testing ? 'tools' : 'easy', 'sec', 'title'] : ['resume', 'easy', 'sec', 'title']; },
+  pauseItems() { return Castle.on ? ['resume', 'map', ...(Castle.travelOk() ? ['travel'] : []), 'status', 'equip', ...(Castle.inPrologue() ? ['skip'] : []), Castle.testing ? 'tools' : 'easy', 'sec', 'changelog', 'title'] : ['resume', 'easy', 'sec', 'changelog', 'title']; },
+  pauseLift() { return Math.max(0, this.pauseItems().length - 8) * 12; }, // viele Einträge: das Feld rückt nach oben, damit es auf den Schirm passt
   pauseTouch(clientX, clientY) {
     const r = this.canvas.getBoundingClientRect(), y = (clientY - r.top) / r.height * 240;
-    const n = this.pauseItems().length, i = Math.round((y - 123) / 12); // nächster Menüpunkt, großzügig
-    if (i >= 0 && i < n && Math.abs(y - (123 + i * 12)) < 9) { this.pauseAct = i; return true; }
+    const n = this.pauseItems().length, y0 = 123 - this.pauseLift(), i = Math.round((y - y0) / 12); // nächster Menüpunkt, großzügig
+    if (i >= 0 && i < n && Math.abs(y - (y0 + i * 12)) < 9) { this.pauseAct = i; return true; }
     return false;
   },
   drawPause(ctx) {
     const ids = this.pauseItems(), extra = (ids.length - 4) * 12;
-    const LABEL = { resume: tr('resume'), map: tr('mapTitle') + (Input.device === 'pad' ? ' (SELECT)' : Input.device === 'touch' ? '' : ' (TAB/Q)'), travel: tr('pauseTravel') + (Input.device === 'pad' ? ' (↓ + SELECT)' : Input.device === 'touch' ? '' : ' (↓ + TAB/Q)'), status: tr('castleStatus'), equip: tr('equipTitle'), tools: tr('testTools'), skip: tr('castleSkipPrologue'), easy: tr('optEasy') + ': ' + tr(Options.easy ? 'on' : 'off'), sec: tr('secTitle'), title: tr('toTitle') };
-    const cx = View.cx, items = ids.map(id => LABEL[id]);
+    const LABEL = { resume: tr('resume'), map: tr('mapTitle') + (Input.device === 'pad' ? ' (SELECT)' : Input.device === 'touch' ? '' : ' (TAB/Q)'), travel: tr('pauseTravel') + (Input.device === 'pad' ? ' (↓ + SELECT)' : Input.device === 'touch' ? '' : ' (↓ + TAB/Q)'), status: tr('castleStatus'), equip: tr('equipTitle'), tools: tr('testTools'), skip: tr('castleSkipPrologue'), easy: tr('optEasy') + ': ' + tr(Options.easy ? 'on' : 'off'), sec: tr('secTitle'), changelog: tr('optChangelog') + (this.chgUnseen() ? ' (' + tr('chgNewN', this.chgUnseen()) + ')' : ''), title: tr('toTitle') };
+    const cx = View.cx, items = ids.map(id => LABEL[id]), up = this.pauseLift();
     const hint = tr(Input.device === 'pad' ? 'pausePad' : Input.device === 'touch' ? 'pauseTouch' : 'pauseKey');
     const pw = Math.min(View.w - 8, Math.max(150, Font.width(hint) + 16, ...items.map(s => Font.width(s) + 96)));
-    if (Castle.on) Castle.drawGoalBanner(ctx, 66); // Schloss: nächstes Ziel
-    ctx.fillStyle = '#000'; ctx.fillRect(cx - pw / 2, 96, pw, 94 + extra);
-    ctx.strokeStyle = '#c89020'; ctx.strokeRect(cx - pw / 2 + 0.5, 96.5, pw - 1, 93 + extra);
-    Font.draw(ctx, tr('pause'), cx, 104, '#fcfcfc', { align: 'center' });
+    if (Castle.on) Castle.drawGoalBanner(ctx, 66 - up); // Schloss: nächstes Ziel
+    ctx.fillStyle = '#000'; ctx.fillRect(cx - pw / 2, 96 - up, pw, 94 + extra);
+    ctx.strokeStyle = '#c89020'; ctx.strokeRect(cx - pw / 2 + 0.5, 96.5 - up, pw - 1, 93 + extra);
+    Font.draw(ctx, tr('pause'), cx, 104 - up, '#fcfcfc', { align: 'center' });
     items.forEach((s, i) => {
       const on = (this.pauseSel || 0) === i;
-      Font.draw(ctx, s, cx - 46, 120 + i * 12, on ? (ids[i] === 'easy' && Options.easy ? '#58f898' : '#fcfcfc') : '#8c8c8c');
-      if (on && (this.t >> 4) % 2 === 0) Sprites.draw(ctx, Sprites.S.heartS, cx - 60, 119 + i * 12);
+      Font.draw(ctx, s, cx - 46, 120 - up + i * 12, on ? (ids[i] === 'easy' && Options.easy ? '#58f898' : '#fcfcfc') : '#8c8c8c');
+      if (on && (this.t >> 4) % 2 === 0) Sprites.draw(ctx, Sprites.S.heartS, cx - 60, 119 - up + i * 12);
     });
-    Font.draw(ctx, hint, cx, 176 + extra, '#7c7c7c', { align: 'center' });
-    if (!Audio8.ready()) Font.draw(ctx, tr('soundShort'), cx, 196 + extra, '#7c7c7c', { align: 'center' });
+    const full = 196 - up + extra > 228; // volles Menü: der Tonhinweis ersetzt die Tastenzeile, statt sie zu überdecken
+    if (!(full && !Audio8.ready())) Font.draw(ctx, hint, cx, 176 - up + extra, '#7c7c7c', { align: 'center' });
+    if (!Audio8.ready()) Font.draw(ctx, tr('soundShort'), cx, full ? 176 - up + extra : 196 - up + extra, '#7c7c7c', { align: 'center' });
   },
 
   panel(ctx, title, sub) {
@@ -1549,55 +1552,129 @@ const Game = {
     Font.draw(ctx, tr('secHelp'), cx, 212, '#7c7c8c', { align: 'center' });
   },
 
-  // Changelog im Spiel (Optionen → CHANGELOG): die Einträge aus CHANGELOG.md als rollbare Seite. ↑↓ rollt (gehalten: weiter),
-  // ←→ springt zur vorigen/nächsten Version, Start/Sprung/Angriff zurück. Umbruch nach Schirmbreite, je Breite einmal gesetzt.
-  chgLayout() {
-    const W2 = Math.min(View.w - 28, 380), c = this.chg;
-    if (c.lay && c.lay.w === W2) return c.lay;
-    const rows = [], heads = [];
+  // Changelog im Spiel (Optionen oder Pause → CHANGELOG). Zuerst die Übersicht aller Versionen (Datum, Titel, farbige Marken für
+  // Grafik/Musik/Gameplay/Behoben, NEU seit dem letzten Öffnen): ↑↓ wählt, Sprung öffnet die Version, Angriff springt gleich zu
+  // „Beim Testen ansehen“. In der Version: ↑↓ rollt, ←→ wechselt die Version, Angriff springt zum nächsten Abschnitt, Sprung/Start
+  // führt zurück zur Übersicht. Umbruch nach Schirmbreite, je Version und Breite einmal gesetzt.
+  chgList() { return typeof CHANGELOG !== 'undefined' ? CHANGELOG : []; },
+  chgWhen(b, year) { const m = /^(\d{4})(\d\d)(\d\d)-(\d\d)(\d\d)$/.exec(b); return m ? `${m[3]}.${m[2]}.${year ? m[1] : ''} ${m[4]}:${m[5]}` : b; },
+  chgUnseen() { // wie viele Versionen sind neuer als beim letzten Öffnen? (noch nie geöffnet: nur die neueste)
+    let s = null; try { s = localStorage.getItem('nachtmahr.chgSeen'); } catch (e) { /* privat */ }
+    const L = this.chgList(); if (!L.length) return 0; if (!s) return 1;
+    const i = L.findIndex(v => v.build <= s); return i < 0 ? L.length : i;
+  },
+  openChangelog(from) {
+    const L = this.chgList();
+    this.chg = { mode: 'list', sel: 0, top: 0, news: this.chgUnseen(), from, i: 0, y: 0, jump: null, focus: false, hold: 0, pages: {} };
+    try { if (L[0]) localStorage.setItem('nachtmahr.chgSeen', L[0].build); } catch (e) { /* privat */ }
+    this.go('changelog'); Audio8.sfx('select');
+  },
+  chgKind(h) { // Art eines Abschnitts: Farbe der Marke und kurzer Name für die Reiter
+    const t = h.toLowerCase(), short = h.replace(/^neu\s*[–-]\s*/i, '').toUpperCase();
+    if (/test/.test(t)) return { k: 'test', col: '#fce0a8', tab: 'TESTEN' };
+    if (/behoben|fix/.test(t)) return { k: 'fix', col: '#fc6c5c', tab: short };
+    if (/musik|sound|sfx|audio/.test(t)) return { k: 'mus', col: '#c080fc', tab: short };
+    if (/grafik|figur|hintergr|optik/.test(t)) return { k: 'gfx', col: '#f8b800', tab: short };
+    if (/gameplay|lauferei|warten|spiel|fluss|kampf|boss|r[aä]um/.test(t)) return { k: 'play', col: '#58f898', tab: short };
+    return { k: 'etc', col: '#7cdcfc', tab: short };
+  },
+  chgMarks(v) { const out = {}; for (const [k, txt] of v.rows) if (k === 'h') { const d = this.chgKind(txt); if (d.k !== 'test') out[d.k] = d.col; } return Object.values(out); },
+  chgPage(i) {
+    const c = this.chg, W2 = Math.min(View.w - 28, 380), key = i + ':' + W2;
+    if (c.pages[key]) return c.pages[key];
+    const v = this.chgList()[i], rows = [], secs = [];
     const wrapTo = (txt, max) => { const out = []; let line = ''; for (const wd of String(txt).split(' ')) { const t = line ? line + ' ' + wd : wd; if (!line || Font.width(t) <= max) line = t; else { out.push(line); line = wd; } } if (line) out.push(line); return out; };
     let y = 0;
-    (typeof CHANGELOG !== 'undefined' ? CHANGELOG : []).forEach((v, i) => {
-      if (i) y += 8;
-      heads.push(y);
-      rows.push({ y, s: v.build, col: '#f8b800', x: 0, rule: true }); y += 10;
-      wrapTo(v.title, W2).forEach(l => { rows.push({ y, s: l, col: '#fce0a8', x: 0 }); y += 10; });
-      y += 3;
-      for (const [k, txt] of v.rows) {
-        if (k === 'h') { y += 3; rows.push({ y, s: txt, col: '#7cdcfc', x: 0 }); y += 11; continue; }
-        const ind = k === 'b' ? 9 : 0;
-        wrapTo(txt, W2 - ind).forEach((l, j) => { rows.push({ y, s: l, col: '#e8e4d8', x: ind, dot: k === 'b' && j === 0 }); y += 9; });
-        y += 2;
-      }
-    });
-    return (c.lay = { w: W2, rows, heads, h: y });
+    wrapTo(v.title, W2).forEach(l => { rows.push({ y, s: l, col: '#fce0a8', x: 0 }); y += 10; });
+    y += 3;
+    for (const [k, txt] of v.rows) {
+      if (k === 'h') { y += 3; const d = this.chgKind(txt); secs.push({ y: y - 2, ...d }); rows.push({ y, s: txt, col: d.col, x: 0 }); y += 11; continue; }
+      const ind = k === 'b' ? 9 : 0;
+      wrapTo(txt, W2 - ind).forEach((l, j) => { rows.push({ y, s: l, col: '#e8e4d8', x: ind, dot: k === 'b' && j === 0 }); y += 9; });
+      y += 2;
+    }
+    return (c.pages[key] = { w: W2, rows, secs, h: y });
   },
+  chgOpen(i, focus) { // Version i zeigen; focus: gleich zum Abschnitt „Beim Testen ansehen“
+    const c = this.chg, n = this.chgList().length; c.i = clamp(i, 0, n - 1); c.mode = 'page'; c.y = 0; c.jump = null; c.focus = !!focus;
+    if (focus) { const P = this.chgPage(c.i), k = P.secs.findIndex(d => d.k === 'test'); if (k >= 0) this.chgJump(k); }
+  },
+  chgJump(k) { const c = this.chg, P = this.chgPage(c.i); c.jump = k; c.y = clamp(P.secs[k].y, 0, Math.max(0, P.h - 161)); },
+  chgCur(P) { const c = this.chg; if (c.jump !== null) return c.jump; let k = -1; P.secs.forEach((d, j) => { if (d.y <= c.y + 2) k = j; }); return k; },
   updateChangelog(P) {
-    const c = this.chg || (this.chg = { y: 0, lay: null }), L = this.chgLayout(), view = 164, max = Math.max(0, L.h - view);
-    if (this.t > 8 && (P.start || P.jump || P.attack)) { this.go('options'); Audio8.sfx('pause'); return; }
-    if (Input.held.down) c.y += 3; if (Input.held.up) c.y -= 3;
-    if (P.right) { const n = L.heads.find(h => h > c.y + 1); if (n !== undefined) c.y = n; Audio8.sfx('select'); }
-    if (P.left) { const prev = L.heads.filter(h => h < c.y - 1); c.y = prev.length ? prev[prev.length - 1] : 0; Audio8.sfx('select'); }
+    const c = this.chg, L = this.chgList(), n = L.length, I = Input.held;
+    if (!c || !n) { this.go('options'); return; }
+    const leave = () => { if (c.from === 'pause') { this.go('pause'); this.pauseSel = this.pauseItems().indexOf('changelog'); } else this.go('options'); Audio8.sfx('pause'); };
+    if (this.t <= 8) return;
+    if (c.mode === 'list') {
+      c.hold = I.up || I.down ? c.hold + 1 : 0;
+      const rep = c.hold > 20 && c.hold % 4 === 0, d = (P.down || (rep && I.down) ? 1 : 0) - (P.up || (rep && I.up) ? 1 : 0), page = (P.right ? 8 : 0) - (P.left ? 8 : 0);
+      if (d || page) { const to = d ? (c.sel + d + n) % n : clamp(c.sel + page, 0, n - 1); if (to !== c.sel) { c.sel = to; Audio8.sfx('select'); } }
+      if (P.start) { leave(); return; }
+      if (P.jump || P.attack) { this.chgOpen(c.sel, P.attack); Audio8.sfx('select'); }
+      return;
+    }
+    const pg = this.chgPage(c.i), max = Math.max(0, pg.h - 161);
+    if (P.start || P.jump) { c.mode = 'list'; c.sel = c.i; Audio8.sfx('pause'); return; }
+    if (I.down || I.up) { c.y += I.down ? 3 : -3; c.jump = null; }
+    if ((P.right && c.i < n - 1) || (P.left && c.i > 0)) { this.chgOpen(c.i + (P.right ? 1 : -1), c.focus); Audio8.sfx('select'); return; }
+    if (P.attack && pg.secs.length) { this.chgJump((this.chgCur(pg) + 1) % pg.secs.length); Audio8.sfx('select'); return; }
     c.y = clamp(c.y, 0, max);
   },
   drawChangelog(ctx) {
-    const cx = View.cx, c = this.chg || (this.chg = { y: 0, lay: null }), L = this.chgLayout(), x0 = Math.round(cx - L.w / 2), top = 40, view = 164;
-    this.menuBg(ctx);
-    ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(x0 - 8, 14, L.w + 16, 212);
-    ctx.fillStyle = '#c89020'; ctx.fillRect(x0 - 8, 14, L.w + 16, 1); ctx.fillRect(x0 - 8, 225, L.w + 16, 1); ctx.fillRect(x0 - 2, 36, L.w + 4, 1); ctx.fillRect(x0 - 2, top + view + 3, L.w + 4, 1);
-    this.big(ctx, tr('optChangelog'), cx, 18, 2, LOGO, null, '#000');
-    ctx.save(); ctx.beginPath(); ctx.rect(x0 - 4, top, L.w + 8, view); ctx.clip();
-    for (const r of L.rows) {
+    const c = this.chg, L = this.chgList(), cx = View.cx, w = Math.min(View.w - 28, 380), x0 = Math.round(cx - w / 2);
+    if (!c) return;
+    if (c.from === 'pause') { ctx.fillStyle = '#020412'; ctx.fillRect(0, 0, View.w, 240); } else this.menuBg(ctx);
+    ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(x0 - 8, 14, w + 16, 212);
+    ctx.fillStyle = '#c89020'; ctx.fillRect(x0 - 8, 14, w + 16, 1); ctx.fillRect(x0 - 8, 225, w + 16, 1); ctx.fillRect(x0 - 2, 206, w + 4, 1);
+    const bar = (top, view, k, frac) => { const bh = Math.max(10, Math.round(view * frac)); ctx.fillStyle = '#2c1c10'; ctx.fillRect(x0 + w + 3, top, 2, view); ctx.fillStyle = '#c89020'; ctx.fillRect(x0 + w + 3, top + Math.round((view - bh) * k), 2, bh); };
+    const nav = (a, b) => { Font.draw(ctx, tr(a), cx, 209, '#8c8c8c', { align: 'center', fit: w }); Font.draw(ctx, tr(b), cx, 217, '#8c8c8c', { align: 'center', fit: w }); };
+    if (c.mode === 'list') {
+      this.big(ctx, tr('optChangelog'), cx, 18, 2, LOGO, null, '#000');
+      ctx.fillStyle = '#c89020'; ctx.fillRect(x0 - 2, 36, w + 4, 1);
+      if (c.news) Font.draw(ctx, tr('chgNewN', c.news), x0 + w, 24, '#58f898', { align: 'right', shadow: '#000' });
+      const top = 39, rowH = 12, rows = 11;
+      c.top = clamp(c.top, Math.max(0, c.sel - rows + 1), Math.min(c.sel, Math.max(0, L.length - rows)));
+      const cut = (t, max) => { if (Font.width(t) <= max) return t; let s = t; while (s.length > 1 && Font.width(s + '..') > max) s = s.slice(0, -1); return s.trimEnd() + '..'; };
+      for (let i = c.top; i < Math.min(L.length, c.top + rows); i++) {
+        const v = L[i], y = top + (i - c.top) * rowH, on = i === c.sel, fresh = i < c.news, marks = this.chgMarks(v), when = this.chgWhen(v.build), wW = 79;
+        if (on) { ctx.fillStyle = 'rgba(200,144,32,0.26)'; ctx.fillRect(x0 - 3, y - 1, w + 5, rowH - 1); ctx.fillStyle = '#f8b800'; ctx.fillRect(x0 - 3, y - 1, 1, rowH - 1); }
+        Font.draw(ctx, when, x0, y + 1, fresh ? '#58f898' : on ? '#fcfcfc' : '#8c9cc8', { shadow: '#000', noFit: true });
+        let rx = x0 + w - 2;
+        for (let m = marks.length - 1; m >= 0; m--) { rx -= 5; ctx.fillStyle = marks[m]; ctx.fillRect(rx, y + 3, 4, 4); }
+        if (fresh) { const t = tr('chgNew'), tw = Font.width(t); rx -= tw + 4; Font.draw(ctx, t, rx, y + 1, '#58f898', { shadow: '#000', noFit: true }); }
+        Font.draw(ctx, cut(v.title, rx - (x0 + wW) - 5), x0 + wW, y + 1, on ? '#fcfcfc' : '#c8c4b8', { shadow: '#000', noFit: true });
+      }
+      bar(top, rows * rowH - 2, L.length > rows ? c.top / (L.length - rows) : 0, Math.min(1, rows / L.length));
+      ctx.fillStyle = 'rgba(200,144,32,0.45)'; ctx.fillRect(x0 - 2, top + rows * rowH, w + 4, 1);
+      // ausgewählte Version: voller Titel und was drinsteckt
+      const v = L[c.sel], words = v.title.split(' '), lines = ['']; for (const wd of words) { const t = lines[lines.length - 1] ? lines[lines.length - 1] + ' ' + wd : wd; if (Font.width(t) <= w) lines[lines.length - 1] = t; else lines.push(wd); }
+      lines.slice(0, 2).forEach((l, i) => Font.draw(ctx, l, x0, top + rows * rowH + 3 + i * 9, '#fce0a8', { shadow: '#000', noFit: true }));
+      let hx = x0; for (const [k, txt] of v.rows) if (k === 'h') { const d = this.chgKind(txt), tw = Font.width(d.tab); if (hx + tw > x0 + w) break; Font.draw(ctx, d.tab, hx, top + rows * rowH + 22, d.col, { shadow: '#000', noFit: true }); hx += tw + 10; } // was in dieser Version steckt
+      nav('chgNavL1', 'chgNavL2');
+      return;
+    }
+    const v = L[c.i], P = this.chgPage(c.i), top = 42, view = 162, cur = this.chgCur(P);
+    Font.draw(ctx, this.chgWhen(v.build, true), x0, 18, '#f8b800', { shadow: '#000', noFit: true });
+    Font.draw(ctx, (c.i + 1) + '/' + L.length, x0 + w, 18, '#8c9cc8', { align: 'right', shadow: '#000', noFit: true });
+    let tx = x0; // Reiter: ein Abschnitt je Reiter, der aktuelle hell hinterlegt
+    const full = P.secs.reduce((a, d) => a + Font.width(d.tab) + 9, 0), short = full > w;
+    P.secs.forEach((d, j) => {
+      const t = short && d.tab.length > 7 ? d.tab.slice(0, 6) + '.' : d.tab, tw = Font.width(t), on = j === cur;
+      if (on) { ctx.fillStyle = d.col; ctx.fillRect(tx - 2, 28, tw + 4, 10); }
+      Font.draw(ctx, t, tx, 29, on ? '#000' : d.col, { noFit: true }); tx += tw + 9;
+    });
+    ctx.fillStyle = '#c89020'; ctx.fillRect(x0 - 2, 39, w + 4, 1);
+    ctx.save(); ctx.beginPath(); ctx.rect(x0 - 4, top, w + 8, view); ctx.clip();
+    for (const r of P.rows) {
       const y = top + 2 + r.y - Math.round(c.y);
       if (y < top - 10 || y > top + view) continue;
-      if (r.rule) { ctx.fillStyle = 'rgba(200,144,32,0.45)'; ctx.fillRect(x0 + Font.width(r.s) + 6, y + 3, L.w - Font.width(r.s) - 6, 1); }
       if (r.dot) { ctx.fillStyle = '#c89020'; ctx.fillRect(x0 + 2, y + 2, 3, 3); }
       Font.draw(ctx, r.s, x0 + r.x, y, r.col, { shadow: '#000', noFit: true });
     }
     ctx.restore();
-    const max = Math.max(1, L.h - view), k = clamp(c.y / max, 0, 1), bh = Math.max(12, Math.round(view * view / Math.max(view, L.h))); // Rollbalken
-    ctx.fillStyle = '#2c1c10'; ctx.fillRect(x0 + L.w + 3, top, 2, view); ctx.fillStyle = '#c89020'; ctx.fillRect(x0 + L.w + 3, top + Math.round((view - bh) * k), 2, bh);
-    Font.draw(ctx, tr('chgNav'), cx, 213, '#7c7c7c', { align: 'center' });
+    const max = Math.max(1, P.h - 161); bar(top, view, clamp(c.y / max, 0, 1), Math.min(1, view / Math.max(view, P.h)));
+    nav('chgNav', 'chgNav2');
   },
 
   drawOptions(ctx) {
@@ -1620,7 +1697,7 @@ const Game = {
         for (let k = 0; k < 10; k++) { ctx.fillStyle = k < Options.music ? '#f8b800' : '#3c3c3c'; ctx.fillRect(cx + 54 + k * 6, y, 4, 7); }
       } else if (it.key === 'lang') { val = '< ' + I18N.NAMES[Options.lang] + ' >'; good = true; }
       else if (it.key === 'speed') { val = '< ' + Options.speed + ' % >'; good = Options.speed === 100; }
-      else if (it.key === 'changelog') { val = typeof CHANGELOG !== 'undefined' && CHANGELOG[0] ? CHANGELOG[0].build + ' >' : '>'; good = true; }
+      else if (it.key === 'changelog') { const nw = this.chgUnseen(); val = nw ? tr('chgNewN', nw) + ' >' : this.chgList()[0] ? this.chgList()[0].build + ' >' : '>'; good = true; }
       else if (it.key !== 'back') {
         good = it.key === 'crt' ? this.crt : !!Options[it.key];
         val = tr(good ? 'on' : 'off');

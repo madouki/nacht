@@ -3,6 +3,8 @@
 
 const Audio8 = (() => {
   let songGain = null; // Lautheitsausgleich je Lied
+  let wetBus = null, wetLvl = 0.28; // Sendeweg der Orchesterstimmen in den Hall
+  let dynK = -1; // aktueller Durchgang (Lautstärkestufe der langen Form)
   // gemessen 2026-11-06 in drei Echtzeit-Läufen (RMS, Ziel: Median aller Lieder). Die Messung schwankt je nach Rechnerlast um
   // ±2 dB – korrigiert ist nur, was in allen Läufen übereinstimmte (Amtsstuben-Walzer rund 5 dB zu leise, Dienstweg, Graf, stage2 zu laut)
   const SONG_GAIN = { amt: 1.6, sun: 1.2, amtsmarsch: 1.1, posthorn: 1.1, fahrstuhl: 1.15, mondmeer: 1.1, library: 0.92, chapel: 0.88, dienstweg: 0.8, galopp: 0.9, count: 0.82, stage2: 0.8, kuckuck: 1.1 };
@@ -43,6 +45,7 @@ const Audio8 = (() => {
     rev.buffer = ir;
     const wet = ac.createGain(); wet.gain.value = 0.32;
     master.connect(rev); rev.connect(wet); wet.connect(comp);
+    wetBus = ac.createGain(); wetBus.gain.value = muted ? 0 : MUSIC_VOL * musicLevel * 2.1; wetBus.connect(rev);
     duckBus = ac.createGain(); duckBus.connect(master); // wird während der Sprachausgabe abgesenkt
     voiceBus = ac.createGain(); voiceBus.gain.value = 1.3; voiceBus.connect(master);
     // Pause: Musik klingt wie hinter einer Tür (Tiefpass, sonst ganz offen)
@@ -1020,34 +1023,70 @@ const Audio8 = (() => {
     };
     const lightEv = (ev) => ev.map(([n, l]) => ['hrzyo'.includes(n) ? n : '-', l]);
     const light = (dr) => (dr && nb >= 4 ? cut(lightEv(dr), 0, L - bar).concat([['w', bar]]) : dr && lightEv(dr)); // am Ende ein anschwellendes Rauschen in den nächsten Teil
-    const glock = (p1) => atBars(p1).map((n, i) => (n && i % 2 === 0 ? N(Math.min(96, mOf(n.split('+')[0]) + 12), bar) : ['-', bar]));
+    const pcsOf = (ch, k) => ch.map(c => (((c + k) % 12) + 12) % 12), pcOf = (m) => ((m % 12) + 12) % 12;
+    const nearTone = (m, pcs) => { for (const d of [0, -1, 1, -2, 2, -3, 3]) if (pcs.includes(pcOf(m + d))) return m + d; return m; };
+    // Glockenspiel: klingt lange nach, darum immer ein Akkordton (der nächste zum Melodieton)
+    const glock = (p1) => atBars(p1).map((n, i) => { if (!n || i % 2) return ['-', bar]; const m = Math.min(96, mOf(n.split('+')[0]) + 12), ch = chords && chords[i]; return N(ch ? nearTone(m, pcsOf(ch, 0)) : m, bar); });
+    // Melodie auf gehaltenen Orchesterstimmen: ein langer Ton einen Halbton neben dem Akkord reibt auf Streichern und Flöte viel härter
+    // als auf der kurzen Pulswelle. Führt die Stimme allein, rückt er auf den nächsten Akkordton; spielt sie die Melodie nur mit
+    // (rest), setzt sie dort aus und überlässt den Vorhalt der Melodiestimme
+    const tame = (ev, k, rest) => {
+      if (!ev || !chords) return ev; let t = 0;
+      return ev.map(([n, l]) => {
+        const t0 = t; t += l; if (n === '-' || l < 3 || n.includes('+')) return [n, l];
+        const m = mOf(n), ch = chords[Math.min(nb - 1, Math.floor(t0 / bar))]; if (m === null || !ch) return [n, l];
+        const pcs = pcsOf(ch, k), pc = pcOf(m);
+        if (pcs.includes(pc) || !pcs.some(c => [1, 11].includes(pcOf(pc - c)))) return [n, l];
+        return rest ? ['-', l] : [nOf(nearTone(m, pcs)), l];
+      });
+    };
     const cT = (k) => chords && chords.map(c => c && c.map(m => m + k)), rT = (k) => roots && roots.map(r => (r === null ? r : r + k));
     const drive = DRIVE.has(name), B = base;
     // eigene Mittelteil-Melodie (s.bridge, in der Grundtonart): füllt den Durchgang, wenn nötig mehrfach
     const own = s.bridge ? evs(s.bridge.join(' ')) : null, ownL = own ? total(own) : 0, reps = own && L % ownL === 0 ? L / ownL : 0;
     const br = reps ? T(Array(reps).fill(own).flat(), 5) : null;
+    const KEY = { A: 0, B: 0, C: 5, D: 0, E: 3, F: 0, G: 0 }; // Tonart je Durchgang (Halbtöne über der Grundtonart)
     const SEC = {
       A: () => ({ ...B }),
       B: () => (drive
-        ? { str: fit(B.p1, 58, 74), p2: B.p2, tri: B.tri, pad: B.pad, org: B.org, dr: B.dr, tmp: roots && timp(roots, true) }
-        : { fl: fit(B.p1, 70, 86), hrp: chords ? harp(chords, 55) : B.p2, tri: B.tri, pad: B.pad, org: B.org, dr: light(B.dr), tmp: roots && timp(roots, false) }),
-      C: () => ({ brs: br ? fit(br, 53, 74) : chords ? theme(cT(5), 55) : fit(T(B.p1, 5), 55, 72), fl: br && reps > 1 ? [['-', L / 2]].concat(cut(fit(br, 70, 88), L / 2, L)) : undefined,
+        ? { str: tame(fit(B.p1, 58, 74), 0), p2: B.p2, tri: B.tri, pad: B.pad, org: B.org, dr: B.dr, tmp: roots && timp(roots, true) }
+        : { fl: tame(fit(B.p1, 70, 86), 0), hrp: chords ? harp(chords, 55) : B.p2, tri: B.tri, pad: B.pad, org: B.org, dr: light(B.dr), tmp: roots && timp(roots, false) }),
+      C: () => ({ brs: br ? tame(fit(br, 53, 74), 5) : chords ? theme(cT(5), 55) : fit(T(B.p1, 5), 55, 72), fl: br && reps > 1 ? [['-', L / 2]].concat(cut(tame(fit(br, 70, 88), 5), L / 2, L)) : undefined,
         str: chords ? sustain(cT(5), 67) : undefined, hrp: chords ? harp(cT(5), 60) : undefined,
         p2: chords ? undefined : near(B.p2, 5), tri: near(B.tri, 5), pad: near(B.pad, 5), org: near(B.org, 5), dr: B.dr, tmp: roots && timp(rT(5), true) }),
-      D: () => ({ p1: B.p1, str: fit(T(B.p1, -12), 55, 76), glk: glock(B.p1), p2: B.p2, tri: B.tri, pad: B.pad, org: B.org, dr: B.dr, tmp: roots && timp(roots, true) }),
-      E: () => ({ str: fit(T(B.p1, 3), 60, 79), fl: fit(T(B.p1, 3), 72, 88), hrp: chords ? harp(cT(3), 55) : undefined, tri: near(B.tri, 3), pad: near(B.pad, 3), org: near(B.org, 3),
+      D: () => ({ p1: B.p1, str: tame(fit(T(B.p1, -12), 55, 76), 0, true), glk: glock(B.p1), p2: B.p2, tri: B.tri, pad: B.pad, org: B.org, dr: B.dr, tmp: roots && timp(roots, true) }),
+      E: () => ({ str: tame(fit(T(B.p1, 3), 60, 79), 3), fl: tame(fit(T(B.p1, 3), 72, 88), 3), hrp: chords ? harp(cT(3), 55) : undefined, tri: near(B.tri, 3), pad: near(B.pad, 3), org: near(B.org, 3),
         dr: B.dr, tmp: roots && timp(rT(3), false) }),
       F: () => ({ brs: chords ? chorale(chords, 55) : undefined, hrp: chords ? harp(chords, 60) : B.p2, tri: B.tri, pad: B.pad, org: B.org,
         dr: B.dr && cut(lightEv(B.dr), 0, L / 2).concat(cut(B.dr, L / 2, L)), tmp: roots && timp(roots, true) }),
-      G: () => ({ p1: B.p1, fl: fit(B.p1, 70, 86), glk: glock(B.p1), hrp: chords ? harp(chords, 55) : undefined, p2: chords ? undefined : B.p2, tri: B.tri, pad: B.pad, org: B.org,
+      G: () => ({ p1: B.p1, fl: tame(fit(B.p1, 70, 86), 0, true), glk: glock(B.p1), hrp: chords ? harp(chords, 55) : undefined, p2: chords ? undefined : B.p2, tri: B.tri, pad: B.pad, org: B.org,
         dr: B.dr, tmp: roots && timp(roots, false) }),
     };
     const secs = L * 15 / s.bpm, plan = s.form || (secs >= 40 ? 'ABCD' : secs >= 28 ? 'ABCDE' : 'ABCDFEGD');
     const out = { bpm: s.bpm, loop: s.loop, echo: s.echo, form: plan };
+    const parts = [...plan].map(c => SEC[c]());
+    // Überleitung: wechselt der nächste Durchgang die Tonart, wird der letzte Takt zum Dominantseptakkord der neuen Tonart – Blech steigt
+    // im Akkord auf, die Harfe läuft hinauf, die Pauke wirbelt, das Schlagzeug spielt ein Fill. Vorher sprang die Tonart unvermittelt
+    [...plan].forEach((c, i) => {
+      const nx = plan[(i + 1) % plan.length], r0 = roots && roots[0]; if (KEY[c] === KEY[nx] || r0 === null || r0 === undefined) return;
+      const v = r0 + KEY[nx] + 7, tones = reg([v, v + 4, v + 7, v + 10], 55), part = parts[i], beats = bar / 4;
+      const tail = (k, ev) => { part[k] = cut(part[k] || [['-', L]], 0, L - bar).concat(ev); };
+      let bass = v; while (bass < 31) bass += 12; while (bass > 42) bass -= 12;
+      let tim = v; while (tim < 36) tim += 12; while (tim > 47) tim -= 12;
+      for (const k of ['p1', 'p2', 'fl', 'glk']) if (part[k]) tail(k, [['-', bar]]);
+      if (part.pad) tail('pad', [[reg([v, v + 4, v + 7, v + 10], 52).map(nOf).join('+'), bar]]);
+      if (part.org) tail('org', [[reg([v, v + 4, v + 7, v + 10], 52).map(nOf).join('+'), bar]]);
+      if (part.tri) tail('tri', Array.from({ length: bar / 2 }, (_, j) => N(bass + (j % 2 ? 12 : 0), 2)));
+      tail('brs', Array.from({ length: beats }, (_, j) => N(tones[j === beats - 1 ? 3 : j], 4)));
+      tail('str', [[nOf(tones[2] + 12) + '+' + nOf(tones[3] + 12), bar]]);
+      tail('hrp', Array.from({ length: bar / 2 }, (_, j) => N(tones[j % 4] + 12 * Math.floor(j / 4), 2)));
+      tail('tmp', [['-', bar / 2]].concat(Array.from({ length: bar / 2 }, () => N(tim, 1))));
+      if (part.dr) tail('dr', evs(bar === 12 ? 'k:2 h:2 s:2 t:1 t:1 u:1 u:1 s:1 s:1' : 'k:2 h:2 s:2 h:2 t:1 t:1 u:1 u:1 s:1 s:1 s:1 s:1'));
+    });
     for (const k of TRACKS) {
-      const parts = [...plan].map(c => SEC[c]()[k]);
-      if (parts.every(x => !x || x.every(e => e[0] === '-'))) continue;
-      out[k] = parts.map(x => (x || [['-', L]]).map(([n, l]) => n + ':' + l).join(' ')).join(' ');
+      const ps = parts.map(p => p[k]);
+      if (ps.every(x => !x || x.every(e => e[0] === '-'))) continue;
+      out[k] = ps.map(x => (x || [['-', L]]).map(([n, l]) => n + ':' + l).join(' ')).join(' ');
     }
     return out;
   }
@@ -1065,7 +1104,8 @@ const Audio8 = (() => {
     const tracks = TRACKS.filter(t => s[t]).map(t => ({ name: t, ev: parse(s[t]) }));
     const lens = tracks.map(t => t.ev.reduce((a, e) => a + e.len, 0));
     if (new Set(lens.map(l => Math.round(l * 100))).size > 1) console.warn('Songlänge ungleich', k, lens);
-    return { bpm: s.bpm, loop: s.loop, echo: s.echo, tracks, steps: lens[0], form: s.form || 'A' };
+    const form = s.form || 'A', LV = DRIVE.has(k) ? { A: 1, B: 0.96, C: 1, D: 1.08, E: 1, F: 0.86, G: 1.04 } : { A: 1, B: 0.62, C: 0.92, D: 1.16, E: 0.95, F: 0.6, G: 1.05 }; // Lautstärke je Durchgang: leise Kammerteile, volles Tutti
+    return { bpm: s.bpm, loop: s.loop, echo: s.echo, tracks, steps: lens[0], form, dyn: [...form].map(c => LV[c] || 1) };
   };
   for (const k in SONGS) {
     plain[k] = build(k, SONGS[k]);
@@ -1182,6 +1222,7 @@ const Audio8 = (() => {
     g.gain.setValueAtTime(vol * (track === 'tri' ? 1 : 0.72), t + Math.min(gate, 0.07));
     g.gain.linearRampToValueAtTime(0, t + gate);
     o.connect(g); g.connect(track === 'tri' ? melBus : pan(side || track, melBus)); // Dreiecksbass bleibt in der Mitte
+    if (track === 'p1' && !side) wet(g, 'p1');
     o.start(t); o.stop(t + gate + 0.02);
     if (track === 'p1' && !side && RICH) { // Chorus: zweite Stimme 9 Cent höher, halbe Pulsbreite, auf der anderen Seite, weich gefiltert
       const o2 = osc('pulse', 0.125), g2 = ac.createGain(), lp = ac.createBiquadFilter();
@@ -1210,7 +1251,7 @@ const Audio8 = (() => {
       const o = ac.createOscillator(), og = ac.createGain(); o.type = type; o.frequency.value = f * m; og.gain.value = a;
       o.connect(og); og.connect(lp); o.start(t); o.stop(end + rel + 0.05);
     });
-    lp.connect(g); g.connect(melBus);
+    lp.connect(g); g.connect(melBus); wet(g, 'org');
   }
 
   // Orgel/Chor: verstimmte Sägezähne durch Tiefpass, langsamer Einsatz
@@ -1220,9 +1261,22 @@ const Audio8 = (() => {
       const g = ac.createGain();
       g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.054, t + 0.5); g.gain.setValueAtTime(0.054, t + dur * 0.8); g.gain.linearRampToValueAtTime(0, t + dur + 0.6);
       const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.detune.value = cents;
-      o.connect(lp); lp.connect(g); g.connect(pan(cents < 0 ? 'padL' : 'padR', melBus)); o.start(t); o.stop(t + dur + 0.7);
+      o.connect(lp); lp.connect(g); g.connect(pan(cents < 0 ? 'padL' : 'padR', melBus)); wet(g, 'pad'); o.start(t); o.stop(t + dur + 0.7);
     });
   }
+
+  // ---------------- Raumklang ----------------
+  // Die Orchesterstimmen schicken einen eigenen Anteil in den Hall des Mischpults (derselbe Faltungshall wie für alles andere, also keine
+  // zusätzliche Rechenlast): sie stehen dadurch weiter im Raum als Melodie und Bass. Der Sendepegel folgt der Musiklautstärke;
+  // im Spar-Modus bleibt nur der Grundhall
+  const WET = { str: 0.42, brs: 0.3, fl: 0.4, hrp: 0.42, glk: 0.55, tmp: 0.22, pad: 0.34, org: 0.3, p1: 0.13 };
+  const revSend = {};
+  function wet(node, key) {
+    if (!wetBus || (typeof View !== 'undefined' && View.lite)) return;
+    if (!revSend[key]) { revSend[key] = ac.createGain(); revSend[key].gain.value = WET[key] || 0.2; revSend[key].connect(wetBus); }
+    node.connect(revSend[key]);
+  }
+  function syncWet(v) { wetLvl = v; if (wetBus && ac) wetBus.gain.setTargetAtTime(muted ? 0 : v * 2.1, ac.currentTime, 0.05); }
 
   // ---------------- Orchesterstimmen (Arrangeur) ----------------
   let orch = 1; // Pegel der Orchesterstimmen im laufenden Lied: leise Stücke werden insgesamt angehoben (SONG_GAIN), das Orchester gleicht das halb aus
@@ -1231,12 +1285,15 @@ const Audio8 = (() => {
     const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = Math.min(5200, 900 + f * 3); lp.Q.value = 0.6;
     const g = ac.createGain(), v = 0.044 * orch, a = Math.min(0.09, dur * 0.3), end = t + Math.max(0.05, dur * 0.96);
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + a); g.gain.setValueAtTime(v, end); g.gain.linearRampToValueAtTime(0, end + 0.12);
+    let vib = null;
+    if (dur > 0.45) { const lfo = ac.createOscillator(); vib = ac.createGain(); lfo.frequency.value = 5.4; vib.gain.setValueAtTime(0, t); vib.gain.linearRampToValueAtTime(11, t + 0.32); lfo.connect(vib); lfo.start(t); lfo.stop(end + 0.15); }
     [-8, 8].forEach((c, i) => {
       const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.detune.setValueAtTime(c, t);
       if (dur > 0.3) o.detune.linearRampToValueAtTime(c + (i ? 7 : -7), t + dur);
+      if (vib) vib.connect(o.detune);
       o.connect(lp); o.start(t); o.stop(end + 0.15);
     });
-    lp.connect(g); g.connect(pan('str', melBus));
+    lp.connect(g); g.connect(pan('str', melBus)); wet(g, 'str');
   }
   // Blech: Sägezahn und Rechteck durch einen Tiefpass, der beim Anstoß aufgeht (das „Schmettern“)
   function brassNote(f, t, dur) {
@@ -1246,7 +1303,7 @@ const Audio8 = (() => {
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + 0.03); g.gain.linearRampToValueAtTime(v * 0.8, t + Math.min(0.2, dur * 0.5)); g.gain.setValueAtTime(v * 0.8, end); g.gain.linearRampToValueAtTime(0, end + 0.08);
     const o = ac.createOscillator(), o2 = ac.createOscillator(), g2 = ac.createGain();
     o.type = 'sawtooth'; o.frequency.value = f; o2.type = 'square'; o2.frequency.value = f; o2.detune.value = 5; g2.gain.value = 0.35;
-    o.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); g.connect(pan('brs', melBus));
+    o.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); g.connect(pan('brs', melBus)); wet(g, 'brs');
     o.start(t); o2.start(t); o.stop(end + 0.1); o2.stop(end + 0.1);
   }
   // Flöte: Sinus mit leiser Oktave, Vibrato bei langen Tönen, ein Hauch Anblasgeräusch
@@ -1256,7 +1313,7 @@ const Audio8 = (() => {
     const o = ac.createOscillator(), o2 = ac.createOscillator(), g2 = ac.createGain();
     o.type = 'sine'; o.frequency.value = f; o2.type = 'triangle'; o2.frequency.value = f * 2; g2.gain.value = 0.15;
     if (dur > 0.25) { const lfo = ac.createOscillator(), lg = ac.createGain(); lfo.frequency.value = 5.2; lg.gain.value = f * 0.006; lfo.connect(lg); lg.connect(o.frequency); lfo.start(t + 0.12); lfo.stop(end + 0.06); }
-    o.connect(g); o2.connect(g2); g2.connect(g); g.connect(dst); o.start(t); o2.start(t); o.stop(end + 0.07); o2.stop(end + 0.07);
+    o.connect(g); o2.connect(g2); g2.connect(g); g.connect(dst); wet(g, 'fl'); o.start(t); o2.start(t); o.stop(end + 0.07); o2.stop(end + 0.07);
     noise(0.045, 0.022, 'bandpass', 2600, null, t, dst);
   }
   // Harfe / Pizzicato: Dreieck mit Sinus-Oktave, rascher Abklang
@@ -1265,14 +1322,14 @@ const Audio8 = (() => {
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0008, t + d);
     const o = ac.createOscillator(), o2 = ac.createOscillator(), g2 = ac.createGain();
     o.type = 'triangle'; o.frequency.value = f; o2.type = 'sine'; o2.frequency.value = f * 2; g2.gain.value = 0.3;
-    o.connect(g); o2.connect(g2); g2.connect(g); g.connect(pan('hrp', melBus)); o.start(t); o2.start(t); o.stop(t + d + 0.02); o2.stop(t + d + 0.02);
+    o.connect(g); o2.connect(g2); g2.connect(g); g.connect(pan('hrp', melBus)); wet(g, 'hrp'); o.start(t); o2.start(t); o.stop(t + d + 0.02); o2.stop(t + d + 0.02);
   }
   // Glockenspiel: Sinus mit unharmonischem Oberton, klingt aus
   function glockNote(f, t) {
     [[1, 0.05], [2.76, 0.016], [5.4, 0.006]].forEach(([m, a]) => {
       const o = ac.createOscillator(), g = ac.createGain(); o.type = 'sine'; o.frequency.value = f * m;
       g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(a, t + 0.003); g.gain.exponentialRampToValueAtTime(0.0006, t + 1.1 / Math.sqrt(m));
-      o.connect(g); g.connect(pan('glk', melBus)); o.start(t); o.stop(t + 1.2);
+      o.connect(g); g.connect(pan('glk', melBus)); wet(g, 'glk'); o.start(t); o.stop(t + 1.2);
     });
   }
   // Pauke, gestimmt auf den Basston: Sinus mit kurzem Tonhöhenabfall, Quinte darüber, dumpfer Anschlag
@@ -1281,7 +1338,7 @@ const Audio8 = (() => {
     o.type = 'sine'; o.frequency.setValueAtTime(f * 1.5, t); o.frequency.exponentialRampToValueAtTime(f, t + 0.05);
     o2.type = 'sine'; o2.frequency.value = f * 1.5; g2.gain.value = 0.22;
     g.gain.setValueAtTime(0.3, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.75);
-    o.connect(g); o2.connect(g2); g2.connect(g); g.connect(dst); o.start(t); o2.start(t); o.stop(t + 0.8); o2.stop(t + 0.8);
+    o.connect(g); o2.connect(g2); g2.connect(g); g.connect(dst); wet(g, 'tmp'); o.start(t); o2.start(t); o.stop(t + 0.8); o2.stop(t + 0.8);
     noise(0.1, 0.07, 'lowpass', 420, 110, t, dst);
   }
 
@@ -1307,6 +1364,10 @@ const Audio8 = (() => {
     if (!song || !ac) return;
     const stepDur = 60 / (song.bpm * tempoMul) / 4;
     const now = ac.currentTime, horizon = now + 0.3; // Vorlauf: ein langes Bild (Vorbau, schwerer Raum) bringt den Takt nicht ins Stolpern
+    if (song.dyn.length > 1 && songGain) { // neuer Durchgang: die Gesamtlautstärke gleitet kurz vor der Naht auf seine Stufe (nach der Liedzeit, Spuren können lange pausieren)
+      const pos = Math.max(0, (now + 0.5 - songT0) / stepDur) % song.steps, k = Math.min(song.dyn.length - 1, Math.floor(pos / (song.steps / song.dyn.length)));
+      if (k !== dynK) { dynK = k; songGain.gain.setTargetAtTime((SONG_GAIN[songName] || 1) * song.dyn[k], now, 0.7); }
+    }
     let allDone = true;
     cursors.forEach((c, i) => {
       const tr = song.tracks[i];
@@ -1325,13 +1386,13 @@ const Audio8 = (() => {
   }
 
   // fade (s): beim Raumwechsel blendet das alte Lied aus und das neue weich ein, statt hart zu schneiden
-  function play(name, then = null, fade = 0, at = 0) { // at: Sechzehntel ab Liedbeginn (Vorhören eines Durchgangs)
+  function play(name, then = null, fade = 0, at = 0, orig = false) { // at: Sechzehntel ab Liedbeginn (Vorhören eines Durchgangs); orig: ohne lange Form (Taktduell)
     if (!ac) { pending = then || name; return; }
     if (songName === name && song) return;
     if (!parsed[name]) return;
     stop(song ? fade : 0);
-    song = parsed[name]; songName = name; nextSong = then;
-    if (songGain) songGain.gain.setTargetAtTime(SONG_GAIN[name] || 1, ac.currentTime, 0.08);
+    song = (orig ? plain : parsed)[name]; songName = name; nextSong = then; dynK = -1;
+    if (songGain) { songGain.gain.cancelScheduledValues(ac.currentTime); songGain.gain.setTargetAtTime(SONG_GAIN[name] || 1, ac.currentTime, 0.08); }
     orch = 1 / Math.sqrt(SONG_GAIN[name] || 1);
     const t0 = ac.currentTime + 0.05 + (fade ? fade * 2 : 0);
     cursors = song.tracks.map((tr) => { // at > 0: jede Spur an ihr erstes Ereignis ab dieser Stelle setzen
@@ -1513,10 +1574,11 @@ const Audio8 = (() => {
   function toggleMute() {
     muted = !muted;
     if (master) master.gain.setTargetAtTime(muted ? 0 : 0.7, ac.currentTime, 0.02);
+    syncWet(wetLvl);
     return muted;
   }
-  function setMusicVolume(v) { if (musicBus && ac) musicBus.gain.setTargetAtTime(v * (MUSIC_VOL / 0.5) * musicLevel, ac.currentTime, 0.05); }
-  function setMusicLevel(l) { musicLevel = l; if (musicBus && ac) musicBus.gain.setTargetAtTime(MUSIC_VOL * l, ac.currentTime, 0.05); }
+  function setMusicVolume(v) { if (musicBus && ac) { musicBus.gain.setTargetAtTime(v * (MUSIC_VOL / 0.5) * musicLevel, ac.currentTime, 0.05); syncWet(v * (MUSIC_VOL / 0.5) * musicLevel); } }
+  function setMusicLevel(l) { musicLevel = l; if (musicBus && ac) { musicBus.gain.setTargetAtTime(MUSIC_VOL * l, ac.currentTime, 0.05); syncWet(MUSIC_VOL * l); } }
 
   function tempo(m) { tempoMul = m; }
   const openFreq = () => Math.min(18000, ac.sampleRate / 2 - 100);
@@ -1536,5 +1598,5 @@ const Audio8 = (() => {
     beat: () => (ac && song ? Math.max(0, ac.currentTime - songT0) * song.bpm * tempoMul / 60 : null), // Schlag im laufenden Stück
     cues: () => { if (!ac) return 0; const now = ac.currentTime; let n = 0; while (cueQ.length && cueQ[0] <= now) { cueQ.shift(); n++; } return n; }, // fällige Stakkato-Schläge
     stream: () => { if (!ac) return null; if (!tapDest) { tapDest = ac.createMediaStreamDestination(); comp.connect(tapDest); } return tapDest.stream; }, // Mitschnitt (Trailer-Aufnahme)
-    get muted() { return muted; }, get current() { return songName; }, get filterHz() { return muffleF ? Math.round(muffleF.frequency.value) : 0; }, _songs: plain, _arr: parsed };
+    get muted() { return muted; }, get current() { return songName; }, get filterHz() { return muffleF ? Math.round(muffleF.frequency.value) : 0; }, get songLevel() { return songGain ? songGain.gain.value : 0; }, _songs: plain, _arr: parsed };
 })();

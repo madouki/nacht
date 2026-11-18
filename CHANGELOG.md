@@ -6,7 +6,66 @@ Unter **Beim Testen ansehen** steht jeweils, worauf es beim Ausprobieren ankommt
 Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmodus; im Pausenmenü gibt es dann
 **TEST-WERKZEUGE** (Meilensteine, Unverwundbarkeit, alle Relikte).
 
+<!-- INHALT -->
+**Direkt zu einer Version:**
+
+- [20261118-0852](#20261118-0852--changelog-mit-sprungliste-musik-mit-raumklang-dynamik-und-überleitungen) – Changelog mit Sprungliste, Musik mit Raumklang, Dynamik und Überleitungen
+- [20261115-0409](#20261115-0409--fünf-weitere-figuren-aus-blender) – Fünf weitere Figuren aus Blender
+- [20261115-0320](#20261115-0320--vier-weitere-figuren-aus-blender) – Vier weitere Figuren aus Blender
+- [20261115-0214](#20261115-0214--glöckner-bergführer-und-uhrmacher-aus-blender) – Glöckner, Bergführer und Uhrmacher aus Blender
+- [20261115-0122](#20261115-0122--seil-räume-in-hd-und-eine-seillängen-anzeige) – Seil-Räume in HD und eine Seillängen-Anzeige
+- [20261114-1928](#20261114-1928--uhrwerk-in-hd-blender-uhren-zahnrad-wand-uhrwerk-toccata) – Uhrwerk in HD: Blender-Uhren, Zahnrad-Wand, Uhrwerk-Toccata
+- [20261114-1148](#20261114-1148--nebenboss-die-kuckucksuhr-rammstoß-am-seil) – Nebenboss: die Kuckucksuhr (Rammstoß am Seil)
+- [20261114-1036](#20261114-1036--zeigerkammer-am-uhrzeiger-im-kreis-und-neu-zeigt-was-neu-ist) – Zeigerkammer: am Uhrzeiger im Kreis, und „NEU“ zeigt, was neu ist
+- [20261114-0711](#20261114-0711--tropfsteinklamm-seilbahn-mit-laufkatzen) – Tropfsteinklamm: Seilbahn mit Laufkatzen
+- [20261114-0519](#20261114-0519--glockenstuhl-hängeprüfungen-am-ring-seil-länger-und-kürzer) – Glockenstuhl: Hängeprüfungen am Ring, Seil länger und kürzer
+- [20261114-0138](#20261114-0138--feinschliff-texte-passen-in-allen-sprachen-keine-überlappungen-mehr) – Feinschliff: Texte passen in allen Sprachen, keine Überlappungen mehr
+- [20261113-1822](#20261113-1822--hintergründe-uhrturm-und-grotte-aus-blender) – Hintergründe: Uhrturm und Grotte aus Blender
+- [20261113-1353](#20261113-1353--hintergrund-die-gruft-als-steinarkade-aus-blender) – Hintergrund: die Gruft als Steinarkade aus Blender
+- [20261113-1334](#20261113-1334--eigene-mittelteile-für-die-hauptthemen-flottere-aufzüge-sammelgegenstände-neu) – Eigene Mittelteile für die Hauptthemen, flottere Aufzüge, Sammelgegenstände neu
+- [20261113-1319](#20261113-1319--musik-in-langer-form-mit-orchester-schnellreise-zu-jedem-raum-paternoster-im-eilgang-requisiten-neu) – Musik in langer Form mit Orchester, Schnellreise zu jedem Raum, Paternoster im Eilgang, Requisiten neu
+- [20261113-0717](#20261113-0717--hotfix-wegweiser-im-eiskeller-zeigte-in-eine-sackgasse) – Hotfix: Wegweiser im Eiskeller zeigte in eine Sackgasse
+- [20261113-0229](#20261113-0229--grafik-medusa-und-die-kleinen-kreaturen-neu-aus-blender) – Grafik: Medusa und die kleinen Kreaturen neu aus Blender
+- [20261113-0153](#20261113-0153--grafik-gameplay-musik-skelette-und-sonnenwächter-neu-kopfgeld-seite-portal-zweite-stimme) – Grafik, Gameplay, Musik: Skelette und Sonnenwächter neu, Kopfgeld-Seite, Portal, zweite Stimme
+- [20261113-0134](#20261113-0134--changelog-im-spiel) – Changelog im Spiel
+- [20261113-0128](#20261113-0128--grafik-riesenfledermaus-und-gegner-neu-aus-blender) – Grafik: Riesenfledermaus und Gegner neu aus Blender
+- [20261112-1414](#20261112-1414--fluss-schneller-zurück-zum-boss-lohn-nach-jedem-sieg) – Fluss: schneller zurück zum Boss, Lohn nach jedem Sieg
+- [20261112-0614](#20261112-0614--alle-bosse-im-schloss-weniger-lauferei) – Alle Bosse im Schloss, weniger Lauferei
+- [20261112-0201](#20261112-0201--helden-und-graf-neu-aus-blender-ruhigere-musik) – Helden und Graf neu aus Blender, ruhigere Musik
+- [20261112-0056](#20261112-0056--lesbare-schrift-neue-fledermaus) – Lesbare Schrift, neue Fledermaus
+- [20261111-2152](#20261111-2152--bodenschatten-beute-magnet-ruf-schnellwechsel) – Bodenschatten, Beute-Magnet, Ruf-Schnellwechsel
+- [20261111-1713](#20261111-1713--feinschliff-an-ton-grafik-und-gefühl) – Feinschliff an Ton, Grafik und Gefühl
+- [20261111-1659](#20261111-1659--mahre-kritische-treffer-neues-schloss-hud) – Mahre, kritische Treffer, neues Schloss-HUD
+<!-- /INHALT -->
+
 ---
+
+## 20261118-0852 – Changelog mit Sprungliste, Musik mit Raumklang, Dynamik und Überleitungen
+
+**Neu – Changelog**
+- **Direkt zu den Änderungen springen:** das Changelog öffnet jetzt mit einer Übersicht aller Versionen (Datum, Titel, farbige
+  Marken für Grafik, Musik, Gameplay und Behoben). ↑↓ wählt, ←→ blättert, **Sprung** öffnet die Version,
+  **Angriff** springt sofort zu „Beim Testen ansehen“.
+- In einer Version zeigen Reiter die Abschnitte: **Angriff** springt zum nächsten, ←→ wechselt die Version, **Sprung** führt
+  zurück zur Liste.
+- **NEU-Marke:** Versionen seit deinem letzten Besuch sind grün markiert und werden im Menü gezählt.
+- Das Changelog ist jetzt auch im **Pausenmenü**, du musst dafür nicht mehr zurück zum Titel.
+- In `CHANGELOG.md` auf GitHub steht oben ein Inhaltsverzeichnis mit Links zu jeder Version.
+
+**Neu – Musik**
+- **Raumklang:** Streicher, Blech, Flöte, Harfe, Glockenspiel, Pauken und Flächen stehen jetzt tiefer im Hall als Melodie und Bass,
+  wie ein Orchester in einer Schlosshalle (im Spar-Modus bleibt nur der Grundhall).
+- **Dynamik:** die Durchgänge sind nicht mehr gleich laut. Der ruhige Flötenteil ist deutlich leiser, das Tutti lauter.
+- **Überleitungen:** vor jedem Tonartwechsel steht ein eigener Übergangstakt (Dominantakkord, Blech steigt auf, Harfenlauf,
+  Paukenwirbel, Fill), statt dass die Tonart unvermittelt springt.
+- **Saubere Stimmführung:** lange Töne von Streichern, Flöte und Glockenspiel reiben nicht mehr einen Halbton neben dem Akkord
+  (in allen Stücken zusammen 268 solche Stellen). Die Streicher haben außerdem ein Vibrato.
+
+**Beim Testen ansehen**
+- Changelog aus der Pause öffnen: Liste, Sprung, Angriff zu „Testen“, Reiter, Rückweg. Ist alles lesbar und die Steuerung klar?
+- Musik ein paar Minuten laufen lassen (Burghof oder Katakomben): sind die Übergänge schön, ist der Hall zu stark oder zu
+  schwach, ist ein Teil zu leise? Ich kann die Musik prüfen und messen, aber nicht hören.
+- Läuft es auf der Xbox weiter flüssig, wenn die Musik mit Hall spielt?
 
 ## 20261115-0409 – Fünf weitere Figuren aus Blender
 
