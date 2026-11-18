@@ -282,9 +282,10 @@ class Kuckucksuhr extends Boss {
   vulnerable() { return this.out(); }
   go(s) { this.state = s; this.timer = 0; }
   say(k, col) { W.popup(clamp(this.hx, W.cam.x + 80, W.cam.x + View.w - 80), Math.max(this.hy - 26, W.cam.y + 46), tr(k), col); }
+  get stunGain() { return 2.5; } // zeigt sich nur für zwei Treffer: jeder zählt für den Taumel mehr
   hit(dmg, id) {
     const r = super.hit(dmg, id);
-    if (r && !this.dying) { this.popHits++; if (this.popHits >= 2) this.go('in'); }
+    if (r && !this.dying && !Duell.stunned(this)) { this.popHits++; if (this.popHits >= 2) this.go('in'); } // im Taumel bleibt sie draußen
     return r;
   }
   pickTarget() {

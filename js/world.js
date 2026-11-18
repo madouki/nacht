@@ -28,7 +28,7 @@ const W = {
     const def = Levels.STAGES[stage].rooms[roomIdx];
     this.room = { ...def, grid: def.grid.map(r => r.slice()) };
     if (typeof Mirror !== 'undefined') Mirror.reset(); // kein Spiegelbild aus dem vorigen Raum
-    this.ents = []; this.platforms = []; this.boss = null;
+    this.ents = []; this.platforms = []; this.boss = null; Duell.clear();
     this.camLock = false; this.camTarget = null; this.arenaOn = false; this.arenaX = 0; this.arenaW = 0; this.arenaBoss = null; this.camEase = 0; this.gates = null; this.flipA = 0; this.wobble = 0;
     this.tutSign = null; this.exitBlocked = false; this.cleared = false; this.crash = null; this.exiting = false; this.cinema = 0; this.slowmo = 0; this.bossEnraged = false; this.vortexBg = 0; this.stopT = 0; if (this.slowT) Audio8.slow(false); this.slowT = 0; this.dodgeCd = 0;
     if (this.bloodT > 0) { this.bloodT = 0; Audio8.tempo(1); }
@@ -333,7 +333,7 @@ const W = {
         if (e instanceof EProj) { // seit 20261106: jedes gewöhnliche Geschoss (Feuer, Knochen, Stein, Buchseite, Eis) fliegt zurück
           const p = this.player, arc = e.type === 'rock' || e.type === 'bone';
           e.reflected = true; e.vx = p.face * Math.max(2.6, Math.abs(e.vx) * 1.5); e.vy = arc ? -2.6 : -0.3; e.grav = arc ? 0.12 : 0;
-          this.popup(e.cx, e.cy - 6, tr('riposte'), '#a4e4fc'); this.addScore(200); this.hitstop = Math.max(this.hitstop || 0, 4);
+          this.popup(e.cx, e.cy - 6, tr('riposte'), '#a4e4fc'); this.addScore(200); this.hitstop = Math.max(this.hitstop || 0, 4); Duell.bonus(1.5);
           this.spawn(new Shock(e.cx, e.cy, 16, '#a4e4fc', 2));
           if (typeof Castle !== 'undefined' && Castle.on && Castle.flags) Castle.flags.konter = (Castle.flags.konter || 0) + 1;
         } else { e.dead = true; this.addScore(50); }
@@ -450,11 +450,12 @@ const W = {
     this.slowT = 110; this.dodgeCd = 200; p.inv = Math.max(p.inv, 50); this.hitstop = Math.max(this.hitstop, 5);
     this.popup(p.cx, p.y - 14, tr('dodgePerfect'), '#a4e4fc'); Audio8.sfx('tink'); Audio8.sfx('charge'); Audio8.slow(true); Input.rumble(0.3, 0.5, 120);
     this.spawn(new Shock(p.cx, p.cy, 60, '#a4e4fc', 3));
-    this.stats.dodges = (this.stats.dodges || 0) + 1;
+    this.stats.dodges = (this.stats.dodges || 0) + 1; Duell.bonus(2);
     if (typeof Castle !== 'undefined' && Castle.on && Castle.flags) Castle.flags.dodge = (Castle.flags.dodge || 0) + 1;
   },
 
   bossDefeated(b) {
+    Duell.report(b); // Kampfakte: Zeit, Treffer, Rang, Bonusgold
     this.boss = null;
     Input.rumble(1, 1, 700);
     this.ents.forEach(e => { if (e.kind === 'enemy' || e.kind === 'eproj') e.dead = true; });
@@ -618,10 +619,11 @@ const W = {
     if (sw.a || sw.v) { sw.v = (sw.v - sw.a * 0.012) * 0.985; sw.a += sw.v; if (Math.abs(sw.a) < 0.0004 && Math.abs(sw.v) < 0.0001) { sw.a = 0; sw.v = 0; } }
     if (this.zoomFx && ++this.zoomFx.t > this.zoomFx.len) this.zoomFx = null;
     if (this.player.rageT > 0) this.player.rageT--;
-    const stopped = this.stopT > 0;
+    const stopped = this.stopT > 0 || Duell.holding(); // Taumel des Bosses: Helfer und Geschosse halten mit an
     const slowSkip = this.slowT > 0 && (this.frame & 1); // Zeitlupe (Perfekt-Ausweichen): nur der Held läuft in voller Geschwindigkeit
     if (!stopped && !slowSkip) this.spawners.forEach(s => s.update());
-    for (const e of this.ents) if (!e.dead && e.kind !== 'platform' && !(stopped && (e.kind === 'enemy' || e.kind === 'eproj')) && !(slowSkip && (e.kind === 'enemy' || e.kind === 'eproj' || e.kind === 'boss')) && !(e.kind === 'enemy' && e.stunT > 0 && e.stunT--)) e.update(); // stunT: versteinert (Mahr „Steinblick“)
+    for (const e of this.ents) if (!e.dead && e.kind !== 'platform' && !(stopped && (e.kind === 'enemy' || e.kind === 'eproj')) && !(slowSkip && (e.kind === 'enemy' || e.kind === 'eproj' || e.kind === 'boss')) && !(e.kind === 'enemy' && e.stunT > 0 && e.stunT--) && !(e.kind === 'boss' && Duell.hold(e))) e.update(); // stunT: versteinert (Mahr „Steinblick“)
+    Duell.tick(); // Taumel, letztes Aufgebot, Kampfakte (js/duell.js)
     if (this.crash) this.updateCrash();
     if (this.cinema > 0) this.cinema--;
     if (this.bossEnraged && this.room.theme === 'throne') this.vortexBg++;
@@ -679,6 +681,7 @@ const W = {
     else if (bend) this.drawBent(ctx, order);
     else { this.drawGroundShadows(ctx); order.forEach(k => { for (const e of this.ents) if (e.kind === k) e.draw(ctx); if (k === 'boss') this.player.draw(ctx, this.cam); }); }
     for (const e of this.ents) if (e.drawFront && !e.dead) e.drawFront(ctx); // Bauwerke, die vor dem Helden liegen (Torhaus beim Durchgehen)
+    Duell.drawWorld(ctx); // Sterne über dem taumelnden Boss
     this.drawReflections(ctx, sx, sy);
     if ((theme === 'throne' || theme === 'gallery' || (theme === 'mirror' && !this.room.mtower)) && !View.lite) this.drawFloorMirror(ctx, sx, sy);
     FX.drawAmbient(ctx, this.cam);

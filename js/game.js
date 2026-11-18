@@ -758,6 +758,7 @@ const Game = {
         W.draw(ctx);
         Mode7.wave(ctx, 32, 208, View.w, W.waveAmp(), W.frame);
         if (W.cinema > 0) this.drawCinema(ctx);
+        Duell.drawImpact(ctx); // Finisher: Scherenschnitt beim letzten Treffer
         if (this.state === 'play' && Castle.on) Castle.drawGuide(ctx); // Schloss: Wegweiser-Pfeil (nach dem Licht, damit er hell bleibt)
         this.drawCombo(ctx);
         if (Castle.on && typeof Moto !== 'undefined' && Moto.drawHud) Moto.drawHud(ctx); // Zeitfahren (Versuchsstrecke): Uhr, Bestzeit, Medaille
@@ -783,6 +784,7 @@ const Game = {
         if (this.state === 'play' && this.shoutT > 0) this.drawShout(ctx);
         if (this.state === 'play') this.drawTut(ctx);
         if (this.state === 'play' && this.noteT > 0) this.drawNote(ctx);
+        if (this.state === 'play') Duell.drawReport(ctx); // Kampfakte nach dem Bosssieg
         if (this.state === 'play') for (const e of W.ents) if (e.drawHud && !e.dead) e.drawHud(ctx); // Bänder einzelner Dinge im Raum (Schloss: was ist hier neu)
         if (this.state === 'play' && Castle.on) Castle.drawGoalToast(ctx); // Schloss: Wegweiser unten im Bild
         if (this.state === 'clear') this.drawClear(ctx);
@@ -808,7 +810,7 @@ const Game = {
 
   drawCombo(ctx) {
     const c = W.combo;
-    if (c.n < 3 || this.state === 'talk' || this.state === 'shop' || this.banter || (W.boss && this.bossName > 0 && this.bossName < 150)) return; // Gesprächskasten, Wortgeplänkel oder Namensband des Bosses: der Zähler lag darunter bzw. darüber
+    if (c.n < 3 || this.state === 'talk' || this.state === 'shop' || this.banter || this.shoutT > 0 || (W.boss && this.bossName > 0 && this.bossName < 150)) return; // Gesprächskasten, Wortgeplänkel oder Namensband des Bosses: der Zähler lag darunter bzw. darüber
     ctx.globalAlpha = c.t < 30 ? c.t / 30 : 1;
     const s = c.pop > 0 ? 3 : 2, mul = W.comboMul();
     this.big(ctx, c.n + ' COMBO', 8 + Font.width(c.n + ' COMBO') * s / 2, 38 - (s - 2) * 2, s, ['#fcfcfc', '#fce0a8', '#f8b800', '#f8b800', '#f87800', '#d82800', '#881400'], null, '#000');
@@ -1198,7 +1200,11 @@ const Game = {
       const sx = 30, sy = 21;
       R('#e8e4d8', sx + 1, sy, 5, 1); R('#e8e4d8', sx, sy + 1, 7, 4); R('#e8e4d8', sx + 1, sy + 5, 5, 2);
       R('#1c0a0c', sx + 1, sy + 2, 2, 2); R('#1c0a0c', sx + 4, sy + 2, 2, 2); R('#1c0a0c', sx + 3, sy + 4, 1, 1); R('#1c0a0c', sx + 2, sy + 6, 1, 1); R('#1c0a0c', sx + 4, sy + 6, 1, 1);
-      bar(sx + 9, 21, 4, clamp(bx - 47, 40, 150), B.bo.v, B.bo.g, ['#fce0a8', '#f8b800', '#9c6400']);
+      const gl = clamp(bx - 47, 40, 150), G = Duell.gauge(); // letztes Aufgebot: die Leiste glüht rot, die Marke zeigt, wo es beginnt
+      bar(sx + 9, 21, 4, gl, B.bo.v, B.bo.g, G.last ? (f & 16 ? ['#fcfcfc', '#fc7460', '#a80020'] : ['#fcbca0', '#e83c20', '#880c00']) : ['#fce0a8', '#f8b800', '#9c6400']);
+      R('#fc7460', sx + 10 + Math.round(gl * Duell.LAST_AT), 22, 1, 4);
+      R('#1c0a0c', sx + 9, 27, gl + 2, 2); const gw = Math.round(gl * G.k); // Taumel-Leiste: füllt sich mit Treffern, läuft im Taumel leer
+      if (gw > 0) { R(G.stun ? (f & 4 ? '#fcfcfc' : '#fce070') : '#f8c840', sx + 10, 27, gw, 1); R(G.stun ? '#f8b800' : '#b87810', sx + 10, 28, gw, 1); }
     }
     ctx.drawImage(this.medallion(Castle.rpg.lv, clamp(Castle.expProgress(), 0, 1)), 1, 1);
     Font.draw(ctx, String(Castle.rpg.lv), 15, 11, '#fcfcfc', { align: 'center', shadow: '#000' });
@@ -1247,6 +1253,7 @@ const Game = {
       let bv = this.bossBarValue();
       if (B && B.boss === W.boss) bv = Math.min(bv, B.fill);
       bar(22, bv, ['#fce0a8', '#f8b800', '#9c6400'], B ? Math.ceil(B.b.g) : 0);
+      if (W.boss) { const G = Duell.gauge(); R('#000', 51, 28, 65, 2); R(G.stun && (W.frame & 4) ? '#fcfcfc' : '#f8c840', 52, 28, Math.round(63 * G.k), 1); } // Taumel-Leiste
     }
     const bx = boxCx - 16;
     R('#c89020', bx, 10, 33, 21); R('#3c0810', bx + 1, 11, 31, 19); R('#120610', bx + 2, 12, 29, 17);

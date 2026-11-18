@@ -3454,6 +3454,8 @@ const Castle = (() => {
       Font.draw(ctx, String(i + 1).padStart(2, '0'), lx, y, '#5c5c6c');
       Font.draw(ctx, got ? beastName(k) : '???', lx + 18, y, got ? (bossy ? '#f8b800' : on ? '#fcfcfc' : '#c8c8d8') : '#5c5c6c', { shadow: '#000' });
       if (got) Font.draw(ctx, '×' + got, rx, y, '#7cdcfc', { align: 'right', shadow: '#000' });
+      const rk = got && bossy ? flag['rank_' + BEAST_BOSS[k]] | 0 : 0; // bester Rang aus der Kampfakte
+      if (rk) Font.draw(ctx, 'CBAS'[rk - 1], rx - 32, y, rk === 4 ? '#f8d848' : rk === 3 ? '#7cdcfc' : '#c8c8d8', { align: 'right', shadow: '#000' });
     });
     const k = BEASTS[beasts.sel];
     wrap(best[k] ? tr('beastD_' + k) : tr('beastUnknown'), rx - lx).slice(0, 3).forEach((l, i) => Font.draw(ctx, l, cx, 180 + i * 10, best[k] ? '#fce0a8' : '#5c5c6c', { align: 'center', shadow: '#000' }));
@@ -4940,7 +4942,7 @@ const Castle = (() => {
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
     need.push('hintRopeUp', 'hintRopeHold', 'hintRopeDown', 'hintTrolley', 'hintTrolley2', 'hintHand', 'npcBell', 'npcGuide', 'npcClock', 'newHere', 'chgZeiger', 'chgDoorZeiger', 'chgKlamm', 'chgDoorKlamm', 'chgGlocken', 'chgDoorGlocken', 'hintKuckuck', 'bossKuckuck', 'bossKuckuckShout', 'bossKuckuckBonk', 'bossKuckuckRage', 'bossKuckuckDie', 'bossKuckuckNote', 'banter_bossKuckuck', 'beastD_Kuckucksuhr', 'ach_kuckuck', 'achD_kuckuck', 'item_kuckucksfeder', 'itemD_kuckucksfeder', 'chgKuckuck', 'chgDoorKuckuck'); // Glockenstuhl, Tropfsteinklamm, Zeigerkammer, NEU-Markierung, Kuckucksuhr
-    need.push('castleBossCount', 'castleGoalBoss', 'pauseTravel', 'bounty', 'runTip', 'travelTip', 'bountyTitle', 'travelRoom', 'mahrTitle', 'mahrCount', 'mahrRuf', 'mahrBann', 'mahrHelp', 'mahrSwap', 'mahrOn', 'mahrFrom', 'mahrUnknown', 'mahrGot', 'mahrFirst', 'mahrDodge', 'crit', 'chgMahr');
+    need.push('castleBossCount', 'castleGoalBoss', 'pauseTravel', 'bounty', 'duelStun', 'duelTip', 'duelLast', 'duelLine0', 'duelLine1', 'duelLine2', 'duelLine3', 'duelTitle', 'duelTime', 'duelHits', 'duelStuns', 'duelBonus', 'duelVS', 'duelVA', 'duelVB', 'duelVC', 'runTip', 'travelTip', 'bountyTitle', 'travelRoom', 'mahrTitle', 'mahrCount', 'mahrRuf', 'mahrBann', 'mahrHelp', 'mahrSwap', 'mahrOn', 'mahrFrom', 'mahrUnknown', 'mahrGot', 'mahrFirst', 'mahrDodge', 'crit', 'chgMahr');
     { // Erreichbarkeit: vom Wald aus über Türen und Ausgänge (alles geöffnet) – kein Raum darf abgeschnitten sein
       const key = (s, r) => s + ':' + r, seenR = new Set(), queue = [], s0 = sIdx('arrival');
       const push = (s, r) => { if (s >= 0 && !seenR.has(key(s, r))) { seenR.add(key(s, r)); queue.push([s, r]); } };
@@ -5011,6 +5013,7 @@ const Castle = (() => {
     mahrStrike: famStrike, mahrTarget: famTarget, mahrRank, mahrEq, mahrGive: (id, e) => mahrGive(Mahr.BY[id], e), get statusAttack() { return statusPage === 5; }, critChance, get mpWarn() { return mpWarnT; }, mahrCycle,
     toolCount: TOOLS.length, get toolSel() { return tools.sel; }, set toolSel(v) { tools.sel = v; },
     startTest, enterTest, finishTest, drawMilestones, milestones: MILESTONES.length, msLabel: (n) => msName(MILESTONES[n]), msTarget: (n) => { const a = ref(MILESTONES[n].at); return { s: a.s, r: a.r }; }, get testing() { return testing; },
+    setBossRank: (k, n) => { if (n > (flag['rank_' + k] | 0)) { flag['rank_' + k] = n; save(); } }, // Kampfakte: bester Rang je Boss (1 = C … 4 = S)
     setFlag: (k) => { flag[k] = 1; save(); }, // z. B. Aufzug als Abkürzung freigeschaltet (lift.js)
     k3at, art, whenArt, dishToday, buffInfo: () => buff && { id: buff.id, k: buff.t / BUFF_T }, // Behördentrakt (js/trakt.js), HUD: Mahlzeit
     toolsInput, drawTools, selfCheck, mapReport, mapLayout: () => castle(), doorsOf, get god() { return god; }, get best() { return best; },

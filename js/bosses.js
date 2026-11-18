@@ -87,13 +87,15 @@ class Boss extends Enemy {
     if (this.dying || this.invT > 0 || !this.vulnerable()) return false;
     if (id && this.lastHit === id) return false;
     this.lastHit = id;
-    this.hp -= dmg; this.flashT = 12; this.invT = 16;
+    const dazed = Duell.stunned(this); // Taumel: Treffer kommen schneller und härter durch (js/duell.js)
+    this.hp -= dmg * (dazed ? this.stunMul || 1.3 : 1); this.flashT = 12; this.invT = dazed ? 11 : 16;
     Audio8.sfx('bossHit', this.cx);
     W.spawn(new Spark(this.cx + rnd(-4, 4), this.cy + rnd(-6, 6)));
     W.spawn(new Shock(this.cx, this.cy, 28, '#f8b800', 3));
     W.comboHit(); W.shake = Math.max(W.shake, 5);
     W.hitstop = 4;
-    if (this.hp <= 0) { this.hp = 0; this.dying = 1; Audio8.stop(); W.addScore(this.score || 3000, this.cx, this.y); }
+    if (this.hp <= 0) { this.hp = 0; this.dying = 1; Audio8.stop(); W.addScore(this.score || 3000, this.cx, this.y); Duell.finish(this); }
+    else Duell.struck(this);
     return true;
   }
   tick() {
@@ -103,8 +105,8 @@ class Boss extends Enemy {
   }
   updateDeath(len = 110) {
     this.dying++;
-    if (this.dying === 1) { W.slowmo = 80; W.flash = 14; W.shake = 30; Input.rumble(1, 1, 900); }
-    if (this.dying === 1 || this.dying === 9 || this.dying === 18) W.spawn(new Shock(this.cx, this.cy, 90 + this.dying * 3, this.dying === 9 ? '#f8b800' : '#fcfcfc', 5));
+    if (this.dying === 2) { W.slowmo = 80; W.flash = 14; W.shake = 30; Input.rumble(1, 1, 900); } // (hit() setzt dying auf 1, der erste Schritt hier zählt auf 2)
+    if (this.dying === 2 || this.dying === 9 || this.dying === 18) W.spawn(new Shock(this.cx, this.cy, 90 + this.dying * 3, this.dying === 9 ? '#f8b800' : '#fcfcfc', 5));
     if (this.dying % 7 === 0) {
       W.spawn(new Burst(this.x + rnd(0, this.w), this.y + rnd(0, this.h)));
       Audio8.sfx('explode', this.cx);

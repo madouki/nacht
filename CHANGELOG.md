@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261118-1356](#20261118-1356--bosskämpfe-taumel-letztes-aufgebot-finisher-und-kampfakte) – Bosskämpfe: Taumel, letztes Aufgebot, Finisher und Kampfakte
 - [20261118-0908](#20261118-0908--laufschritt-gegen-lange-wege-randlicht-auf-allen-figuren) – Laufschritt gegen lange Wege, Randlicht auf allen Figuren
 - [20261118-0852](#20261118-0852--changelog-mit-sprungliste-musik-mit-raumklang-dynamik-und-überleitungen) – Changelog mit Sprungliste, Musik mit Raumklang, Dynamik und Überleitungen
 - [20261115-0409](#20261115-0409--fünf-weitere-figuren-aus-blender) – Fünf weitere Figuren aus Blender
@@ -40,6 +41,30 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261118-1356 – Bosskämpfe: Taumel, letztes Aufgebot, Finisher und Kampfakte
+
+**Neu – Kampf (gilt für alle 18 Bosse)**
+- **Taumel:** unter der Bossleiste liegt jetzt eine gelbe Leiste. Treffer füllen sie, Perfekt-Ausweichen und Konter füllen sie schneller.
+  Ist sie voll, steht der Boss zwei Sekunden benommen da, mit Sternen über dem Kopf und einem passenden Spruch. Seine Helfer und alle
+  Geschosse halten mit an, deine Treffer kommen schneller und härter durch, gepanzerte Bosse sind in dieser Zeit offen. Jeder weitere
+  Taumel braucht mehr Treffer. Wer ablässt, verliert den Druck langsam wieder.
+- **Letztes Aufgebot:** unter einem Viertel der Energie wird der Boss wütend, glüht und wird etwas schneller. Die Bossleiste färbt sich rot,
+  eine kleine Marke zeigt vorher, wo das beginnt.
+- **Finisher:** der letzte Treffer friert das Bild kurz als Scherenschnitt mit Strahlen und Schnitt ein.
+
+**Neu – Kampfakte**
+- Nach jedem Bosssieg erscheint ein kleiner Bericht: Zeit, kassierte Treffer, Taumel, Rang von S bis C und ein trockener Kommentar.
+- Der Rang bringt Bonusgold. Dein bester Rang steht im Bestiarium neben dem Boss.
+
+**Behoben**
+- Die große Zeitlupe beim Tod eines Bosses lief bei fast allen Bossen nie, obwohl sie eingebaut war. Jetzt läuft sie.
+
+**Beim Testen ansehen**
+- Kommt der Taumel zu früh oder zu spät? Sind zwei Sekunden genug, um ihn auszunutzen?
+- Ist das letzte Aufgebot spürbar, aber noch fair?
+- Finisher-Bild: wirkt es wuchtig, oder ist der Hell-Dunkel-Wechsel unangenehm?
+- Passt die Kampfakte in deiner Sprache in den Kasten, und stört sie nicht beim Weitergehen?
 
 ## 20261118-0908 – Laufschritt gegen lange Wege, Randlicht auf allen Figuren
 

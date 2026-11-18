@@ -256,8 +256,9 @@ class Frankiermaschine extends Boss {
   go(s) { this.state = s; this.timer = 0; }
   say(k, col) { W.popup(clamp(this.bx, W.cam.x + 90, W.cam.x + View.w - 90), this.gy - 130, tr(k), col); }
   vulnerable() { return this.state !== 'intro'; }
+  get stunMul() { return 0.75; } // der Taumel öffnet die Panzerung: das ist schon der Bonus, darum hier gedämpft
   hit(dmg, id) { // gepanzert – offen (Walze fort) oder steckend nach dem Sprung: doppelt
-    const soft = this.drum && this.state !== 'stuck';
+    const soft = this.drum && this.state !== 'stuck' && !Duell.stunned(this);
     const r = super.hit(dmg * (soft ? 0.45 : 1.7), id);
     if (r && !soft && !this.dying) W.popup(this.cx, this.y - 6, tr('bossFrankCrit'), '#fcd070');
     return r;

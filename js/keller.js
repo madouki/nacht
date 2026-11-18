@@ -225,8 +225,9 @@ class Reisswolf extends Boss {
   go(s) { this.state = s; this.timer = 0; }
   say(k, col) { W.popup(clamp(this.bx, W.cam.x + 90, W.cam.x + View.w - 90), this.gy - 140, tr(k), col); }
   vulnerable() { return !['off', 'plug', 'boot', 'howl'].includes(this.state); }
+  get stunMul() { return 0.75; } // der Taumel öffnet die Panzerung: das ist schon der Bonus, darum hier gedämpft
   hit(dmg, id) { // nur angekratzt – außer im Papierstau oder benommen an der Wand: dann doppelt
-    const soft = this.state !== 'jam' && this.state !== 'bonk';
+    const soft = this.state !== 'jam' && this.state !== 'bonk' && !Duell.stunned(this);
     const r = super.hit(dmg * (soft ? 0.4 : 1.8), id);
     if (r && !soft && !this.dying) { W.popup(this.cx, this.y - 6, tr('bossReissCrit'), '#fcd070'); }
     return r;
