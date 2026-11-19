@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-1532](#20261119-1532--neuer-gegner-die-höhlenspinne) – Neuer Gegner: die Höhlenspinne
 - [20261119-1403](#20261119-1403--neuer-zwischenboss-der-wachhauptmann) – Neuer Zwischenboss: der Wachhauptmann
 - [20261119-1343](#20261119-1343--neuer-gegner-die-schildwache) – Neuer Gegner: die Schildwache
 - [20261119-1322](#20261119-1322--tagesprüfung-im-kolosseum) – Tagesprüfung im Kolosseum
@@ -59,6 +60,19 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-1532 – Neuer Gegner: die Höhlenspinne
+
+**Neu – Höhlenspinne**
+- In Höhlen, Grüften, Eishöhlen, im Wald, im Spiegelsaal und in Bibliotheken hängen jetzt Spinnen an einem Faden unter der Decke.
+- Geht der Held darunter vorbei, seilt sich die Spinne ab, pendelt und spuckt Netze.
+- Ein Netz klebt: knapp zwei Sekunden halbes Tempo und schwächere Sprünge.
+- Nach einer Weile klettert sie wieder hinauf. Treffbar ist sie jederzeit, am besten solange sie am Faden hängt.
+- Modell und Posen sind in Blender gebaut und gerendert, dazu gibt es einen Bestiariums-Eintrag.
+
+**Beim Testen ansehen**
+- In der Registratur, am Mondmeer, in der Tropfsteinklamm oder im Spiegelschacht unter einer Spinne durchgehen.
+- Ein Netz einfangen und auf das langsamere Tempo achten.
 
 ## 20261119-1403 – Neuer Zwischenboss: der Wachhauptmann
 
