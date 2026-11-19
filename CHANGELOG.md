@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-0606](#20261119-0606--zwei-neue-nebenaufträge) – Zwei neue Nebenaufträge
 - [20261119-0532](#20261119-0532--waffenkünste-und-kerzenmimik) – Waffenkünste und Kerzenmimik
 - [20261119-0510](#20261119-0510--bossrausch-und-neue-3d-kulissen) – Bossrausch und neue 3D-Kulissen
 - [20261119-0437](#20261119-0437--geheimnisjagd-große-boss-auftritte-und-klangkulissen) – Geheimnisjagd, große Boss-Auftritte und Klangkulissen
@@ -53,6 +54,25 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-0606 – Zwei neue Nebenaufträge
+
+**Neu – Das Gulasch des Grafen**
+- Die Kantinenchefin braucht für das Leibgericht des Grafen Drachenpfeffer, Mondkäse und ein Riesenei.
+- Die Zutaten liegen im Eiskeller, am Mondmeer und in der Requisite des Theaters.
+- Lohn: die Goldene Schöpfkelle (mehr Leben, heilt langsam).
+
+**Neu – Die verlorene Zeit**
+- Dem Uhrmacher in der Zeigerkammer sind drei Zahnräder davongerollt. Seitdem geht das große Uhrwerk nach dem Mond.
+- Die Zahnräder liegen im Automatenwerk, in der Pendelhalle und im Glockenstuhl.
+- Lohn: die Unruh (mehr Magie und Glück).
+
+**Besser**
+- Das Auftragsbuch zeigt jetzt bis zu fünf Aufträge auf einer Seite.
+
+**Beim Testen ansehen**
+- Kantinenchefin und Uhrmacher ansprechen, die Stücke suchen und abgeben.
+- Im Auftragsbuch prüfen, ob alles lesbar bleibt.
 
 ## 20261119-0532 – Waffenkünste und Kerzenmimik
 

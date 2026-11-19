@@ -2691,6 +2691,10 @@ const Castle = (() => {
     book_soulsteal: { spell: 'soulsteal', price: 12000, col: '#d880fc' },
     robe: { slot: 'armor', def: 3, regen: 1, price: 4500, col: '#f0e8e0' },
     pillow: { slot: 'armor', def: 5, col: '#e8e4f8' },                       // Daunenkissen aus Zimmer 13 (Geschenk des Tentakels)
+    kelle: { slot: 'acc', hp: 6, regen: 1, col: '#f8d048' },            // Goldene Schöpfkelle (Lohn der Kantinenchefin)
+    unruh: { slot: 'acc', mp: 10, luck: 2, col: '#c8a060' },            // Unruh aus der Taschenuhr (Lohn des Uhrmachers)
+    qing_pfeffer: { quest: 'ing', col: '#d83818' }, qing_kaese: { quest: 'ing', col: '#f8d048' }, qing_ei: { quest: 'ing', col: '#f0ece0' },
+    qrad1: { quest: 'cog', col: '#c8a060' }, qrad2: { quest: 'cog', col: '#a8acb8' }, qrad3: { quest: 'cog', col: '#d88c40' },
     // Nebenaufträge: drei entlaufene Bücher (Bibliothekar), drei Koffer aus Zimmer 7 (Portier), die Untertasse (Gefangener)
     qbook_cook: { quest: 'book', col: '#e8a848' }, qbook_love: { quest: 'book', col: '#fc7cc8' }, qbook_phone: { quest: 'book', col: '#7cb8fc' },
     qcase1: { quest: 'case', col: '#a86c34' }, qcase2: { quest: 'case', col: '#7c4c24' }, qcase3: { quest: 'case', col: '#c8884c' },
@@ -2736,12 +2740,16 @@ const Castle = (() => {
     [['side', 'zimmer13'], 'saucer', 7, 10],
     [['side', 'kapelle'], 'trident', 10, 17], [['side', 'kapelle'], 'rec_kraken', 39, 18],
     [['side', 'kaleido'], 'prisma', 108, 8], [['side', 'pendelhalle'], 'taschenuhr', 116, 17], [['side', 'passage'], 'schirm', 10, 9],
+    [['side', 'eiskeller'], 'qing_pfeffer', 47, 7], [['side', 'mondmeer'], 'qing_kaese', 76, 15], [['side', 'theater'], 'qing_ei', 56, 11],
+    [['side', 'automatenwerk'], 'qrad1', 87, 9], [['side', 'pendelhalle'], 'qrad2', 24, 17], [['side', 'glockenstuhl'], 'qrad3', 54, 10],
   ];
   // Nebenaufträge (Status, vierte Seite): Auftraggeber, Stücke, Szene zum Annehmen und zum Abgeben
   const QUESTS = [
     { id: 'books', who: 'lib', items: ['qbook_cook', 'qbook_love', 'qbook_phone'], start: 'libq', end: 'libq2' },
     { id: 'cases', who: 'conc', items: ['qcase1', 'qcase2', 'qcase3'], start: 'concq', end: 'concq2' },
     { id: 'saucer', who: 'pris', items: ['saucer'], start: 'pris2', end: 'pris3' },
+    { id: 'kitchen', who: 'cook', items: ['qing_pfeffer', 'qing_kaese', 'qing_ei'], start: 'cookq', end: 'cookq2' },
+    { id: 'clock', who: 'clock', items: ['qrad1', 'qrad2', 'qrad3'], start: 'clockq', end: 'clockq2' },
   ];
   const questHas = (q) => q.items.every(i => inv[i]);
   const questState = (q) => flag['story_' + q.end] ? 'done' : flag['story_' + q.start] || q.items.some(i => inv[i]) ? 'open' : null;
@@ -2789,6 +2797,10 @@ const Castle = (() => {
     else if (g.quest === 'book') { R(1, 1, 8, 8, c); R(1, 1, 8, 1, '#fce0a8'); R(2, 2, 6, 6, '#3c2410'); R(3, 3, 4, 1, c); R(3, 5, 3, 1, c); R(8, 2, 1, 6, '#e8e0c8'); R(0, 8, 2, 2, c); R(8, 8, 2, 2, c); } // entlaufenes Buch (mit Beinchen)
     else if (g.quest === 'case') { R(1, 3, 8, 6, c); R(1, 3, 8, 1, '#e8c088'); R(3, 1, 4, 2, '#3c2410'); R(4, 1, 2, 1, '#c89020'); R(1, 6, 8, 1, '#3c2410'); R(4, 5, 2, 2, '#f8b800'); } // Koffer
     else if (g.quest === 'saucer') { R(0, 5, 10, 2, c); R(1, 7, 8, 1, '#a8a8b8'); R(3, 4, 4, 1, '#d8d8e8'); R(1, 5, 2, 1, '#7c9cd8'); } // Untertasse mit blauem Rand
+    else if (g.quest === 'ing' && id === 'qing_pfeffer') { R(4, 0, 2, 2, '#3c8c2c'); R(3, 2, 4, 3, c); R(4, 5, 4, 3, c); R(6, 8, 3, 2, c); R(4, 3, 1, 2, '#fc8c6c'); } // Drachenpfeffer (Schote)
+    else if (g.quest === 'ing' && id === 'qing_kaese') { R(0, 4, 10, 5, c); R(2, 2, 8, 2, c); R(5, 1, 5, 1, c); R(2, 5, 2, 2, '#c89020'); R(6, 6, 1, 1, '#c89020'); R(7, 3, 1, 1, '#c89020'); R(0, 8, 10, 1, '#a87c18'); } // Mondkäse (Ecke mit Kratern)
+    else if (g.quest === 'ing') { R(3, 0, 4, 1, c); R(2, 1, 6, 2, c); R(1, 3, 8, 5, c); R(2, 8, 6, 2, c); R(3, 2, 1, 2, '#fcfcfc'); R(4, 5, 1, 1, '#1c1c1c'); R(6, 5, 1, 1, '#1c1c1c'); } // Riesenei (mit Augen, zwinkert)
+    else if (g.quest === 'cog') { R(3, 0, 4, 10, c); R(0, 3, 10, 4, c); R(1, 1, 8, 8, c); R(4, 4, 2, 2, '#1c1410'); R(2, 2, 1, 1, '#fcfcfc'); R(1, 1, 1, 1, '#000'); R(8, 1, 1, 1, '#000'); R(1, 8, 1, 1, '#000'); R(8, 8, 1, 1, '#000'); } // Zahnrad
     else if (g.rec) { R(1, 1, 8, 8, '#141418'); R(0, 2, 10, 6, '#141418'); R(2, 0, 6, 10, '#141418'); R(2, 2, 1, 1, '#4c4c5c'); R(3, 3, 4, 4, c); R(4, 4, 2, 2, '#fcfcfc'); } // Schallplatte
     else if (g.dish) { R(0, 6, 10, 2, '#e8e4d8'); R(1, 8, 8, 1, '#a8a49c'); R(2, 3, 6, 3, c); R(3, 2, 4, 1, c); R(3, 3, 1, 1, '#fcfcfc'); R(8, 0, 1, 6, '#c8c8d8'); } // Teller
     else if (g.heal) { R(4, 0, 2, 1, '#8c5c2c'); R(4, 1, 2, 2, '#c8d8e8'); R(2, 3, 6, 6, '#c8d8e8'); R(3, 5, 4, 4, c); R(3, 4, 1, 2, '#fcfcfc'); }
@@ -3529,11 +3541,12 @@ const Castle = (() => {
     if (statusPage === 2 && (P.up || P.down)) { beasts.sel = clamp(beasts.sel + (P.down ? 1 : -1), 0, BEASTS.length - 1); Audio8.sfx('select'); }
   }
   function drawQuests(ctx, t) { // Auftragsbuch: Name, Auftraggeber, Stücke (gefundene farbig), erledigt
-    const cx = View.cx, lx = cx - Math.min(130, View.w / 2 - 16), rx = cx + Math.min(130, View.w / 2 - 16), NPC = { lib: 'npcLib', conc: 'npcConcierge', pris: 'npcPrisoner' };
+    const cx = View.cx, lx = cx - Math.min(130, View.w / 2 - 16), rx = cx + Math.min(130, View.w / 2 - 16), NPC = { lib: 'npcLib', conc: 'npcConcierge', pris: 'npcPrisoner', cook: 'npcCook', clock: 'npcClock' };
     const list = QUESTS.filter(questState);
     if (!list.length) { wrap(tr('questNone'), View.w - 32).slice(0, 3).forEach((l, i) => Font.draw(ctx, l, cx, 100 + i * 11, '#7c7c8c', { align: 'center' })); return; }
+    const gap = list.length > 3 ? 35 : 52; // fünf Aufträge passen enger zusammen
     list.forEach((q, i) => {
-      const y = 44 + i * 52, st = questState(q), done = st === 'done';
+      const y = 44 + i * gap, st = questState(q), done = st === 'done';
       Font.draw(ctx, tr('quest_' + q.id), lx, y, done ? '#58f898' : '#f8b800', { shadow: '#000' });
       Font.draw(ctx, done ? tr('questDone') : q.items.filter(id => inv[id]).length + '/' + q.items.length, rx, y, done ? '#58f898' : '#fcfcfc', { align: 'right', shadow: '#000' });
       Font.draw(ctx, tr('questFrom', tr(NPC[q.who])), lx + 8, y + 11, '#b0a080');
@@ -4032,10 +4045,14 @@ const Castle = (() => {
     { id: 'clerk3', who: 'clerk', at: [['side', 'heldenamt'], 56, 17], when: () => !!flag.story_clerk2 },  // ... erklärt den Laufzettel
     { id: 'clerk4', who: 'clerk', at: [['side', 'heldenamt'], 56, 17], when: () => !!best.Schreibtisch },  // ... nach dem Schreibtischtäter
     { id: 'cook', who: 'cook', at: [['side', 'kantine'], 16, 17], when: () => true },                // Kantine: Kantinenchefin Schöpfkelle (danach ihr Laden)
+    { id: 'cookq', who: 'cook', at: [['side', 'kantine'], 16, 17], when: () => !!flag.story_cook },  // Auftrag: das Gulasch des Grafen
     { id: 'cook2', who: 'cook', at: [['side', 'kantine'], 16, 17], when: () => !!flag.pat_flip },    // ... nach der Fahrt durch die obere Wende
+    { id: 'cookq2', who: 'cook', at: [['side', 'kantine'], 16, 17], when: () => questHas(QUESTS[3]) || !!flag.story_cookq2, give: 'kelle', take: QUESTS[3].items },
     { id: 'bell', who: 'bell', at: [['side', 'glockenstuhl'], 7, 19], when: () => true, gold: 1500 },   // Glockenstuhl: der Glöckner im Stollen (Schweigegeld)
     { id: 'guide', who: 'guide', at: [['side', 'klamm'], 74, 16], when: () => true, gold: 1500 },  // Tropfsteinklamm: der Bergführer im Stollen (Trostprämie)
     { id: 'clock', who: 'clock', at: [['side', 'zeiger'], 31, 11], when: () => true, gold: 1500 },  // Zeigerkammer: der Uhrmacher in seiner Werkstatt
+    { id: 'clockq', who: 'clock', at: [['side', 'zeiger'], 31, 11], when: () => !!flag.story_clock },  // Auftrag: die verlorene Zeit
+    { id: 'clockq2', who: 'clock', at: [['side', 'zeiger'], 31, 11], when: () => questHas(QUESTS[4]) || !!flag.story_clockq2, give: 'unruh', take: QUESTS[4].items },
   ];
   const WHO = ['ally', 'lib', 'tent', 'pris', 'conc', 'gramo', 'speed', 'bones', 'chick', 'barber', 'carto', 'clerk', 'cook', 'bell', 'guide', 'clock'], VOICE = { ally: 'A', lib: 'L', tent: 'T', pris: 'P', conc: 'C', speed: 'S', bones: 'B', chick: 'W', barber: 'F', carto: 'M', clerk: 'O', cook: 'E', bell: 'N', guide: 'G', clock: 'U' }; // K ist Kaspar vorbehalten (startTalk)
   const allyId = () => { const ids = HEROES.list.map(d => d.id), i = Math.max(0, ids.indexOf(Options.character)); return ids[(i + 1) % ids.length]; };
