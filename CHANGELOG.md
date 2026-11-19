@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-1552](#20261119-1552--neuer-gegner-der-frostgeist) – Neuer Gegner: der Frostgeist
 - [20261119-1532](#20261119-1532--neuer-gegner-die-höhlenspinne) – Neuer Gegner: die Höhlenspinne
 - [20261119-1403](#20261119-1403--neuer-zwischenboss-der-wachhauptmann) – Neuer Zwischenboss: der Wachhauptmann
 - [20261119-1343](#20261119-1343--neuer-gegner-die-schildwache) – Neuer Gegner: die Schildwache
@@ -60,6 +61,18 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-1552 – Neuer Gegner: der Frostgeist
+
+**Neu – Frostgeist**
+- In der Eishöhle, im Eiskeller, im Spiegeltunnel, im Spiegelschacht, im Kaleidoskop und im Glasturm schwebt jetzt ein Kapuzengeist mit Eiskrone.
+- Er hält Abstand schräg über dem Helden und hebt die Hände: An der Decke glitzern drei Risse, kurz darauf fallen dort Eiszapfen.
+- Wer auf die Risse achtet, hat genug Zeit zum Ausweichen. Getroffen zerspringt der Geist in Eissplitter.
+- Modell und Posen sind in Blender gebaut und gerendert, dazu gibt es einen Bestiariums-Eintrag.
+
+**Beim Testen ansehen**
+- Im Eiskeller oder im Spiegeltunnel unter einem Frostgeist stehen bleiben und auf die glitzernden Risse an der Decke achten.
+- Ist die Vorwarnung lang genug, um den Zapfen auszuweichen?
 
 ## 20261119-1532 – Neuer Gegner: die Höhlenspinne
 
