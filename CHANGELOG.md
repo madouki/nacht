@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-1343](#20261119-1343--neuer-gegner-die-schildwache) – Neuer Gegner: die Schildwache
 - [20261119-1322](#20261119-1322--tagesprüfung-im-kolosseum) – Tagesprüfung im Kolosseum
 - [20261119-1114](#20261119-1114--neuer-gegner-der-wasserspeier) – Neuer Gegner: der Wasserspeier
 - [20261119-0634](#20261119-0634--drei-neue-waffen-mit-eigenen-künsten) – Drei neue Waffen mit eigenen Künsten
@@ -57,6 +58,19 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-1343 – Neuer Gegner: die Schildwache
+
+**Neu – Schildwache**
+- In Hallen, Galerien, Thronsaal, Ballsaal, Kathedrale, Hotel, Theater und Bibliothek patrouillieren jetzt gepanzerte Wachen mit Turmschild und Lanze.
+- Der Schild fängt jeden Treffer von vorn ab, es sprühen nur Funken.
+- Die Wache zieht die Lanze zurück, die Spitze blitzt auf, dann stößt sie weit vor.
+- Verwundbar ist sie von hinten, von oben auf den Helm und kurz nach dem Stoß, wenn der Schild herabhängt.
+- Modell und Posen sind in Blender gebaut und gerendert, dazu gibt es einen Bestiariums-Eintrag.
+
+**Beim Testen ansehen**
+- Über eine Schildwache springen und sie von hinten treffen.
+- Den Lanzenstoß abwarten und danach zuschlagen.
 
 ## 20261119-1322 – Tagesprüfung im Kolosseum
 
