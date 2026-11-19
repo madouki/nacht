@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-1638](#20261119-1638--neuer-gegner-der-galvanifrosch) – Neuer Gegner: der Galvanifrosch
 - [20261119-1616](#20261119-1616--die-kantinenküche-zutaten-sammeln-gerichte-kochen) – Die Kantinenküche: Zutaten sammeln, Gerichte kochen
 - [20261119-1552](#20261119-1552--neuer-gegner-der-frostgeist) – Neuer Gegner: der Frostgeist
 - [20261119-1532](#20261119-1532--neuer-gegner-die-höhlenspinne) – Neuer Gegner: die Höhlenspinne
@@ -62,6 +63,20 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-1638 – Neuer Gegner: der Galvanifrosch
+
+**Neu – Galvanifrosch**
+- Am Bahnhof, im Automatenwerk, im Fundbüro, auf der Versuchsstrecke, in der Rohrpost und in der Weltausstellung sitzen jetzt mechanische Frösche mit Kupferspule und Glaskuppel auf dem Rücken.
+- Kommt der Held näher, duckt sich der Frosch und Funken springen über seinen Rücken. Dann springt er auf den Helden zu.
+- Beim Aufkommen entlädt sich die Spule, und ein Blitzbogen läuft über den Boden. Wer in dem Moment in der Luft ist, bleibt heil.
+- Er lässt manchmal ein Zahnrad für das Uhrwerk-Gulasch der Kantinenküche fallen.
+- Modell und Posen sind in Blender gebaut und gerendert, dazu gibt es einen Bestiariums-Eintrag.
+- Die Bestiariums-Texte von Gargoyle, Frostgeist und Galvanifrosch sind jetzt in allen Sprachen höchstens zwei Zeilen lang.
+
+**Beim Testen ansehen**
+- Am Bahnhof auf einen Frosch zugehen, auf die Funken achten und über die Entladung springen.
+- Ist die Vorwarnung lang genug?
 
 ## 20261119-1616 – Die Kantinenküche: Zutaten sammeln, Gerichte kochen
 

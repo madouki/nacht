@@ -15,7 +15,7 @@ const Kueche = (() => {
   const SRC = {
     Bat: ['fluegel', 0.07], Ghost: ['ekto', 0.07], Knight: ['rost', 0.09], LivingArmor: ['rost', 0.15], Schildwache: ['rost', 0.15],
     Skeleton: ['knochen', 0.1], Raven: ['rabenei', 0.1], Gargoyle: ['kiesel', 0.14], FlyBook: ['eselsohr', 0.12], Tome: ['eselsohr', 0.2],
-    Ordner: ['eselsohr', 0.12], Pitcher: ['nektar', 0.14], Snapper: ['bohne', 0.14], Automat: ['zahnrad', 0.18], IceSkeleton: ['eiswuerfel', 0.25],
+    Ordner: ['eselsohr', 0.12], Pitcher: ['nektar', 0.14], Snapper: ['bohne', 0.14], Automat: ['zahnrad', 0.18], Galvanifrosch: ['zahnrad', 0.15], IceSkeleton: ['eiswuerfel', 0.25],
     Frostgeist: ['raureif', 0.25], Hoehlenspinne: ['netz', 0.25], Jelly: ['gelee', 0.25], Mondkalb: ['mondmilch', 0.3], Fishman: ['fisch', 0.3],
   };
   const DISHES = [
