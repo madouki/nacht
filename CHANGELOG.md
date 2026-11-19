@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-2016](#20261119-2016--drei-neue-urkunden) – Drei neue Urkunden
 - [20261119-2012](#20261119-2012--zwei-neue-gegner-hüpfsarg-und-walzerpaar) – Zwei neue Gegner: Hüpfsarg und Walzerpaar
 - [20261119-1932](#20261119-1932--neuer-gegner-der-wetterhahn) – Neuer Gegner: der Wetterhahn
 - [20261119-1638](#20261119-1638--neuer-gegner-der-galvanifrosch) – Neuer Gegner: der Galvanifrosch
@@ -65,6 +66,17 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-2016 – Drei neue Urkunden
+
+**Neu – Urkunden**
+- „Sterneküche“: alle 8 Gerichte der Kantinenküche essen. Nachschlag zählt nicht.
+- „Wetterfühlig“: Wetterhähne insgesamt fünfmal in eine Wand oder den Boden rammen lassen.
+- „Darf ich abklatschen?“: das Walzerpaar besiegen.
+- Wie alle Urkunden zahlt das Amt dafür je 500 Gold Aufwandsentschädigung. Die Urkunden stehen im Status auf der Urkundenseite.
+
+**Beim Testen ansehen**
+- Einem Wetterhahn ausweichen, bis er fünfmal feststeckt: Kommt die Urkunde?
 
 ## 20261119-2012 – Zwei neue Gegner: Hüpfsarg und Walzerpaar
 

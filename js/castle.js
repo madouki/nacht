@@ -3685,6 +3685,9 @@ const Castle = (() => {
     { id: 'rausch', ok: () => !!flag.rausch_all }, // Bossrausch mit allen Bossen überstanden
     { id: 'saint', ok: () => Gewissen.all(1), arg: () => Gewissen.CASES.length }, // alle Gewissensfragen anständig gelöst
     { id: 'fiend', ok: () => Gewissen.all(2), arg: () => Gewissen.CASES.length }, // alle Gewissensfragen schäbig gelöst
+    { id: 'gourmet', ok: () => typeof Kueche !== 'undefined' && Kueche.DISHES.every(Kueche.eaten), arg: () => (typeof Kueche !== 'undefined' ? Kueche.DISHES.length : 8) }, // alle Gerichte der Kantinenküche gegessen
+    { id: 'wetter', ok: () => (flag.wetter_ram || 0) >= 5 }, // Wetterhähne fünfmal in die Wand rammen lassen
+    { id: 'walzer', ok: () => !!best.Walzerpaar }, // dem Walzerpaar den letzten Tanz bereitet
   ];
   const ach = { q: [], cur: null, sel: 0 }, ACH_PAY = 500; // je Urkunde zahlt das Amt 500 Gold Aufwandsentschädigung
   const achGot = (a) => !!flag['ach_' + a.id];

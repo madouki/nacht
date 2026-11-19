@@ -46,7 +46,7 @@ const Wetter = (() => {
       } else if (this.st === 'dash') {
         const nx = this.x + this.dx, ny = this.y + this.dy, out = nx < 2 || ny < 2 || nx + this.w > W.room.w * T - 2 || ny + this.h > W.room.h * T - 2;
         if (out || Phys.rectSolid(nx, ny, this.w, this.h)) { // Pfeil steckt in der Wand
-          this.st = 'stuck'; this.tm = 0; Audio8.sfx('wall', this.cx); W.shake = Math.max(W.shake, 2);
+          this.st = 'stuck'; this.tm = 0; Audio8.sfx('wall', this.cx); W.shake = Math.max(W.shake, 2); if (F() && typeof Castle !== 'undefined' && Castle.flags) Castle.flags.wetter_ram = (Castle.flags.wetter_ram || 0) + 1; // für die Urkunde
           const tx = this.cx + Math.sign(this.dx) * 10, ty = this.cy + Math.sign(this.dy) * 6;
           for (let i = 0; i < 8; i++) W.spawn(new Particle(tx, ty, rnd(-1.6, 1.6), rnd(-2, 0), i % 2 ? '#b0a090' : '#e0b040', 22, 1, 0.12));
         } else {
