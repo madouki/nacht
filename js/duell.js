@@ -236,18 +236,18 @@ const Duell = (() => {
     const L = landing(b);
     if (L) floorMark(ctx, L.x, L.y, clamp(b.w + 14, 30, 96), clamp(1 - L.n / 50, 0, 1));
     const A = d.tell; if (!A) return;
-    const k = clamp(A.t / A.show, 0, 1), h = head(b), sx = Math.round(h.x - W.cam.x), sy = Math.round(h.y + 14 - W.cam.y), r = 10 + 40 * (1 - k) * (1 - k);
+    const k = clamp(A.t / A.show, 0, 1), h = head(b), hx = Math.round(h.x - W.cam.x), hy = Math.round(h.y + 14 - W.cam.y), sx = Math.round(clamp(b.cx, W.cam.x + 24, W.cam.x + View.w - 24) - W.cam.x), sy = Math.round(clamp(b.cy, W.cam.y + 30, W.cam.y + 180) - W.cam.y), r0 = clamp(Math.max(b.w, b.h) * 0.62, 16, 74), r = r0 + 46 * (1 - k) * (1 - k); // der Ring umschließt den ganzen Boss, auch die riesigen
     ctx.save();
-    ctx.globalAlpha = 0.3 + 0.6 * k; ctx.lineWidth = 4; ctx.strokeStyle = '#140408'; ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI * 2); ctx.stroke(); // dunkler Grund: der Ring bleibt auch vor hellen Sälen sichtbar
-    ctx.globalAlpha = 0.45 + 0.55 * k; ctx.lineWidth = 2; ctx.strokeStyle = k > 0.65 ? '#fce070' : '#fc4830';
-    ctx.setLineDash([7, 5]); ctx.lineDashOffset = -W.frame * 1.5; ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+    ctx.globalAlpha = 0.45 + 0.5 * k; ctx.lineWidth = 5; ctx.strokeStyle = '#140408'; ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI * 2); ctx.stroke(); // dunkler Grund: der Ring bleibt auch vor hellen Sälen sichtbar
+    ctx.globalAlpha = 0.65 + 0.35 * k; ctx.lineWidth = 3; ctx.strokeStyle = k > 0.65 ? '#fce070' : '#fc4830';
+    ctx.setLineDash([10, 6]); ctx.lineDashOffset = -W.frame * 1.5; ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
     if (A.mark === 'line' && Number.isFinite(b.tx) && Number.isFinite(b.ty)) { // Sturzflug: die Bahn bis zum Ziel
       const tx = Math.round(b.tx - W.cam.x), ty = Math.round(b.ty - W.cam.y);
       ctx.globalAlpha = 0.3 + 0.45 * k; ctx.strokeStyle = '#fc4830'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]); ctx.lineDashOffset = -W.frame; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(tx, ty); ctx.stroke(); ctx.setLineDash([]);
       ctx.fillStyle = '#fce070'; for (const [ax, ay] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ctx.fillRect(tx + ax * 7 - (ax ? 2 : 0), ty + ay * 7 - (ay ? 2 : 0), ax ? 5 : 1, ay ? 5 : 1);
     }
     const s = Math.round(3 + 6 * Math.sin(k * Math.PI)); // Glanzstern am Kopf: das Zeichen „jetzt kommt was“
-    ctx.globalAlpha = 1; ctx.fillStyle = '#fff4d0'; ctx.fillRect(sx - s, sy - 15, s * 2 + 1, 1); ctx.fillRect(sx, sy - 15 - s, 1, s * 2 + 1); ctx.fillStyle = '#fc6840'; ctx.fillRect(sx - 1, sy - 16, 3, 3);
+    ctx.globalAlpha = 1; ctx.fillStyle = '#fff4d0'; ctx.fillRect(hx - s, hy - 15, s * 2 + 1, 1); ctx.fillRect(hx, hy - 15 - s, 1, s * 2 + 1); ctx.fillStyle = '#fc6840'; ctx.fillRect(hx - 1, hy - 16, 3, 3);
     ctx.restore();
   }
   function drawWorld(ctx) {

@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-0121](#20261119-0121--bossansagen-der-ring-umschließt-jetzt-auch-riesige-bosse) – Bossansagen: der Ring umschließt jetzt auch riesige Bosse
 - [20261119-0038](#20261119-0038--gesamtpolitur-lesbare-bosse-eigene-kammern-neue-kulissen-besseres-licht) – Gesamtpolitur: lesbare Bosse, eigene Kammern, neue Kulissen, besseres Licht
 - [20261118-2149](#20261118-2149--abkürzungstüren-acht-riegeltüren-verbinden-das-schloss) – Abkürzungstüren: acht Riegeltüren verbinden das Schloss
 - [20261118-1356](#20261118-1356--bosskämpfe-taumel-letztes-aufgebot-finisher-und-kampfakte) – Bosskämpfe: Taumel, letztes Aufgebot, Finisher und Kampfakte
@@ -43,6 +44,14 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-0121 – Bossansagen: der Ring umschließt jetzt auch riesige Bosse
+
+**Besser**
+- Der Ansage-Ring richtet sich nach der Größe des Bosses und ist kräftiger gezeichnet. Bei Steingolem und Amtsschimmel war er vorher kaum zu sehen.
+
+**Beim Testen ansehen**
+- Steingolem: Ist der Ring vor dem Laser und dem Faustschlag gut zu erkennen?
 
 ## 20261119-0038 – Gesamtpolitur: lesbare Bosse, eigene Kammern, neue Kulissen, besseres Licht
 
