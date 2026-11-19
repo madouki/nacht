@@ -1229,6 +1229,11 @@ class Player {
       const ext = Math.min(1, (t - 11) / 3), relax = Math.max(0, (t - 15) / Math.max(1, ATK_LEN - 15));
       const curl = (1 - ext) * -2.6; // rollt sich von oben her aus
       const sag = relax * 0.4 + Math.sin(t * 1.3) * 0.06 * ext; // danach Nachschwingen + Durchhängen
+      if (t >= 11 && t <= 15 && !View.lite) { // Fächer: die Peitsche zieht einen hellen Bogen durch die Luft
+        const q = 1 - (t - 11) / 5, R = len * (0.45 + 0.55 * ext);
+        ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.3 * q; ctx.fillStyle = lvl > 1 ? '#fce8b0' : '#d8a868';
+        ctx.beginPath(); ctx.moveTo(hx, hy); ctx.arc(hx, hy, R, D.a - 1.35 * q, D.a + 0.05); ctx.closePath(); ctx.fill(); ctx.restore();
+      }
       tip = chain(hx, hy, D.a, curl, len * (0.3 + 0.7 * ext), sag);
       if (t === 13 || t === 14) { // Knall an der Spitze
         ctx.fillStyle = '#fcfcfc'; ctx.fillRect(tip[0] - 3, tip[1], 7, 1); ctx.fillRect(tip[0], tip[1] - 3, 1, 7);

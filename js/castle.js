@@ -167,7 +167,7 @@ const Castle = (() => {
     const room = (id, i) => { const s = sIdx(id); return s >= 0 ? S()[s].rooms[i] : null; };
     const lib = room(2, 1), gal = room(2, 3), glass = room(3, 1), ball = room(3, 3), gear = room(2, 2);
     if (lib) { for (let x = 29; x <= 34; x++) lib.grid[17][x] = '='; lib.grid[15][35] = lib.grid[16][35] = '.'; }
-    if (lib) { lib.grid[2][0] = lib.grid[3][0] = '.'; for (let x = 1; x <= 4; x++) lib.grid[4][x] = '='; } // Bibliothek: oben links eine Tür zum Glockenstuhl (Steg bis an die Wand) // Bibliothek: Steg zur Öffnung rechts
+    if (lib) { lib.grid[2][0] = lib.grid[3][0] = '.'; for (let x = 1; x <= 2; x++) lib.grid[4][x] = '='; lib.ents.push({ type: 'hint', x: 1, y: 11, w: 4, h: 6, key: 'hintWall' }); } // Bibliothek: oben links eine Tür zum Glockenstuhl (Absatz an der Wand; x 3–4 bleibt offen: durch dieses Loch führt der Wandsprung-Schacht hinauf zur Galerie) // Bibliothek: Steg zur Öffnung rechts
     if (gal) for (let y = gal.h - 2; y < gal.h; y++) for (let x = 22; x <= 23; x++) gal.grid[y][x] = '.';      // Marmorgalerie: Loch ins Kabinett
     if (glass) glass.grid[14][26] = glass.grid[14][27] = '=';                                                 // Glasturm: Steg zur Öffnung rechts
     if (ball) { // Ballsaal: Treppe mit Podest hinauf zur Luke – Fuß auf dem sicheren Zielpodest (das Parkett davor ist verflucht)
@@ -2526,7 +2526,7 @@ const Castle = (() => {
   }
   function defeated(e) {
     const big = e.kind === 'boss', kind = e.constructor && e.constructor.name;
-    rpg.kills++;
+    rpg.kills++; if (e.champ) Champ.reward(e);
     if (BEAST_SET.has(kind)) { const first = !best[kind]; best[kind] = (best[kind] || 0) + 1; if (first) { save(); W.popup(e.cx, e.y - 14, tr('beastNew'), '#c8a0fc'); } } // Bestiarium
     gainExp(Math.max(1, Math.round(big ? Math.max((e.score || 0) / 20, (e.maxHp || 20) * 6) : (e.score || 100) / 15 * (e.expMul || 1))));
     const r = Math.random(), drop = big ? 'bagBig' : r < 0.05 ? 'roast' : r < 0.12 ? 'bag' : r < 0.17 ? 'heartB' : null; // Beute wie in SotN
@@ -3653,6 +3653,7 @@ const Castle = (() => {
     { id: 'quests', ok: () => QUESTS.every(q => questState(q) === 'done') },
     { id: 'count', ok: () => !!best.Count },
     { id: 'bolts', ok: () => BOLTS.every(b => flag['bolt_' + b[0]]), arg: () => BOLTS.length }, // alle Abkürzungen geöffnet
+    { id: 'champs', ok: () => (flag.champs || 0) >= Champ.GOAL, arg: () => Champ.GOAL }, // goldene Gegner besiegt
   ];
   const ach = { q: [], cur: null, sel: 0 }, ACH_PAY = 500; // je Urkunde zahlt das Amt 500 Gold Aufwandsentschädigung
   const achGot = (a) => !!flag['ach_' + a.id];
@@ -5001,7 +5002,7 @@ const Castle = (() => {
     for (const q of QUESTS) need.push('quest_' + q.id, 'questHint_' + q.id);
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
-    need.push('chgKanal', 'chgStollen', 'chgKuppel', 'chgKammer', 'hintRopeUp', 'hintRopeHold', 'hintRopeDown', 'hintTrolley', 'hintTrolley2', 'hintHand', 'npcBell', 'npcGuide', 'npcClock', 'newHere', 'chgZeiger', 'chgDoorZeiger', 'chgKlamm', 'chgDoorKlamm', 'chgGlocken', 'chgDoorGlocken', 'hintKuckuck', 'bossKuckuck', 'bossKuckuckShout', 'bossKuckuckBonk', 'bossKuckuckRage', 'bossKuckuckDie', 'bossKuckuckNote', 'banter_bossKuckuck', 'beastD_Kuckucksuhr', 'ach_kuckuck', 'achD_kuckuck', 'item_kuckucksfeder', 'itemD_kuckucksfeder', 'chgKuckuck', 'chgDoorKuckuck'); // Glockenstuhl, Tropfsteinklamm, Zeigerkammer, NEU-Markierung, Kuckucksuhr
+    need.push('champWin', 'champTip', 'ach_champs', 'achD_champs', 'chgKanal', 'chgStollen', 'chgKuppel', 'chgKammer', 'hintRopeUp', 'hintRopeHold', 'hintRopeDown', 'hintTrolley', 'hintTrolley2', 'hintHand', 'npcBell', 'npcGuide', 'npcClock', 'newHere', 'chgZeiger', 'chgDoorZeiger', 'chgKlamm', 'chgDoorKlamm', 'chgGlocken', 'chgDoorGlocken', 'hintKuckuck', 'bossKuckuck', 'bossKuckuckShout', 'bossKuckuckBonk', 'bossKuckuckRage', 'bossKuckuckDie', 'bossKuckuckNote', 'banter_bossKuckuck', 'beastD_Kuckucksuhr', 'ach_kuckuck', 'achD_kuckuck', 'item_kuckucksfeder', 'itemD_kuckucksfeder', 'chgKuckuck', 'chgDoorKuckuck'); // Glockenstuhl, Tropfsteinklamm, Zeigerkammer, NEU-Markierung, Kuckucksuhr
     need.push('boltHint', 'boltOpen', 'boltFar0', 'boltFar1', 'boltFar2', ...BOLTS.map(b => 'boltSay_' + b[0]));
     need.push('castleBossCount', 'castleGoalBoss', 'pauseTravel', 'bounty', 'duelStun', 'duelTip', 'duelLast', 'duelLine0', 'duelLine1', 'duelLine2', 'duelLine3', 'duelTitle', 'duelTime', 'duelHits', 'duelStuns', 'duelBonus', 'duelVS', 'duelVA', 'duelVB', 'duelVC', 'runTip', 'travelTip', 'bountyTitle', 'travelRoom', 'mahrTitle', 'mahrCount', 'mahrRuf', 'mahrBann', 'mahrHelp', 'mahrSwap', 'mahrOn', 'mahrFrom', 'mahrUnknown', 'mahrGot', 'mahrFirst', 'mahrDodge', 'crit', 'chgMahr');
     { // Erreichbarkeit: vom Wald aus über Türen und Ausgänge (alles geöffnet) – kein Raum darf abgeschnitten sein

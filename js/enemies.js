@@ -275,6 +275,9 @@ class SubWeapon extends Ent {
 }
 
 // ---------------- Gegner-Basis ----------------
+// Trefferwucht: wer getroffen wird, weicht zurück und ist kurz aus dem Tritt. Wert = Stoß in Pixeln je Bild, FLY: fliegt (ohne Boden und Kanten)
+const WUCHT = { Ghoul: 2.2, Bat: 2.0, Skull: 1.8, Skeleton: 2.4, IceSkeleton: 2.4, Panther: 2.6, FlyBook: 2.2, Ghost: 1.8, Automat: 1.7, Mondkalb: 2.6, Ordner: 2.2, Flieger: 2.0, Raven: 2.0, Knight: 1.2 };
+const WUCHT_FLY = new Set(['Bat', 'Skull', 'FlyBook', 'Ghost', 'Flieger', 'Raven']);
 class Enemy extends Ent {
   constructor(x, y, w, h, hp, dmg, score) {
     super(x, y, w, h);
@@ -287,8 +290,20 @@ class Enemy extends Ent {
     this.hp -= dmg; this.flashT = 10;
     W.spawn(new Spark(this.cx, this.cy));
     W.comboHit(); W.hitstop = Math.max(W.hitstop, 2);
-    if (this.hp <= 0) this.kill(); else Audio8.sfx('hit', this.cx);
+    if (this.hp <= 0) this.kill(); else { Audio8.sfx('hit', this.cx); this.wucht(); }
     return true;
+  }
+  wucht() {
+    const pow = WUCHT[this.constructor.name]; if (!pow || (this.rise !== undefined && this.rise < 33) || (this.kbNext || 0) > W.frame) return;
+    const d = Math.sign(this.cx - W.player.cx) || W.player.face;
+    this.kbT = 10; this.kbV = d * pow * (this.champ ? 0.45 : 1); this.kbNext = W.frame + 34; // danach kurz standfest: niemand wird endlos weggeprügelt
+    for (let i = 0; i < 4; i++) W.spawn(new Particle(this.cx, this.cy + rnd(-5, 5), d * rnd(1.2, 3), rnd(-1.2, 0.6), i % 2 ? '#fcfcfc' : '#fce0a8', 11, 1, 0.06));
+  }
+  wuchtStep() { // true: dieses Bild keine eigene Bewegung
+    const k = this.kbT / 10; this.kbT--; if (this.flashT > 0) this.flashT--;
+    if (WUCHT_FLY.has(this.constructor.name)) this.x = clamp(this.x + this.kbV * k, 2, W.room.w * T - this.w - 2);
+    else { this.vx = this.groundAhead(Math.sign(this.kbV)) ? this.kbV * k : 0; if (this.vy === undefined) this.vy = 0; this.physics(); }
+    return this.kbT > 2;
   }
   kill(silent) {
     this.dead = true;

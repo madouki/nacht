@@ -152,6 +152,7 @@ const W = {
     });
     Kulisse.populate(this); // große Stücke hinter der Spielebene (js/kulisse.js)
     Leben.populate(this); // Kleintiere, Leuchtpilze und Wurzeln (js/leben.js)
+    Champ.populate(this); // manchmal ein goldener Gegner (js/champ.js)
     this.stairs = this.findStairs();
     this.rings = this.ents.filter(e => e instanceof Ring);
     this.player.reset(def.start.x * T + 8, (def.start.y + 1) * T);
@@ -624,7 +625,7 @@ const W = {
     const stopped = this.stopT > 0 || Duell.holding(); // Taumel des Bosses: Helfer und Geschosse halten mit an
     const slowSkip = this.slowT > 0 && (this.frame & 1); // Zeitlupe (Perfekt-Ausweichen): nur der Held läuft in voller Geschwindigkeit
     if (!stopped && !slowSkip) this.spawners.forEach(s => s.update());
-    for (const e of this.ents) if (!e.dead && e.kind !== 'platform' && !(stopped && (e.kind === 'enemy' || e.kind === 'eproj')) && !(slowSkip && (e.kind === 'enemy' || e.kind === 'eproj' || e.kind === 'boss')) && !(e.kind === 'enemy' && e.stunT > 0 && e.stunT--) && !(e.kind === 'boss' && Duell.hold(e))) e.update(); // stunT: versteinert (Mahr „Steinblick“)
+    for (const e of this.ents) if (!e.dead && e.kind !== 'platform' && !(stopped && (e.kind === 'enemy' || e.kind === 'eproj')) && !(slowSkip && (e.kind === 'enemy' || e.kind === 'eproj' || e.kind === 'boss')) && !(e.kind === 'enemy' && e.stunT > 0 && e.stunT--) && !(e.kind === 'enemy' && e.kbT > 0 && e.wuchtStep()) && !(e.kind === 'boss' && Duell.hold(e))) e.update(); // stunT: versteinert (Mahr „Steinblick“)
     Duell.tick(); // Taumel, letztes Aufgebot, Kampfakte (js/duell.js)
     if (this.crash) this.updateCrash();
     if (this.cinema > 0) this.cinema--;
@@ -681,7 +682,7 @@ const W = {
     const order = ['prop', 'candle', 'platform', 'item', 'enemy', 'boss', 'sub', 'eproj', 'fx'];
     if (this.room.wrap) this.drawOnTower(ctx, order);
     else if (bend) this.drawBent(ctx, order);
-    else { this.drawGroundShadows(ctx); order.forEach(k => { if (k === 'eproj') this.drawDanger(ctx); for (const e of this.ents) if (e.kind === k) e.draw(ctx); if (k === 'boss') this.player.draw(ctx, this.cam); }); }
+    else { this.drawGroundShadows(ctx); order.forEach(k => { if (k === 'eproj') this.drawDanger(ctx); if (k === 'enemy') Champ.under(ctx); for (const e of this.ents) if (e.kind === k) e.draw(ctx); if (k === 'boss') this.player.draw(ctx, this.cam); }); }
     for (const e of this.ents) if (e.drawFront && !e.dead) e.drawFront(ctx); // Bauwerke, die vor dem Helden liegen (Torhaus beim Durchgehen)
     Duell.drawWorld(ctx); // Sterne über dem taumelnden Boss
     this.drawReflections(ctx, sx, sy);
@@ -699,6 +700,7 @@ const W = {
     Rays.draw(ctx, this.room, this.cam, this.frame);
     for (const e of this.ents) if (e.drawLit && !e.dead) e.drawLit(ctx); // Riesen (Steingolem): nach Licht und Nebel, mit eigener 3D-Beleuchtung
     Duell.drawTell(ctx); // Angriffsansagen: über allem, auch über den riesigen Bossen
+    Champ.over(ctx);
     if (Options.bloom) FX.bloom(ctx, theme === 'ballroom' ? 0.4 - 0.3 * Ball.FL.a : this.room.bloom ?? BLOOM[theme] ?? 1); // Glühen über allem, was leuchtet (je Raum dämpfbar)
     this.drawGates(ctx); // Fallgitter der Bosskammer (nach dem Licht: Eisen bleibt auch im dunklen Stollen sichtbar)
     if (theme === 'mirror') Mirror.capture(ctx); // Spiegelgalerie: dieses Bild spiegelt sich im nächsten (vor Blitz, Blutmond und Warnrand)

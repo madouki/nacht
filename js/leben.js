@@ -118,9 +118,40 @@ const Leben = (() => {
     }
   }
 
+  // Tiefe: unter Decken und Stegen, neben Wänden und über dem Boden liegt ein weicher Schatten auf der Rückwand (einmal je Raum gemalt)
+  const INNEN = new Set(['crypt', 'cave', 'hall', 'library', 'tower', 'hotel', 'gallery', 'cathedral', 'theater', 'lab', 'werk', 'throne', 'ice', 'expo', 'station', 'passage']);
+  let aoKey = null, aoC = null;
+  class Schatten extends Ent {
+    constructor() { super(0, 0, 1, 1); this.kind = 'prop'; this.noWrap = true; }
+    update() { }
+    draw() { }
+    static paint(R) {
+      const c = Sprites.canvas(R.w * T, R.h * T), x = c.getContext('2d'), g = R.grid, solid = (cx, cy) => cy >= 0 && cy < R.h && cx >= 0 && cx < R.w && '#=XYBG'.includes(g[cy][cx]);
+      const band = (list, col) => { x.fillStyle = col; for (const [a, b, w, h] of list) x.fillRect(a, b, w, h); };
+      const lv = [[], [], []];
+      for (let cy = 0; cy < R.h; cy++) for (let cx = 0; cx < R.w; cx++) {
+        if (solid(cx, cy)) continue;
+        const X = cx * T, Y = cy * T;
+        if (solid(cx, cy - 1)) { lv[0].push([X, Y, T, 3]); lv[1].push([X, Y + 3, T, 4]); lv[2].push([X, Y + 7, T, 6]); }       // unter Decke und Steg
+        if (solid(cx - 1, cy)) { lv[1].push([X, Y, 3, T]); lv[2].push([X + 3, Y, 5, T]); }                                     // rechts neben einer Wand
+        if (solid(cx + 1, cy)) { lv[1].push([X + T - 3, Y, 3, T]); lv[2].push([X + T - 8, Y, 5, T]); }                         // links neben einer Wand
+        if (solid(cx, cy + 1)) { lv[1].push([X, Y + T - 2, T, 2]); lv[2].push([X, Y + T - 6, T, 4]); }                         // Kontaktschatten über dem Boden
+      }
+      band(lv[2], 'rgba(4,2,12,0.13)'); band(lv[1], 'rgba(4,2,12,0.2)'); band(lv[0], 'rgba(4,2,12,0.3)');
+      return c;
+    }
+    drawBack(ctx) {
+      const R = W.room, key = W.stage + ':' + W.roomIdx;
+      if (aoKey !== key) { aoKey = key; aoC = R.w * R.h <= 6000 ? Schatten.paint(R) : null; }
+      if (!aoC) return;
+      const sx = Math.max(0, Math.floor(W.cam.x)), sy = Math.max(0, Math.floor(W.cam.y)), w = Math.min(View.w + 1, aoC.width - sx), h = Math.min(209, aoC.height - sy);
+      if (w > 0 && h > 0) ctx.drawImage(aoC, sx, sy, w, h, sx - Math.round(W.cam.x), sy - Math.round(W.cam.y), w, h);
+    }
+  }
   function populate(w) {
     if (typeof Castle === 'undefined' || !Castle.on) return;
-    const R = w.room, st = Levels.STAGES[w.stage], moon = !!R.grav; if (R.wrap || moon || R.arena) return;
+    const R = w.room, st = Levels.STAGES[w.stage], moon = !!R.grav; if (!R.wrap && !moon && !R.openSky && INNEN.has(R.theme)) w.spawn(new Schatten());
+    if (R.wrap || moon || R.arena) return;
     let seed = 7; for (const ch of String(R.side || st.id + ':' + w.roomIdx)) seed = (seed * 31 + ch.charCodeAt(0)) % 2147483647;
     const rnd = rngOf(seed || 11), list = R.hall ? ['moth'] : BY_THEME[R.theme] || [], n = R.hall ? 2 : Math.min(7, 2 + Math.floor(R.w / 22));
     for (let i = 0; i < n && list.length; i++) {

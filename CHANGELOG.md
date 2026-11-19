@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-0241](#20261119-0241--bibliothek-wieder-frei-trefferwucht-goldene-champions-mehr-tiefe-im-bild) – Bibliothek wieder frei, Trefferwucht, goldene Champions, mehr Tiefe im Bild
 - [20261119-0216](#20261119-0216--lebendiges-schloss-kleintiere-höhlenflora-neue-menüs-schneller-zurück-ins-spiel) – Lebendiges Schloss: Kleintiere, Höhlenflora, neue Menüs, schneller zurück ins Spiel
 - [20261119-0132](#20261119-0132--bossansagen-liegen-über-allen-bossen) – Bossansagen liegen über allen Bossen
 - [20261119-0121](#20261119-0121--bossansagen-der-ring-umschließt-jetzt-auch-riesige-bosse) – Bossansagen: der Ring umschließt jetzt auch riesige Bosse
@@ -46,6 +47,29 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-0241 – Bibliothek wieder frei, Trefferwucht, goldene Champions, mehr Tiefe im Bild
+
+**Behoben**
+- Stage 4-2 (Bibliothek): Der linke Wandsprung-Schacht war oben zugebaut, der Weg zur oberen Galerie und zum Ausgang rechts oben damit gesperrt. Jetzt führt ein Loch neben der Tür hindurch, unten im Schacht erklärt ein Hinweis den Wandsprung.
+
+**Neu – Trefferwucht**
+- Gewöhnliche Gegner werden bei einem Treffer zurückgestoßen und sind kurz aus dem Tritt. Danach sind sie einen Moment standfest, damit niemand endlos weggeprügelt wird.
+- Die Peitsche zieht beim Ausschlagen einen hellen Bogen durch die Luft.
+
+**Neu – Goldene Champions**
+- In manchen Räumen wartet ein goldener Gegner mit Krone und eigener Lebensleiste. Er hält dreimal so viel aus und trifft härter.
+- Dafür zahlt er vierfache Erfahrung, einen großen Geldbeutel und ein großes Herz.
+- Für zehn besiegte Champions gibt es die Urkunde „Goldgräber“.
+
+**Neu – Tiefe im Bild**
+- Unter Decken und Stegen, neben Wänden und über dem Boden liegen in Innenräumen jetzt weiche Schatten.
+
+**Beim Testen ansehen**
+- Stage 4-2: Vom Steg links im Wandsprung-Schacht nach oben, über die Lücke und zum Ausgang rechts oben.
+- Skelette und Panther treffen: Fühlt sich der Rückstoß gut an, oder macht er Kämpfe zu leicht?
+- Einen Champion suchen und besiegen: Sind Krone, Leiste und Belohnung klar zu erkennen?
+- Gruft, Bibliothek und Kolosseum: Wirken die neuen Schatten stimmig?
 
 ## 20261119-0216 – Lebendiges Schloss: Kleintiere, Höhlenflora, neue Menüs, schneller zurück ins Spiel
 
