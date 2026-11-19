@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-1403](#20261119-1403--neuer-zwischenboss-der-wachhauptmann) – Neuer Zwischenboss: der Wachhauptmann
 - [20261119-1343](#20261119-1343--neuer-gegner-die-schildwache) – Neuer Gegner: die Schildwache
 - [20261119-1322](#20261119-1322--tagesprüfung-im-kolosseum) – Tagesprüfung im Kolosseum
 - [20261119-1114](#20261119-1114--neuer-gegner-der-wasserspeier) – Neuer Gegner: der Wasserspeier
@@ -58,6 +59,19 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-1403 – Neuer Zwischenboss: der Wachhauptmann
+
+**Neu – Wachhauptmann im Verlies**
+- Hinter der rissigen Wand am Glasturm wartet jetzt der Wachhauptmann: die Schildwache in Schwarz und Gold, anderthalbmal so groß, mit Umhang. Modell und Posen sind in Blender gebaut.
+- Der Turmschild fängt jeden Treffer von vorn ab. Verwundbar ist der Hauptmann von hinten, von oben auf den Helm und nach jedem Angriff.
+- Seine Angriffe: Lanzenstoß, Schildansturm quer durch die Arena und Sprung mit Schockwellen nach beiden Seiten. Ab halber Energie sticht er zweimal zu und schickt doppelte Wellen.
+- Beiname, Wortgeplänkel und Bestiariums-Eintrag in acht Sprachen. Der Hauptmann ist auch im Bossrausch dabei.
+- Lohn: der Turmschild (Rüstung, Verteidigung 8).
+
+**Beim Testen ansehen**
+- Im Verlies den Hauptmann rufen und alle drei Angriffe abwarten.
+- Über die Schockwellen springen und nach dem Ansturm von hinten zuschlagen.
 
 ## 20261119-1343 – Neuer Gegner: die Schildwache
 
