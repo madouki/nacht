@@ -236,7 +236,7 @@ const Duell = (() => {
     const L = landing(b);
     if (L) floorMark(ctx, L.x, L.y, clamp(b.w + 14, 30, 96), clamp(1 - L.n / 50, 0, 1));
     const A = d.tell; if (!A) return;
-    const k = clamp(A.t / A.show, 0, 1), h = head(b), hx = Math.round(h.x - W.cam.x), hy = Math.round(h.y + 14 - W.cam.y), sx = Math.round(clamp(b.cx, W.cam.x + 24, W.cam.x + View.w - 24) - W.cam.x), sy = Math.round(clamp(b.cy, W.cam.y + 30, W.cam.y + 180) - W.cam.y), r0 = clamp(Math.max(b.w, b.h) * 0.62, 16, 74), r = r0 + 46 * (1 - k) * (1 - k); // der Ring umschließt den ganzen Boss, auch die riesigen
+    const k = clamp(A.t / A.show, 0, 1), h = head(b), hx = Math.round(h.x - W.cam.x), hy = Math.round(h.y + 14 - W.cam.y), sx = Math.round(clamp(b.cx, W.cam.x + 24, W.cam.x + View.w - 24) - W.cam.x), sy = Math.round(clamp(b.cy, W.cam.y + 30, W.cam.y + 180) - W.cam.y), r0 = clamp(Math.max(b.w, b.h) * 0.62, 16, 92), r = r0 + 46 * (1 - k) * (1 - k); // der Ring umschließt den ganzen Boss, auch die riesigen
     ctx.save();
     ctx.globalAlpha = 0.45 + 0.5 * k; ctx.lineWidth = 5; ctx.strokeStyle = '#140408'; ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI * 2); ctx.stroke(); // dunkler Grund: der Ring bleibt auch vor hellen Sälen sichtbar
     ctx.globalAlpha = 0.65 + 0.35 * k; ctx.lineWidth = 3; ctx.strokeStyle = k > 0.65 ? '#fce070' : '#fc4830';
@@ -251,7 +251,6 @@ const Duell = (() => {
     ctx.restore();
   }
   function drawWorld(ctx) {
-    drawTell(ctx);
     const b = W.boss; if (!stunned(b)) return;
     const h = head(b), sx = h.x - W.cam.x, sy = h.y - W.cam.y, f = W.frame;
     for (let i = 0; i < 5; i++) {
@@ -267,5 +266,5 @@ const Duell = (() => {
   }
   function clear() { imp = null; rep = null; }
 
-  return { landing, rec, stunned, holding, struck, bonus, hold, tick, finish, report, drawImpact, drawReport, drawWorld, gauge, clear, wrap, STUN, LAST_AT, get rep() { return rep; }, get imp() { return imp; } };
+  return { drawTell, landing, rec, stunned, holding, struck, bonus, hold, tick, finish, report, drawImpact, drawReport, drawWorld, gauge, clear, wrap, STUN, LAST_AT, get rep() { return rep; }, get imp() { return imp; } };
 })();

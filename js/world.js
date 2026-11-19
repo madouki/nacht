@@ -697,6 +697,7 @@ const W = {
     FX.drawMotes(ctx, lights, this.cam, this.frame); // Staub tanzt im Fackelschein
     Rays.draw(ctx, this.room, this.cam, this.frame);
     for (const e of this.ents) if (e.drawLit && !e.dead) e.drawLit(ctx); // Riesen (Steingolem): nach Licht und Nebel, mit eigener 3D-Beleuchtung
+    Duell.drawTell(ctx); // Angriffsansagen: über allem, auch über den riesigen Bossen
     if (Options.bloom) FX.bloom(ctx, theme === 'ballroom' ? 0.4 - 0.3 * Ball.FL.a : this.room.bloom ?? BLOOM[theme] ?? 1); // Glühen über allem, was leuchtet (je Raum dämpfbar)
     this.drawGates(ctx); // Fallgitter der Bosskammer (nach dem Licht: Eisen bleibt auch im dunklen Stollen sichtbar)
     if (theme === 'mirror') Mirror.capture(ctx); // Spiegelgalerie: dieses Bild spiegelt sich im nächsten (vor Blitz, Blutmond und Warnrand)

@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-0132](#20261119-0132--bossansagen-liegen-über-allen-bossen) – Bossansagen liegen über allen Bossen
 - [20261119-0121](#20261119-0121--bossansagen-der-ring-umschließt-jetzt-auch-riesige-bosse) – Bossansagen: der Ring umschließt jetzt auch riesige Bosse
 - [20261119-0038](#20261119-0038--gesamtpolitur-lesbare-bosse-eigene-kammern-neue-kulissen-besseres-licht) – Gesamtpolitur: lesbare Bosse, eigene Kammern, neue Kulissen, besseres Licht
 - [20261118-2149](#20261118-2149--abkürzungstüren-acht-riegeltüren-verbinden-das-schloss) – Abkürzungstüren: acht Riegeltüren verbinden das Schloss
@@ -44,6 +45,14 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-0132 – Bossansagen liegen über allen Bossen
+
+**Besser**
+- Ring und Landepunkt werden jetzt nach dem Licht gezeichnet. Riesige Bosse wie der Steingolem verdecken ihre Ansage nicht mehr.
+
+**Beim Testen ansehen**
+- Steingolem: Erscheint der rote Ring vor jedem Laser sichtbar über dem Boss?
 
 ## 20261119-0121 – Bossansagen: der Ring umschließt jetzt auch riesige Bosse
 
