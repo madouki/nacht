@@ -153,7 +153,7 @@ const Game = {
 
   // Schloss: Fortsetzungspunkt schreiben, solange man in einem Raum ist (Pause, Menüs, Spiel – nicht auf Titel oder im Übergang)
   saveResume() {
-    if (Castle.on && W.player && ['play', 'pause', 'pausesec', 'map', 'warp', 'status', 'talk', 'gewissen', 'arena', 'shop', 'equip', 'tools'].includes(this.state)) Castle.writeResume();
+    if (Castle.on && W.player && ['play', 'pause', 'pausesec', 'map', 'warp', 'status', 'talk', 'gewissen', 'arena', 'huhn', 'shop', 'equip', 'tools'].includes(this.state)) Castle.writeResume();
   },
   startCastleEnding() { // Schloss: Graf besiegt – Epilog über der Morgendämmerung, dann Ergebnis
     this.saveHi(); Castle.dropResume(); this.rubble = [];
@@ -391,8 +391,8 @@ const Game = {
   // kleine Nachricht oben im Bild (z. B. Gruß an Infernax)
   note(key, ...args) { this.noteT = 240; this.noteKey = key; this.noteArgs = args; this.noteAt = typeof W !== 'undefined' ? W.stage + ':' + W.roomIdx : null; }, // noteAt: der Hinweis gehört zu diesem Raum
   noteBox() { // Lage des Hinweisbands (auch für den großen Ausruf, der darunter ausweicht)
-    const band = W.boss && this.bossName > 0 && this.bossName < 150; // Namensband des Bosses (y 40–62) steht: Hinweis darunter
-    const lines = this.wrapLine(tr(this.noteKey, ...(this.noteArgs || [])), View.w - 20), y = band ? 66 : 48;
+    const band = W.boss && this.bossName > 0 && this.bossName < 150; // Namensband des Bosses (y 36–80) steht: Hinweis darunter
+    const lines = this.wrapLine(tr(this.noteKey, ...(this.noteArgs || [])), View.w - 20), y = band ? 84 : 48;
     return { lines, y, bottom: y + lines.length * 10 + 3 };
   },
   wrapLine(s, max) { // zu breit (schmaler Bildschirm): am Gedankenstrich, wenn beide Teile passen, sonst wortweise umbrechen
@@ -465,7 +465,7 @@ const Game = {
     if (this.revealed && this.revealT !== undefined) this.revealT++;
     if (this.state === 'title' && this.revealed && this.t % 520 === 0) Audio8.sfx('bell');
     const titleish = ['title', 'options', 'sections', 'secload', 'charsel', 'intro', 'scores', 'entry'].includes(this.state);
-    Audio8.ambience(titleish ? 'courtyard' : (this.state === 'play' || this.state === 'pause' || this.state === 'pausesec' || this.state === 'map' || this.state === 'warp' || this.state === 'status' || this.state === 'talk' || this.state === 'gewissen' || this.state === 'arena' || this.state === 'shop' || this.state === 'equip' || this.state === 'tools' || this.state === 'demo') && W.room ? W.room.theme : null);
+    Audio8.ambience(titleish ? 'courtyard' : (this.state === 'play' || this.state === 'pause' || this.state === 'pausesec' || this.state === 'map' || this.state === 'warp' || this.state === 'status' || this.state === 'talk' || this.state === 'gewissen' || this.state === 'arena' || this.state === 'huhn' || this.state === 'shop' || this.state === 'equip' || this.state === 'tools' || this.state === 'demo') && W.room ? W.room.theme : null);
     if (titleish && this.bootBg) this.bootBg.tick(); // Kulisse des Ladebildschirms unter den Menüs
     if (titleish) {
       FX.updateStorm(this.tStorm, View.w, () => { if (Audio8.ready()) setTimeout(() => Audio8.sfx('thunder'), 250 + Math.random() * 600); });
@@ -567,6 +567,7 @@ const Game = {
         break;
       case 'gewissen': if (Gewissen.input(P)) this.go('play'); break; // Gewissensfrage oder Opferschrein (js/gewissen.js)
       case 'arena': if (Arena.input(P)) this.go('play'); break; // Gladiatorenprüfung: Stufe wählen (js/arena.js)
+      case 'huhn': if (Huhn.input(P)) this.go('play'); break; // Hühnerwart: Rätsel und Finderlohn (js/huhn.js)
       case 'talk': { // Gespräch mit einer Figur (nur Schloss): die Welt steht still, Sprung/Angriff/↑ blättert, Start überspringt
         const r = Castle.talkInput(P);
         if (r) this.go(r === true ? 'play' : r); // beim Bibliothekar geht es weiter in den Laden
@@ -704,7 +705,7 @@ const Game = {
     if (Castle.on && this.state === 'play') Castle.update(P); // Schloss: Kartenzellen aufdecken, Türen benutzen
     if (!W.cleared) W.stageFrames++;
     if (this.hurryT > 0) this.hurryT--;
-    if (W.boss && this.bossName < 150 && !W.boss.holdIntro) { if (this.bossName === 0) { Voice.say(W.boss.voice || 'boss' + (W.stage + 1)); this.startBanter(); } this.bossName++; }
+    if (W.boss && this.bossName < 150 && !W.boss.holdIntro) { if (this.bossName === 0) { Voice.say(W.boss.voice || 'boss' + (W.stage + 1)); this.startBanter(); } this.bossName++; if (this.bossName === Auftritt.HIT) Auftritt.hit(); }
     if (this.banter) this.tickBanter();
     const p = W.player;
     if (p.alive && p.hp <= p.maxHp / 4 && this.t % 50 === 0) Audio8.sfx('beat');
@@ -777,6 +778,7 @@ const Game = {
         if (this.state === 'talk') Castle.drawTalk(ctx, this.t);
         if (this.state === 'gewissen') Gewissen.draw(ctx, this.t);
         if (this.state === 'arena') Arena.draw(ctx, this.t);
+        if (this.state === 'huhn') Huhn.draw(ctx, this.t);
         if (this.state === 'play') { Arena.drawHud(ctx); this.drawRegionTitle(ctx); }
         if (this.state === 'shop') Castle.drawShop(ctx, this.t);
         if (this.state === 'equip') Castle.drawEquip(ctx, this.t);
@@ -1339,13 +1341,7 @@ const Game = {
     let left = Math.floor(b.t * 1.3);
     rows.forEach((r, i) => { const ch = [...r], s = ch.slice(0, Math.max(0, left)).join(''); left -= ch.length; if (s) Font.draw(ctx, s, x + 6, y + 13 + i * lh, '#fcfcfc', { shadow: '#000' }); });
   },
-  drawBossBanner(ctx) {
-    const t = this.bossName, cx = View.cx;
-    const slide = t < 20 ? (20 - t) * 12 : t > 130 ? (t - 130) * -12 : 0;
-    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(0, 40, View.w, 22);
-    ctx.fillStyle = '#c89020'; ctx.fillRect(0, 40, View.w, 1); ctx.fillRect(0, 61, View.w, 1);
-    this.big(ctx, tr((W.boss && W.boss.nameKey) || W.stageDef.bossKey), cx + slide, 44, 2, ['#fce0a8', '#fce0a8', '#f8b800', '#f8b800', '#c89020', '#9c6400', '#6c4000'], null, '#000');
-  },
+  drawBossBanner(ctx) { Auftritt.draw(ctx); }, // großer Auftritt (js/auftritt.js)
 
   drawCard(ctx) {
     const cx = View.cx;

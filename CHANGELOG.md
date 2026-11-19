@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-0437](#20261119-0437--geheimnisjagd-große-boss-auftritte-und-klangkulissen) – Geheimnisjagd, große Boss-Auftritte und Klangkulissen
 - [20261119-0414](#20261119-0414--gladiatorenprüfung-champions-mit-eigenschaften-und-folgen-des-gewissens) – Gladiatorenprüfung, Champions mit Eigenschaften und Folgen des Gewissens
 - [20261119-0341](#20261119-0341--gewissen-drei-enden-opferschreine-und-drastische-pixel-tode) – Gewissen, drei Enden, Opferschreine und drastische Pixel-Tode
 - [20261119-0259](#20261119-0259--klügere-gegner-ritter-ausfall-skelett-rücksprung-schritte-je-untergrund) – Klügere Gegner: Ritter-Ausfall, Skelett-Rücksprung, Schritte je Untergrund
@@ -50,6 +51,27 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-0437 – Geheimnisjagd, große Boss-Auftritte und Klangkulissen
+
+**Neu – Die Jagd nach den goldenen Gummihühnern**
+- Dem Hühnerwart in der Eingangshalle sind zwölf goldene Gummihühner entlaufen. Sie sitzen an abgelegenen Stellen im ganzen Schloss.
+- Die Hühner quieken: Je näher du kommst, desto öfter und lauter, und zwar aus der richtigen Richtung.
+- Der Hühnerwart (↑) zeigt deine Funde und kennt zu jedem Huhn ein Rätsel.
+- Finderlohn bei 3, 6, 9 und 12 Hühnern: Gold, ein Elixier, dauerhaft mehr Angriff und zuletzt ein treuer Begleiter samt Urkunde „Baron der Hühner“.
+
+**Neu – Große Boss-Auftritte**
+- Der Raum wird dunkel, ein Lichtkegel fällt auf den Boss, und sein Name schlägt mit Orchesterschlag ins Bild.
+- Jeder Boss trägt jetzt einen eigenen Beinamen, in allen acht Sprachen.
+
+**Neu – Klangkulissen je Region**
+- Alle Regionen haben jetzt ein eigenes Klangbett, neu dazu die Sonnenkathedrale, die Turmspitze, das Theater und das Labor.
+- Dazu kommen seltene Einzelgeräusche: Gewitter und Krähen im Hof, Bahnhofsgong und ferne Züge, das stimmende Orchester im Theater, Glocken im Turm, Möwen am Schiff und vieles mehr.
+
+**Beim Testen ansehen**
+- Eingangshalle: Hühnerwart ansprechen, Rätsel durchblättern, dann im Kolosseum dem Quieken folgen.
+- Einen Boss rufen: Lichtkegel, Einschlag und Beiname prüfen, auch im Zusammenspiel mit dem Wortgeplänkel.
+- Mit Kopfhörern durch mehrere Regionen gehen und auf Lautstärke und Stimmung der Klangkulissen achten.
 
 ## 20261119-0414 – Gladiatorenprüfung, Champions mit Eigenschaften und Folgen des Gewissens
 

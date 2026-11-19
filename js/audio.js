@@ -157,6 +157,11 @@ const Audio8 = (() => {
     orb: () => arp(['a4', 'c#5', 'e5', 'a5', 'c#6', 'e6', 'a6'], 0.06, 'pulse', 0.15, 0.5),
     teleport: () => tone('pulse', 200, 1600, 0.35, 0.12, 0.125),
     rise: () => noise(0.4, 0.15, 'lowpass', 400, 1200),
+    stinger: () => { // Orchesterschlag beim Boss-Auftritt: Blechakkord in d-Moll, Pauke, Beckenschlag
+      if (!ac) return; const t = ac.currentTime;
+      [73.4, 110, 146.8, 174.6, 220, 293.7].forEach((f, i) => { tone('sawtooth', f, f * 0.992, 1.7, 0.1 - i * 0.011, 0, t); tone('pulse', f * 1.003, f, 1.1, 0.04, 0.25, t); });
+      tone('triangle', 62, 36, 1.3, 0.5, 0, t); tone('triangle', 62, 40, 0.8, 0.34, 0, t + 0.2); noise(0.45, 0.32, 'lowpass', 420, 70, t); noise(1.9, 0.16, 'highpass', 4200, 8200, t);
+    },
     eagle: () => { tone('pulse', 2400, 1300, 0.28, 0.07, 0.125); tone('pulse', 1800, 1100, 0.22, 0.05, 0.25); }, // Adlerschrei
     squeak: () => { if (!ac) return; const t = ac.currentTime; tone('pulse', 1400, 2300, 0.09, 0.07, 0.25, t); tone('pulse', 2300, 1500, 0.1, 0.06, 0.25, t + 0.1); }, // Gummihuhn
     bat: () => tone('pulse', 2400, 1800, 0.05, 0.05, 0.125),
@@ -1461,7 +1466,7 @@ const Audio8 = (() => {
       hp.disconnect(); lp.type = 'lowpass'; lp.frequency.value = 4200; hp.connect(lp); lp.connect(out);
       const bp = ambNoise(nodes, out, 'bandpass', 480, 6); ambLfo(nodes, bp.frequency, 0.06, 220);
       ambLfo(nodes, out.gain, 0.1, 0.01); level = 0.028;
-    } else if (theme === 'library' || theme === 'hotel' || theme === 'station' || theme === 'theater' || theme === 'lab') { // Bibliothek, Hotel-Lobby, Bahnhofshalle: gedämpfter Regen an den hohen Fenstern, tiefer Raumklang
+    } else if (theme === 'library' || theme === 'hotel' || theme === 'station') { // Bibliothek, Hotel-Lobby, Bahnhofshalle: gedämpfter Regen an den hohen Fenstern, tiefer Raumklang
       const hp = ambNoise(nodes, out, 'highpass', 1200), lp = ac.createBiquadFilter();
       hp.disconnect(); lp.type = 'lowpass'; lp.frequency.value = 3000; hp.connect(lp); lp.connect(out);
       ambDrone(nodes, out, 'sine', 65.4, 0.25);
@@ -1510,6 +1515,19 @@ const Audio8 = (() => {
       const bp = ambNoise(nodes, out, 'bandpass', 900, 4);
       ambLfo(nodes, bp.frequency, 0.6, 500);
       level = 0.028;
+    } else if (theme === 'cathedral') { // Sonnenkathedrale: ferner Chor in D, hoch im Gewölbe ein Luftzug
+      ambDrone(nodes, out, 'sine', 146.8, 0.42); ambDrone(nodes, out, 'sine', 220, 0.3); ambDrone(nodes, out, 'sine', 293.7, 0.2); ambDrone(nodes, out, 'sine', 370, 0.1);
+      const bp = ambNoise(nodes, out, 'bandpass', 2100, 1.2); ambLfo(nodes, bp.frequency, 0.04, 700);
+      ambLfo(nodes, out.gain, 0.05, 0.008); level = 0.02;
+    } else if (theme === 'spire') { // Turmspitze: scharfer Höhenwind
+      const bp = ambNoise(nodes, out, 'bandpass', 1150, 7); ambLfo(nodes, bp.frequency, 0.11, 480);
+      ambNoise(nodes, out, 'lowpass', 260); ambLfo(nodes, out.gain, 0.16, 0.012); level = 0.032;
+    } else if (theme === 'theater') { // Theater: Gemurmel im Saal, tief das Haus
+      const bp = ambNoise(nodes, out, 'bandpass', 620, 0.9); ambLfo(nodes, bp.frequency, 0.23, 180); ambDrone(nodes, out, 'sine', 82.4, 0.14);
+      ambLfo(nodes, out.gain, 0.12, 0.006); level = 0.017;
+    } else if (theme === 'lab') { // Labor: Netzbrummen und Trafo
+      ambDrone(nodes, out, 'sawtooth', 50, 0.1); ambDrone(nodes, out, 'sine', 100, 0.32); ambDrone(nodes, out, 'sine', 150.6, 0.12); ambNoise(nodes, out, 'highpass', 5200);
+      ambLfo(nodes, out.gain, 3.1, 0.003); level = 0.016;
     } else { out.disconnect(); return null; }
     out.gain.setTargetAtTime(level, t, 0.8);
     return { nodes, out };
@@ -1555,6 +1573,97 @@ const Audio8 = (() => {
     } else if (theme === 'hall' && Math.random() < 0.0015) { // Gebälk knarzt
       tone('sawtooth', 70 + Math.random() * 20, 50, 0.6, 0.025, 0, t);
     }
+    ambMore(theme, t);
+  }
+  function ambBell(f, v, t) { tone('sine', f, 0, 2.8, 0.03 * v, 0, t); tone('sine', f * 2.01, 0, 1.7, 0.012 * v, 0, t); tone('sine', f * 2.76, 0, 0.9, 0.007 * v, 0, t); }
+  function ambThunder(v, t) { noise(2.6, 0.07 * v, 'lowpass', 190, 46, t); noise(0.5, 0.04 * v, 'lowpass', 520, 110, t + 0.05); }
+  function ambSteps(n, gap, v, t) { for (let i = 0; i < n; i++) { tone('triangle', 92, 60, 0.09, 0.03 * v, 0, t + i * gap); noise(0.05, 0.012 * v, 'lowpass', 500, 200, t + i * gap); } }
+  // Jede Region lebt: seltene Einzelgeräusche über dem Klangbett (einmal je Spiel-Frame, also 0,001 = etwa alle 17 Sekunden)
+  function ambMore(theme, t) {
+    const R = Math.random;
+    switch (theme) {
+      case 'courtyard': // fernes Gewitter, Krähen über dem Hof
+        if (R() < 0.0009) ambThunder(0.6 + R() * 0.6, t);
+        if (R() < 0.001) for (let i = 0; i < 3; i++) tone('sawtooth', 640 - i * 60, 430, 0.16, 0.01, 0, t + i * 0.24);
+        break;
+      case 'foyer': case 'passage': // Gewitter hinter den Fenstern, ein Fensterladen schlägt
+        if (R() < 0.0008) ambThunder(0.4 + R() * 0.5, t);
+        if (R() < 0.0007) { noise(0.07, 0.04, 'lowpass', 700, 240, t); noise(0.05, 0.022, 'lowpass', 600, 200, t + 0.2); }
+        break;
+      case 'ballroom': // Gewitter, und irgendwo spielt noch eine Spieluhr den letzten Walzer
+        if (R() < 0.0007) ambThunder(0.4 + R() * 0.4, t);
+        if (R() < 0.0011) [659.3, 784, 987.8, 784, 659.3, 587.3].forEach((f, i) => tone('triangle', f, 0, 1.1, 0.009, 0, t + i * 0.4));
+        break;
+      case 'bridge': // Ketten der Zugbrücke, Wolf in der Ferne
+        if (R() < 0.0014) for (let i = 0; i < 4; i++) noise(0.05, 0.022, 'bandpass', 2400 + R() * 1400, 0, t + i * 0.09);
+        if (R() < 0.0005) { tone('sine', 300, 540, 0.9, 0.012, 0, t); tone('sine', 540, 330, 1.6, 0.012, 0, t + 0.9); }
+        break;
+      case 'forest': // Wolf in der Ferne
+        if (R() < 0.0005) { tone('sine', 280, 500, 1, 0.011, 0, t); tone('sine', 500, 300, 1.8, 0.011, 0, t + 1); }
+        break;
+      case 'hall': // Mäuse im Gebälk
+        if (R() < 0.001) for (let i = 0; i < 3; i++) tone('sine', 3400 + R() * 500, 0, 0.04, 0.006, 0, t + i * 0.1);
+        break;
+      case 'gallery': // Schritte in der Ferne, die plötzlich aufhören
+        if (R() < 0.0009) ambSteps(4 + Math.floor(R() * 3), 0.52, 0.5, t);
+        break;
+      case 'library': // eine Leiter knarrt
+        if (R() < 0.0008) tone('sawtooth', 110, 74, 0.5, 0.012, 0, t);
+        break;
+      case 'crypt': // tiefes Stöhnen, ein Stein rückt
+        if (R() < 0.0008) tone('sine', 112, 78, 2.6, 0.016, 0, t);
+        if (R() < 0.0006) noise(1.1, 0.03, 'lowpass', 220, 80, t);
+        break;
+      case 'hotel': // Aufzugsglocke, ein einsames Klavier im Salon
+        if (R() < 0.0006) tone('sine', 1319, 0, 0.7, 0.014, 0, t);
+        if (R() < 0.0008) { const f = [220, 261.6, 329.6, 392][Math.floor(R() * 4)]; tone('triangle', f, 0, 1.6, 0.012, 0, t); tone('triangle', f * 1.5, 0, 1.2, 0.007, 0, t + 0.42); }
+        break;
+      case 'station': // Bahnhofsgong, Pfiff und Grollen eines fernen Zuges
+        if (R() < 0.0006) [659.3, 523.3, 392].forEach((f, i) => ambBell(f, 0.28, t + i * 0.55));
+        if (R() < 0.0006) { tone('triangle', 540, 0, 1.2, 0.012, 0, t); tone('triangle', 680, 0, 1.2, 0.009, 0, t); noise(3, 0.04, 'lowpass', 130, 60, t + 0.5); }
+        break;
+      case 'cave': // Fledermäuse flattern auf, Steinchen rieseln
+        if (R() < 0.0008) for (let i = 0; i < 7; i++) noise(0.03, 0.012, 'bandpass', 1500, 0, t + i * 0.07);
+        if (R() < 0.0008) for (let i = 0; i < 5; i++) tone('triangle', 900 + R() * 900, 0, 0.04, 0.009, 0, t + i * (0.09 + R() * 0.07));
+        break;
+      case 'ice': // das Eis arbeitet
+        if (R() < 0.0008) { noise(0.06, 0.05, 'highpass', 2600, 1200, t); tone('sine', 420, 90, 0.5, 0.016, 0, t); }
+        break;
+      case 'tower': // die große Glocke schlägt
+        if (R() < 0.0005) ambBell(110, 0.8, t);
+        break;
+      case 'cathedral': // ferne Glocke, der Chor atmet
+        if (R() < 0.0006) ambBell(146.8, 0.55, t);
+        if (R() < 0.0007) [293.7, 370, 440].forEach((f, i) => tone('sine', f, 0, 3.4, 0.008, 0, t + i * 0.3));
+        break;
+      case 'spire': // eine Bö reißt an der Wetterfahne
+        if (R() < 0.001) { noise(1.2, 0.03, 'bandpass', 1700, 700, t); tone('sawtooth', 240, 180, 0.4, 0.006, 0, t + 0.3); }
+        break;
+      case 'mirror': case 'kaleido': // ein Glissando, als fahre jemand mit dem Finger über den Spiegel
+        if (R() < 0.0009) tone('sine', 880 + R() * 300, 1760 + R() * 500, 1.3, 0.008, 0, t);
+        break;
+      case 'expo': // im Wintergarten zwitschert es noch
+        if (R() < 0.0016) for (let i = 0; i < 3; i++) tone('sine', 3100 + R() * 700, 3700 + R() * 500, 0.07, 0.007, 0, t + i * 0.13);
+        break;
+      case 'lab': // Funken, Blubbern im Kolben
+        if (R() < 0.0014) noise(0.05 + R() * 0.08, 0.026, 'bandpass', 3400, 2200, t);
+        if (R() < 0.0016) for (let i = 0; i < 4; i++) tone('sine', 240 + R() * 240, 520 + R() * 240, 0.07, 0.01, 0, t + i * 0.12);
+        break;
+      case 'theater': // Husten im Saal, das Orchester stimmt
+        if (R() < 0.0009) { noise(0.09, 0.024, 'bandpass', 1100, 700, t); noise(0.08, 0.02, 'bandpass', 1000, 650, t + 0.2); }
+        if (R() < 0.0007) { tone('sawtooth', 440, 0, 1.6, 0.006, 0, t); tone('sawtooth', 440.7, 0, 1.3, 0.005, 0, t + 0.5); tone('sawtooth', 220, 0, 1.1, 0.005, 0, t + 0.9); }
+        break;
+      case 'throne': // ein schwerer Herzschlag unter dem Thron
+        if (R() < 0.0008) { tone('sine', 58, 40, 0.22, 0.05, 0, t); tone('sine', 52, 36, 0.26, 0.04, 0, t + 0.32); }
+        break;
+      case 'ship': // Möwen, ein Tau knarrt
+        if (R() < 0.0012) for (let i = 0; i < 3; i++) tone('sine', 1500 + R() * 200, 1020, 0.26, 0.011, 0, t + i * 0.34);
+        if (R() < 0.0009) tone('sawtooth', 130, 90, 0.5, 0.009, 0, t);
+        break;
+      case 'vortex': case 'glass': // ein Fauchen, das vorbeizieht
+        if (R() < 0.0009) noise(1.4, 0.022, 'bandpass', 500, 2400, t);
+        break;
+    }
   }
   // Wassertropfen: hohes „Plink" mit Hall; x = Weltposition (für Stereo), vol = Lautstärke
   function drip(x, vol = 1) {
@@ -1568,6 +1677,20 @@ const Audio8 = (() => {
       const p = ac.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, (x - W.cam.x - View.w / 2) / (View.w * 0.55))) * 0.8; p.connect(sfxBus); dst = p;
     }
     o.connect(g); g.connect(dst); o.start(t); o.stop(t + 0.18);
+  }
+  // Quieken eines versteckten Goldhuhns: Richtung und Lautstärke verraten, wo es sitzt
+  function peep(x, vol = 1) {
+    if (!ac || muted) return;
+    const t = ac.currentTime; let dst = sfxBus;
+    if (typeof x === 'number' && ac.createStereoPanner && typeof W !== 'undefined' && W.cam) { const p = ac.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, (x - W.cam.x - View.w / 2) / (View.w * 0.55))) * 0.85; p.connect(sfxBus); dst = p; }
+    [[1500, 2300, 0], [2300, 1600, 0.1]].forEach(([a, b, d]) => { const o = osc('triangle'), g = ac.createGain(); o.frequency.setValueAtTime(a, t + d); o.frequency.exponentialRampToValueAtTime(b, t + d + 0.09); g.gain.setValueAtTime(0.11 * vol, t + d); g.gain.exponentialRampToValueAtTime(0.001, t + d + 0.1); o.connect(g); g.connect(dst); o.start(t + d); o.stop(t + d + 0.12); });
+  }
+  function ambProbe(theme) { // für den Test: baut das Klangbett einer Region auf und würfelt zwanzig Sekunden Einzelgeräusche
+    if (!ac) return null;
+    const a = startAmb(theme), ok = !!a;
+    if (a) { a.nodes.forEach(n => { try { n.stop(); } catch (e) { /* schon gestoppt */ } }); a.out.disconnect(); }
+    for (let i = 0; i < 1200; i++) ambEvents(theme);
+    return ok;
   }
   // theme: Raumthema (string) oder null; true = Regen wie im Burghof (Titel)
   function ambience(theme) {
@@ -1598,7 +1721,7 @@ const Audio8 = (() => {
   function danger(on) { on = !!on; if (on === dangerOn) return; dangerOn = on; if (muffleF && ac && !slowOn) muffleF.frequency.setTargetAtTime(rest(), ac.currentTime, on ? 0.5 : 0.8); }
   function duck(on) { if (duckBus && ac) duckBus.gain.setTargetAtTime(on ? 0.45 : 1, ac.currentTime, on ? 0.06 : 0.5); }
 
-  return { setFloor(m) { floor = m || ''; }, get floor() { return floor; }, init, prepare, sfx, play, stop, ambience, drip, toggleMute, setMusicVolume, setMusicLevel, ready, duck, muffle, tempo, intensity, slow, danger,
+  return { setFloor(m) { floor = m || ''; }, get floor() { return floor; }, init, prepare, sfx, play, stop, ambience, drip, peep, ambProbe, toggleMute, setMusicVolume, setMusicLevel, ready, duck, muffle, tempo, intensity, slow, danger,
     get drumLevel() { return drumLvl; },
     steps: () => (ac && song ? Math.max(0, ac.currentTime - songT0) * song.bpm * tempoMul / 15 : null), // Sechzehntel seit Liedbeginn (Taktduell)
     context: () => ac, voiceOut: () => voiceBus,

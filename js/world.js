@@ -154,7 +154,7 @@ const W = {
     Kulisse.populate(this); // große Stücke hinter der Spielebene (js/kulisse.js)
     Leben.populate(this); // Kleintiere, Leuchtpilze und Wurzeln (js/leben.js)
     Champ.populate(this); // manchmal ein goldener Gegner (js/champ.js)
-    Drastik.populate(this); Gewissen.populate(this); Gewissen.roomEvents(this); Arena.populate(this); // Flecken, Gewissensfragen, Opferschreine und der Ansager im Kolosseum
+    Drastik.populate(this); Gewissen.populate(this); Gewissen.roomEvents(this); Arena.populate(this); Huhn.populate(this); // Flecken, Gewissensfragen, Opferschreine und der Ansager im Kolosseum
     this.stairs = this.findStairs();
     this.rings = this.ents.filter(e => e instanceof Ring);
     this.player.reset(def.start.x * T + 8, (def.start.y + 1) * T);
@@ -702,7 +702,7 @@ const W = {
     Rays.draw(ctx, this.room, this.cam, this.frame);
     for (const e of this.ents) if (e.drawLit && !e.dead) e.drawLit(ctx); // Riesen (Steingolem): nach Licht und Nebel, mit eigener 3D-Beleuchtung
     Duell.drawTell(ctx); // Angriffsansagen: über allem, auch über den riesigen Bossen
-    Champ.over(ctx);
+    Champ.over(ctx); Huhn.over(ctx);
     if (Options.bloom) FX.bloom(ctx, theme === 'ballroom' ? 0.4 - 0.3 * Ball.FL.a : this.room.bloom ?? BLOOM[theme] ?? 1); // Glühen über allem, was leuchtet (je Raum dämpfbar)
     this.drawGates(ctx); // Fallgitter der Bosskammer (nach dem Licht: Eisen bleibt auch im dunklen Stollen sichtbar)
     if (theme === 'mirror') Mirror.capture(ctx); // Spiegelgalerie: dieses Bild spiegelt sich im nächsten (vor Blitz, Blutmond und Warnrand)
