@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-1932](#20261119-1932--neuer-gegner-der-wetterhahn) – Neuer Gegner: der Wetterhahn
 - [20261119-1638](#20261119-1638--neuer-gegner-der-galvanifrosch) – Neuer Gegner: der Galvanifrosch
 - [20261119-1616](#20261119-1616--die-kantinenküche-zutaten-sammeln-gerichte-kochen) – Die Kantinenküche: Zutaten sammeln, Gerichte kochen
 - [20261119-1552](#20261119-1552--neuer-gegner-der-frostgeist) – Neuer Gegner: der Frostgeist
@@ -63,6 +64,20 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-1932 – Neuer Gegner: der Wetterhahn
+
+**Neu – Wetterhahn**
+- Im Burghof, im Zwinger, auf dem Wehrgang, im Turm, auf den Brücken, auf dem Schiff und im Wald gleitet jetzt ein Wetterhahn aus Kupfer mit Grünspan durch die Luft. Er hat sich vom Kirchturm losgerissen und sitzt noch auf seinem eisernen Windpfeil.
+- Ohne Held in der Nähe dreht er sich ab und zu im Wind.
+- Zum Angriff kräht er, in jeder Sprache anders. Dann dreht er sich wie eine Wetterfahne zum Helden, die Pfeilspitze glüht und eine Ziellinie blinkt. Kurz vor dem Stoß steht die Richtung fest.
+- Dann stößt er geradeaus. Wer ausweicht, lässt ihn in die Wand oder den Boden rammen: Dort steckt er eine Weile fest, zappelt und tut niemandem weh.
+- Er lässt manchmal Rost für das Uhrwerk-Gulasch der Kantinenküche fallen.
+- Modell und Posen sind in Blender gebaut und gerendert, dazu gibt es einen Bestiariums-Eintrag.
+
+**Beim Testen ansehen**
+- Im Burghof dem Stoß ausweichen und den feststeckenden Hahn verhauen.
+- Ist die Ziellinie gut zu lesen, und ist die Zeit bis zum Stoß fair?
 
 ## 20261119-1638 – Neuer Gegner: der Galvanifrosch
 

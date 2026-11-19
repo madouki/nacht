@@ -154,7 +154,7 @@ const W = {
     Kulisse.populate(this); // große Stücke hinter der Spielebene (js/kulisse.js)
     Leben.populate(this); // Kleintiere, Leuchtpilze und Wurzeln (js/leben.js)
     Champ.populate(this); // manchmal ein goldener Gegner (js/champ.js)
-    Drastik.populate(this); Gewissen.populate(this); Gewissen.roomEvents(this); Arena.populate(this); Huhn.populate(this); Rausch.populate(this); Kunst.populate(this); Garg.populate(this); Wache.populate(this); Spinne.populate(this); Frost.populate(this); Frosch.populate(this); // Flecken, Gewissensfragen, Opferschreine und der Ansager im Kolosseum
+    Drastik.populate(this); Gewissen.populate(this); Gewissen.roomEvents(this); Arena.populate(this); Huhn.populate(this); Rausch.populate(this); Kunst.populate(this); Garg.populate(this); Wache.populate(this); Spinne.populate(this); Frost.populate(this); Frosch.populate(this); Wetter.populate(this); // Flecken, Gewissensfragen, Opferschreine und der Ansager im Kolosseum
     this.stairs = this.findStairs();
     this.rings = this.ents.filter(e => e instanceof Ring);
     this.player.reset(def.start.x * T + 8, (def.start.y + 1) * T);
