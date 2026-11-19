@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-1322](#20261119-1322--tagesprüfung-im-kolosseum) – Tagesprüfung im Kolosseum
 - [20261119-1114](#20261119-1114--neuer-gegner-der-wasserspeier) – Neuer Gegner: der Wasserspeier
 - [20261119-0634](#20261119-0634--drei-neue-waffen-mit-eigenen-künsten) – Drei neue Waffen mit eigenen Künsten
 - [20261119-0606](#20261119-0606--zwei-neue-nebenaufträge) – Zwei neue Nebenaufträge
@@ -56,6 +57,18 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-1322 – Tagesprüfung im Kolosseum
+
+**Neu – Tagesprüfung**
+- Der Ansager bietet jetzt jeden Tag eine eigene Prüfung an: fünf Wellen und zwei Regeln, am selben Tag für alle gleich.
+- Die Regeln: Champions überall, Fledermausplage, Goldrausch (dreifacher Lohn), Mondschwerkraft, Hektik (Gegner doppelt so flink) und Glaskanone (Gegner haben halbes Leben, du nimmst doppelten Schaden).
+- Der erste Sieg des Tages zahlt vollen Lohn und ein Elixier, jede Wiederholung ein Viertel. Die Bestzeit des Tages steht im Menü.
+- Freigeschaltet nach der Bronze-Prüfung ab Stufe 5.
+
+**Beim Testen ansehen**
+- Im Kolosseum den Ansager ansprechen, die Tagesprüfung wählen und auf die Regeln achten.
+- Nach dem Sieg oder einem Tod müssen Schwerkraft und Schaden wieder normal sein.
 
 ## 20261119-1114 – Neuer Gegner: der Wasserspeier
 

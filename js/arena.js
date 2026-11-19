@@ -1,5 +1,6 @@
 // Gladiatorenprüfung im Kolosseum: Der Ansager schickt fünf Wellen in den abgesperrten Westflügel. Drei Stufen (Bronze, Silber, Gold) mit
 // wachsenden Gegnern und Champions; beim ersten Sieg gibt es Gold und einen Trank, Gold schenkt dauerhaft Angriff, Wiederholungen zahlen ein Viertel.
+// Dazu die Tagesprüfung: jeden Tag (Ortszeit) andere Wellen und zwei Regeln (Champions, Fledermäuse, Goldrausch, Mondschwerkraft, Hektik, Glaskanone).
 'use strict';
 const Arena = (() => {
   const X0 = 3, X1 = 27, NPC = 16, ROW = 10, QUIPS = 4, MAXWAVE = 2700;
@@ -10,9 +11,22 @@ const Arena = (() => {
   ];
   const F = () => (typeof Castle !== 'undefined' && Castle.flags) || {};
   const won = (i) => !!F()['arena_t' + (i + 1)], best = (i) => F()['arena_b' + (i + 1)] || 0;
-  const open = (i) => (i === 0 || won(i - 1)) && Castle.rpg.lv >= TIERS[i].lv;
+  const open = (i) => i === 3 ? won(0) && Castle.rpg.lv >= 5 : (i === 0 || won(i - 1)) && Castle.rpg.lv >= TIERS[i].lv;
+  const MODS = ['champs', 'bats', 'gold', 'grav', 'eile', 'glas'];
+  const POOL = ['sk sk kn ba', 'gh gh gh pa pa', 'kn kn *sk ba', 'bk bk pa pa ho', 'pa pa pa ba ba', '*kn sk sk bk', 'ho ho gh gh kn', 'kn kn kn ba ba ba', '*pa pa sk sk', 'bk bk bk gh gh ho'];
+  const today = () => { const d = new Date(); return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); };
+  function daily(key = today()) { // aus dem Datum gewürfelt: für alle Spieler am selben Tag dieselbe Prüfung
+    let a = (key * 2654435761) >>> 0 || 1; const r = () => { a ^= a << 13; a >>>= 0; a ^= a >>> 17; a ^= a << 5; a >>>= 0; return a / 4294967296; };
+    const m = MODS.slice(), mods = []; while (mods.length < 2) mods.push(m.splice(Math.floor(r() * m.length), 1)[0]);
+    const p = POOL.slice(), waves = []; while (waves.length < 5) waves.push(p.splice(Math.floor(r() * p.length), 1)[0]);
+    return { key, mods, lv: 5, gold: 5000 * (mods.includes('gold') ? 3 : 1), item: 'elixir', mul: 1.8, col: '#7cdcfc', waves: mods.includes('bats') ? waves.map(w => w + ' ba ba') : waves };
+  }
+  const dailyBest = () => F()['daily_' + today()] || 0;
+  let undo = [];
+  function cleanup() { undo.forEach(f => { try { f(); } catch (e) { /* schon fort */ } }); undo = []; }
   const clock = (f) => { const s = Math.floor(f / 60); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
   let run = null, ui = null;
+  const has = (m) => !!(run && run.tier === 3 && TIERS[3] && TIERS[3].mods.includes(m));
 
   function make(code, col, dir) {
     const champ = code[0] === '*', c = champ ? code.slice(1) : code; let e;
@@ -20,21 +34,27 @@ const Arena = (() => {
     else if (c === 'gh') { e = new Ghoul(col * T, (ROW + 1) * T, dir); e.rise = 20; }
     else if (c === 'ba') { e = new Bat(col, 5); e.state = 'fly'; e.dir = dir; e.face = dir; e.baseY = e.y; e.seen = true; }
     else if (c === 'bk') e = new FlyBook(col * T, 6 * T, { dir }); else e = new Ghost(col, 6);
-    if (champ) Champ.make(e);
-    e.hp *= TIERS[run.tier].mul; if (e.champHp) e.champHp = e.hp; e.seen = true;
+    if (champ) Champ.make(e); else if (has('champs') && Math.random() < 0.4) Champ.make(e);
+    e.hp *= TIERS[run.tier].mul * (has('glas') ? 0.5 : 1); if (e.champHp) e.champHp = e.hp; e.seen = true;
+    if (has('eile')) { const up = e.update; e.update = function () { up.call(this); if (W.frame % 2 === 0 && !this.dead) up.call(this); }; }
     return e;
   }
   function start(tier) {
     W.ents.forEach(e => { if (e.kind === 'enemy' || e.kind === 'eproj') e.dead = true; }); W.spawners = [];
+    cleanup(); if (tier === 3) TIERS[3] = daily();
     run = { tier, wave: -1, phase: 'pause', t: 0, q: [], live: [], time: 0, n: 0 };
+    if (has('grav')) { const R = W.room, g0 = R.grav; R.grav = 0.62; undo.push(() => { R.grav = g0; }); }
+    if (has('glas')) { const p = W.player, own = Object.prototype.hasOwnProperty.call(p, 'hurt'), h = p.hurt; p.hurt = function (d, x) { return h.call(this, d * 2, x); }; undo.push(() => { if (own) p.hurt = h; else delete p.hurt; }); }
     W.arenaOn = true; W.camLock = true; W.arenaBoss = null; W.camTarget = null; W.arenaX = X0 * T; W.arenaW = (X1 - X0) * T;
     Audio8.play('boss'); Audio8.sfx('roar');
   }
   function finish() {
-    const i = run.tier, D = TIERS[i], first = !won(i), f = F(), p = W.player, gold = first ? D.gold : Math.round(D.gold / 4);
-    f['arena_t' + (i + 1)] = 1; if (!best(i) || run.time < best(i)) f['arena_b' + (i + 1)] = run.time;
-    W.addScore(gold); W.popup(p.cx, p.y - 16, tr('arenaGold', gold), '#f8d848'); Game.note(first && i === 2 ? 'arenaThumb' : 'arenaWin');
+    const i = run.tier, D = TIERS[i], f = F(), p = W.player, dk = 'daily_' + (D.key || 0), first = i === 3 ? !f[dk] : !won(i), gold = first ? D.gold : Math.round(D.gold / 4);
+    if (i === 3) { if (!f[dk] || run.time < f[dk]) f[dk] = run.time; if (first) f.daily_n = (f.daily_n || 0) + 1; }
+    else { f['arena_t' + (i + 1)] = 1; if (!best(i) || run.time < best(i)) f['arena_b' + (i + 1)] = run.time; }
+    W.addScore(gold); W.popup(p.cx, p.y - 16, tr('arenaGold', gold), '#f8d848'); Game.note(i === 3 ? 'arenaDailyWin' : first && i === 2 ? 'arenaThumb' : 'arenaWin');
     if (first) { Castle.giveItem(D.item, true); if (i === 2) f.gw_atk = (f.gw_atk || 0) + 1; }
+    cleanup();
     Castle.setFlag('arena_seen'); Audio8.play(W.songName()); Audio8.sfx('cert'); Audio8.sfx('money'); Input.rumble(0.6, 0.6, 300);
     W.spawn(new Shock(p.cx, p.cy, 90, '#f8d048', 5)); W.flash = Math.max(W.flash, 6);
     W.arenaOn = false; W.camLock = false; W.arenaW = 0; W.camEase = 1; run = null;
@@ -69,13 +89,13 @@ const Arena = (() => {
     }
   }
   function floorY() { for (let r = W.room.h - 1; r > 1; r--) if (Phys.solidTile(NPC, r) && !Phys.solidTile(NPC, r - 1)) return r * T; return (ROW + 1) * T; }
-  function populate(w) { run = null; ui = null; if (typeof Castle !== 'undefined' && Castle.on && w.room.side === 'kolosseum') w.spawn(new Ansager(floorY())); }
+  function populate(w) { cleanup(); run = null; ui = null; if (typeof Castle !== 'undefined' && Castle.on && w.room.side === 'kolosseum') w.spawn(new Ansager(floorY())); }
   function input(P) { // true = Menü zu
     ui.t++; if (ui.t < 10) return false;
     if (P.start) { ui = null; return true; }
-    if (P.up || P.down) { ui.sel = (ui.sel + (P.down ? 1 : 3)) % 4; ui.msg = null; Audio8.sfx('select'); }
+    if (P.up || P.down) { ui.sel = (ui.sel + (P.down ? 1 : 4)) % 5; ui.msg = null; Audio8.sfx('select'); }
     if (P.jump || P.attack) {
-      if (ui.sel === 3) { ui = null; return true; }
+      if (ui.sel === 4) { ui = null; return true; }
       if (!open(ui.sel)) { ui.msg = 1; Audio8.sfx('wall'); return false; }
       start(ui.sel); ui = null; return true;
     }
@@ -86,20 +106,28 @@ const Arena = (() => {
     const cx = View.cx, w = View.w, lx = cx - Math.min(132, w / 2 - 20), rx = cx + Math.min(132, w / 2 - 20);
     Zier.frame(ctx, '#c83828'); Game.big(ctx, tr('arenaTitle'), cx, 12, 2, LOGO, null, '#000');
     Duell.wrap(tr('arenaLine'), rx - lx).slice(0, 2).forEach((l, i) => Font.draw(ctx, l, cx, 36 + i * 10, '#d0c0a0', { align: 'center', shadow: '#000' }));
-    TIERS.forEach((D, i) => {
-      const y = 66 + i * 34, on = ui.sel === i, ok = open(i), done = won(i);
-      if (on) { ctx.fillStyle = 'rgba(200,56,40,0.2)'; ctx.fillRect(lx - 6, y - 5, rx - lx + 12, 30); if ((t >> 4) % 2 === 0) Sprites.draw(ctx, Sprites.S.heartS, lx - 3, y); }
+    TIERS.slice(0, 3).forEach((D, i) => {
+      const y = 60 + i * 30, on = ui.sel === i, ok = open(i), done = won(i);
+      if (on) { ctx.fillStyle = 'rgba(200,56,40,0.2)'; ctx.fillRect(lx - 6, y - 5, rx - lx + 12, 26); if ((t >> 4) % 2 === 0) Sprites.draw(ctx, Sprites.S.heartS, lx - 3, y); }
       Font.draw(ctx, tr('arenaT' + (i + 1)), lx + 10, y, ok ? D.col : '#6c6474', { shadow: '#000' });
       Font.draw(ctx, done ? '+' + Math.round(D.gold / 4) + ' G' : '+' + D.gold + ' G', rx, y, ok ? '#f8d848' : '#6c6474', { align: 'right', shadow: '#000' });
       const sub = !ok ? (i > 0 && !won(i - 1) ? tr('arenaLockPrev') : tr('arenaLockLv', D.lv)) : best(i) ? tr('arenaBest', clock(best(i))) : tr('arenaWaves', D.waves.length);
       Font.draw(ctx, sub, lx + 10, y + 12, ok ? '#a09888' : '#a06050', { shadow: '#000' });
     });
-    const by = 172, on = ui.sel === 3; if (on) { ctx.fillStyle = 'rgba(200,56,40,0.2)'; ctx.fillRect(lx - 6, by - 3, rx - lx + 12, 13); Sprites.draw(ctx, Sprites.S.heartS, lx - 3, by); } Font.draw(ctx, tr('opferBack'), lx + 10, by, on ? '#fcfcfc' : '#b0a080', { shadow: '#000' });
+    { // Tagesprüfung: heute gewürfelte Regeln, Bestzeit des Tages
+      const D = daily(), y = 150, on = ui.sel === 3, ok = open(3), b = dailyBest();
+      if (on) { ctx.fillStyle = 'rgba(60,140,200,0.22)'; ctx.fillRect(lx - 6, y - 5, rx - lx + 12, 26); if ((t >> 4) % 2 === 0) Sprites.draw(ctx, Sprites.S.heartS, lx - 3, y); }
+      Font.draw(ctx, tr('arenaDaily'), lx + 10, y, ok ? D.col : '#6c6474', { shadow: '#000' });
+      Font.draw(ctx, b ? tr('arenaDailyDone', clock(b)) : '+' + D.gold + ' G', rx, y, ok ? (b ? '#a8d8a0' : '#f8d848') : '#6c6474', { align: 'right', shadow: '#000' });
+      Font.draw(ctx, ok ? D.mods.map(m => tr('mod_' + m)).join(' · ') : tr('arenaLockPrev'), lx + 10, y + 12, ok ? '#a0c8d8' : '#a06050', { shadow: '#000' });
+    }
+    const by = 184, on = ui.sel === 4; if (on) { ctx.fillStyle = 'rgba(200,56,40,0.2)'; ctx.fillRect(lx - 6, by - 3, rx - lx + 12, 13); Sprites.draw(ctx, Sprites.S.heartS, lx - 3, by); } Font.draw(ctx, tr('opferBack'), lx + 10, by, on ? '#fcfcfc' : '#b0a080', { shadow: '#000' });
   }
   function drawHud(ctx) { // Wellenanzeige und Ansage über dem Spiel
     if (!run) return;
     const cx = View.cx, D = TIERS[run.tier], n = run.wave + (run.phase === 'pause' ? 2 : 1), all = D.waves.length;
     Font.draw(ctx, tr('arenaWave', Math.min(n, all), all) + '   ' + clock(run.time), cx, 36, D.col, { align: 'center', shadow: '#000' });
+    if (run.tier === 3 && !(Game.noteT > 0)) Font.draw(ctx, D.mods.map(m => tr('mod_' + m)).join(' · '), cx, 46, '#a0c8d8', { align: 'center', shadow: '#000' });
     if (run.phase === 'pause') {
       const k = run.t; ctx.globalAlpha = clamp(Math.min(k / 12, (100 - k) / 14), 0, 1);
       ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(0, 76, View.w, 54); ctx.fillStyle = D.col; ctx.fillRect(0, 76, View.w, 1); ctx.fillRect(0, 129, View.w, 1);
@@ -108,5 +136,5 @@ const Arena = (() => {
       ctx.globalAlpha = 1;
     }
   }
-  return { populate, input, draw, drawHud, start, TIERS, won, get run() { return run; }, get ui() { return ui; } };
+  return { populate, input, draw, drawHud, start, TIERS, won, daily, today, MODS, dailyBest, get run() { return run; }, get ui() { return ui; } };
 })();
