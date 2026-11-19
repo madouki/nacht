@@ -290,7 +290,7 @@ class Enemy extends Ent {
     this.hp -= dmg; this.flashT = 10;
     W.spawn(new Spark(this.cx, this.cy));
     W.comboHit(); W.hitstop = Math.max(W.hitstop, 2);
-    if (this.hp <= 0) this.kill(); else { Audio8.sfx('hit', this.cx); this.wucht(); }
+    if (this.hp <= 0) this.kill(); else { Audio8.sfx('hit', this.cx); this.wucht(); Drastik.hit(this); }
     return true;
   }
   wucht() {
@@ -311,7 +311,7 @@ class Enemy extends Ent {
     Audio8.sfx('kill', this.cx);
     W.spawn(new Burst(this.cx, this.cy));
     W.sparks(this.cx, this.cy, 9);
-    Drama.disintegrate(this.lastDraw);
+    Drama.disintegrate(this.lastDraw); Drastik.burst(this);
     W.spawn(new Shock(this.cx, this.cy, 22, '#fce0a8', 3));
     W.hitstop = Math.max(W.hitstop, 4); W.shake = Math.max(W.shake, 4);
     W.addScore(this.score * W.comboMul(), this.cx, this.y);

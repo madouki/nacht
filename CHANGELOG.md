@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-0341](#20261119-0341--gewissen-drei-enden-opferschreine-und-drastische-pixel-tode) – Gewissen, drei Enden, Opferschreine und drastische Pixel-Tode
 - [20261119-0259](#20261119-0259--klügere-gegner-ritter-ausfall-skelett-rücksprung-schritte-je-untergrund) – Klügere Gegner: Ritter-Ausfall, Skelett-Rücksprung, Schritte je Untergrund
 - [20261119-0241](#20261119-0241--bibliothek-wieder-frei-trefferwucht-goldene-champions-mehr-tiefe-im-bild) – Bibliothek wieder frei, Trefferwucht, goldene Champions, mehr Tiefe im Bild
 - [20261119-0216](#20261119-0216--lebendiges-schloss-kleintiere-höhlenflora-neue-menüs-schneller-zurück-ins-spiel) – Lebendiges Schloss: Kleintiere, Höhlenflora, neue Menüs, schneller zurück ins Spiel
@@ -48,6 +49,30 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-0341 – Gewissen, drei Enden, Opferschreine und drastische Pixel-Tode
+
+**Neu – Gewissensfragen**
+- Im Schloss warten sechs Entscheidungen: anständig oder einträglich. Jede Antwort gilt für immer.
+- Zu finden im Kerker, Gruftgang, Zimmer 13, in der Sakristei, im Amt für Heldentaten und auf dem Mondmeer. Ein goldenes Fragezeichen zeigt die Stelle, ↑ startet die Frage.
+- Mindestens zwei Antworten mehr auf der anständigen Seite ergeben „Reine Weste“: Du erleidest weniger Schaden.
+- Mindestens zwei mehr auf der schäbigen Seite ergeben „Schwarze Seele“: Du richtest mehr Schaden an.
+- Die Chronik erzählt am Ende eine von drei Fassungen. Dazu gibt es zwei neue Urkunden.
+
+**Neu – Opferschreine**
+- In allen sechs Speicherkammern steht ein Schrein. Dort tauschst du Gold gegen dauerhafte Ränge in Angriff, Leben und Magie, je Wert bis Rang 5.
+
+**Neu – Blut und Brocken**
+- Gegner zerplatzen je nach Material in Blut, Knochen, Blech, Öl, Papier, Schleim, Pflanzenfasern, Käse oder Eis.
+- Brocken springen über den Boden, Blut und Öl hinterlassen Flecken bis zum Raumwechsel.
+- Wem das zu viel ist: Optionen → BLUT UND BROCKEN schaltet es ab.
+
+**Beim Testen ansehen**
+- Kerker oder Gruftgang: Gewissensfrage öffnen, mit ↑↓ wählen, bestätigen. Sind Text und Folgen klar?
+- Statusseite: Steht rechts das Gewissen mit den sechs Feldern?
+- Speicherkammer: Schrein mit ↑ öffnen und einen Rang kaufen. Sind die Preise fair?
+- Mehrere Gegner besiegen: Sind die Brocken schön oder zu viel? Auf der Xbox bitte besonders auf Ruckler achten.
+- Optionen: BLUT UND BROCKEN aus- und wieder einschalten.
 
 ## 20261119-0259 – Klügere Gegner: Ritter-Ausfall, Skelett-Rücksprung, Schritte je Untergrund
 

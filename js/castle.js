@@ -2464,7 +2464,7 @@ const Castle = (() => {
   const lvl = () => (Options.maxLevel ? MAXLV : rpg.lv); // wirksame Stufe (Testhilfe „maximale Stufe“; der Fortschritt im Spielstand bleibt)
   const expFor = (lv) => 15 * lv * (lv - 1); // Gesamt-EXP für Stufe lv: LV2 30, LV5 300, LV10 1350, LV20 5700
   const vessels = () => Object.keys(vessel).length;
-  const values = () => { const b = lvl() - 1; return { str: 10 + b, con: 10 + b, hp: Options.maxHp + 2 * b + 4 * vessels() + gear('hp') }; };
+  const values = () => { const b = lvl() - 1; return { str: 10 + b, con: 10 + b, hp: Options.maxHp + 2 * b + 4 * vessels() + gear('hp') + Gewissen.hpBonus() }; };
   // Kritische Treffer: Grundchance 3 %, je Glückspunkt +1,5 %, dazu der Raubtierblick (Mahr); Schaden ×1,75. Ob ein Hieb kritisch
   // ist, hängt fest an seiner Nummer (atkId) – so bleibt er über alle Bilder des Hiebs und für alle getroffenen Gegner gleich
   const CRIT_MUL = 1.75;
@@ -2472,7 +2472,7 @@ const Castle = (() => {
   const swingCrit = (id) => (((id * 2654435761) >>> 0) % 1000) / 10 < critChance();
   const critNow = () => { const p = W.player; return !!(p && p.atkT > 0 && !p.atkSub && (W.slowT > 0 || swingCrit(p.atkId))); }; // in der Zeitlupe nach Perfekt-Ausweichen trifft jeder Hieb kritisch
   let critShown = 0;
-  const strMul = () => 1 + (values().str - 10 + gear('atk')) * 0.05, conDiv = () => 1 + (values().con - 10 + gear('def')) * 0.04; // Ausrüstung zählt wie STR/CON-Punkte
+  const strMul = () => (1 + (values().str - 10 + gear('atk')) * 0.05) * Gewissen.atkMul(), conDiv = () => (1 + (values().con - 10 + gear('def')) * 0.04) * Gewissen.defDiv(); // Ausrüstung zählt wie STR/CON-Punkte
   if (on) { // STR verstärkt Peitsche und Spezialwaffen, CON mindert erlittenen Schaden – nur im Schloss-Modus
     Object.defineProperty(Options, 'dmgMul', { get: () => (Options.easy ? 2 : 1) * strMul() * (critNow() ? CRIT_MUL : 1), configurable: true });
     const hurt = Player.prototype.hurt;
@@ -2961,7 +2961,7 @@ const Castle = (() => {
   };
   const SPELL_IDS = ['spirit', 'hellfire', 'tetra', 'soulsteal'];
   const known = (id) => !!inv['book_' + id];
-  const mpMax = () => SPELL_IDS.some(known) || rel('bat') || rel('mist') || rel('wolf') || flag.mahr_ruf ? 24 + 3 * (lvl() - 1) + gear('mp') : 0;
+  const mpMax = () => SPELL_IDS.some(known) || rel('bat') || rel('mist') || rel('wolf') || flag.mahr_ruf ? 24 + 3 * (lvl() - 1) + gear('mp') + Gewissen.mpBonus() : 0;
   let mp = 0, lastDir = '';
   const hist = [];
   const absDir = (s, face) => s.replace('F', face > 0 ? 'R' : 'L').replace('B', face > 0 ? 'L' : 'R');
@@ -3580,7 +3580,7 @@ const Castle = (() => {
     if (statusPage === 4) { panel(ctx, tr('achTitle'), '#f8d878'); drawAch(ctx, t); Font.draw(ctx, tr('statusHelp'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
     if (statusPage === 6) { panel(ctx, tr('bountyTitle'), '#f8b800'); drawBounties(ctx, t); Font.draw(ctx, tr('statusHelp'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
     if (statusPage === 5) { panel(ctx, tr('mahrTitle'), '#b080fc'); drawMahre(ctx, t); Font.draw(ctx, tr(t % 420 < 240 ? 'mahrHelp' : 'mahrSwap'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
-    Zier.frame(ctx, '#c89020'); Zier.hero(ctx, p, t);
+    Zier.frame(ctx, '#c89020'); Zier.hero(ctx, p, t); Gewissen.drawStatus(ctx);
     Game.big(ctx, tr('castleStatus'), cx, 12, 2, LOGO, null, '#000');
     Font.draw(ctx, (p.def && p.def.name ? p.def.name : '') + '    LV ' + lvl(), cx, 34, '#f8b800', { align: 'center', shadow: '#000' });
     const att = Math.round((p.whip >= 2 ? 2 : 1) * 10 * Options.dmgMul), next = rpg.lv >= MAXLV ? 0 : expFor(rpg.lv + 1) - rpg.exp;
@@ -3654,6 +3654,8 @@ const Castle = (() => {
     { id: 'count', ok: () => !!best.Count },
     { id: 'bolts', ok: () => BOLTS.every(b => flag['bolt_' + b[0]]), arg: () => BOLTS.length }, // alle Abkürzungen geöffnet
     { id: 'champs', ok: () => (flag.champs || 0) >= Champ.GOAL, arg: () => Champ.GOAL }, // goldene Gegner besiegt
+    { id: 'saint', ok: () => Gewissen.all(1), arg: () => Gewissen.CASES.length }, // alle Gewissensfragen anständig gelöst
+    { id: 'fiend', ok: () => Gewissen.all(2), arg: () => Gewissen.CASES.length }, // alle Gewissensfragen schäbig gelöst
   ];
   const ach = { q: [], cur: null, sel: 0 }, ACH_PAY = 500; // je Urkunde zahlt das Amt 500 Gold Aufwandsentschädigung
   const achGot = (a) => !!flag['ach_' + a.id];
@@ -4476,7 +4478,7 @@ const Castle = (() => {
   // Anfang; jede Runde zwei Gefahrenstufen mehr; Start am Burgtor) und dem Abspann.
   function startEpilogue() {
     flag.cleared = (flag.cleared || 0) + 1; save();
-    const ally = HEROES.def(allyId()).name, hero = HEROES.def(Options.character).name, raw = tr('story_epilogue');
+    const ally = HEROES.def(allyId()).name, hero = HEROES.def(Options.character).name, raw = [...tr('story_epilogue'), ...tr('gwEnd_' + Gewissen.tier())]; // die Chronik erzählt je nach Gewissen ein anderes Ende
     talk = { npc: null, b: null, again: false, epi: true, i: 0, n: 0,
       pages: (Array.isArray(raw) ? raw : [raw]).map(s => ({ who: s[0], text: s.slice(2).replace(/\{0\}/g, ally).replace(/\{1\}/g, hero) })) };
   }
@@ -4495,6 +4497,7 @@ const Castle = (() => {
     const vAll = S().reduce((n, st) => n + st.rooms.reduce((m, d) => m + d.ents.filter(e => e.type === 'vessel').length, 0), 0);
     const rows = [[tr('mapCastle', percent()), ''], ['TIME', playTime()], ['LV', rpg.lv], ['KILLS', rpg.kills], [tr('castleRelicCount', RELICS.filter(k => rel(k)).length, RELICS.length), ''],
       [tr('castleVesselCount', vessels(), vAll), ''], ['GOLD', W.score]];
+    rows.push([tr('gwLabel'), tr('gwTier_' + Gewissen.tier())]);
     if (ngp()) rows.push(['NG+', ngp()]);
     rows.forEach(([k, v], i) => { Font.draw(ctx, k, lx, 40 + i * 12, '#d0c0a0', { shadow: '#000' }); if (v !== '') Font.draw(ctx, String(v), rx, 40 + i * 12, '#fcfcfc', { align: 'right', shadow: '#000' }); });
     const ry = 40 + rows.length * 12 + 8; // Rang mit Kommentar
@@ -5002,7 +5005,7 @@ const Castle = (() => {
     for (const q of QUESTS) need.push('quest_' + q.id, 'questHint_' + q.id);
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
-    need.push('champWin', 'champTip', 'ach_champs', 'achD_champs', 'chgKanal', 'chgStollen', 'chgKuppel', 'chgKammer', 'hintRopeUp', 'hintRopeHold', 'hintRopeDown', 'hintTrolley', 'hintTrolley2', 'hintHand', 'npcBell', 'npcGuide', 'npcClock', 'newHere', 'chgZeiger', 'chgDoorZeiger', 'chgKlamm', 'chgDoorKlamm', 'chgGlocken', 'chgDoorGlocken', 'hintKuckuck', 'bossKuckuck', 'bossKuckuckShout', 'bossKuckuckBonk', 'bossKuckuckRage', 'bossKuckuckDie', 'bossKuckuckNote', 'banter_bossKuckuck', 'beastD_Kuckucksuhr', 'ach_kuckuck', 'achD_kuckuck', 'item_kuckucksfeder', 'itemD_kuckucksfeder', 'chgKuckuck', 'chgDoorKuckuck'); // Glockenstuhl, Tropfsteinklamm, Zeigerkammer, NEU-Markierung, Kuckucksuhr
+    need.push('gwTitle', 'gwLabel', 'gwTier_good', 'gwTier_mid', 'gwTier_bad', 'gwUp', 'gwDown', 'gwNoGold', 'gwPerk_good', 'gwPerk_bad', 'opferTitle', 'opferLine', 'opfer_atk', 'opfer_hp', 'opfer_mp', 'opferMax', 'opferBack', 'ach_saint', 'achD_saint', 'ach_fiend', 'achD_fiend', 'optGore', 'optGoreH', 'gw_pruefer_q', 'gw_pruefer_a', 'gw_pruefer_b', 'gw_pruefer_ra', 'gw_pruefer_rb', 'gw_bein_q', 'gw_bein_a', 'gw_bein_b', 'gw_bein_ra', 'gw_bein_rb', 'gw_gast_q', 'gw_gast_a', 'gw_gast_b', 'gw_gast_ra', 'gw_gast_rb', 'gw_waisen_q', 'gw_waisen_a', 'gw_waisen_b', 'gw_waisen_ra', 'gw_waisen_rb', 'gw_antrag_q', 'gw_antrag_a', 'gw_antrag_b', 'gw_antrag_ra', 'gw_antrag_rb', 'gw_kalb_q', 'gw_kalb_a', 'gw_kalb_b', 'gw_kalb_ra', 'gw_kalb_rb', 'champWin', 'champTip', 'ach_champs', 'achD_champs', 'chgKanal', 'chgStollen', 'chgKuppel', 'chgKammer', 'hintRopeUp', 'hintRopeHold', 'hintRopeDown', 'hintTrolley', 'hintTrolley2', 'hintHand', 'npcBell', 'npcGuide', 'npcClock', 'newHere', 'chgZeiger', 'chgDoorZeiger', 'chgKlamm', 'chgDoorKlamm', 'chgGlocken', 'chgDoorGlocken', 'hintKuckuck', 'bossKuckuck', 'bossKuckuckShout', 'bossKuckuckBonk', 'bossKuckuckRage', 'bossKuckuckDie', 'bossKuckuckNote', 'banter_bossKuckuck', 'beastD_Kuckucksuhr', 'ach_kuckuck', 'achD_kuckuck', 'item_kuckucksfeder', 'itemD_kuckucksfeder', 'chgKuckuck', 'chgDoorKuckuck'); // Glockenstuhl, Tropfsteinklamm, Zeigerkammer, NEU-Markierung, Kuckucksuhr
     need.push('boltHint', 'boltOpen', 'boltFar0', 'boltFar1', 'boltFar2', ...BOLTS.map(b => 'boltSay_' + b[0]));
     need.push('castleBossCount', 'castleGoalBoss', 'pauseTravel', 'bounty', 'duelStun', 'duelTip', 'duelLast', 'duelLine0', 'duelLine1', 'duelLine2', 'duelLine3', 'duelTitle', 'duelTime', 'duelHits', 'duelStuns', 'duelBonus', 'duelVS', 'duelVA', 'duelVB', 'duelVC', 'runTip', 'travelTip', 'bountyTitle', 'travelRoom', 'mahrTitle', 'mahrCount', 'mahrRuf', 'mahrBann', 'mahrHelp', 'mahrSwap', 'mahrOn', 'mahrFrom', 'mahrUnknown', 'mahrGot', 'mahrFirst', 'mahrDodge', 'crit', 'chgMahr');
     { // Erreichbarkeit: vom Wald aus über Türen und Ausgänge (alles geöffnet) – kein Raum darf abgeschnitten sein
@@ -5069,7 +5072,7 @@ const Castle = (() => {
     on, update, settle, forward, bossBeaten, draw, openMap, mapInput, openWarp, warpInput, layout, castle, percent, roomPercent, recentNote, firstVisit, seals,
     bossDone: (s, r) => !!boss[roomKey(s, r)],
     hasSave: () => !!readSave(), loadSave: readSave, applySave, chambers: allChambers, writeResume, dropResume,
-    newRun, drawStatus, expProgress, gainExp, get rpg() { return rpg; }, talkInput, drawTalk, get talk() { return talk; }, get flags() { return flag; },
+    newRun, applyHp, drawStatus, expProgress, gainExp, get rpg() { return rpg; }, talkInput, drawTalk, get talk() { return talk; }, get flags() { return flag; },
     openEquip, equipInput, drawEquip, openShop, shopInput, drawShop, get inv() { return inv; }, get eq() { return eq; }, giveItem,
     preUpdate, statusInput, mpMax, get mp() { return mp; }, set mp(v) { mp = v; }, get floaty() { return gear('float') > 0; },
     mahrStrike: famStrike, mahrTarget: famTarget, mahrRank, mahrEq, mahrGive: (id, e) => mahrGive(Mahr.BY[id], e), get statusAttack() { return statusPage === 5; }, critChance, get mpWarn() { return mpWarnT; }, mahrCycle,

@@ -278,7 +278,7 @@ class Player {
     this.setCrouch(false);
     this.state = 'dead'; this.deadT = 0; this.atkT = 0; this.stoneT = 0; this.vx = 0; this.vy = silent ? 0 : -2.5;
     this.onGround = false; this.inv = 0; this.hidden = !!silent;
-    Audio8.stop(); Audio8.sfx('die'); Input.rumble(1, 1, 600);
+    Audio8.stop(); Audio8.sfx('die'); Input.rumble(1, 1, 600); if (!silent) Drastik.hero(this);
   }
 
   // Medusas Blick: der Held erstarrt zu Stein; Tasten hämmern bricht ihn schneller frei

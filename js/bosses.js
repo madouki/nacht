@@ -108,6 +108,7 @@ class Boss extends Enemy {
     if (this.dying === 2) { W.slowmo = 80; W.flash = 14; W.shake = 30; Input.rumble(1, 1, 900); } // (hit() setzt dying auf 1, der erste Schritt hier zählt auf 2)
     if (this.dying === 2 || this.dying === 9 || this.dying === 18) W.spawn(new Shock(this.cx, this.cy, 90 + this.dying * 3, this.dying === 9 ? '#f8b800' : '#fcfcfc', 5));
     if (this.dying % 7 === 0) {
+      Drastik.boss(this);
       W.spawn(new Burst(this.x + rnd(0, this.w), this.y + rnd(0, this.h)));
       Audio8.sfx('explode', this.cx);
     }

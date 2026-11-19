@@ -15,6 +15,7 @@ const OPTION_ITEMS = [ // label/hint sind Schlüssel für tr()
   { key: 'lang', label: 'optLang', hint: 'optLangH' },
   { key: 'crt', label: 'optCrt', hint: 'optCrtH' },
   { key: 'bloom', label: 'optBloom', hint: 'optBloomH' }, // Glühen (Bloom) um helle Stellen
+  { key: 'gore', label: 'optGore', hint: 'optGoreH' }, // Gegner zerplatzen in Pixelbrocken (js/drastik.js)
   { key: 'speed', label: 'optSpeed', hint: 'optSpeedH' }, // Spieltempo 100 / 85 / 70 %
   { key: 'fullscreen', label: 'optFull', hint: 'optFullH' },
   { key: 'changelog', label: 'optChangelog', hint: 'optChangelogH' }, // was ist neu, was testen (aus CHANGELOG.md, js/changelog.js)
@@ -152,7 +153,7 @@ const Game = {
 
   // Schloss: Fortsetzungspunkt schreiben, solange man in einem Raum ist (Pause, Menüs, Spiel – nicht auf Titel oder im Übergang)
   saveResume() {
-    if (Castle.on && W.player && ['play', 'pause', 'pausesec', 'map', 'warp', 'status', 'talk', 'shop', 'equip', 'tools'].includes(this.state)) Castle.writeResume();
+    if (Castle.on && W.player && ['play', 'pause', 'pausesec', 'map', 'warp', 'status', 'talk', 'gewissen', 'shop', 'equip', 'tools'].includes(this.state)) Castle.writeResume();
   },
   startCastleEnding() { // Schloss: Graf besiegt – Epilog über der Morgendämmerung, dann Ergebnis
     this.saveHi(); Castle.dropResume(); this.rubble = [];
@@ -464,7 +465,7 @@ const Game = {
     if (this.revealed && this.revealT !== undefined) this.revealT++;
     if (this.state === 'title' && this.revealed && this.t % 520 === 0) Audio8.sfx('bell');
     const titleish = ['title', 'options', 'sections', 'secload', 'charsel', 'intro', 'scores', 'entry'].includes(this.state);
-    Audio8.ambience(titleish ? 'courtyard' : (this.state === 'play' || this.state === 'pause' || this.state === 'pausesec' || this.state === 'map' || this.state === 'warp' || this.state === 'status' || this.state === 'talk' || this.state === 'shop' || this.state === 'equip' || this.state === 'tools' || this.state === 'demo') && W.room ? W.room.theme : null);
+    Audio8.ambience(titleish ? 'courtyard' : (this.state === 'play' || this.state === 'pause' || this.state === 'pausesec' || this.state === 'map' || this.state === 'warp' || this.state === 'status' || this.state === 'talk' || this.state === 'gewissen' || this.state === 'shop' || this.state === 'equip' || this.state === 'tools' || this.state === 'demo') && W.room ? W.room.theme : null);
     if (titleish && this.bootBg) this.bootBg.tick(); // Kulisse des Ladebildschirms unter den Menüs
     if (titleish) {
       FX.updateStorm(this.tStorm, View.w, () => { if (Audio8.ready()) setTimeout(() => Audio8.sfx('thunder'), 250 + Math.random() * 600); });
@@ -564,6 +565,7 @@ const Game = {
         if ((P.start || P.jump || (P.attack && !Castle.statusAttack)) && this.t > 8) { this.go('pause'); this.pauseSel = this.pauseItems().indexOf('status'); Audio8.sfx('pause'); } // Seite MAHRE: Angriff legt an
         else Castle.statusInput(P);
         break;
+      case 'gewissen': if (Gewissen.input(P)) this.go('play'); break; // Gewissensfrage oder Opferschrein (js/gewissen.js)
       case 'talk': { // Gespräch mit einer Figur (nur Schloss): die Welt steht still, Sprung/Angriff/↑ blättert, Start überspringt
         const r = Castle.talkInput(P);
         if (r) this.go(r === true ? 'play' : r); // beim Bibliothekar geht es weiter in den Laden
@@ -772,6 +774,7 @@ const Game = {
         if (this.state === 'warp') Castle.draw(ctx, this.t, true);
         if (this.state === 'status') Castle.drawStatus(ctx, this.t);
         if (this.state === 'talk') Castle.drawTalk(ctx, this.t);
+        if (this.state === 'gewissen') Gewissen.draw(ctx, this.t);
         if (this.state === 'shop') Castle.drawShop(ctx, this.t);
         if (this.state === 'equip') Castle.drawEquip(ctx, this.t);
         if (this.state === 'tools') Castle.drawTools(ctx, this.t);
