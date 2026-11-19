@@ -2534,6 +2534,7 @@ const Castle = (() => {
     const r = Math.random(), drop = big ? 'bagBig' : r < 0.05 ? 'roast' : r < 0.12 ? 'bag' : r < 0.17 ? 'heartB' : null; // Beute wie in SotN
     if (drop) W.spawn(new Item(drop, e.cx, Math.min(e.cy, W.room.h * T - 24)));
     lootDrop(e, big); // selten Ausrüstung oder Tränke
+    if (!big && typeof Kueche !== 'undefined') Kueche.drop(e); // je Gegnerart ihre Zutat für die Kantinenküche (js/kueche.js)
     if (!big) mahrDrop(e); // mit etwas Glück bleibt sein Mahr zurück (js/mahr.js)
   }
   // ---------------- Mahre: gefangene Albträume der Gegner (js/mahr.js) ----------------
@@ -2762,7 +2763,7 @@ const Castle = (() => {
   const questState = (q) => flag['story_' + q.end] ? 'done' : flag['story_' + q.start] || q.items.some(i => inv[i]) ? 'open' : null;
   const DROPS = [['potion', 'potion', 'leather', 'silver'], ['potion', 'potion', 'chain', 'bloodrune', 'elixir'], ['potion', 'elixir', 'elixir', 'chain', 'bloodrune']];
   let buff = null; // Kantinenessen: { id, st: Werte, t: Restzeit in Spielschritten }
-  function gear(stat) { let n = buff && buff.st[stat] ? buff.st[stat] : 0; for (const s of SLOTS) { const g = eq[s] && GEAR[eq[s]]; if (g && g[stat]) n += g[stat]; } return n + mahrStat(stat); } // Bann-Mahr zählt mit
+  function gear(stat) { let n = buff && buff.st[stat] ? buff.st[stat] : 0; for (const s of SLOTS) { const g = eq[s] && GEAR[eq[s]]; if (g && g[stat]) n += g[stat]; } return n + mahrStat(stat) + (typeof Kueche !== 'undefined' ? Kueche.stat(stat) : 0); } // Bann-Mahr zählt mit
   const DISHES = [null, 'linsen', 'schnitzel', 'currywurst', 'erbsen', 'fisch', null], BUFF_T = 10800; // So–Sa: Tagesgericht (am Wochenende nur Kaffee und Kuchen); drei Minuten
   const dishToday = () => DISHES[new Date().getDay()];
   function eat(id) { // Mahlzeit! Heilt, Kaffee füllt die MP, das Tagesgericht stärkt
@@ -3407,7 +3408,7 @@ const Castle = (() => {
   const STOCKS = { lib: STOCK, conc: ['potion', 'elixir', 'robe', 'rec_stage1', 'rec_sea', 'rec_boss'], get cook() { return [dishToday(), 'kaffee', 'kuchen', 'rec_fahrstuhl'].filter(Boolean); } };
   const shop = { sel: 0, say: 'shopHi', mode: 'buy', who: 'lib' };
   const sayKey = (k) => shop.who === 'conc' || shop.who === 'cook' ? k.replace('shop', shop.who) : k;
-  function openShop(who = 'lib') { shop.sel = 0; shop.who = who; shop.mode = who === 'gramo' ? 'play' : 'buy'; shop.say = who === 'gramo' ? 'gramoHi' : who === 'cook' && !dishToday() ? 'cookHiWE' : sayKey('shopHi'); }
+  function openShop(who = 'lib') { shop.sel = 0; shop.who = who; shop.mode = who === 'gramo' ? 'play' : 'buy'; shop.say = who === 'gramo' ? 'gramoHi' : who === 'cook' && typeof Kueche !== 'undefined' && Kueche.anyReady() ? 'kuecheHi' : who === 'cook' && !dishToday() ? 'cookHiWE' : sayKey('shopHi'); }
   function gramoInput(P) { // Grammophon: ↑↓ wählt, Sprung legt die Platte auf (sie spielt, bis man die Lobby verlässt), Angriff: Taktduell
     if (typeof Takt !== 'undefined' && Takt.active()) { // Taktduell (js/takt.js): Bestwert je Platte, Gold für jede Verbesserung
       const live = Takt.result();
@@ -3433,10 +3434,12 @@ const Castle = (() => {
     return false;
   }
   function saveGold(d) { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (s && typeof s.score === 'number') { s.score = Math.max(0, s.score + d); localStorage.setItem(SAVE_KEY, JSON.stringify(s)); } } catch (e) { /* privat */ } }
+  const shopModes = () => shop.who === 'cook' && typeof Kueche !== 'undefined' ? ['buy', 'sell', 'cook'] : ['buy', 'sell']; // die Kantine kocht auch
   function shopInput(P) { // true = Laden verlassen
     if (shop.who === 'gramo') return gramoInput(P);
     if (P.start) return true;
-    if (P.left || P.right) { shop.mode = shop.mode === 'buy' ? 'sell' : 'buy'; shop.sel = 0; Audio8.sfx('select'); }
+    if (P.left || P.right) { const M = shopModes(), i = Math.max(0, M.indexOf(shop.mode)); shop.mode = M[(i + (P.right ? 1 : M.length - 1)) % M.length]; shop.sel = 0; Audio8.sfx('select'); }
+    if (shop.mode === 'cook') { const r = Kueche.input(P); if (r) shop.say = r; return false; } // Kantinenküche: aus Zutaten kochen
     const stock = STOCKS[shop.who] || STOCK, list = shop.mode === 'buy' ? stock : sellable(), n = list.length;
     if (n && (P.up || P.down)) { shop.sel = (shop.sel + (P.down ? 1 : n - 1)) % n; Audio8.sfx('select'); }
     shop.sel = Math.min(shop.sel, Math.max(0, n - 1));
@@ -3494,8 +3497,10 @@ const Castle = (() => {
     const say = wrap(tr(shop.say), rx - lx - 24);
     say.slice(0, 3).forEach((l, i) => Font.draw(ctx, l, lx + 20, 36 + i * 10, cook ? '#f8d8a0' : conc ? '#a8e8c0' : '#c8a0fc', { shadow: '#000' }));
     const sell = shop.mode === 'sell', list = sell ? sellable() : STOCKS[shop.who] || STOCK;
-    ['shopBuy', 'shopSell'].forEach((k, i) => { const on = (i === 1) === sell, x = cx + (i ? 40 : -40); Font.draw(ctx, tr(k), x, 66, on ? '#fcfcfc' : '#5c5c6c', { align: 'center', shadow: '#000' }); if (on) { ctx.fillStyle = '#9c6cfc'; ctx.fillRect(x - Font.width(tr(k)) / 2, 74, Font.width(tr(k)), 1); } });
-    Font.draw(ctx, '←', cx - 84, 66, '#7c7c8c'); Font.draw(ctx, '→', cx + 80, 66, '#7c7c8c');
+    const tabs = shopModes(), tw = tabs.length > 2 ? 64 : 80, aw = tabs.length > 2 ? 104 : 84;
+    tabs.forEach((m, i) => { const k = { buy: 'shopBuy', sell: 'shopSell', cook: 'kuecheTab' }[m], on = shop.mode === m, x = cx + (i - (tabs.length - 1) / 2) * tw; Font.draw(ctx, tr(k), x, 66, on ? '#fcfcfc' : '#5c5c6c', { align: 'center', shadow: '#000' }); if (on) { ctx.fillStyle = '#9c6cfc'; ctx.fillRect(x - Font.width(tr(k)) / 2, 74, Font.width(tr(k)), 1); } });
+    Font.draw(ctx, '←', cx - aw, 66, '#7c7c8c'); Font.draw(ctx, '→', cx + aw - 4, 66, '#7c7c8c');
+    if (shop.mode === 'cook') { Kueche.draw(ctx, t, lx, rx, cx); return; }
     const top = clamp(shop.sel - 3, 0, Math.max(0, list.length - 8)); // acht Zeilen sichtbar, die Liste rollt mit
     if (top > 0) Font.draw(ctx, '↑', rx - 4, 66, '#9c6cfc');
     if (top + 8 < list.length) Font.draw(ctx, '↓', rx - 4, 178, '#9c6cfc');
@@ -3537,6 +3542,7 @@ const Castle = (() => {
     });
     const k = BEASTS[beasts.sel];
     wrap(best[k] ? tr('beastD_' + k) : tr('beastUnknown'), rx - lx).slice(0, 3).forEach((l, i) => Font.draw(ctx, l, cx, 180 + i * 10, best[k] ? '#fce0a8' : '#5c5c6c', { align: 'center', shadow: '#000' }));
+    if (best[k] && typeof Kueche !== 'undefined') Kueche.beastLine(ctx, k, cx, 169); // Beute dieser Art (Kantinenküche)
   }
 
   // Statusbildschirm (Pause → STATUS): Werte wie in SotN in zwei Spalten, darunter EXP-Leiste, Karte, Siegel, Warpkammern
@@ -5033,7 +5039,7 @@ const Castle = (() => {
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
     need.push('arenaTitle', 'arenaLine', 'arenaT1', 'arenaT2', 'arenaT3', 'arenaLockLv', 'arenaLockPrev', 'arenaBest', 'arenaWaves', 'arenaWave', 'arenaGold', 'arenaWin', 'arenaThumb', 'arenaQuip0', 'arenaQuip1', 'arenaQuip2', 'arenaQuip3', 'ach_arena', 'achD_arena', 'champ_flamme', 'champ_eile', 'champ_panzer', 'champ_spalt', 'champHunt', 'gwAngel', 'gwTitle', 'gwLabel', 'gwTier_good', 'gwTier_mid', 'gwTier_bad', 'gwUp', 'gwDown', 'gwNoGold', 'gwPerk_good', 'gwPerk_bad', 'opferTitle', 'opferLine', 'opfer_atk', 'opfer_hp', 'opfer_mp', 'opferMax', 'opferBack', 'ach_saint', 'achD_saint', 'ach_fiend', 'achD_fiend', 'optGore', 'optGoreH', 'gw_pruefer_q', 'gw_pruefer_a', 'gw_pruefer_b', 'gw_pruefer_ra', 'gw_pruefer_rb', 'gw_bein_q', 'gw_bein_a', 'gw_bein_b', 'gw_bein_ra', 'gw_bein_rb', 'gw_gast_q', 'gw_gast_a', 'gw_gast_b', 'gw_gast_ra', 'gw_gast_rb', 'gw_waisen_q', 'gw_waisen_a', 'gw_waisen_b', 'gw_waisen_ra', 'gw_waisen_rb', 'gw_antrag_q', 'gw_antrag_a', 'gw_antrag_b', 'gw_antrag_ra', 'gw_antrag_rb', 'gw_kalb_q', 'gw_kalb_a', 'gw_kalb_b', 'gw_kalb_ra', 'gw_kalb_rb', 'champWin', 'champTip', 'ach_champs', 'achD_champs', 'chgKanal', 'chgStollen', 'chgKuppel', 'chgKammer', 'hintRopeUp', 'hintRopeHold', 'hintRopeDown', 'hintTrolley', 'hintTrolley2', 'hintHand', 'npcBell', 'npcGuide', 'npcClock', 'newHere', 'chgZeiger', 'chgDoorZeiger', 'chgKlamm', 'chgDoorKlamm', 'chgGlocken', 'chgDoorGlocken', 'hintKuckuck', 'bossKuckuck', 'bossKuckuckShout', 'bossKuckuckBonk', 'bossKuckuckRage', 'bossKuckuckDie', 'bossKuckuckNote', 'banter_bossKuckuck', 'beastD_Kuckucksuhr', 'ach_kuckuck', 'achD_kuckuck', 'item_kuckucksfeder', 'itemD_kuckucksfeder', 'chgKuckuck', 'chgDoorKuckuck'); // Glockenstuhl, Tropfsteinklamm, Zeigerkammer, NEU-Markierung, Kuckucksuhr
-    need.push('kunst_eis', 'kunst_blitz', 'kunst_sterne', 'gargNote', 'wacheNote', 'spinneNote', 'frostNote', 'bossHauptmann', 'epi_bossHauptmann', 'bossHauptmannNote', 'bossHauptmannTip', 'banter_bossHauptmann');
+    need.push('kunst_eis', 'kunst_blitz', 'kunst_sterne', 'gargNote', 'wacheNote', 'spinneNote', 'frostNote', 'kuecheNote', 'kuecheHi', 'kuecheTab', 'kuecheHelp', 'kuecheMissing', 'kuecheAgain', 'kuecheReady', 'kuecheEaten', 'kuecheFirst', 'kuecheLoot', 'kuecheLck', 'bossHauptmann', 'epi_bossHauptmann', 'bossHauptmannNote', 'bossHauptmannTip', 'banter_bossHauptmann');
     need.push('kunst_wucht', 'kunst_kreuz', 'kunst_blut', 'kunst_feuer', 'kunst_reissen', 'kunstFirst', 'mimicNote', 'mimicWin');
     need.push('arenaDaily', 'arenaDailyDone', 'arenaDailyWin', ...Arena.MODS.map(m => 'mod_' + m));
     need.push('rauschTitle', 'rauschLine', 'rauschGo', 'rauschWait', 'rauschLock', 'rauschBest', 'rauschMost', 'rauschHud', 'rauschOut', 'rauschHeal', 'rauschWin');

@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-1616](#20261119-1616--die-kantinenküche-zutaten-sammeln-gerichte-kochen) – Die Kantinenküche: Zutaten sammeln, Gerichte kochen
 - [20261119-1552](#20261119-1552--neuer-gegner-der-frostgeist) – Neuer Gegner: der Frostgeist
 - [20261119-1532](#20261119-1532--neuer-gegner-die-höhlenspinne) – Neuer Gegner: die Höhlenspinne
 - [20261119-1403](#20261119-1403--neuer-zwischenboss-der-wachhauptmann) – Neuer Zwischenboss: der Wachhauptmann
@@ -61,6 +62,22 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-1616 – Die Kantinenküche: Zutaten sammeln, Gerichte kochen
+
+**Neu – Kantinenküche**
+- 20 Gegnerarten lassen mit etwas Glück ihre eigene Zutat fallen, zum Beispiel Fledermausflügel, Ektoplasma, Rostflocken, Kieselsteine, Raureif oder Mondmilch.
+- Jeder Sieg ohne Zutat macht die nächste etwas wahrscheinlicher, damit niemand ewig farmen muss.
+- Im Laden der Kantinenchefin gibt es eine dritte Seite, KOCHEN, mit acht Gerichten: Kieselsuppe, Spinnwebwatte, Flügel süßsauer, Raureif-Sorbet, Geisterpudding, Fischstäbchen, Mondmilchreis und Uhrwerk-Gulasch.
+- Jedes Gericht stärkt beim ersten Mal dauerhaft (Max-HP, Max-MP, Angriff, Abwehr oder Glück). Jeder Nachschlag heilt voll.
+- Die Köchin kommentiert jedes Gericht in allen 8 Sprachen.
+- Das Bestiarium zeigt bei jedem Gegner seine Beute, sobald man sie einmal gefunden hat.
+- Die Gerichte sind in Blender modelliert und gerendert.
+
+**Beim Testen ansehen**
+- Ein paar Fledermäuse, Geister oder Ritter besiegen und auf die kleinen Zutaten achten, die herausfallen.
+- In der Kantine im Laden mit ←→ zu KOCHEN blättern und ein Gericht kochen. Steigen die Werte?
+- Im Bestiarium nachsehen, ob die Beute dort steht.
 
 ## 20261119-1552 – Neuer Gegner: der Frostgeist
 
