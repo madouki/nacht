@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-2129](#20261119-2129--hd-3d-holzpuppe-und-schaufensterpuppe-neu-aus-blender) – HD-3D: Holzpuppe und Schaufensterpuppe neu aus Blender
 - [20261119-2126](#20261119-2126--hd-3d-skelett-eisskelett-und-ritter-neu-aus-blender) – HD-3D: Skelett, Eisskelett und Ritter neu aus Blender
 - [20261119-2016](#20261119-2016--drei-neue-urkunden) – Drei neue Urkunden
 - [20261119-2012](#20261119-2012--zwei-neue-gegner-hüpfsarg-und-walzerpaar) – Zwei neue Gegner: Hüpfsarg und Walzerpaar
@@ -67,6 +68,16 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-2129 – HD-3D: Holzpuppe und Schaufensterpuppe neu aus Blender
+
+**Neu – HD-3D-Gegner**
+- Die Holzpuppe am Bahnhof, im Labor und im Theater ist jetzt ein Gepäckträger aus Holz in Blender: rote Mütze mit Messingschild, rote Jacke mit Messingknöpfen, Knopfaugen und Kugelgelenke. Dazu kommen eigene Posen fürs Ausholen und den Satz nach vorn.
+- Die Schaufensterpuppen in der Passage sind jetzt Porzellanpuppen aus Blender: auf ihrem Ständer, mit Glockenrock, Hut und Feder, in allen 4 Kleidern und 6 Posen.
+- Ihr Verhalten ist unverändert. Die Schaufensterpuppen bewegen sich nur, solange man ihnen den Rücken zukehrt.
+
+**Beim Testen ansehen**
+- In der Passage einmal wegschauen und wieder hinsehen: Ist die neue Pose gut zu erkennen?
 
 ## 20261119-2126 – HD-3D: Skelett, Eisskelett und Ritter neu aus Blender
 

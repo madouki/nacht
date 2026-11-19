@@ -1848,6 +1848,12 @@ const Castle = (() => {
     }
     draw(ctx) {
       const f = this.face, x = Math.round(this.cx - W.cam.x) + (this.st === 'wind' ? ((this.t >> 1) & 1) * 2 - 1 : 0), y = Math.round(this.y + this.h - W.cam.y), fl = this.flash;
+      const P = typeof Puppen !== 'undefined' && Puppen.S; // Blender-Holzpuppe (puppen.js)
+      if (P) {
+        ctx.fillStyle = 'rgba(200,200,220,0.5)'; for (let k = 0; k < 7; k++) ctx.fillRect(x + Math.round(Math.sin((this.t + k * 5) * 0.12) * 1.5), y - 31 - k, 1, 1); // abgerissener Faden
+        const s = this.st === 'lunge' ? P.lunge : this.st === 'wind' ? P.wind : P.walk[this.st === 'walk' && this.vx !== 0 ? (this.t >> 2) & 1 : 0];
+        this.spr(ctx, s, f < 0, this.st === 'wind' ? ((this.t >> 1) & 1) * 2 - 1 : 0, 0, fl); return;
+      }
       const R = (a, b, w, h, c) => { ctx.fillStyle = fl ? '#fcfcfc' : c; ctx.fillRect(f > 0 ? x + a : x - a - w, y + b, w, h); };
       const WD = '#c89c64', WL = '#e8c088', JT = '#8c6438', st = this.st, step = st === 'walk' && this.vx !== 0 ? (this.t >> 2) & 1 : 0;
       ctx.fillStyle = 'rgba(200,200,220,0.5)'; for (let k = 0; k < 7; k++) ctx.fillRect(x + Math.round(Math.sin((this.t + k * 5) * 0.12) * 1.5), y - 36 - k, 1, 1); // abgerissener Faden
