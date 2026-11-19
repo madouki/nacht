@@ -627,7 +627,7 @@ const Game = {
           W.loadRoom(W.stage, W.roomIdx); W.applyCheckpoint(); W.time = W.stageDef.time;
           if (Castle.on) Castle.settle(null); // Türen und besiegte Bosse wiederherstellen
         }
-        if (this.t > 44) { this.go('play'); Audio8.play(W.songName()); Audio8.tempo(1); this.hurryT = 0; this.readyT = 1; }
+        if (this.t > 44) { this.go('play'); Audio8.play(W.songName()); Audio8.tempo(1); this.hurryT = 0; this.readyT = Castle.on ? 0 : 1; }
         break;
       case 'clear': this.updateClear(); break;
       case 'gameover': { // Arcade: CONTINUE? 9 … 0 – Taste drücken = sofort weiter in derselben Stage
@@ -676,6 +676,7 @@ const Game = {
   },
 
   updatePlay(P) {
+    if (Castle.on && W.player && !W.player.alive && W.player.deadT > 36 && W.player.deadT < 83 && (P.jump || P.attack || P.start)) W.player.deadT = 83; // Taste: sofort weiter
     if (this.banter && this.banter.t >= 0) { this.holdBanter(P); return; } // Wortgeplänkel vor dem Kampf: die Welt steht still
     if (P.start && W.player.alive) { this.go('pause'); this.pauseSel = 0; Audio8.setMusicVolume(0.3); Audio8.muffle(true); Audio8.sfx('pause'); this.saveResume(); return; } // Schloss: Pause = Fortsetzungspunkt
     if (Castle.on && P.map) { // Karte: mit ↑ Ruf-Mahr wechseln, mit ↓ Schnellreise, sonst Karte über dem Spiel

@@ -708,7 +708,7 @@ class Player {
       if (Phys.moveY(this, this.vy) === 1) { this.onGround = true; this.vy = 0; }
       if (this.y > W.room.h * T + 8) this.hidden = true;
     }
-    if (this.deadT === 170) W.playerDied();
+    if (this.deadT === (typeof Castle !== 'undefined' && Castle.on ? 84 : 170)) W.playerDied(); // Schloss: kurz und ohne Leerlauf zurück ins Spiel
   }
 
   updateToStair(I) {

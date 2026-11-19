@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-0216](#20261119-0216--lebendiges-schloss-kleintiere-höhlenflora-neue-menüs-schneller-zurück-ins-spiel) – Lebendiges Schloss: Kleintiere, Höhlenflora, neue Menüs, schneller zurück ins Spiel
 - [20261119-0132](#20261119-0132--bossansagen-liegen-über-allen-bossen) – Bossansagen liegen über allen Bossen
 - [20261119-0121](#20261119-0121--bossansagen-der-ring-umschließt-jetzt-auch-riesige-bosse) – Bossansagen: der Ring umschließt jetzt auch riesige Bosse
 - [20261119-0038](#20261119-0038--gesamtpolitur-lesbare-bosse-eigene-kammern-neue-kulissen-besseres-licht) – Gesamtpolitur: lesbare Bosse, eigene Kammern, neue Kulissen, besseres Licht
@@ -45,6 +46,28 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-0216 – Lebendiges Schloss: Kleintiere, Höhlenflora, neue Menüs, schneller zurück ins Spiel
+
+**Neu – Das Schloss lebt**
+- Ratten und Mäuse flitzen davon, Krähen und Tauben fliegen auf, Motten umkreisen die Kerzen, Spinnen ziehen sich am Faden hoch, Frösche hüpfen weg, im Wintergarten flattern Schmetterlinge.
+- Im Eis wohnen jetzt Pinguine. Kommt man ihnen zu nah, rutschen sie auf dem Bauch davon.
+- Höhlen bekommen Leuchtpilze, Glühwürmchen und Wurzelvorhänge.
+- Alle Tiere sind harmlos und verschwinden im Bosskampf.
+
+**Neu – Menüs**
+- Status, Ausrüstung, Karte und alle Pausenseiten haben einen gestalteten Grund mit Mauerwerk, Mond, Schloss-Silhouette und goldenen Eckbeschlägen.
+- Auf der Statusseite steht dein Held in einer goldenen Nische (bei schmalen Bildschirmen ausgeblendet).
+
+**Besser**
+- Nach dem Tod geht es deutlich schneller weiter: 2,1 statt 3,6 Sekunden. Mit Sprung oder Angriff kürzt du auf 1,5 Sekunden ab.
+
+**Beim Testen ansehen**
+- Eiskeller: Rutschen die Pinguine weg, wenn du näher kommst?
+- Gruftgang, Zwinger und Kanal: Stören die Tiere irgendwo beim Spielen oder sehen sie falsch aus?
+- Kanal und Klamm: Sind Leuchtpilze und Wurzeln schön, oder lenken sie von Gegnern ab?
+- Pausenmenü und Statusseite: Ist alles gut lesbar?
+- Einmal sterben: Fühlt sich der Neustart jetzt flott an?
 
 ## 20261119-0132 – Bossansagen liegen über allen Bossen
 

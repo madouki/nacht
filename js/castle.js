@@ -3353,8 +3353,7 @@ const Castle = (() => {
   }
   function panel(ctx, title, col) { // Vollbild wie Status und Karte
     const w = View.w, cx = View.cx;
-    ctx.fillStyle = '#020412'; ctx.fillRect(0, 0, w, 240); // deckend: das HUD dahinter schien sonst als blasse, unlesbare Schrift durch
-    ctx.fillStyle = col; ctx.fillRect(6, 6, w - 12, 1); ctx.fillRect(6, 233, w - 12, 1); ctx.fillRect(6, 6, 1, 228); ctx.fillRect(w - 7, 6, 1, 228);
+    Zier.frame(ctx, col); // deckend: das HUD dahinter schien sonst als blasse, unlesbare Schrift durch
     Game.big(ctx, title, cx, 12, 2, LOGO, null, '#000');
   }
   function drawEquip(ctx, t) {
@@ -3581,9 +3580,7 @@ const Castle = (() => {
     if (statusPage === 4) { panel(ctx, tr('achTitle'), '#f8d878'); drawAch(ctx, t); Font.draw(ctx, tr('statusHelp'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
     if (statusPage === 6) { panel(ctx, tr('bountyTitle'), '#f8b800'); drawBounties(ctx, t); Font.draw(ctx, tr('statusHelp'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
     if (statusPage === 5) { panel(ctx, tr('mahrTitle'), '#b080fc'); drawMahre(ctx, t); Font.draw(ctx, tr(t % 420 < 240 ? 'mahrHelp' : 'mahrSwap'), cx, 222, '#7c7c8c', { align: 'center' }); return; }
-    ctx.fillStyle = '#020412'; ctx.fillRect(0, 0, w, 240);
-    ctx.fillStyle = '#c89020';
-    ctx.fillRect(6, 6, w - 12, 1); ctx.fillRect(6, 233, w - 12, 1); ctx.fillRect(6, 6, 1, 228); ctx.fillRect(w - 7, 6, 1, 228);
+    Zier.frame(ctx, '#c89020'); Zier.hero(ctx, p, t);
     Game.big(ctx, tr('castleStatus'), cx, 12, 2, LOGO, null, '#000');
     Font.draw(ctx, (p.def && p.def.name ? p.def.name : '') + '    LV ' + lvl(), cx, 34, '#f8b800', { align: 'center', shadow: '#000' });
     const att = Math.round((p.whip >= 2 ? 2 : 1) * 10 * Options.dmgMul), next = rpg.lv >= MAXLV ? 0 : expFor(rpg.lv + 1) - rpg.exp;
@@ -4681,9 +4678,7 @@ const Castle = (() => {
   function draw(ctx, t, warpMode = false, overlay = false) {
     const w = View.w, cx = View.cx, L = castle(), sw = warpMode && trip.list[trip.sel], st = S()[sw ? sw.s : W.stage];
     if (!overlay) {
-      ctx.fillStyle = '#020412'; ctx.fillRect(0, 0, w, 240);
-      ctx.fillStyle = warpMode ? '#2c6cb0' : '#c89020';
-      ctx.fillRect(6, 6, w - 12, 1); ctx.fillRect(6, 233, w - 12, 1); ctx.fillRect(6, 6, 1, 228); ctx.fillRect(w - 7, 6, 1, 228);
+      Zier.frame(ctx, warpMode ? '#2c6cb0' : '#c89020');
       Game.big(ctx, tr(warpMode ? 'warpTitle' : 'mapTitle'), cx, 12, 2, warpMode ? ['#fcfcfc', '#d8f0fc', '#a4e4fc', '#3cbcfc', '#0078f8', '#0040a8', '#001038'] : LOGO, null, '#000');
       Font.draw(ctx, tr(st.nameKey), cx, 32, '#f8b800', { align: 'center', shadow: '#000' });
       const sec = Game.sectionList().find(e => !e.head && e.s === (sw ? sw.s : W.stage) && e.r === (sw ? sw.r : W.roomIdx));

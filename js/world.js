@@ -151,6 +151,7 @@ const W = {
       }
     });
     Kulisse.populate(this); // große Stücke hinter der Spielebene (js/kulisse.js)
+    Leben.populate(this); // Kleintiere, Leuchtpilze und Wurzeln (js/leben.js)
     this.stairs = this.findStairs();
     this.rings = this.ents.filter(e => e instanceof Ring);
     this.player.reset(def.start.x * T + 8, (def.start.y + 1) * T);
