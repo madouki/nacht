@@ -460,6 +460,12 @@ class Skeleton extends Enemy {
     const p = W.player, dx = p.cx - this.cx;
     this.face = Math.sign(dx) || this.face;
     if (!this.onScreen(16)) { this.physics(); return; }
+    if (this.hopT > 0) { this.hopT--; this.vx = -this.face * 1.8; this.physics(); this.touch(); return; }
+    if (this.hopCd > 0) this.hopCd--;
+    else if (Math.abs(dx) < 38 && this.onGround && this.throwT <= 0) { // Rückzugssprung, aber nie in einen Abgrund
+      const row = Math.floor((this.y + this.h + 2) / T), far = Math.floor((this.cx - this.face * 40) / T), near = Math.floor((this.cx - this.face * 20) / T), edge = Math.floor((this.cx - this.face * 56) / T);
+      if (Phys.solidTile(edge, row) && Phys.solidTile(far, row) && Phys.solidTile(near, row) && !Phys.solidTile(far, row - 1) && !Phys.solidTile(near, row - 1)) { this.hopT = 22; this.hopCd = 160 + rnd(0, 60); this.vy = -3; this.onGround = false; Audio8.sfx('djump', this.cx); }
+    }
     let want = 0;
     if (Math.abs(dx) < 56) want = -this.face; else if (Math.abs(dx) > 100) want = this.face;
     else want = Math.sin(this.t / 40) > 0 ? 1 : -1;
@@ -483,24 +489,44 @@ class Skeleton extends Enemy {
 class Knight extends Enemy {
   constructor(tx, ty) {
     super(tx * T + 2, (ty + 1) * T - 30, 12, 30, 5, 2, 500);
-    this.face = -1;
+    this.face = -1; this.ln = 0; this.cd = 70 + rnd(0, 90); // ln: Ausfall (1–25 ausholen, 26–43 vorstoßen, 44–71 verschnaufen)
   }
   hit(dmg, id) {
     const r = super.hit(dmg, id);
-    if (r && !this.dead) Phys.moveX(this, -Math.sign(W.player.cx - this.cx) * 3);
+    if (r && !this.dead) { Phys.moveX(this, -Math.sign(W.player.cx - this.cx) * 3); if (this.ln > 0 && this.ln < 26) { this.ln = 0; this.cd = 120; } } // beim Ausholen getroffen: der Ausfall ist abgewehrt
     return r;
   }
   update() {
     super.update();
     if (!this.onScreen(32)) { this.physics(); return; }
     const p = W.player;
+    if (this.ln > 0) {
+      this.ln++;
+      if (this.ln === 2) Audio8.sfx('tell', this.cx);
+      if (this.ln === 26) Audio8.sfx('whoosh', this.cx);
+      this.vx = this.ln >= 26 && this.ln < 44 && this.groundAhead(this.face) ? this.face * 3 : 0;
+      if (this.vx && this.ln % 3 === 0) W.dust(this.cx - this.face * 6, this.y + this.h, 1);
+      if (this.ln >= 72) { this.ln = 0; this.cd = 130 + rnd(0, 90); }
+      this.physics(); this.touch(); return;
+    }
+    if (this.cd > 0) this.cd--;
+    else { const ad = Math.abs(p.cx - this.cx); if (p.alive && ad > 16 && ad < 92 && Math.abs(p.feet - (this.y + this.h)) < 24) { this.face = Math.sign(p.cx - this.cx) || this.face; this.ln = 1; this.vx = 0; this.physics(); this.touch(); return; } }
     if (this.t % 120 === 0 && Math.abs(p.cx - this.cx) < 120 && Math.abs(p.feet - (this.y + this.h)) < 24) this.face = Math.sign(p.cx - this.cx) || this.face;
     if (!this.groundAhead(this.face)) this.face *= -1;
     this.vx = this.face * 0.45;
     if (this.physics()) this.face *= -1;
     this.touch();
   }
-  draw(ctx) { this.spr(ctx, Sprites.S.knight[Math.floor(this.t / 16) % 2], this.face < 0, 0, 0, this.flash); }
+  draw(ctx) {
+    const k = this.ln, S = Sprites.S.knight, wind = k > 0 && k < 26, rush = k >= 26 && k < 44, f = this.face;
+    if (wind) { // Warnstreifen: so weit trägt der Vorstoß
+      const x0 = Math.round(this.cx - W.cam.x), w = 58, y = Math.round(this.y + this.h - W.cam.y), p = 0.4 + 0.3 * Math.sin(W.frame * 0.6);
+      ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = p; ctx.fillStyle = '#e83018'; ctx.fillRect(f > 0 ? x0 : x0 - w, y - 2, w, 2); ctx.fillStyle = '#fce070'; ctx.fillRect(f > 0 ? x0 + w - 2 : x0 - w, y - 5, 2, 5); ctx.restore();
+    }
+    if (rush) { ctx.globalAlpha = 0.3; this.spr(ctx, S[0], f < 0, -f * 9, 0, false); ctx.globalAlpha = 0.15; this.spr(ctx, S[0], f < 0, -f * 17, 0, false); ctx.globalAlpha = 1; }
+    this.spr(ctx, S[wind || rush ? 0 : Math.floor(this.t / 16) % 2], f < 0, wind ? -f * Math.min(3, Math.round(k / 7)) : 0, 0, this.flash || (wind && k % 10 < 3));
+    if (wind) { const s = Math.round(2 + k / 6), x = Math.round(this.cx + f * 9 - W.cam.x), y = Math.round(this.y + 7 - W.cam.y); ctx.fillStyle = '#fff4d0'; ctx.fillRect(x - s, y, s * 2 + 1, 1); ctx.fillRect(x, y - s, 1, s * 2 + 1); ctx.fillStyle = '#fc6840'; ctx.fillRect(x - 1, y - 1, 3, 3); }
+  }
 }
 
 class Fishman extends Enemy {

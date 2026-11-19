@@ -86,7 +86,7 @@ const Audio8 = (() => {
   // ---------------- SFX ----------------
   let outBus = null; // während sfx(name, x): Stereo-Panner der aktuellen Quelle
   let vary = 1;      // während sfx(name): Tonhöhe leicht verstellt (± 5 %), damit oft gehörte Geräusche nicht jedes Mal gleich klingen
-  const VARY = new Set(['whip', 'hit', 'kill', 'candle', 'hurt', 'bossHit', 'explode', 'wall', 'splash', 'step', 'stepWet', 'klack', 'klack2', 'crumble', 'crash', 'shatter', 'clank',
+  const VARY = new Set(['step_wood', 'step_metal', 'step_snow', 'step_soft', 'whip', 'hit', 'kill', 'candle', 'hurt', 'bossHit', 'explode', 'wall', 'splash', 'step', 'stepWet', 'klack', 'klack2', 'crumble', 'crash', 'shatter', 'clank',
     'flap', 'page', 'splat', 'slime', 'chomp', 'squeak', 'bat', 'throw', 'axe', 'whoosh', 'tink', 'zap', 'laser', 'djump', 'crack', 'boom', 'raven', 'crit', 'ghost', 'stone', 'cast']);
   function tone(type, f0, f1, dur, vol, duty, t0) {
     if (!ac) return;
@@ -229,6 +229,10 @@ const Audio8 = (() => {
     ding: () => { if (!ac) return; const t = ac.currentTime; tone('triangle', 1318.5, 1318.5, 0.45, 0.1, 0.5, t); tone('triangle', 1046.5, 1046.5, 0.7, 0.09, 0.5, t + 0.16); }, // Paternoster: Stockwerk (Fahrstuhlmusik verlangt das)
     stamp: () => { tone('triangle', 110, 40, 0.35, 0.55); noise(0.3, 0.45, 'lowpass', 2200, 120); arp(['c6', 'g6', 'c7'], 0.05, 'pulse', 0.13, 0.125); },
     step: () => { noise(0.045, 0.07, 'lowpass', 1100, 250); tone('triangle', 120, 70, 0.04, 0.05); },
+    step_wood: () => { tone('triangle', 175, 95, 0.06, 0.08); noise(0.035, 0.04, 'bandpass', 900, 500); },   // Dielen
+    step_metal: () => { tone('triangle', 1250, 900, 0.05, 0.022); tone('triangle', 420, 300, 0.04, 0.04); noise(0.03, 0.035, 'highpass', 2600, 2000); }, // Gitterrost und Blech
+    step_snow: () => { noise(0.085, 0.075, 'bandpass', 2400, 1200); noise(0.05, 0.03, 'highpass', 4200, 3000); }, // knirschender Schnee
+    step_soft: () => { noise(0.06, 0.06, 'lowpass', 520, 180); tone('sine', 90, 60, 0.05, 0.035); },          // Moos und Erde
     chain: () => { if (!ac) return; const t = ac.currentTime; for (let i = 0; i < 4; i++) { noise(0.03, 0.1, 'bandpass', 3400 - i * 200, 2200, t + i * 0.05); tone('square', 1900 - i * 120, 1500, 0.02, 0.025, null, t + i * 0.05); } }, // Kettenrasseln
     spin: () => noise(0.09, 0.07, 'bandpass', 1400, 2600), // wirbelndes Wurfkreuz
     glug: () => { tone('sine', 380, 190, 0.09, 0.22); noise(0.06, 0.08, 'lowpass', 700, 300); }, // Pflanze trinkt
@@ -267,7 +271,9 @@ const Audio8 = (() => {
     return true;
   }
   // x (optional): Weltposition der Quelle → Stereo-Position relativ zur Bildmitte
+  let floor = ''; // Untergrund des Raums: Schritte klingen auf Holz, Metall, Schnee und Moos anders
   function sfx(name, x) {
+    if (name === 'step' && floor) name = 'step_' + floor;
     if (!ac || !SFX[name]) return;
     const now = ac.currentTime;
     if (last[name] && now - last[name] < 0.035) return;
@@ -1592,7 +1598,7 @@ const Audio8 = (() => {
   function danger(on) { on = !!on; if (on === dangerOn) return; dangerOn = on; if (muffleF && ac && !slowOn) muffleF.frequency.setTargetAtTime(rest(), ac.currentTime, on ? 0.5 : 0.8); }
   function duck(on) { if (duckBus && ac) duckBus.gain.setTargetAtTime(on ? 0.45 : 1, ac.currentTime, on ? 0.06 : 0.5); }
 
-  return { init, prepare, sfx, play, stop, ambience, drip, toggleMute, setMusicVolume, setMusicLevel, ready, duck, muffle, tempo, intensity, slow, danger,
+  return { setFloor(m) { floor = m || ''; }, get floor() { return floor; }, init, prepare, sfx, play, stop, ambience, drip, toggleMute, setMusicVolume, setMusicLevel, ready, duck, muffle, tempo, intensity, slow, danger,
     get drumLevel() { return drumLvl; },
     steps: () => (ac && song ? Math.max(0, ac.currentTime - songT0) * song.bpm * tempoMul / 15 : null), // Sechzehntel seit Liedbeginn (Taktduell)
     context: () => ac, voiceOut: () => voiceBus,

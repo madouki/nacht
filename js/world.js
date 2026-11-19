@@ -150,6 +150,7 @@ const W = {
         case 'crumble': this.platforms.push(this.spawn(new Crumble(d))); break;
       }
     });
+    Audio8.setFloor({ library: 'wood', hotel: 'wood', theater: 'wood', ship: 'wood', werk: 'metal', station: 'metal', lab: 'metal', ice: 'snow', cave: 'soft', forest: 'soft', expo: 'soft' }[def.theme]);
     Kulisse.populate(this); // große Stücke hinter der Spielebene (js/kulisse.js)
     Leben.populate(this); // Kleintiere, Leuchtpilze und Wurzeln (js/leben.js)
     Champ.populate(this); // manchmal ein goldener Gegner (js/champ.js)

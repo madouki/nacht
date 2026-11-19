@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-0259](#20261119-0259--klügere-gegner-ritter-ausfall-skelett-rücksprung-schritte-je-untergrund) – Klügere Gegner: Ritter-Ausfall, Skelett-Rücksprung, Schritte je Untergrund
 - [20261119-0241](#20261119-0241--bibliothek-wieder-frei-trefferwucht-goldene-champions-mehr-tiefe-im-bild) – Bibliothek wieder frei, Trefferwucht, goldene Champions, mehr Tiefe im Bild
 - [20261119-0216](#20261119-0216--lebendiges-schloss-kleintiere-höhlenflora-neue-menüs-schneller-zurück-ins-spiel) – Lebendiges Schloss: Kleintiere, Höhlenflora, neue Menüs, schneller zurück ins Spiel
 - [20261119-0132](#20261119-0132--bossansagen-liegen-über-allen-bossen) – Bossansagen liegen über allen Bossen
@@ -47,6 +48,21 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-0259 – Klügere Gegner: Ritter-Ausfall, Skelett-Rücksprung, Schritte je Untergrund
+
+**Neu – Gegner**
+- Ritter holen aus und stoßen dann mit einem Ausfall vor. Ein roter Streifen am Boden zeigt vorher, wie weit der Stoß reicht.
+- Wer den Ritter beim Ausholen trifft, wehrt den Ausfall ab. Nach dem Stoß muss er kurz verschnaufen, das ist deine Gelegenheit.
+- Skelette springen zurück, wenn du ihnen zu nah kommst, und werfen dann aus sicherer Entfernung weiter.
+
+**Neu – Ton**
+- Schritte klingen je nach Untergrund: Dielen in Bibliothek, Hotel und Theater, Metall in Werk, Bahnhof und Labor, knirschender Schnee im Eis, weiches Moos in Höhlen, Wald und Wintergarten.
+
+**Beim Testen ansehen**
+- Ritter: Ist der Ausfall gut zu lesen und fair? Lässt er sich durch einen Treffer beim Ausholen abwehren?
+- Skelette: Fühlt sich der Rücksprung gut an? Bitte auf Skelette an Kanten achten, besonders in Höhle und Eishöhle.
+- Schritte in Bibliothek, Werk, Eiskeller und Kanal: Klingen sie passend und nicht zu laut?
 
 ## 20261119-0241 – Bibliothek wieder frei, Trefferwucht, goldene Champions, mehr Tiefe im Bild
 
