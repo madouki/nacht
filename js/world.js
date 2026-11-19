@@ -154,7 +154,7 @@ const W = {
     Kulisse.populate(this); // große Stücke hinter der Spielebene (js/kulisse.js)
     Leben.populate(this); // Kleintiere, Leuchtpilze und Wurzeln (js/leben.js)
     Champ.populate(this); // manchmal ein goldener Gegner (js/champ.js)
-    Drastik.populate(this); Gewissen.populate(this); Gewissen.roomEvents(this); Arena.populate(this); Huhn.populate(this); Rausch.populate(this); // Flecken, Gewissensfragen, Opferschreine und der Ansager im Kolosseum
+    Drastik.populate(this); Gewissen.populate(this); Gewissen.roomEvents(this); Arena.populate(this); Huhn.populate(this); Rausch.populate(this); Kunst.populate(this); // Flecken, Gewissensfragen, Opferschreine und der Ansager im Kolosseum
     this.stairs = this.findStairs();
     this.rings = this.ents.filter(e => e instanceof Ring);
     this.player.reset(def.start.x * T + 8, (def.start.y + 1) * T);
@@ -324,7 +324,7 @@ const W = {
   // box: ein Rechteck oder eine Liste (Peitsche im Winkel = Kette kleiner Trefferzonen)
   whipAt(box, dmg, id) { // gibt die Zahl der Treffer zurück (federnder Abwärtshieb)
     const boxes = Array.isArray(box) ? box : [box];
-    let n = 0;
+    let n = 0, foe = 0; // foe: davon Gegner und Bosse (Waffenkünste, js/kunst.js)
     const hits = (r) => { const h = boxes.some(b => Phys.overlap(b, r)); return h; };
     for (const e of this.ents) {
       if (e.dead) continue;
@@ -332,7 +332,7 @@ const W = {
       else if (e.kind === 'enemy' || e.kind === 'boss') {
         if (e.kind === 'enemy' && e.rise !== undefined && e.rise < 12) continue;
         const vul = e.hurtBoxes ? e.hurtBoxes().some(hits) : hits(e.hurtBox ? e.hurtBox() : e);
-        if (vul) { n++; if (e.hit(dmg, id)) Input.rumble(0.15, 0.35, 60); }
+        if (vul) { n++; foe++; if (e.hit(dmg, id)) Input.rumble(0.15, 0.35, 60); }
         else if (e.armorBoxes) { const ab = e.armorBoxes().find(hits); if (ab) { e.deflect(id, ab); n++; } } // Panzerung: prallt ab (zählt für den federnden Abwärtshieb)
       } else if (e.kind === 'eproj' && !e.reflected && !e.unstoppable && hits(e)) { // Konter: Geschosse zerschlagen bzw. zurückschleudern
         if (e instanceof EProj) { // seit 20261106: jedes gewöhnliche Geschoss (Feuer, Knochen, Stein, Buchseite, Eis) fliegt zurück
@@ -352,6 +352,7 @@ const W = {
         if (ch === 'X' || ch === 'Y') this.breakTile(cx, cy, ch);
       }
     }
+    this.foeHits = foe;
     return n;
   },
 
@@ -703,7 +704,7 @@ const W = {
     Rays.draw(ctx, this.room, this.cam, this.frame);
     for (const e of this.ents) if (e.drawLit && !e.dead) e.drawLit(ctx); // Riesen (Steingolem): nach Licht und Nebel, mit eigener 3D-Beleuchtung
     Duell.drawTell(ctx); // Angriffsansagen: über allem, auch über den riesigen Bossen
-    Champ.over(ctx); Huhn.over(ctx);
+    Champ.over(ctx); Huhn.over(ctx); Kunst.over(ctx);
     if (Options.bloom) FX.bloom(ctx, theme === 'ballroom' ? 0.4 - 0.3 * Ball.FL.a : this.room.bloom ?? BLOOM[theme] ?? 1); // Glühen über allem, was leuchtet (je Raum dämpfbar)
     this.drawGates(ctx); // Fallgitter der Bosskammer (nach dem Licht: Eisen bleibt auch im dunklen Stollen sichtbar)
     if (theme === 'mirror') Mirror.capture(ctx); // Spiegelgalerie: dieses Bild spiegelt sich im nächsten (vor Blitz, Blutmond und Warnrand)

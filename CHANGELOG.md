@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-0532](#20261119-0532--waffenkünste-und-kerzenmimik) – Waffenkünste und Kerzenmimik
 - [20261119-0510](#20261119-0510--bossrausch-und-neue-3d-kulissen) – Bossrausch und neue 3D-Kulissen
 - [20261119-0437](#20261119-0437--geheimnisjagd-große-boss-auftritte-und-klangkulissen) – Geheimnisjagd, große Boss-Auftritte und Klangkulissen
 - [20261119-0414](#20261119-0414--gladiatorenprüfung-champions-mit-eigenschaften-und-folgen-des-gewissens) – Gladiatorenprüfung, Champions mit Eigenschaften und Folgen des Gewissens
@@ -52,6 +53,25 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-0532 – Waffenkünste und Kerzenmimik
+
+**Neu – Waffenkünste**
+- Drei Treffer kurz hintereinander entfesseln die Kunst deiner Waffe. Drei Punkte über dem Kopf zeigen, wie weit die Kette ist.
+- Ohne Waffe gibt es einen Wuchtschlag mit doppeltem Schaden.
+- Silberschwert: Ein Silberkreuz fliegt weit und schneidet durch alles.
+- Blutrune: Blutzoll heilt dich für jeden getroffenen Gegner.
+- Drachenzahn: Eine Feuerwalze aus fünf Flammensäulen läuft über den Boden.
+- Reißzahn: Getroffene Gegner bluten viermal nach.
+
+**Neu – Kerzenmimik**
+- Manchmal ist eine Kerze keine Kerze. Wer sie trifft, weckt eine bissige Mimik, die auf dich zuhüpft.
+- Aufmerksame sehen es vorher: Mimiken blinzeln ab und zu mit roten Augen.
+- Besiegt lässt sie einen großen Geldsack und die Beute der Kerze fallen.
+
+**Beim Testen ansehen**
+- Mit jeder Waffe dreimal hintereinander treffen und die Künste vergleichen, auch gegen Bosse.
+- In Kerker und Gruftgang auf blinzelnde Kerzen achten.
 
 ## 20261119-0510 – Bossrausch und neue 3D-Kulissen
 

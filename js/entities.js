@@ -224,6 +224,7 @@ class Player {
     const box = this.whipBox();
     const dmg = (this.whip >= 2 ? 2 : 1) * Options.dmgMul * (this.rageT > 0 ? 2 : 1);
     const n = W.whipAt(box, dmg, this.atkId, this.face);
+    Kunst.swing(this, W.foeHits, box, dmg); // drei Treffer in Folge: Waffenkunst
     if (n && !this.onGround && (this.atkDir === 'down' || this.atkDir === 'downd') && !(this.pogoT > 0)) { // Abwärtshieb federt: Treffer nach unten schleudert den Helden hoch
       this.vy = JUMP * 0.85; this.pogoT = 14; this.canDouble = true; this.canAirDash = true; this.jumping = false;
       Audio8.sfx('tink'); W.spawn(new Shock(this.cx, this.feet, 14, '#fce0a8', 2));

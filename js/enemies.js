@@ -161,6 +161,7 @@ class Candle extends Ent {
   hit() {
     if (this.dead) return;
     this.dead = true;
+    if (this.mimic) { Kunst.wake(this); return; } // Kerzenmimik (js/kunst.js)
     Audio8.sfx('candle', this.cx);
     W.spawn(new Burst(this.cx, this.cy));
     W.sparks(this.cx, this.y + 2, 5);
