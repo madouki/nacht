@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261120-0028](#20261120-0028--neuer-zwischenboss-kettenhund-brutus-im-zwinger) – Neuer Zwischenboss: Kettenhund Brutus im Zwinger
 - [20261119-2129](#20261119-2129--hd-3d-holzpuppe-und-schaufensterpuppe-neu-aus-blender) – HD-3D: Holzpuppe und Schaufensterpuppe neu aus Blender
 - [20261119-2126](#20261119-2126--hd-3d-skelett-eisskelett-und-ritter-neu-aus-blender) – HD-3D: Skelett, Eisskelett und Ritter neu aus Blender
 - [20261119-2016](#20261119-2016--drei-neue-urkunden) – Drei neue Urkunden
@@ -68,6 +69,21 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261120-0028 – Neuer Zwischenboss: Kettenhund Brutus im Zwinger
+
+**Neu – Kettenhund Brutus**
+- Im Zwinger, dem Gang zwischen Torstube und Hotelfassade, liegt jetzt der Wachhund des Grafen an der Kette: ein schwerer Mastiff mit Stachelhalsband, modelliert in Blender. Er wartet seit 1823 auf seinen Spaziergang.
+- Die Kette hängt an einem Pfahl mitten in der Arena und reicht nur so weit. Springt Brutus nach einem Helden außer Reichweite, reißt ihn die Kette mitten im Sprung zurück. Dann liegt er auf dem Rücken, zappelt mit den Beinen und steckt mehr Schaden ein.
+- Wer in Reichweite steht, wird angesprungen.
+- Er bellt ein „WAU!“, das als Schallwelle über den Boden rollt (drüberspringen). In jeder Sprache bellt er anders.
+- Ab halber Energie lockert sich der Pfahl: Die Kette reicht weiter, Brutus wird schneller und bellt zweimal.
+- Mit Auftritt, Beinamen („Hunde, die bellen, beißen doch“), Wortgeplänkel, Bestiariums-Eintrag und einem Eintrag im Wegweiser.
+- Beute: das Stachelhalsband (Amulett, +2 Angriff).
+
+**Beim Testen ansehen**
+- Im Zwinger am Rand der Arena bleiben und ihn ins Leere springen lassen: Ist gut zu erkennen, wie weit die Kette reicht?
+- Ist der Kampf früh im Spiel fair, oder ist Brutus zu stark?
 
 ## 20261119-2129 – HD-3D: Holzpuppe und Schaufensterpuppe neu aus Blender
 

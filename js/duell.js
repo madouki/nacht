@@ -38,6 +38,7 @@ const Duell = (() => {
     Conductor: { raise: [0], swing: [12], whistle: [12] },
     Doppel: { atk: [0] },
     Hauptmann: { wind: [14], bashWind: [14, 'line'], leapWind: [14] },
+    Kettenhund: { crouch: [14], barkWind: [10] },
     TentacleBoss: { aim: [0], coil: [0], warn: [0], spit: [0] },
   };
   // Sprünge mit eigener Bahn: der Boden zeigt, wo der Boss wirklich aufkommt (g: Schwerkraft, m: Abstand zur Arenawand, k: Tempo im Endspurt)
