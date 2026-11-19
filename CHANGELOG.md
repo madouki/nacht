@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-2012](#20261119-2012--zwei-neue-gegner-hüpfsarg-und-walzerpaar) – Zwei neue Gegner: Hüpfsarg und Walzerpaar
 - [20261119-1932](#20261119-1932--neuer-gegner-der-wetterhahn) – Neuer Gegner: der Wetterhahn
 - [20261119-1638](#20261119-1638--neuer-gegner-der-galvanifrosch) – Neuer Gegner: der Galvanifrosch
 - [20261119-1616](#20261119-1616--die-kantinenküche-zutaten-sammeln-gerichte-kochen) – Die Kantinenküche: Zutaten sammeln, Gerichte kochen
@@ -64,6 +65,30 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-2012 – Zwei neue Gegner: Hüpfsarg und Walzerpaar
+
+**Neu – Hüpfsarg**
+- In Kerker, Kapelle und Gruftgang sowie im Hotel (Zimmer 13 hat einen Dauergast) stehen jetzt Särge aus dunklem Holz, die wie Dekoration aussehen.
+- Kommt der Held näher, hüpft ihm der Sarg in drei Sprüngen hinterher. Jeder Aufprall staubt und rumst.
+- Dann geht der Deckel einen Spalt auf und zwei Augen glühen. Gleich danach springt er ganz auf: Drin sitzt der mürrische Vormieter mit Schlafmütze, schimpft und scheucht zwei Fledermäuse hinaus.
+- Mit geschlossenem Deckel prallt fast jeder Schlag ab. Nur offen nimmt der Sarg vollen Schaden.
+- Er lässt manchmal Knochen für die Kieselsuppe der Kantinenküche fallen.
+- Modell und Posen sind in Blender gebaut und gerendert, dazu gibt es einen Bestiariums-Eintrag.
+
+**Neu – Walzerpaar**
+- Im Foyer, im Ballsaal, im Theaterfoyer und im Theater tanzt jetzt ein Geisterpaar, er im Frack, sie im Ballkleid. Seit 1802 tanzen die beiden denselben Walzer.
+- Sie drehen sich im Dreivierteltakt über den Boden und kommen dem Helden zwei Takte lang näher, auf der Eins mit einem großen Schritt.
+- Dann verbeugen sie sich, und ein Fächer aus fünf Noten fliegt im Bogen heraus. Man kann zwischen den Noten hindurch oder darüber springen.
+- Manchmal tritt er ihr dabei auf den Fuß, und sie beschwert sich, in jeder Sprache.
+- Das Paar lässt manchmal Ektoplasma für den Geisterpudding der Kantinenküche fallen.
+- Modell und Drehung sind in Blender gebaut und gerendert, dazu gibt es einen Bestiariums-Eintrag.
+
+**Beim Testen ansehen**
+- Im Kerker warten, bis der Sarg aufgeht, und dann zuschlagen.
+- Ist das offene Zeitfenster lang genug, und stören die Fledermäuse zu sehr?
+- Im Ballsaal den Notenfächer überspringen.
+- Sind die Noten vor dem Hintergrund gut zu sehen?
 
 ## 20261119-1932 – Neuer Gegner: der Wetterhahn
 
