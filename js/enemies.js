@@ -524,8 +524,9 @@ class Knight extends Enemy {
       const x0 = Math.round(this.cx - W.cam.x), w = 58, y = Math.round(this.y + this.h - W.cam.y), p = 0.4 + 0.3 * Math.sin(W.frame * 0.6);
       ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = p; ctx.fillStyle = '#e83018'; ctx.fillRect(f > 0 ? x0 : x0 - w, y - 2, w, 2); ctx.fillStyle = '#fce070'; ctx.fillRect(f > 0 ? x0 + w - 2 : x0 - w, y - 5, 2, 5); ctx.restore();
     }
-    if (rush) { ctx.globalAlpha = 0.3; this.spr(ctx, S[0], f < 0, -f * 9, 0, false); ctx.globalAlpha = 0.15; this.spr(ctx, S[0], f < 0, -f * 17, 0, false); ctx.globalAlpha = 1; }
-    this.spr(ctx, S[wind || rush ? 0 : Math.floor(this.t / 16) % 2], f < 0, wind ? -f * Math.min(3, Math.round(k / 7)) : 0, 0, this.flash || (wind && k % 10 < 3));
+    const fw = S[2] || S[0], fr = S[3] || S[0]; // Blender-Ritter (knochen.js): eigene Bilder für Ausholen und Ausfall
+    if (rush) { ctx.globalAlpha = 0.3; this.spr(ctx, fr, f < 0, -f * 9, 0, false); ctx.globalAlpha = 0.15; this.spr(ctx, fr, f < 0, -f * 17, 0, false); ctx.globalAlpha = 1; }
+    this.spr(ctx, wind ? fw : rush ? fr : S[Math.floor(this.t / 16) % 2], f < 0, wind ? -f * Math.min(3, Math.round(k / 7)) : 0, 0, this.flash || (wind && k % 10 < 3));
     if (wind) { const s = Math.round(2 + k / 6), x = Math.round(this.cx + f * 9 - W.cam.x), y = Math.round(this.y + 7 - W.cam.y); ctx.fillStyle = '#fff4d0'; ctx.fillRect(x - s, y, s * 2 + 1, 1); ctx.fillRect(x, y - s, 1, s * 2 + 1); ctx.fillStyle = '#fc6840'; ctx.fillRect(x - 1, y - 1, 3, 3); }
   }
 }

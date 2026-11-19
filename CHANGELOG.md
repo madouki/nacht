@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-2126](#20261119-2126--hd-3d-skelett-eisskelett-und-ritter-neu-aus-blender) – HD-3D: Skelett, Eisskelett und Ritter neu aus Blender
 - [20261119-2016](#20261119-2016--drei-neue-urkunden) – Drei neue Urkunden
 - [20261119-2012](#20261119-2012--zwei-neue-gegner-hüpfsarg-und-walzerpaar) – Zwei neue Gegner: Hüpfsarg und Walzerpaar
 - [20261119-1932](#20261119-1932--neuer-gegner-der-wetterhahn) – Neuer Gegner: der Wetterhahn
@@ -66,6 +67,19 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-2126 – HD-3D: Skelett, Eisskelett und Ritter neu aus Blender
+
+**Neu – HD-3D-Gegner**
+- Die beiden häufigsten Gegner im Schloss, Skelett und Ritter, sind jetzt in Blender modelliert und gerendert, wie die neuen Gegner der letzten Updates. Bisher kamen sie aus einem einfachen 2D-Gerüst.
+- Das Skelett hat glühende Augenhöhlen, einen zerschlissenen Lendenschurz und ein eigenes Bild für den Knochenwurf.
+- Das Eisskelett hat bereifte Knochen, Eiszapfen an den Rippen und kalt leuchtende Augen.
+- Der Ritter trägt Plattenrüstung mit Topfhelm, rotem Busch und Wappenrock. Für Ausholen und Ausfall hat er jetzt eigene Posen: Er zieht das Schwert zurück und stößt dann mit gestrecktem Arm zu.
+- Ihr Verhalten ist unverändert.
+
+**Beim Testen ansehen**
+- In der Gruft und im Kerker: Sind Skelett und Ritter gut vom Hintergrund zu unterscheiden?
+- Ist der Ausfall des Ritters jetzt besser zu lesen?
 
 ## 20261119-2016 – Drei neue Urkunden
 

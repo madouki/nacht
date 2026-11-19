@@ -281,10 +281,10 @@ class IceSkeleton extends Enemy {
     return super.hit(dmg, id);
   }
   draw(ctx) {
-    const s = Sprites.S.skel[Math.floor(this.t / 14) % 2];
+    const L = Sprites.S.skelIce, s = (L || Sprites.S.skel)[Math.floor(this.t / 14) % 2]; // bereifte Blender-Knochen (knochen.js), sonst das Rig-Skelett mit Reif
     this.spr(ctx, s, this.face < 0, 0, 0, this.flash);
     const x = Math.round(this.cx - W.cam.x), y = Math.round(this.y - W.cam.y);
-    ctx.fillStyle = '#c8f4fc'; ctx.fillRect(x - 3, y + 1, 6, 1); ctx.fillRect(x - 5, y + 9, 3, 1); ctx.fillRect(x + 3, y + 9, 3, 1); // Reif
+    if (!L) { ctx.fillStyle = '#c8f4fc'; ctx.fillRect(x - 3, y + 1, 6, 1); ctx.fillRect(x - 5, y + 9, 3, 1); ctx.fillRect(x + 3, y + 9, 3, 1); } // Reif
     ctx.fillStyle = '#7cd8f4'; ctx.fillRect(x - 6, y + this.h - 1, 12, 1); ctx.fillStyle = '#ffffff'; ctx.fillRect(x - 6, y + this.h - 1, 2, 1); // Kufen
   }
 }
