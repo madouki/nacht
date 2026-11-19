@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-1114](#20261119-1114--neuer-gegner-der-wasserspeier) – Neuer Gegner: der Wasserspeier
 - [20261119-0634](#20261119-0634--drei-neue-waffen-mit-eigenen-künsten) – Drei neue Waffen mit eigenen Künsten
 - [20261119-0606](#20261119-0606--zwei-neue-nebenaufträge) – Zwei neue Nebenaufträge
 - [20261119-0532](#20261119-0532--waffenkünste-und-kerzenmimik) – Waffenkünste und Kerzenmimik
@@ -55,6 +56,19 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-1114 – Neuer Gegner: der Wasserspeier
+
+**Neu – Wasserspeier**
+- In Türmen, Hallen, Galerien, Bibliotheken, Grüften, im Hof und auf der Brücke hocken jetzt Wasserspeier als Steinfiguren auf Simsen über Abgründen.
+- Als Stein sind sie unverwundbar, Treffer schlagen nur Funken.
+- Geht der Held darunter vorbei, glühen ihre Augen auf. Dann reißen sie sich los und stürzen sich auf ihn.
+- Auf dem mühsamen Rückflug zu ihrem Sims sind sie verwundbar.
+- Das Modell ist in Blender gebaut und gerendert (Stein, Erwachen, Flügelschlag, Sturzflug), dazu gibt es einen Bestiariums-Eintrag.
+
+**Beim Testen ansehen**
+- Unter einem Wasserspeier hindurchgehen, dem Sturz ausweichen und ihn im Rückflug treffen.
+- Ein Raum soll bei jedem Besuch dieselben Wasserspeier an denselben Plätzen haben.
 
 ## 20261119-0634 – Drei neue Waffen mit eigenen Künsten
 
