@@ -32,7 +32,7 @@ const Rausch = (() => {
     const r = run, f = F(), n = win ? r.list.length : r.i, all = rooms().length; run = null;
     f.rausch_n = Math.max(f.rausch_n || 0, n);
     const gold = n * (win ? 600 : 300); if (gold) W.addScore(gold);
-    if (win) { if (!f.rausch_best || r.time < f.rausch_best) f.rausch_best = r.time; if (r.list.length >= all) f.rausch_all = 1; Audio8.sfx('cert'); }
+    if (win) { if (!f.rausch_best || r.time < f.rausch_best) f.rausch_best = r.time; if (r.list.length >= all) { f.rausch_all = 1; if (!Castle.inv.donner) Castle.giveItem('donner', true); } Audio8.sfx('cert'); } // erster ganzer Rausch: die Donnerpeitsche
     Castle.setFlag('rausch_seen');
     if (win) { const k = Castle.side.kolosseum; home = { n, time: r.time, gold }; Game.castleGo({ s: k.s, r: k.r, place: 'start' }); }
     else out = { n, all: r.list.length };

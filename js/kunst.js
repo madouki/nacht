@@ -3,7 +3,7 @@
 // Dazu die Kerzenmimik: Ab und zu ist eine Kerze keine Kerze. Wer genau hinsieht, merkt es am Blinzeln.
 'use strict';
 const Kunst = (() => {
-  const ART = { silver: 'kreuz', bloodrune: 'blut', dragonfang: 'feuer', reisszahn: 'reissen' }, GAP = 62;
+  const ART = { silver: 'kreuz', bloodrune: 'blut', dragonfang: 'feuer', reisszahn: 'reissen', frostklinge: 'eis', donner: 'blitz', sternstab: 'sterne' }, GAP = 62;
   let chain = 0, lastId = -1, lastT = -999, ids = 0;
   const art = () => { const w = typeof Castle !== 'undefined' && Castle.on && Castle.eq && Castle.eq.weapon; return ART[w] || 'wucht'; };
   function foes(box, fn) { // jeder Gegner und Boss, dessen Trefferzone eine der Boxen berührt
@@ -20,7 +20,7 @@ const Kunst = (() => {
   }
   function fire(p, box, dmg) {
     const a = art(), id = 'k' + (++ids), F = typeof Castle !== 'undefined' && Castle.on && Castle.flags;
-    W.popup(p.cx, p.y - 18, tr('kunst_' + a), a === 'blut' ? '#fc5c6c' : a === 'feuer' ? '#fca040' : a === 'kreuz' ? '#e0e8fc' : a === 'reissen' ? '#fc8c8c' : '#fce0a8');
+    W.popup(p.cx, p.y - 18, tr('kunst_' + a), a === 'blut' ? '#fc5c6c' : a === 'feuer' ? '#fca040' : a === 'kreuz' ? '#e0e8fc' : a === 'reissen' ? '#fc8c8c' : a === 'eis' ? '#a4e4fc' : a === 'blitz' ? '#f8f070' : a === 'sterne' ? '#fce890' : '#fce0a8');
     W.hitstop = Math.max(W.hitstop, 5); Input.rumble(0.5, 0.6, 160); // kein Vollbild-Blitz: die Kunst kommt oft
     if (F && !F.kunst_tip) { Castle.setFlag('kunst_tip'); Game.note('kunstFirst'); }
     if (F) F.kunst = (F.kunst || 0) + 1;
@@ -33,7 +33,42 @@ const Kunst = (() => {
       let n = 0; foes(box, e => { n++; e.hit(dmg, id); for (let i = 0; i < 6; i++) W.spawn(new Particle(e.cx, e.cy, (p.cx - e.cx) / 26 + rnd(-0.4, 0.4), (p.cy - e.cy) / 26 + rnd(-0.6, 0.2), i % 2 ? '#fc3c3c' : '#a8101c', 26, 2, 0)); });
       const heal = Math.min(p.maxHp - p.hp, 2 + n * 2); if (heal > 0) { p.hp += heal; W.popup(p.cx, p.y - 8, '+' + heal, '#7cf8a0'); } Audio8.sfx('heart', p.cx);
     } else if (a === 'feuer') { W.spawn(new Walze(p.cx, p.feet, p.face, dmg * 1.5)); Audio8.sfx('boom', p.cx); }
-    else { foes(box, e => { e.hit(dmg, id); W.spawn(new Riss(e, dmg)); }); Audio8.sfx('crit', p.cx); }
+    else if (a === 'eis') { // Eisschlag: Gegner erstarren (Bosse nehmen nur Schaden)
+      foes(box, e => { e.hit(dmg * 1.2, id); if (e.kind === 'enemy' && !e.dead) freeze(e, 110); for (let i = 0; i < 8; i++) W.spawn(new Particle(e.cx + rnd(-6, 6), e.cy + rnd(-8, 8), rnd(-0.6, 0.6), rnd(-1, 0.2), i % 2 ? '#a4e4fc' : '#fcfcfc', 30, 1, 0.04)); });
+      Audio8.sfx('tink', p.cx); Audio8.sfx('crack', p.cx);
+    } else if (a === 'blitz') { // Kettenblitz: springt vom ersten Getroffenen zu bis zu drei weiteren Gegnern
+      const first = []; foes(box, e => first.push(e)); if (!first.length) return;
+      const chain = [first[0]]; let cur = first[0];
+      for (let k = 0; k < 3; k++) { let best = null, bd = 140; for (const e of W.ents) { if (e.dead || (e.kind !== 'enemy' && e.kind !== 'boss') || chain.includes(e)) continue; const d = Math.hypot(e.cx - cur.cx, e.cy - cur.cy); if (d < bd) { bd = d; best = e; } } if (!best) break; chain.push(best); cur = best; }
+      chain.forEach(e => e.hit(dmg * 1.5, id)); W.spawn(new Blitz([{ x: p.cx + p.face * 12, y: p.atkTop() + 6 }, ...chain.map(e => ({ x: e.cx, y: e.cy }))])); Audio8.sfx('zap', p.cx); W.shake = Math.max(W.shake, 4);
+    } else if (a === 'sterne') { // Sternschnuppen: fünf Sterne fallen vor dem Helden herab
+      for (let i = 0; i < 5; i++) { const y = W.cam.y - 8 - i * 16, land = p.cx + p.face * (14 + i * 16) + rnd(-4, 4); W.spawn(new Stern(land - p.face * 1.4 * Math.max(0, p.feet - 10 - y) / 5.2, y, p.face, dmg * 1.3)); } // so gezielt, dass sie vor dem Helden einschlagen
+      Audio8.sfx('cast', p.cx);
+    } else { foes(box, e => { e.hit(dmg, id); W.spawn(new Riss(e, dmg)); }); Audio8.sfx('crit', p.cx); }
+  }
+  function freeze(e, n) { // Gegner steht still, bis das Eis taut
+    const was = e.frozenT > 0; e.frozenT = n; e.kbT = 0; if (was) return;
+    if (!e.frozenWrap) { e.frozenWrap = true; const wu = e.wucht; if (wu) e.wucht = function () { if (this.frozenT > 0) return; return wu.call(this); }; } // im Eis fliegt nichts zurück
+    const up = e.update; e.update = function () { if (this.frozenT > 0) { this.frozenT--; if (this.flashT > 0) this.flashT--; if (this.frozenT === 0) W.sparks(this.cx, this.cy, 4); return; } this.update = up; up.call(this); };
+  }
+  class Blitz extends Ent { // gezackte Blitzbahn über alle Glieder der Kette
+    constructor(pts) { super(pts[0].x, pts[0].y, 1, 1); this.kind = 'fx'; this.pts = pts; this.seg = pts.slice(1).map((b, i) => { const a = pts[i], L = []; for (let k = 0; k <= 6; k++) L.push({ x: a.x + (b.x - a.x) * k / 6 + (k % 6 ? rnd(-6, 6) : 0), y: a.y + (b.y - a.y) * k / 6 + (k % 6 ? rnd(-6, 6) : 0) }); return L; }); }
+    update() { if (++this.t > 16) this.dead = true; if (this.t % 4 === 0) this.seg.forEach(L => L.forEach((q, k) => { if (k % 6) { q.x += rnd(-3, 3); q.y += rnd(-3, 3); } })); }
+    lightUp(L, cx, cy) { for (const q of this.pts) L.push({ x: q.x - cx, y: q.y - cy, r: 34, c: [248, 240, 140], a: 0.5 * (1 - this.t / 16) }); }
+    draw(ctx) {
+      if ((this.t >> 1) % 3 === 2) return;
+      for (const L of this.seg) for (const [w, c] of [[3, 'rgba(248,232,96,0.55)'], [1, '#fffbe0']]) { ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); L.forEach((q, k) => { const x = Math.round(q.x - W.cam.x) + 0.5, y = Math.round(q.y - W.cam.y) + 0.5; if (k) ctx.lineTo(x, y); else ctx.moveTo(x, y); }); ctx.stroke(); }
+    }
+  }
+  class Stern extends Ent { // Sternschnuppe: fällt schräg, trifft jeden Gegner einmal, zerplatzt am Boden
+    constructor(x, y, d, dmg) { super(x - 6, y - 6, 12, 12); this.kind = 'fx'; this.d = d; this.dmg = dmg; this.id = 'ks' + (++ids); }
+    update() {
+      this.t++; this.x += this.d * 1.4; this.y += 5.2; foes(this, e => e.hit(this.dmg, this.id));
+      if (this.t % 2 === 0) W.spawn(new Particle(this.cx, this.cy, rnd(-0.3, 0.3), -0.4, this.t % 4 ? '#fce890' : '#fcfcfc', 14, 1, 0));
+      if (Phys.solidTile(Math.floor(this.cx / T), Math.floor((this.y + this.h) / T)) || this.y > W.cam.y + 240 || this.t > 90) { this.dead = true; W.spawn(new Shock(this.cx, this.cy, 18, '#fce890', 2)); W.sparks(this.cx, this.cy, 5); Audio8.sfx('tink', this.cx); }
+    }
+    lightUp(L, cx, cy) { L.push({ x: this.cx - cx, y: this.cy - cy, r: 24, c: [252, 232, 140], a: 0.5 }); }
+    draw(ctx) { const x = Math.round(this.cx - W.cam.x), y = Math.round(this.cy - W.cam.y), k = (this.t >> 2) & 1; ctx.fillStyle = '#fce890'; ctx.fillRect(x - 1, y - 5, 3, 11); ctx.fillRect(x - 5, y - 1, 11, 3); ctx.fillStyle = '#fffbe0'; ctx.fillRect(x - 3 + k, y - 3 + k, 2, 2); ctx.fillRect(x + 2 - k, y - 3 + k, 2, 2); ctx.fillRect(x - 3 + k, y + 2 - k, 2, 2); ctx.fillRect(x + 2 - k, y + 2 - k, 2, 2); ctx.fillStyle = '#fcfcfc'; ctx.fillRect(x, y, 1, 1); }
   }
   class Kreuz extends Ent { // Silberkreuz: dreht sich, fliegt weit und schneidet durch alles
     constructor(x, y, d, dmg) { super(x - 8, y - 8, 16, 16); this.kind = 'fx'; this.d = d; this.dmg = dmg; this.id = 'kx' + (++ids); }
@@ -108,7 +143,8 @@ const Kunst = (() => {
   function over(ctx) { // Kettenanzeige über dem Helden und das verräterische Blinzeln der Mimik
     const p = W.player;
     if (p && p.alive && chain > 0 && W.frame - lastT < GAP) for (let i = 0; i < 3; i++) { const x = Math.round(p.cx - W.cam.x) - 6 + i * 5, y = Math.round(p.y - W.cam.y) - 7; ctx.fillStyle = '#100808'; ctx.fillRect(x - 1, y - 1, 4, 4); ctx.fillStyle = i < chain ? '#fce070' : '#5c4c28'; ctx.fillRect(x, y, 2, 2); }
+    for (const e of W.ents) if (e.frozenT > 0 && !e.dead && e.onScreen(8)) { const b = e.hurtBox ? e.hurtBox() : e, x = Math.round(b.x - W.cam.x) - 2, y = Math.round(b.y - W.cam.y) - 2, w = Math.round(b.w) + 4, h = Math.round(b.h) + 4; ctx.fillStyle = 'rgba(140,210,252,0.42)'; ctx.fillRect(x, y, w, h); ctx.fillStyle = 'rgba(232,248,255,0.8)'; ctx.fillRect(x, y, w, 1); ctx.fillRect(x, y, 1, h); ctx.fillRect(x + 2, y + 2, 2, Math.max(2, h >> 2)); ctx.fillStyle = 'rgba(60,120,180,0.7)'; ctx.fillRect(x, y + h - 1, w, 1); ctx.fillRect(x + w - 1, y, 1, h); }
     for (const e of W.ents) if (e.mimic && !e.dead && (e.t + 37) % 200 < 9 && e.onScreen(0)) { const x = Math.round(e.cx - W.cam.x), y = Math.round(e.y - W.cam.y) + 6; ctx.fillStyle = '#d81820'; ctx.fillRect(x - 2, y, 1, 1); ctx.fillRect(x + 1, y, 1, 1); }
   }
-  return { swing, fire, populate, wake, over, foes, art, get chain() { return chain; } };
+  return { swing, fire, populate, wake, over, foes, art, freeze, ART, get chain() { return chain; } };
 })();

@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-0634](#20261119-0634--drei-neue-waffen-mit-eigenen-künsten) – Drei neue Waffen mit eigenen Künsten
 - [20261119-0606](#20261119-0606--zwei-neue-nebenaufträge) – Zwei neue Nebenaufträge
 - [20261119-0532](#20261119-0532--waffenkünste-und-kerzenmimik) – Waffenkünste und Kerzenmimik
 - [20261119-0510](#20261119-0510--bossrausch-und-neue-3d-kulissen) – Bossrausch und neue 3D-Kulissen
@@ -54,6 +55,21 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-0634 – Drei neue Waffen mit eigenen Künsten
+
+**Neu – Waffen**
+- Frostklinge (Eiskeller): Ihr Eisschlag lässt Gegner knapp zwei Sekunden zu Eis erstarren.
+- Sternenstab (Planetarium): Fünf Sternschnuppen schlagen vor dir ein.
+- Donnerpeitsche: Lohn für den ersten Bossrausch mit allen Bossen. Ihr Kettenblitz springt vom ersten Getroffenen zu bis zu drei weiteren Gegnern.
+- Wie alle Waffenkünste lösen auch diese bei drei Treffern in Folge aus.
+
+**Neu – Bestiarium**
+- Die Kerzenmimik hat jetzt ihren eigenen Eintrag.
+
+**Beim Testen ansehen**
+- Frostklinge und Sternenstab suchen und gegen Gruppen ausprobieren.
+- Eingefrorene Gegner dürfen sich nicht bewegen und tauen sichtbar wieder auf.
 
 ## 20261119-0606 – Zwei neue Nebenaufträge
 
