@@ -3,7 +3,7 @@
 // ROOMS: Raumschlüssel (Zusatzraum: sein Name, sonst 'Region:Raum') → Stücke [Art, Mitte x in Kacheln, Unterkante y in Kacheln ('f' = Boden), Optionen]
 'use strict';
 const Kulisse = (() => {
-  const MAP = {"teleskop":[0,0,176,144],"bohrer":[177,0,112,116],"palme":[0,145,88,112],"stuetze":[89,145,72,104],"schleuse":[162,145,88,88],"rohr":[0,258,112,84],"lore":[113,258,72,44]};
+  const MAP = {"teleskop":[0,0,176,144],"bohrer":[177,0,112,116],"palme":[0,145,88,112],"stuetze":[89,145,72,104],"schleuse":[162,145,88,88],"rohr":[0,258,112,84],"lore":[113,258,72,44],"orgel":[0,343,168,152],"gladiator":[169,343,96,136],"globus":[266,343,72,104],"eis":[0,496,116,92],"fluegel":[117,496,124,84],"sarkophag":[242,496,104,64]};
   const img = new Image(), C = {};
   let ready = false;
   img.onload = () => { ready = true; for (const k in C) delete C[k]; };
@@ -29,6 +29,18 @@ const Kulisse = (() => {
     'expo:1': [['palme', 8, 'f'], ['palme', 26, 'f', { flip: 1 }], ['palme', 44, 'f'], ['palme', 60, 'f', { flip: 1 }]],
     orangerie: [['palme', 5.5, 'f', { dim: 0.16 }], ['palme', 26.5, 'f', { dim: 0.16, flip: 1 }]],
     treibhaus: [['palme', 5.5, 'f', { dim: 0.16 }], ['palme', 26.5, 'f', { dim: 0.16, flip: 1 }]],
+    kolosseum: [['gladiator', 32, 'f', { dim: 0.26 }], ['gladiator', 78, 'f', { dim: 0.26, flip: 1 }]],
+    kerker: [['sarkophag', 27, 'f', { dim: 0.3 }]],
+    gruftgang: [['sarkophag', 24, 'f', { dim: 0.3 }], ['sarkophag', 61, 'f', { dim: 0.3, flip: 1 }]],
+    verlies: [['sarkophag', 53, 'f', { dim: 0.3 }]],
+    registratur: [['globus', 31, 'f', { dim: 0.24 }]],
+    attic: [['globus', 5, 'f', { dim: 0.28 }]],
+    schatz: [['globus', 33, 'f', { dim: 0.24, flip: 1 }]],
+    hotel: [['fluegel', 31, 'f', { dim: 0.2 }]],
+    theaterfoyer: [['fluegel', 50, 'f', { dim: 0.2, flip: 1 }]],
+    theater: [['orgel', 101, 'f', { dim: 0.3 }]],
+    'sun:0': [['orgel', 90, 'f', { dim: 0.3 }]],
+    eiskeller: [['eis', 20, 'f', { dim: 0.14 }], ['eis', 53, 'f', { dim: 0.14, flip: 1 }]],
   };
   const floorAt = (col) => { const R = W.room; let r = R.h - 1; while (r > 0 && !Phys.solidTile(col, r)) r--; while (r > 0 && Phys.solidTile(col, r - 1)) r--; return r; }; // Oberkante des untersten Bodens (schwebende Brocken zählen nicht)
 

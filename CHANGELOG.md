@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-0510](#20261119-0510--bossrausch-und-neue-3d-kulissen) – Bossrausch und neue 3D-Kulissen
 - [20261119-0437](#20261119-0437--geheimnisjagd-große-boss-auftritte-und-klangkulissen) – Geheimnisjagd, große Boss-Auftritte und Klangkulissen
 - [20261119-0414](#20261119-0414--gladiatorenprüfung-champions-mit-eigenschaften-und-folgen-des-gewissens) – Gladiatorenprüfung, Champions mit Eigenschaften und Folgen des Gewissens
 - [20261119-0341](#20261119-0341--gewissen-drei-enden-opferschreine-und-drastische-pixel-tode) – Gewissen, drei Enden, Opferschreine und drastische Pixel-Tode
@@ -51,6 +52,25 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-0510 – Bossrausch und neue 3D-Kulissen
+
+**Neu – Bossrausch**
+- Im Kolosseum steht ein Gong. Ab fünf besiegten Bossen ruft er sie alle noch einmal, einen nach dem anderen und auf Zeit.
+- Gekämpft wird in den echten Kammern der Bosse, zwischen zwei Kämpfen gibt es 30 % Leben zurück.
+- Wer fällt, wacht an der Speicherkammer auf. Dein Spielstand bleibt dabei unberührt.
+- Gold, Bestzeit und Rekord werden festgehalten. Wer alle Bosse schafft, bekommt die Urkunde „Nachtragend“.
+- Der Graf bleibt außen vor: Sein Ende gehört der Geschichte.
+
+**Neu – 3D-Kulissen**
+- Gladiatorenstatuen im Kolosseum, Sarkophage in Kerker, Gruftgang und Verlies.
+- Globen in Registratur, Dachboden und Schatzkammer, Konzertflügel im Hotel und im Theaterfoyer.
+- Orgeln im Zuschauerraum und in der Sonnenkathedrale, Eiskristalle im Eiskeller. In einem davon steckt jemand fest.
+
+**Beim Testen ansehen**
+- Kolosseum: Gong mit ↑ anschlagen, einen ganzen Lauf spielen und die Übergänge zwischen den Kammern prüfen.
+- Mitten im Rausch sterben: Danach müssen Kammern und Spielstand wie vorher sein.
+- Die neuen Kulissen in den genannten Räumen ansehen und auf Überdeckungen achten.
 
 ## 20261119-0437 – Geheimnisjagd, große Boss-Auftritte und Klangkulissen
 

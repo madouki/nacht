@@ -154,7 +154,7 @@ const W = {
     Kulisse.populate(this); // große Stücke hinter der Spielebene (js/kulisse.js)
     Leben.populate(this); // Kleintiere, Leuchtpilze und Wurzeln (js/leben.js)
     Champ.populate(this); // manchmal ein goldener Gegner (js/champ.js)
-    Drastik.populate(this); Gewissen.populate(this); Gewissen.roomEvents(this); Arena.populate(this); Huhn.populate(this); // Flecken, Gewissensfragen, Opferschreine und der Ansager im Kolosseum
+    Drastik.populate(this); Gewissen.populate(this); Gewissen.roomEvents(this); Arena.populate(this); Huhn.populate(this); Rausch.populate(this); // Flecken, Gewissensfragen, Opferschreine und der Ansager im Kolosseum
     this.stairs = this.findStairs();
     this.rings = this.ents.filter(e => e instanceof Ring);
     this.player.reset(def.start.x * T + 8, (def.start.y + 1) * T);
@@ -464,6 +464,7 @@ const W = {
     this.boss = null;
     Input.rumble(1, 1, 700);
     this.ents.forEach(e => { if (e.kind === 'enemy' || e.kind === 'eproj') e.dead = true; });
+    if (Rausch.defeated(b)) return; // Bossrausch: keine Beute, gleich zum nächsten
     if (b.mini) { // Miniboss: Kamera wieder frei, Beute statt Orb, weiter mit der Musik des Raums
       this.miniDone[this.stage + ':' + this.roomIdx] = true;
       this.camLock = false; this.arenaOn = false; this.arenaW = 0; this.camEase = 1; Game.bossName = 0;

@@ -2187,7 +2187,7 @@ const Castle = (() => {
   const spawnLift = (def) => { if (def.lift) W.platforms.push(W.spawn(new Elevator(def.lift))); };
   function spawnRelics(s, r, def, arrive) {
     const here = ([R]) => same(ref(R), s, r);
-    if (boss[roomKey(s, r)]) spawnLift(def);
+    if (boss[roomKey(s, r)] && !Rausch.on) spawnLift(def);
     for (const e of RELIC_AT) if (here(e) && !rel(e[1])) W.spawn(new RelicStone(e[1], e[2], e[3]));
     for (const [R, k] of BOSS_RELIC) if (same(ref(R), s, r) && boss[roomKey(s, r)] && !rel(k)) W.spawn(new RelicStone(k, def.w - 10, def.start.y));
     for (const [R, k, x, y, F] of MINI_RELIC) {
@@ -2226,8 +2226,8 @@ const Castle = (() => {
     crumbling.clear(); // neuer Raum: bröckelnde Simse vergessen (das Raster ist ohnehin frisch)
     if (S()[s].id === 1 && r === 2 && !(rel('dash') && rel('ring'))) for (let x = 40; x <= 41; x++) W.room.grid[12][x] = '^'; // Eishöhle: Lücke zur Eisrutsche erst mit Dash und Enterhaken
     if (W.player && (W.player.batForm || W.player.mistForm || W.player.wolfForm)) { W.player.batForm = false; W.player.mistForm = false; W.player.wolfForm = false; W.player.h = HERO_H; } // Raumwechsel: wieder in Menschengestalt (reset hat Ort und Größe gesetzt)
-    if (boss[key] && s < S().length - 1) W.room.arena = null; // Bossarena: Boss besiegt, der Raum ist frei
-    if (mini[key]) W.miniDone[s + ':' + r] = true;
+    if (boss[key] && s < S().length - 1 && !Rausch.on) W.room.arena = null; // Bossarena: Boss besiegt, der Raum ist frei (außer im Bossrausch)
+    if (mini[key] && !Rausch.on) W.miniDone[s + ':' + r] = true;
     W.ents = W.ents.filter(e => !(e instanceof CastleDoor) && !(e instanceof BoltLatch) && !(e instanceof CastleChamber) && !(e instanceof CastleNPC) && !(e instanceof CastleLoot) && !(e instanceof CastleGrate) && !(e instanceof CastleDecor) && !(e instanceof Puppet));
     if (def.decor) W.ents.unshift(new CastleDecor(def.decor)); // Blender-Modelle ganz hinten (vor Türen und Figuren)
     for (const [x, y] of def.puppets || []) W.spawn(new Puppet(x, y)); // Puppen im Bahnhof
@@ -3656,6 +3656,7 @@ const Castle = (() => {
     { id: 'champs', ok: () => (flag.champs || 0) >= Champ.GOAL, arg: () => Champ.GOAL }, // goldene Gegner besiegt
     { id: 'arena', ok: () => !!flag.arena_t3 }, // Gold-Prüfung im Kolosseum bestanden
     { id: 'huhn', ok: () => !!flag.huhn_all }, // alle zwölf goldenen Gummihühner gefunden
+    { id: 'rausch', ok: () => !!flag.rausch_all }, // Bossrausch mit allen Bossen überstanden
     { id: 'saint', ok: () => Gewissen.all(1), arg: () => Gewissen.CASES.length }, // alle Gewissensfragen anständig gelöst
     { id: 'fiend', ok: () => Gewissen.all(2), arg: () => Gewissen.CASES.length }, // alle Gewissensfragen schäbig gelöst
   ];
@@ -5008,6 +5009,7 @@ const Castle = (() => {
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
     need.push('arenaTitle', 'arenaLine', 'arenaT1', 'arenaT2', 'arenaT3', 'arenaLockLv', 'arenaLockPrev', 'arenaBest', 'arenaWaves', 'arenaWave', 'arenaGold', 'arenaWin', 'arenaThumb', 'arenaQuip0', 'arenaQuip1', 'arenaQuip2', 'arenaQuip3', 'ach_arena', 'achD_arena', 'champ_flamme', 'champ_eile', 'champ_panzer', 'champ_spalt', 'champHunt', 'gwAngel', 'gwTitle', 'gwLabel', 'gwTier_good', 'gwTier_mid', 'gwTier_bad', 'gwUp', 'gwDown', 'gwNoGold', 'gwPerk_good', 'gwPerk_bad', 'opferTitle', 'opferLine', 'opfer_atk', 'opfer_hp', 'opfer_mp', 'opferMax', 'opferBack', 'ach_saint', 'achD_saint', 'ach_fiend', 'achD_fiend', 'optGore', 'optGoreH', 'gw_pruefer_q', 'gw_pruefer_a', 'gw_pruefer_b', 'gw_pruefer_ra', 'gw_pruefer_rb', 'gw_bein_q', 'gw_bein_a', 'gw_bein_b', 'gw_bein_ra', 'gw_bein_rb', 'gw_gast_q', 'gw_gast_a', 'gw_gast_b', 'gw_gast_ra', 'gw_gast_rb', 'gw_waisen_q', 'gw_waisen_a', 'gw_waisen_b', 'gw_waisen_ra', 'gw_waisen_rb', 'gw_antrag_q', 'gw_antrag_a', 'gw_antrag_b', 'gw_antrag_ra', 'gw_antrag_rb', 'gw_kalb_q', 'gw_kalb_a', 'gw_kalb_b', 'gw_kalb_ra', 'gw_kalb_rb', 'champWin', 'champTip', 'ach_champs', 'achD_champs', 'chgKanal', 'chgStollen', 'chgKuppel', 'chgKammer', 'hintRopeUp', 'hintRopeHold', 'hintRopeDown', 'hintTrolley', 'hintTrolley2', 'hintHand', 'npcBell', 'npcGuide', 'npcClock', 'newHere', 'chgZeiger', 'chgDoorZeiger', 'chgKlamm', 'chgDoorKlamm', 'chgGlocken', 'chgDoorGlocken', 'hintKuckuck', 'bossKuckuck', 'bossKuckuckShout', 'bossKuckuckBonk', 'bossKuckuckRage', 'bossKuckuckDie', 'bossKuckuckNote', 'banter_bossKuckuck', 'beastD_Kuckucksuhr', 'ach_kuckuck', 'achD_kuckuck', 'item_kuckucksfeder', 'itemD_kuckucksfeder', 'chgKuckuck', 'chgDoorKuckuck'); // Glockenstuhl, Tropfsteinklamm, Zeigerkammer, NEU-Markierung, Kuckucksuhr
+    need.push('rauschTitle', 'rauschLine', 'rauschGo', 'rauschWait', 'rauschLock', 'rauschBest', 'rauschMost', 'rauschHud', 'rauschOut', 'rauschHeal', 'rauschWin');
     need.push('huhnTitle', 'huhnLine', 'huhnCount', 'huhnGot', 'huhnTip', 'huhnNext', 'huhnPay', 'huhnBaron', 'huhnDone', 'huhnHome', ...Huhn.PAY.map((n, i) => 'huhnRew' + i), ...Huhn.SPOTS.map((h, i) => 'huhnR' + i));
     for (const h of Huhn.SPOTS) if (!Castle.side[h[0]]) out.push('Goldhuhn ohne Raum: ' + h[0]);
     need.push('boltHint', 'boltOpen', 'boltFar0', 'boltFar1', 'boltFar2', ...BOLTS.map(b => 'boltSay_' + b[0]));
@@ -5075,6 +5077,7 @@ const Castle = (() => {
     hush: () => { toast = null; goalWait = 0; }, // Ziel-Tafel ausblenden (Trailer-Aufnahmen)
     on, update, settle, forward, bossBeaten, draw, openMap, mapInput, openWarp, warpInput, layout, castle, percent, roomPercent, recentNote, firstVisit, seals,
     bossDone: (s, r) => !!boss[roomKey(s, r)],
+    beaten: (s, r) => !!(boss[roomKey(s, r)] || mini[roomKey(s, r)]),
     hasSave: () => !!readSave(), loadSave: readSave, applySave, chambers: allChambers, writeResume, dropResume,
     newRun, applyHp, drawStatus, expProgress, gainExp, get rpg() { return rpg; }, talkInput, drawTalk, get talk() { return talk; }, get flags() { return flag; },
     openEquip, equipInput, drawEquip, openShop, shopInput, drawShop, get inv() { return inv; }, get eq() { return eq; }, giveItem,
