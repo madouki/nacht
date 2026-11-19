@@ -275,6 +275,7 @@ class Player {
 
   die(silent) {
     if (!this.alive) return;
+    if (!silent && Gewissen.angel(this)) return; // Reine Weste: der Schutzengel fängt den tödlichen Treffer ab
     this.setCrouch(false);
     this.state = 'dead'; this.deadT = 0; this.atkT = 0; this.stoneT = 0; this.vx = 0; this.vy = silent ? 0 : -2.5;
     this.onGround = false; this.inv = 0; this.hidden = !!silent;

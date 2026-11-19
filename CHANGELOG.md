@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261119-0414](#20261119-0414--gladiatorenprüfung-champions-mit-eigenschaften-und-folgen-des-gewissens) – Gladiatorenprüfung, Champions mit Eigenschaften und Folgen des Gewissens
 - [20261119-0341](#20261119-0341--gewissen-drei-enden-opferschreine-und-drastische-pixel-tode) – Gewissen, drei Enden, Opferschreine und drastische Pixel-Tode
 - [20261119-0259](#20261119-0259--klügere-gegner-ritter-ausfall-skelett-rücksprung-schritte-je-untergrund) – Klügere Gegner: Ritter-Ausfall, Skelett-Rücksprung, Schritte je Untergrund
 - [20261119-0241](#20261119-0241--bibliothek-wieder-frei-trefferwucht-goldene-champions-mehr-tiefe-im-bild) – Bibliothek wieder frei, Trefferwucht, goldene Champions, mehr Tiefe im Bild
@@ -49,6 +50,30 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261119-0414 – Gladiatorenprüfung, Champions mit Eigenschaften und Folgen des Gewissens
+
+**Neu – Gladiatorenprüfung im Kolosseum**
+- Der Ansager im Kolosseum schickt dich mit ↑ in die Prüfung: drei Stufen (Bronze, Silber, Gold) mit je fünf Wellen.
+- Silber verlangt Stufe 8 und den Bronze-Sieg, Gold verlangt Stufe 15 und den Silber-Sieg.
+- Der erste Sieg zahlt Gold und einen Trank oder ein Elixier. Gold schenkt zusätzlich dauerhaft mehr Angriff, Wiederholungen zahlen ein Viertel.
+- Deine Bestzeit bleibt stehen, die Gold-Prüfung bringt die Urkunde „Brot und Spiele“.
+
+**Neu – Champions mit Eigenschaften**
+- Goldene Gegner sind jetzt flammend (Feuerspur), eilig (schneller), gepanzert (drei Schilde) oder spaltend (zerfallen in zwei Hälften).
+- Die Eigenschaft steht über dem Gegner, sobald du nah genug bist.
+
+**Neu – Dein Gewissen hat Folgen**
+- Reine Weste: Ein Schutzengel rettet dich etwa alle drei Spielminuten vor dem Tod.
+- Schwarze Seele: Die Steuerfahndung schickt dir ab und zu einen eiligen Champion-Ritter hinterher.
+
+**Besser**
+- Beim ersten Betreten einer Region erscheint ihr Name groß im Bild, das alte BEREIT?/LOS! entfällt im Schloss.
+
+**Beim Testen ansehen**
+- Kolosseum: Ansager ansprechen, Bronze spielen, danach das Menü auf die Sperren von Silber und Gold prüfen.
+- Während einer Prüfung sterben: Sperre und Kamera müssen sich sauber lösen.
+- Champions aller vier Arten suchen und die Schilde des gepanzerten zählen.
 
 ## 20261119-0341 – Gewissen, drei Enden, Opferschreine und drastische Pixel-Tode
 

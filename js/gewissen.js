@@ -75,6 +75,22 @@ const Gewissen = (() => {
     for (const c of CASES) if (c.at === key) w.spawn(new Fall(c, floorY(Math.floor(c.x))));
     if (ALTARS.has(key)) w.spawn(new Schrein(24, floorY(24)));
   }
+  function roomEvents(w) { if (typeof Castle !== 'undefined' && Castle.on) hunter(w); }
+  // Reine Weste: alle drei Minuten fängt dich der Schutzengel einmal auf. Schwarze Seele: die Steuerfahndung ist dir auf den Fersen.
+  let angelAt = -99999;
+  function angel(p) {
+    if (tier() !== 'good' || !Castle.on) return false;
+    const now = Castle.rpg.frames; if (now - angelAt < 10800) return false;
+    angelAt = now; p.hp = Math.max(1, Math.ceil(p.maxHp / 3)); p.inv = 200;
+    W.popup(p.cx, p.y - 16, tr('gwAngel'), '#fce8b0'); W.flash = Math.max(W.flash, 8); W.spawn(new Shock(p.cx, p.cy, 80, '#fce8b0', 5)); Audio8.sfx('holy'); Input.rumble(0.6, 0.4, 300);
+    for (let i = 0; i < 18; i++) W.spawn(new Particle(p.cx + rnd(-14, 14), p.feet - rnd(0, 34), rnd(-0.4, 0.4), -rnd(0.5, 1.6), i % 2 ? '#fcfcfc' : '#fce8b0', 46, 2, -0.01));
+    return true;
+  }
+  function hunter(w) { // nur in gewöhnlichen Räumen, nie im Prolog
+    const R = w.room; if (tier() !== 'bad' || R.arena || R.mini || R.hall || R.wrap || R.grav || R.side === 'kolosseum' || (Levels.STAGES[w.stage] || {}).id === 'arrival' || Math.random() >= 0.16) return;
+    const c = clamp(Math.floor(w.player.cx / T) + 14, 2, R.w - 3), fy = floorY(c); if (fy <= T || Phys.solidTile(c, fy / T - 1)) return;
+    const k = new Knight(c, fy / T - 1); Champ.make(k, 'eile'); w.spawn(k); Game.note('champHunt');
+  }
   function decide(c, which) {
     const o = which ? c.b : c.a, was = tier(), p = W.player;
     if (o.pay) W.score = Math.max(0, W.score - o.pay);
@@ -147,5 +163,5 @@ const Gewissen = (() => {
     Duell.wrap(tr('gwTier_' + t), room - 12).slice(0, 2).forEach((l, i) => Font.draw(ctx, l, cx, 70 + i * 10, col, { align: 'center', shadow: '#000' }));
     CASES.forEach((c, i) => { const p = pickOf(c.id), x = cx - 27 + i * 10; ctx.fillStyle = '#1c1428'; ctx.fillRect(x - 1, 95, 8, 8); ctx.fillStyle = p === 1 ? '#7cf0a0' : p === 2 ? '#e83018' : '#3c3448'; ctx.fillRect(x, 96, 6, 6); });
   }
-  return { populate, input, draw, drawStatus, tier, score, all, atkMul, defDiv, hpBonus, mpBonus, CASES, ALTARS, PRICE, get ui() { return ui; } };
+  return { angel, roomEvents, populate, input, draw, drawStatus, tier, score, all, atkMul, defDiv, hpBonus, mpBonus, CASES, ALTARS, PRICE, get ui() { return ui; } };
 })();

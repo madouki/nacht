@@ -153,7 +153,7 @@ const Game = {
 
   // Schloss: Fortsetzungspunkt schreiben, solange man in einem Raum ist (Pause, Menüs, Spiel – nicht auf Titel oder im Übergang)
   saveResume() {
-    if (Castle.on && W.player && ['play', 'pause', 'pausesec', 'map', 'warp', 'status', 'talk', 'gewissen', 'shop', 'equip', 'tools'].includes(this.state)) Castle.writeResume();
+    if (Castle.on && W.player && ['play', 'pause', 'pausesec', 'map', 'warp', 'status', 'talk', 'gewissen', 'arena', 'shop', 'equip', 'tools'].includes(this.state)) Castle.writeResume();
   },
   startCastleEnding() { // Schloss: Graf besiegt – Epilog über der Morgendämmerung, dann Ergebnis
     this.saveHi(); Castle.dropResume(); this.rubble = [];
@@ -465,7 +465,7 @@ const Game = {
     if (this.revealed && this.revealT !== undefined) this.revealT++;
     if (this.state === 'title' && this.revealed && this.t % 520 === 0) Audio8.sfx('bell');
     const titleish = ['title', 'options', 'sections', 'secload', 'charsel', 'intro', 'scores', 'entry'].includes(this.state);
-    Audio8.ambience(titleish ? 'courtyard' : (this.state === 'play' || this.state === 'pause' || this.state === 'pausesec' || this.state === 'map' || this.state === 'warp' || this.state === 'status' || this.state === 'talk' || this.state === 'gewissen' || this.state === 'shop' || this.state === 'equip' || this.state === 'tools' || this.state === 'demo') && W.room ? W.room.theme : null);
+    Audio8.ambience(titleish ? 'courtyard' : (this.state === 'play' || this.state === 'pause' || this.state === 'pausesec' || this.state === 'map' || this.state === 'warp' || this.state === 'status' || this.state === 'talk' || this.state === 'gewissen' || this.state === 'arena' || this.state === 'shop' || this.state === 'equip' || this.state === 'tools' || this.state === 'demo') && W.room ? W.room.theme : null);
     if (titleish && this.bootBg) this.bootBg.tick(); // Kulisse des Ladebildschirms unter den Menüs
     if (titleish) {
       FX.updateStorm(this.tStorm, View.w, () => { if (Audio8.ready()) setTimeout(() => Audio8.sfx('thunder'), 250 + Math.random() * 600); });
@@ -529,7 +529,7 @@ const Game = {
       case 'card': // Schloss-Modus: Regionsname nur kurz (30–90 Bilder statt 75–140)
         if (this.warming()) break; // erst wenn die Stage fertig vorgebaut ist (Ladebalken auf der Karte)
         { const again = Castle.on && this.regionsSeen && this.regionsSeen.has(W.stage); // Schloss: bekannte Region nur als kurzes Aufblenden, ohne BEREIT?/LOS!
-        if ((this.t > (again ? 8 : Castle.on ? 30 : 75) && (again || !Voice.busy())) || this.t > (Castle.on ? 90 : 140) || ((P.start || P.jump || P.attack) && this.t > 12)) { this.go('play'); Audio8.play(W.songName()); Audio8.tempo(1); this.bossName = 0; this.hurryT = 0; this.readyT = again ? 0 : 1; if (Castle.on) (this.regionsSeen || (this.regionsSeen = new Set())).add(W.stage); } }
+        if ((this.t > (again ? 8 : Castle.on ? 30 : 75) && (again || !Voice.busy())) || this.t > (Castle.on ? 90 : 140) || ((P.start || P.jump || P.attack) && this.t > 12)) { this.go('play'); Audio8.play(W.songName()); Audio8.tempo(1); this.bossName = 0; this.hurryT = 0; this.readyT = Castle.on ? 0 : 1; if (Castle.on && !again) this.regionT = 1; if (Castle.on) (this.regionsSeen || (this.regionsSeen = new Set())).add(W.stage); } }
         break;
       case 'play': this.updatePlay(P); break;
       case 'pause': { // Pausenmenü: WEITER / (KARTE) / LEICHT-MODUS / ABSCHNITT WÄHLEN / ZUM TITEL
@@ -566,6 +566,7 @@ const Game = {
         else Castle.statusInput(P);
         break;
       case 'gewissen': if (Gewissen.input(P)) this.go('play'); break; // Gewissensfrage oder Opferschrein (js/gewissen.js)
+      case 'arena': if (Arena.input(P)) this.go('play'); break; // Gladiatorenprüfung: Stufe wählen (js/arena.js)
       case 'talk': { // Gespräch mit einer Figur (nur Schloss): die Welt steht still, Sprung/Angriff/↑ blättert, Start überspringt
         const r = Castle.talkInput(P);
         if (r) this.go(r === true ? 'play' : r); // beim Bibliothekar geht es weiter in den Laden
@@ -775,6 +776,8 @@ const Game = {
         if (this.state === 'status') Castle.drawStatus(ctx, this.t);
         if (this.state === 'talk') Castle.drawTalk(ctx, this.t);
         if (this.state === 'gewissen') Gewissen.draw(ctx, this.t);
+        if (this.state === 'arena') Arena.draw(ctx, this.t);
+        if (this.state === 'play') { Arena.drawHud(ctx); this.drawRegionTitle(ctx); }
         if (this.state === 'shop') Castle.drawShop(ctx, this.t);
         if (this.state === 'equip') Castle.drawEquip(ctx, this.t);
         if (this.state === 'tools') Castle.drawTools(ctx, this.t);
@@ -882,6 +885,20 @@ const Game = {
   drawDemo(ctx) {
     if ((this.t >> 5) % 2 === 0) this.big(ctx, tr('demo'), View.cx, 40, 2, ['#fcfcfc', '#e4e4fc', '#a4e4fc', '#3cbcfc', '#0078f8', '#0058f8', '#00288c'], null, '#000');
     if ((this.t >> 4) % 2) Font.draw(ctx, tr('pressStart'), View.cx, 196, '#fcfcfc', { align: 'center', shadow: '#000' });
+  },
+
+  // Regionstitel beim ersten Betreten: Goldlinien laufen von der Mitte auseinander, der Name blendet ein, das Spiel läuft dabei weiter
+  drawRegionTitle(ctx) {
+    if (!(this.regionT > 0)) return;
+    const k = this.regionT++, END = 190; if (k > END) { this.regionT = 0; return; }
+    if (k === 2) Audio8.sfx('announce');
+    const cx = View.cx, y = 94, a = clamp(Math.min(k / 16, (END - k) / 26), 0, 1), L = Math.round(Math.min(View.w / 2 - 14, 150) * clamp(k / 26, 0, 1)), nm = tr(W.stageDef.nameKey), sc = Font.width(nm) * 2 > View.w - 28 ? 1 : 2;
+    ctx.save(); ctx.globalAlpha = a * 0.62; const g = ctx.createLinearGradient(0, y - 18, 0, y + 46); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.3, 'rgba(4,2,10,1)'); g.addColorStop(0.7, 'rgba(4,2,10,1)'); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = g; ctx.fillRect(0, y - 18, View.w, 64); ctx.restore();
+    ctx.globalAlpha = a; ctx.fillStyle = '#c89020'; ctx.fillRect(cx - L, y - 3, L * 2, 1); ctx.fillRect(cx - L, y + 33, L * 2, 1); ctx.fillStyle = '#fce8b0'; for (const s of [-1, 1]) { ctx.fillRect(cx + s * L - 1, y - 4, 3, 3); ctx.fillRect(cx + s * L - 1, y + 32, 3, 3); }
+    ctx.fillStyle = '#fce8b0'; ctx.fillRect(cx - 1, y - 5, 3, 5); ctx.fillRect(cx - 3, y - 3, 7, 1);
+    Font.draw(ctx, tr('stageNo', W.stage + 1), cx, y + 2, '#c8b890', { align: 'center', shadow: '#000' });
+    const rise = Math.round(Math.max(0, 14 - k) * 0.6); ctx.globalAlpha = a * clamp((k - 8) / 14, 0, 1); this.big(ctx, nm, cx, y + 13 + rise, sc, LOGO, null, '#000');
+    ctx.globalAlpha = 1;
   },
 
   drawReady(ctx) {
