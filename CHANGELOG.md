@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261120-0758](#20261120-0758--neue-zwischengegnerin-primadonna-ottilie-im-hoftheater) – Neue Zwischengegnerin: Primadonna Ottilie im Hoftheater
 - [20261120-0752](#20261120-0752--neuer-zwischenboss-unter-wasser-angler-anselm) – Neuer Zwischenboss unter Wasser: Angler Anselm
 - [20261120-0619](#20261120-0619--hafenfeuer-waffenaltäre-und-präzisere-sprünge) – Hafenfeuer, Waffenaltäre und präzisere Sprünge
 - [20261120-0430](#20261120-0430--xbox-absturz-behoben-wegweiser-an-englisch-zuerst-schnellere-aufzüge-kleinvieh-in-hd-3d) – Xbox-Absturz behoben, Wegweiser an, Englisch zuerst, schnellere Aufzüge, Kleinvieh in HD-3D
@@ -73,6 +74,21 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261120-0758 – Neue Zwischengegnerin: Primadonna Ottilie im Hoftheater
+
+**Neu – Primadonna Ottilie auf der Bühne**
+- Im Zuschauerraum des Hoftheaters hebt sich jetzt nicht nur der Vorhang: Auf der Bühne wartet Primadonna Ottilie, eine Geister-Operndiva in weinrotem Samt mit Goldborte, Perücke und Diadem, modelliert in Blender. Sie hat 1847 ihre letzte Arie gesungen, und das Publikum ist nie gegangen.
+- **Arie:** Mit ausgebreiteten Armen singt sie Notenketten, die in Wellen über die Bühne fliegen. Ducken oder drüberspringen.
+- **Verbeugung:** Nach jeder Arie macht sie einen tiefen Knicks und fragt „APPLAUS?“. Jetzt sitzen Treffer besser.
+- **Scheinwerfer:** Sie weist in den Saal, ein Lichtkegel erscheint schwach am Bühnenrand und streicht dann glühend über den Boden. Wer im Lichtfleck steht, verbrennt.
+- **Zweiter Akt:** Sie verlangt „ZUGABE!“, singt schneller und zweistimmig, und das Geisterpublikum ruft „BRAVO! BRAVA!“ und wirft Rosen auf die Bühne.
+- Vor dem Kampf erklärt sie, dass sie noch nicht eingesungen ist und dass der Bösewicht am Ende stirbt (in allen 8 Sprachen).
+- Lohn: ihr **Opernglas** (Glück +2, kritische Treffer +4). Es sieht jede Schwachstelle, auch vom dritten Rang.
+
+**Beim Testen ansehen**
+- Sind die Notenketten gut zu lesen? Weißt du, wann du ducken und wann springen musst?
+- Kommt der Scheinwerfer fair angekündigt?
 
 ## 20261120-0752 – Neuer Zwischenboss unter Wasser: Angler Anselm
 

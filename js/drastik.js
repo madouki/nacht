@@ -4,7 +4,7 @@
 const Drastik = (() => {
   const MAT = { Ghoul: 'blood', Bat: 'blood', Panther: 'blood', Fishman: 'blood', SeaEagle: 'blood', Raven: 'blood', Snake: 'blood', Skeleton: 'bone', IceSkeleton: 'bone', Skull: 'bone', Pillar: 'bone',
     Knight: 'steel', Automat: 'oil', Mannequin: 'wood', Puppet: 'wood', Astrolab: 'oil', FlyBook: 'paper', Tome: 'paper', Ordner: 'paper', Brief: 'paper', Nachnahme: 'paper', Flieger: 'paper',
-    Ghost: 'ecto', Jelly: 'ecto', Sternschnuppe: 'ecto', Snapper: 'plant', Pitcher: 'plant', Cocoon: 'plant', Mondkalb: 'cheese', AnglerFisch: 'ecto', IceBoulder: 'ice',
+    Ghost: 'ecto', Jelly: 'ecto', Sternschnuppe: 'ecto', Snapper: 'plant', Pitcher: 'plant', Cocoon: 'plant', Mondkalb: 'cheese', AnglerFisch: 'ecto', Primadonna: 'ecto', IceBoulder: 'ice',
     GiantBat: 'blood', Count: 'blood', Medusa: 'blood', Awakened: 'blood', GiantSkeleton: 'bone', SunWarden: 'steel', Amtsschimmel: 'paper', Schreibtisch: 'paper', Frankiermaschine: 'oil', Reisswolf: 'oil', Kuckucksuhr: 'oil', Conductor: 'oil', GolemBoss: 'stone', MannImMond: 'cheese', Sternbild: 'ecto', Doppel: 'ecto', TentacleBoss: 'ecto', ManTrap: 'plant', IceWitch: 'ice' };
   const PAL = { blood: ['#a80820', '#d81830', '#700410', '#e84848'], bone: ['#e8e0c8', '#c8bca0', '#8c8068', '#f8f4e4'], steel: ['#8c8ca0', '#c8c8d8', '#54546c', '#a80820'], oil: ['#181420', '#3c3848', '#c89020', '#6c6878'],
     wood: ['#a07848', '#c8a070', '#6c4c2c', '#e8d0a8'], paper: ['#f0e8d0', '#c8bca0', '#8c3040', '#fcfcf0'], ecto: ['#8cf0d8', '#c8fcec', '#3c9c8c', '#b080fc'], plant: ['#3c8c44', '#74c464', '#a8d848', '#1c5c34'],
