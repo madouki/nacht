@@ -1074,7 +1074,7 @@ const Audio8 = (() => {
       G: () => ({ p1: B.p1, fl: tame(fit(B.p1, 70, 86), 0, true), glk: glock(B.p1), hrp: chords ? harp(chords, 55) : undefined, p2: chords ? undefined : B.p2, tri: B.tri, pad: B.pad, org: B.org,
         dr: B.dr, tmp: roots && timp(roots, false) }),
     };
-    const secs = L * 15 / s.bpm, plan = s.form || (secs >= 40 ? 'ABCD' : secs >= 28 ? 'ABCDE' : 'ABCDFEGD');
+    const secs = L * 15 / (s.bpm0 || s.bpm), plan = s.form || (secs >= 40 ? 'ABCD' : secs >= 28 ? 'ABCDE' : 'ABCDFEGD');
     const out = { bpm: s.bpm, loop: s.loop, echo: s.echo, form: plan };
     const parts = [...plan].map(c => SEC[c]());
     // Überleitung: wechselt der nächste Durchgang die Tonart, wird der letzte Takt zum Dominantseptakkord der neuen Tonart – Blech steigt
@@ -1111,6 +1111,10 @@ const Audio8 = (() => {
   }
   // Boss Phase 2: schneller und härter
   SONGS.boss2 = Object.assign({}, SONGS.boss, { bpm: 212, dr: [DKX, DK, DK, FILLR, DKX, DK, DK, FILLR].join(' ') });
+  // Ruhiger (Rückmeldung: „etwas zu treibend und hektisch“): Erkundungslieder über 140 Schlägen pro Minute laufen 10 % langsamer,
+  // Boss- und Jagdlieder 5 %; langsame Stücke und Fanfaren bleiben, wie sie sind. Die Form (Zahl der Durchgänge) richtet sich weiter
+  // nach dem alten Tempo, damit kein Stück kürzer arrangiert wird. Taktduell und Ballsaal lesen das neue Tempo mit.
+  for (const k in SONGS) { const s = SONGS[k]; if (s.bpm0) continue; s.bpm0 = s.bpm; if (s.loop && s.bpm > 140) s.bpm = Math.round(s.bpm * (DRIVE.has(k) ? 0.95 : 0.9)); }
   const parsed = {}, plain = {}; // parsed: was gespielt wird (lange Form), plain: das Original (Taktduell liest daraus die Noten)
   const build = (k, s) => {
     const tracks = TRACKS.filter(t => s[t]).map(t => ({ name: t, ev: parse(s[t]) }));
@@ -1143,7 +1147,7 @@ const Audio8 = (() => {
     return drumBus;
   }
   function intensity(x) {
-    const v = 0.5 + 0.4 * Math.max(0, Math.min(1, x)); // Schlagzeug insgesamt etwas zurückgenommen (mehr Raum für die Harmonien)
+    const v = 0.42 + 0.48 * Math.max(0, Math.min(1, x)); // Schlagzeug insgesamt etwas zurückgenommen (mehr Raum für die Harmonien)
     if (Math.abs(v - drumLvl) < 0.01) return;
     drumLvl = v;
     if (ac && drumBus) drumBus.gain.setTargetAtTime(v, ac.currentTime, v > drumBus.gain.value ? 0.25 : 1.2); // schnell hinauf, langsam zurück
@@ -1164,7 +1168,7 @@ const Audio8 = (() => {
   }
   let cueQ = [], songT0 = 0; // geplante Pauken-/Beckenschläge (Audiozeit) fürs Bild; Startzeit des laufenden Stücks
   // Hi-Hats auf den Sechzehntel-Nebenzeiten (ungerade Positionen) etwas leiser – fest, ohne Zufall (der wirkte wie Stolpern)
-  const hatVel = (pos) => (Math.abs(pos % 2 - 1) < 0.01 ? 0.8 : 1);
+  const hatVel = (pos) => (Math.abs(pos % 2 - 1) < 0.01 ? 0.6 : 1); // Nebenzeiten deutlich leiser: weniger Gehetze
   function drum(n, t, dur, pos = 0) {
     const musicBus = drumOut(); // eigener Bus (adaptive Lautstärke)
     if (n === 'p' || n === 'x') { cueQ.push(t); if (cueQ.length > 32) cueQ.shift(); } // Pauke und Becken: Taktmarken fürs Bild (Ballsaal-Blitze)

@@ -5,11 +5,12 @@
 // schneller und bellt zweimal. Bilder: tools/blender/hund_bl.py, pack_hund.py
 'use strict';
 const HUND_ART = (() => {
-  const MAP = {"hund_stand0":[0,0,96,64],"hund_stand1":[97,0,96,64],"hund_crouch":[194,0,96,64],"hund_leap":[291,0,96,64],"hund_bark":[388,0,96,64],"hund_choke":[485,0,96,64]};
+  const MAP = {"hund_stand0":[0,0,96,64],"hund_stand1":[97,0,96,64],"hund_crouch":[194,0,96,64],"hund_leap":[291,0,96,64],"hund_bark":[388,0,96,64],"hund_choke":[485,0,96,64],"pup_run0":[582,0,28,20],"pup_run1":[611,0,28,20],"pup_bite":[640,0,28,20],"pup_sit":[669,0,28,20]};
   const img = new Image(); let S = null;
   img.onload = () => {
     const fr = (n) => { const r = MAP[n], c = Sprites.canvas(r[2], r[3]); c.getContext('2d').drawImage(img, r[0], r[1], r[2], r[3], 0, 0, r[2], r[3]); return Sprites.fromCanvas(c, true); };
-    S = { walk: [fr('hund_stand0'), fr('hund_stand1')], crouch: fr('hund_crouch'), leap: fr('hund_leap'), bark: fr('hund_bark'), choke: fr('hund_choke') };
+    S = { walk: [fr('hund_stand0'), fr('hund_stand1')], crouch: fr('hund_crouch'), leap: fr('hund_leap'), bark: fr('hund_bark'), choke: fr('hund_choke'),
+      pup: { run: [fr('pup_run0'), fr('pup_run1')], bite: fr('pup_bite'), sit: fr('pup_sit') } }; // Welpe Krümel (Begleiter, castle.js)
   };
   img.src = 'img/hund3d.png?v=' + (window.BUILD || '');
   return { MAP, get: () => S };

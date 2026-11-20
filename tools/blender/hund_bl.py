@@ -88,8 +88,42 @@ def hund(pose):
     if tilt: root(48, 34, tilt, 0)
     if pose == 'choke': root(46, 34, CFG.get('chokeDeg', 195), 'boden')
 
+def welpe(pose):   # Krümel, Brutus' Jüngster (Begleiter): großer Kopf, Schlappohren, rotes Halsband mit Glöckchen. 28×20, Mitte x = 14
+    FUR, FURD, MUZ = M('#6c4c34', 0.85), M('#3c2c20', 0.9), M('#b08c64', 0.8)
+    BLACK, EYE, RED, GOLD = M('#120c0c', 0.3), M('#fcfcfc', 0.2, 0, 1.5), M('#c82828', 0.6), M('#f8c838', 0.3, 0.9)
+    MOUTH, TONGUE = M('#5c1418', 0.6), M('#e86078', 0.5)
+    sit = pose == 'sit'; bite = pose == 'bite'
+    by = 13.0 + (0.6 if sit else 0)
+    if sit:
+        S(11.5, 14.0, 0.0, 4.6, FUR, 3.8, 4.4); S(9.0, 16.4, 0.0, 3.6, FUR, 3.4, 3.0)
+    else:
+        S(12.0 + (1.0 if bite else 0), by, 0.0, 6.2, FUR, 3.8, 3.8, (0, -0.12 if bite else 0, 0))
+    S(16.0 + (1.0 if bite else 0), by + 1.6, -1.6, 2.4, MUZ, 1.2, 2.2)   # helle Brust
+    tube((6.2, by - 1.0), (3.4, by - 4.0 + (2.0 if sit else 0)), 1.0, 0.6, FUR, 0.0)   # Schwanz
+    LEGS = {'run0': ((8, 16.4), (6.4, 19.4), (16, 16.4), (18.4, 19.4)), 'run1': ((8, 16.4), (9.6, 19.4), (16, 16.4), (14.6, 19.4)),
+            'bite': ((8, 16.0), (5.4, 19.4), (17, 15.6), (21.6, 18.4)), 'sit': ((10, 17.0), (12.6, 19.4), (14.6, 16.0), (15.4, 19.4))}[pose]
+    for (h, f) in ((LEGS[0], LEGS[1]), (LEGS[2], LEGS[3])):
+        for d, mat in ((1.6, FURD), (-1.6, FUR)):
+            tube(h, f, 1.1, 0.9, mat, d); S(f[0] + 0.6, f[1] - 0.1, d, 1.2, MUZ if d < 0 else FURD, 0.9, 0.6)
+    hx, hy = (18.6, 8.6) if not bite else (21.0, 10.0)
+    if sit: hx, hy = 15.6, 7.0
+    tube((hx - 3.0, hy + 3.0), (hx - 1.0, hy + 1.4), 2.6, 2.4, FUR, 0.0)
+    tube((hx - 3.2, hy + 3.4), (hx - 1.8, hy + 2.2), 2.8, 2.8, RED, 0.0); S(hx - 1.6, hy + 4.6, -2.0, 0.8, GOLD)   # Halsband, Glöckchen
+    S(hx, hy, 0.0, 4.4, FUR, 4.0, 4.2)
+    S(hx + 3.4, hy + 1.6, -0.4, 2.4, MUZ, 2.2, 1.8); S(hx + 5.4, hy + 0.9, -0.8, 0.9, BLACK, 0.8, 0.7)
+    if bite:
+        S(hx + 3.0, hy + 3.4, -0.6, 1.8, MOUTH, 1.8, 1.2); S(hx + 3.0, hy + 4.6, -0.4, 2.0, MUZ, 1.8, 0.9)
+        for k in range(3): tube((hx + 2.0 + k * 1.1, hy + 2.6), (hx + 2.1 + k * 1.1, hy + 3.4), 0.3, 0.05, M('#f4ecd8', 0.4), -2.0)
+    elif sit: tube((hx + 3.4, hy + 3.0), (hx + 3.8, hy + 5.4), 0.7, 0.6, TONGUE, -1.4)
+    for ex, d in ((hx + 1.8, -3.6), (hx - 0.4, -2.0)):
+        S(ex, hy - 0.8, d, 0.95, BLACK, 0.6, 1.05); S(ex + 0.3, hy - 1.2, d - 0.5, 0.35, EYE)
+    for d in (-3.4, 3.4): tube((hx - 2.0, hy - 2.6), (hx - 3.6, hy + 2.4), 1.6, 1.1, FURD, d)   # Schlappohren
+
 os.makedirs(CFG['out'], exist_ok=True)
 for pose in ('stand0', 'stand1', 'crouch', 'leap', 'bark', 'choke'):
     if CFG.get('only') and pose not in CFG['only']: continue
     stage(96, 64); hund(pose); shot('hund_' + pose)
+for pose in ('run0', 'run1', 'bite', 'sit'):
+    if CFG.get('only') and 'pup_' + pose not in CFG['only']: continue
+    stage(28, 20); welpe(pose); shot('pup_' + pose)
 print('ok')

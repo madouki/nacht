@@ -136,7 +136,7 @@ const Gewissen = (() => {
     body.forEach((l, i) => Font.draw(ctx, l, bx + 11, by + 20 + i * 10, '#f0e8d8', { shadow: '#000' }));
     if (done) return;
     const y0 = by + 22 + body.length * 10;
-    ['_a', '_b'].forEach((s, i) => { const on = ui.sel === i, y = y0 + i * 12; if (on) { ctx.fillStyle = 'rgba(200,144,32,0.2)'; ctx.fillRect(bx + 6, y - 2, bw - 12, 11); Sprites.draw(ctx, Sprites.S.heartS, bx + 9, y); } Font.draw(ctx, tr('gw_' + c.id + s), bx + 22, y, on ? (i ? '#fc9c80' : '#a8f0c0') : '#a09888', { shadow: '#000' }); });
+    ['_a', '_b'].forEach((s, i) => { const on = ui.sel === i, y = y0 + i * 12; if (on) { ctx.fillStyle = 'rgba(44,28,6,0.92)'; ctx.fillRect(bx + 6, y - 3, bw - 12, 12); ctx.fillStyle = '#c89020'; ctx.fillRect(bx + 6, y - 3, bw - 12, 1); ctx.fillRect(bx + 6, y + 8, bw - 12, 1); Sprites.draw(ctx, Sprites.S.heartS, bx + 9, y); } Font.draw(ctx, tr('gw_' + c.id + s), bx + 22, y, on ? (i ? '#fc9c80' : '#a8f0c0') : '#a09888', { shadow: '#000' }); });
     if (ui.msg) Font.draw(ctx, tr(ui.msg), bx + bw - 11, by + 6, '#fc7460', { align: 'right', shadow: '#000' });
   }
   function drawAltar(ctx, t) {

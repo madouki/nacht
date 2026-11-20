@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261120-0233](#20261120-0233--xbox-korrekturen-ruhigere-musik-welpe-krümel) – Xbox-Korrekturen, ruhigere Musik, Welpe Krümel
 - [20261120-0028](#20261120-0028--neuer-zwischenboss-kettenhund-brutus-im-zwinger) – Neuer Zwischenboss: Kettenhund Brutus im Zwinger
 - [20261119-2129](#20261119-2129--hd-3d-holzpuppe-und-schaufensterpuppe-neu-aus-blender) – HD-3D: Holzpuppe und Schaufensterpuppe neu aus Blender
 - [20261119-2126](#20261119-2126--hd-3d-skelett-eisskelett-und-ritter-neu-aus-blender) – HD-3D: Skelett, Eisskelett und Ritter neu aus Blender
@@ -69,6 +70,37 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261120-0233 – Xbox-Korrekturen, ruhigere Musik, Welpe Krümel
+
+**Behoben – schwarzer Hintergrund auf der Xbox**
+- Auf der Xbox wurde der Hintergrund zum Beispiel beim Golem schwarz, an anderen Stellen auch. Ursache: Wenn der Grafikspeicher knapp wird, startet der Browser seinen Grafikteil neu. Danach waren alle vorbereiteten Bilder leer, die das Spiel auf der Grafikkarte zwischengespeichert hatte: Kulissen, Hintergründe und Teile der Schrift.
+- Auf dem PC ließ sich das genau so nachstellen, indem man den Grafikteil des Browsers absichtlich abstürzen lässt.
+- Auf der Xbox liegen diese Zwischenbilder jetzt im Arbeitsspeicher, der bei einem Grafik-Neustart erhalten bleibt. Im Test blieb der Golemraum danach unverändert, und die Bildrate war gleich.
+- Passiert so ein Neustart auf einem anderen Gerät, merkt sich das Spiel das und nutzt ab dem nächsten Start ebenfalls den Arbeitsspeicher.
+
+**Behoben – Optionsmenü schwer lesbar**
+- Die gewählte Zeile im Optionsmenü liegt jetzt auf einem dunklen Balken mit Goldkanten und einem Pfeil davor. Die Schrift wackelt nicht mehr und wird nicht mehr verdeckt.
+- Denselben Balken haben jetzt auch Grammophon, Errungenschaften und Gewissensfragen. Vorher war die Auswahl dort nur ein schwacher Goldschimmer, der auf dem Fernseher kaum zu sehen war.
+
+**Geändert – Musik ruhiger**
+- Die Erkundungslieder laufen etwa 10 % langsamer, zum Beispiel der Burghof mit 158 statt 176 Schlägen pro Minute. Bosslieder sind 5 % langsamer. Langsame Stücke und Fanfaren bleiben, wie sie waren.
+- Die leisen Hi-Hat-Schläge zwischen den Zählzeiten sind deutlich leiser, und beim Erkunden spielt das Schlagzeug zurückhaltender. Sobald Gegner kommen, wird es wie bisher lauter.
+
+**Neu – Welpe Krümel**
+- Nach dem Sieg über Kettenhund Brutus liegt im Zwinger neben dem Stachelhalsband auch sein Jüngster: Krümel, ein Welpe mit Schlappohren und rotem Halsband mit Glöckchen, modelliert in Blender.
+- Krümel ist der erste Begleiter, der am Boden läuft statt zu schweben. Er rennt hinter dem Helden her und springt nach, wenn der Held höher steht.
+- Gegner in der Nähe schnappt er sich und beißt zu. Wie die anderen Begleiter steigt er dabei bis Stufe 9 auf.
+- Ab und zu meldet er sich zu Wort, etwa „(KAUT AUF DEINER PEITSCHE.)“, in allen 8 Sprachen.
+- Anlegen im Pausenmenü unter AUSRÜSTUNG, Platz Begleiter.
+
+**Neu – Aktenordner in HD-3D**
+- Die lebenden Aktenordner im Amt sind neu aus Blender: geschlossen, halb und ganz aufgeklappt, in allen Ordnerfarben.
+
+**Beim Testen ansehen**
+- Auf der Xbox: Bleibt der Hintergrund beim Golem und in anderen Räumen jetzt sichtbar, auch nach längerem Spielen? Läuft das Spiel genauso flüssig wie vorher?
+- Ist die Musik jetzt angenehm, oder ist sie an manchen Stellen zu langsam geworden?
+- Mit Krümel durch einen Raum mit Treppen und Plattformen laufen: Kommt er gut hinterher, und beißt er oft genug?
 
 ## 20261120-0028 – Neuer Zwischenboss: Kettenhund Brutus im Zwinger
 

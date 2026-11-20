@@ -320,6 +320,8 @@ const Trakt = (() => {
       const f = this.face, x = Math.round(this.cx - W.cam.x), y = Math.round(this.y + this.h - W.cam.y), fl = this.flash;
       if (x < -30 || x > View.w + 30) return;
       const C0 = fl ? '#fcfcfc' : this.col[0], C1 = fl ? '#e8e8e8' : this.col[1], o = this.open, wob = this.st === 'wake' ? ((this.t >> 1) & 1) : 0;
+      const A = typeof Akten !== 'undefined' && Akten.S; // Blender-Ordner (akten.js): zu, halb und ganz offen
+      if (A) { const ci = Math.max(0, ORD_COL.indexOf(this.col)), s = A[ci][o < 0.15 ? 'closed' : o < 0.6 ? 'half' : 'open']; this.spr(ctx, s, f < 0, wob, 0, fl); return; }
       const R = (a, b, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(f > 0 ? x + a : x - a - w, y + b, w, h); };
       if (o < 0.15) { // zugeklappt: Rücken mit Etikett und Griffloch
         R(-6 + wob, -22, 12, 22, C1); R(-5 + wob, -22, 10, 22, C0); R(-4 + wob, -18, 8, 7, '#f0ece0'); R(-3 + wob, -16, 6, 1, '#3c3c48'); R(-3 + wob, -14, 4, 1, '#3c3c48');

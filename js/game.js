@@ -1718,8 +1718,12 @@ const Game = {
     OPTION_ITEMS.forEach((it, i) => {
       if (i < first || i >= first + V) return;
       const y = 64 + (i - first) * step, on = this.optSel === i;
-      if (on) { ctx.fillStyle = 'rgba(200,144,32,0.2)'; ctx.fillRect(cx - 118, y - 3, 236, step - 1); }
-      Font.draw(ctx, tr(it.label), cx - 110, y, on ? '#fcfcfc' : '#9c9c9c', on ? { shadow: '#3c2008', wave: 1.2, t: this.t } : { shadow: '#000' });
+      if (on) { // Auswahl: deckender dunkler Balken mit Goldkante und Pfeil, Schrift ruhig (ohne Welle) – auf dem Fernseher gut lesbar (Xbox)
+        ctx.fillStyle = '#2c1c06'; ctx.fillRect(cx - 118, y - 3, 236, step);
+        ctx.fillStyle = '#c89020'; ctx.fillRect(cx - 118, y - 3, 236, 1); ctx.fillRect(cx - 118, y + step - 4, 236, 1); // Unterkante unter Schrift und Schatten
+        Font.draw(ctx, '▶', cx - 116 + ((this.t >> 3) & 1), y, '#f8d878', { noFit: true });
+      }
+      Font.draw(ctx, tr(it.label), cx - 108, y, on ? '#fce070' : '#9c9c9c', { shadow: '#000' });
       let val = '', good = false;
       if (it.key === 'music') {
         for (let k = 0; k < 10; k++) { ctx.fillStyle = k < Options.music ? '#f8b800' : '#3c3c3c'; ctx.fillRect(cx + 54 + k * 6, y, 4, 7); }

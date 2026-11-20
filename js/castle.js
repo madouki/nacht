@@ -2689,7 +2689,8 @@ const Castle = (() => {
     batcard: { slot: 'fam', fam: 'bat', col: '#9c6cfc' },              // Junges der Riesenfledermaus (liegt nach dem Sieg in ihrer Arena)
     fairy: { slot: 'fam', fam: 'fairy', price: 7000, col: '#58f898' },  // Fee im Glas (Laden des Bibliothekars)
     tentling: { slot: 'fam', fam: 'tent', col: '#d880fc' },            // Neffe des Tentakels (Kolosseum, nach der Rabenfeder)
-    shadowcard: { slot: 'fam', fam: 'shadow', col: '#8c5cc8' },        // Schatten des Doppelgängers: wiederholt jeden Hieb
+    shadowcard: { slot: 'fam', fam: 'shadow', col: '#8c5cc8' },
+    welpe: { slot: 'fam', fam: 'dog', col: '#b08c64' },                  // Krümel, Brutus' Welpe (Zwinger, nach dem Sieg über den Kettenhund)        // Schatten des Doppelgängers: wiederholt jeden Hieb
     reisszahn: { slot: 'weapon', atk: 6, col: '#c8ccd4' },
     posthorn: { slot: 'acc', luck: 3, greed: 1, col: '#f8d048' },
     goldstempel: { slot: 'acc', atk: 4, def: 3, luck: 2, col: '#f8d048' },       // Goldener Stempel (Lohn des Schreibtischtäters)
@@ -2743,7 +2744,7 @@ const Castle = (() => {
   const STOCK = ['potion', 'elixir', 'leather', 'chain', 'silver', 'heartamulet', 'fairy', 'map', 'book_spirit', 'book_hellfire', 'book_soulsteal'];
   const once = (g) => !!(g.slot || g.key || g.spell || g.rec || g.quest); // gibt es nur einmal
   const BOSS_LOOT = [[[0, -1], 'batcard']];
-  const MINI_LOOT = [[['side', 'zwinger'], 'halsband', 32, 10], [['side', 'verlies'], 'turmschild', 62, 10], [['side', 'spiegel'], 'shadowcard', 20, 10], [['side', 'golemstollen'], 'steinhaut', 12, 10], [['side', 'galvani'], 'galvheart', 97, 25], [['side', 'heldenamt'], 'dienstsiegel', 14, 17], [['side', 'aktenkeller'], 'reisszahn', 8, 15], [['side', 'hauptpost'], 'posthorn', 100, 19], [['side', 'chefetage'], 'goldstempel', 69, 19], [['side', 'sternkuppel'], 'orrery', 30, 21], [['side', 'krater'], 'mondstein', 30, 19], [['side', 'kuckuck'], 'kuckucksfeder', 4, 13]]; // nach dem Doppelgänger: sein Schatten; nach dem Steingolem: Steinhaut; nach dem Erweckten: sein Glasherz
+  const MINI_LOOT = [[['side', 'zwinger'], 'halsband', 32, 10], [['side', 'zwinger'], 'welpe', 27, 10], [['side', 'verlies'], 'turmschild', 62, 10], [['side', 'spiegel'], 'shadowcard', 20, 10], [['side', 'golemstollen'], 'steinhaut', 12, 10], [['side', 'galvani'], 'galvheart', 97, 25], [['side', 'heldenamt'], 'dienstsiegel', 14, 17], [['side', 'aktenkeller'], 'reisszahn', 8, 15], [['side', 'hauptpost'], 'posthorn', 100, 19], [['side', 'chefetage'], 'goldstempel', 69, 19], [['side', 'sternkuppel'], 'orrery', 30, 21], [['side', 'krater'], 'mondstein', 30, 19], [['side', 'kuckuck'], 'kuckucksfeder', 4, 13]]; // nach dem Doppelgänger: sein Schatten; nach dem Steingolem: Steinhaut; nach dem Erweckten: sein Glasherz
   const FINDS = [ // Einzelstücke: [Raum, Gegenstand, Kachel-x, Standreihe]
     [['side', 'kolosseum'], 'leather', 12, 7], [['side', 'kanal'], 'bloodstone', 43, 7], [['side', 'schatz'], 'greedring', 25, 6],
     [['side', 'verlies'], 'dragonfang', 28, 6], [['side', 'wehrgang'], 'luckcoin', 37, 6], [['side', 'himmel'], 'mirror', 44, 5],
@@ -2893,6 +2894,7 @@ const Castle = (() => {
       if (this.cd > 0) this.cd--;
       if (this.sayT > 0) this.sayT--;
       if (--this.quip <= 0) { this.quip = 1200 + Math.floor(Math.random() * 1200); if (this.type !== 'fairy') this.talk(); }
+      if (this.type === 'dog') { this.dogTick(p, lv); return; }
       let tx = p.cx - p.face * (this.type === 'tent' ? 13 : 18), ty = p.feet - (this.type === 'tent' ? 12 : this.type === 'fairy' ? 42 : 34) + Math.sin(this.t * 0.07) * 3, k = 0.12;
       if (this.type === 'bat') {
         if (!this.target && !this.cd) { this.target = famTarget(this, 110, 70); this.dive = 0; }
@@ -2936,11 +2938,33 @@ const Castle = (() => {
       if (Math.abs(p.cx - this.cx) > 220 || Math.abs(p.cy - this.cy) > 160) { this.x = p.cx - 6; this.y = p.y - 10; } // zu weit weg: zurück zum Helden
       if (!this.slap && this.type !== 'shadow') this.face = this.target ? (this.target.cx > this.cx ? 1 : -1) : p.face;
     }
+    dogTick(p, lv) { // Welpe: läuft am Boden hinter dem Helden her, springt nach, wenn er höher steht, und beißt Gegner in der Nähe
+      if (this.h !== 12) { this.y += this.h - 12; this.w = 14; this.h = 12; this.vy = 0; }
+      if (this.bite > 0) this.bite--;
+      if (!this.target && !this.cd) this.target = famTarget(this, 96, 28);
+      const e = this.target;
+      if (e && (e.dead || !(e.hp > 0) || e.dying || Math.abs(e.cx - p.cx) > 150)) { this.target = null; this.cd = 20; }
+      const gx = this.target ? this.target.cx : p.cx - p.face * 22, dx = gx - this.cx;
+      this.vx = Math.abs(dx) > 5 ? Math.sign(dx) * Math.min(2.8, 0.7 + Math.abs(dx) * 0.06) : 0;
+      if (this.vx) this.face = Math.sign(this.vx); else if (!this.target) this.face = p.face;
+      this.vy = Math.min((this.vy || 0) + 0.26, 5.5);
+      const wall = Phys.moveX(this, this.vx), r = Phys.moveY(this, this.vy); this.onGround = r === 1; if (r) this.vy = 0;
+      if (this.onGround && (wall || (p.onGround && p.feet < this.y + this.h - 18 && Math.abs(p.cx - this.cx) < 70))) { this.vy = -4.4; Audio8.sfx('jump', this.cx); }
+      if (this.target && Math.abs(this.target.cx - this.cx) < 14 && Math.abs(this.target.cy - this.cy) < 22 && !this.bite) { // Biss
+        this.bite = 14; this.face = this.target.cx > this.cx ? 1 : -1; Audio8.sfx('chomp', this.cx);
+        if (famStrike({ x: this.face > 0 ? this.cx : this.cx - 16, y: this.y - 6, w: 16, h: 18 }, 0.6 + 0.12 * (lv - 1))) this.gain(1);
+        this.target = null; this.cd = 54 - lv * 3;
+      }
+      if (Math.abs(p.cx - this.cx) > 220 || Math.abs(p.cy - this.cy) > 140 || this.y > W.room.h * T) { this.x = p.cx - 7 - p.face * 16; this.y = p.feet - this.h; this.vy = 0; } // zu weit weg: zurück zum Helden
+    }
     lightUp(L, cx, cy) { if (this.type === 'fairy') L.push({ x: this.cx - cx, y: this.cy - cy, r: 40 + Math.sin(this.t * 0.1) * 4, c: [160, 252, 190], a: 0.5 }); }
     draw(ctx) {
       const x = Math.round(this.cx - W.cam.x), y = Math.round(this.cy - W.cam.y), t = this.t, f = this.face;
       const R = (a, b, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(f > 0 ? x + a : x - a - w, y + b, w, h); };
-      if (this.type === 'shadow') { // Schattenzwilling: das Heldenbild von vor 18 Bildern, durchscheinend, mit Waffenstrich
+      if (this.type === 'dog') { // Welpe Krümel: Blender-Bilder aus dem Atlas des Kettenhunds (hund.js)
+        const A = typeof HUND_ART !== 'undefined' && HUND_ART.get(), P = A && A.pup;
+        if (P) { const s = this.bite > 0 ? P.bite : Math.abs(this.vx) > 0.4 || !this.onGround ? P.run[(t >> 3) & 1] : P.sit; Sprites.draw(ctx, s, Math.round(this.cx - s.w / 2 - W.cam.x), Math.round(this.y + this.h - s.h + 1 - W.cam.y), f < 0); }
+      } else if (this.type === 'shadow') { // Schattenzwilling: das Heldenbild von vor 18 Bildern, durchscheinend, mit Waffenstrich
         const h = this.ghost;
         if (h && h.spr) {
           const off = -h.face * 14;
@@ -2972,7 +2996,7 @@ const Castle = (() => {
         ctx.globalAlpha = Math.min(1, this.sayT / 20);
         const w = Font.width(this.say) + 6, bx = clamp(x - w / 2, 2, View.w - w - 2), by = y - 22;
         ctx.fillStyle = 'rgba(0,0,0,0.75)'; ctx.fillRect(bx, by, w, 11);
-        Font.draw(ctx, this.say, bx + 3, by + 2, this.type === 'fairy' ? '#b8fcd0' : this.type === 'bat' ? '#c8a0fc' : this.type === 'shadow' ? '#b890f0' : '#e8b0fc');
+        Font.draw(ctx, this.say, bx + 3, by + 2, this.type === 'fairy' ? '#b8fcd0' : this.type === 'dog' ? '#f8d8a8' : this.type === 'bat' ? '#c8a0fc' : this.type === 'shadow' ? '#b890f0' : '#e8b0fc');
         ctx.globalAlpha = 1;
       }
     }
@@ -3489,7 +3513,7 @@ const Castle = (() => {
     const top = clamp(shop.sel - 4, 0, Math.max(0, RECORDS.length - 9));
     RECORDS.slice(top, top + 9).forEach((id, n) => {
       const i = top + n, y = 76 + n * 12, on = i === shop.sel, own = hasRec(id), now = Audio8.current === id;
-      if (on) { ctx.fillStyle = 'rgba(200,144,32,0.2)'; ctx.fillRect(lx - 6, y - 3, rx - lx + 12, 12); if ((t >> 4) % 2 === 0) Sprites.draw(ctx, Sprites.S.heartS, lx - 4, y - 1); }
+      if (on) { ctx.fillStyle = 'rgba(44,28,6,0.92)'; ctx.fillRect(lx - 6, y - 3, rx - lx + 12, 12); ctx.fillStyle = '#c89020'; ctx.fillRect(lx - 6, y - 3, rx - lx + 12, 1); ctx.fillRect(lx - 6, y + 8, rx - lx + 12, 1); if ((t >> 4) % 2 === 0) Sprites.draw(ctx, Sprites.S.heartS, lx - 4, y - 1); }
       if (own) itemIcon(ctx, 'rec_' + id, lx + 8, y - 2);
       Font.draw(ctx, own ? itemName('rec_' + id) : '???', lx + 22, y, now ? '#f8b800' : own ? (on ? '#fcfcfc' : '#c8c8d8') : '#5c5c6c', { shadow: '#000' });
       if (now) Font.draw(ctx, tr('gramoNow'), rx, y, '#f8b800', { align: 'right', shadow: '#000' });
@@ -3750,7 +3774,7 @@ const Castle = (() => {
     if (top + rows < ACH.length) Font.draw(ctx, '↓', rx, 48 + rows * 12, '#c89020');
     ACH.slice(top, top + rows).forEach((a, n) => {
       const i = top + n, y = 50 + n * 12, on = i === ach.sel, got = achGot(a);
-      if (on) { ctx.fillStyle = 'rgba(200,144,32,0.2)'; ctx.fillRect(lx - 4, y - 2, rx - lx + 8, 11); }
+      if (on) { ctx.fillStyle = 'rgba(44,28,6,0.92)'; ctx.fillRect(lx - 4, y - 3, rx - lx + 8, 12); ctx.fillStyle = '#c89020'; ctx.fillRect(lx - 4, y - 3, rx - lx + 8, 1); ctx.fillRect(lx - 4, y + 8, rx - lx + 8, 1); }
       achSeal(ctx, lx + 4, y + 3, got, t);
       Font.draw(ctx, tr('ach_' + a.id), lx + 14, y, got ? '#f8d878' : on ? '#a8a8b8' : '#6c6c7c', { shadow: '#000' });
     });
@@ -5051,7 +5075,7 @@ const Castle = (() => {
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
     need.push('arenaTitle', 'arenaLine', 'arenaT1', 'arenaT2', 'arenaT3', 'arenaLockLv', 'arenaLockPrev', 'arenaBest', 'arenaWaves', 'arenaWave', 'arenaGold', 'arenaWin', 'arenaThumb', 'arenaQuip0', 'arenaQuip1', 'arenaQuip2', 'arenaQuip3', 'ach_arena', 'achD_arena', 'champ_flamme', 'champ_eile', 'champ_panzer', 'champ_spalt', 'champHunt', 'gwAngel', 'gwTitle', 'gwLabel', 'gwTier_good', 'gwTier_mid', 'gwTier_bad', 'gwUp', 'gwDown', 'gwNoGold', 'gwPerk_good', 'gwPerk_bad', 'opferTitle', 'opferLine', 'opfer_atk', 'opfer_hp', 'opfer_mp', 'opferMax', 'opferBack', 'ach_saint', 'achD_saint', 'ach_fiend', 'achD_fiend', 'optGore', 'optGoreH', 'gw_pruefer_q', 'gw_pruefer_a', 'gw_pruefer_b', 'gw_pruefer_ra', 'gw_pruefer_rb', 'gw_bein_q', 'gw_bein_a', 'gw_bein_b', 'gw_bein_ra', 'gw_bein_rb', 'gw_gast_q', 'gw_gast_a', 'gw_gast_b', 'gw_gast_ra', 'gw_gast_rb', 'gw_waisen_q', 'gw_waisen_a', 'gw_waisen_b', 'gw_waisen_ra', 'gw_waisen_rb', 'gw_antrag_q', 'gw_antrag_a', 'gw_antrag_b', 'gw_antrag_ra', 'gw_antrag_rb', 'gw_kalb_q', 'gw_kalb_a', 'gw_kalb_b', 'gw_kalb_ra', 'gw_kalb_rb', 'champWin', 'champTip', 'ach_champs', 'achD_champs', 'chgKanal', 'chgStollen', 'chgKuppel', 'chgKammer', 'hintRopeUp', 'hintRopeHold', 'hintRopeDown', 'hintTrolley', 'hintTrolley2', 'hintHand', 'npcBell', 'npcGuide', 'npcClock', 'newHere', 'chgZeiger', 'chgDoorZeiger', 'chgKlamm', 'chgDoorKlamm', 'chgGlocken', 'chgDoorGlocken', 'hintKuckuck', 'bossKuckuck', 'bossKuckuckShout', 'bossKuckuckBonk', 'bossKuckuckRage', 'bossKuckuckDie', 'bossKuckuckNote', 'banter_bossKuckuck', 'beastD_Kuckucksuhr', 'ach_kuckuck', 'achD_kuckuck', 'item_kuckucksfeder', 'itemD_kuckucksfeder', 'chgKuckuck', 'chgDoorKuckuck'); // Glockenstuhl, Tropfsteinklamm, Zeigerkammer, NEU-Markierung, Kuckucksuhr
-    need.push('kunst_eis', 'kunst_blitz', 'kunst_sterne', 'gargNote', 'wacheNote', 'spinneNote', 'frostNote', 'froschNote', 'wetterNote', 'wetterCrow', 'sargNote', 'sargGrumble', 'bossHund', 'epi_bossHund', 'bossHundNote', 'bossHundTip', 'banter_bossHund', 'hundWau', 'walzerNote', 'walzerOuch', 'kuecheNote', 'kuecheHi', 'kuecheTab', 'kuecheHelp', 'kuecheMissing', 'kuecheAgain', 'kuecheReady', 'kuecheEaten', 'kuecheFirst', 'kuecheLoot', 'kuecheLck', 'bossHauptmann', 'epi_bossHauptmann', 'bossHauptmannNote', 'bossHauptmannTip', 'banter_bossHauptmann');
+    need.push('kunst_eis', 'kunst_blitz', 'kunst_sterne', 'gargNote', 'wacheNote', 'spinneNote', 'frostNote', 'froschNote', 'wetterNote', 'wetterCrow', 'sargNote', 'sargGrumble', 'bossHund', 'epi_bossHund', 'bossHundNote', 'bossHundTip', 'banter_bossHund', 'hundWau', 'famSay_dog', 'walzerNote', 'walzerOuch', 'kuecheNote', 'kuecheHi', 'kuecheTab', 'kuecheHelp', 'kuecheMissing', 'kuecheAgain', 'kuecheReady', 'kuecheEaten', 'kuecheFirst', 'kuecheLoot', 'kuecheLck', 'bossHauptmann', 'epi_bossHauptmann', 'bossHauptmannNote', 'bossHauptmannTip', 'banter_bossHauptmann');
     need.push('kunst_wucht', 'kunst_kreuz', 'kunst_blut', 'kunst_feuer', 'kunst_reissen', 'kunstFirst', 'mimicNote', 'mimicWin');
     need.push('arenaDaily', 'arenaDailyDone', 'arenaDailyWin', ...Arena.MODS.map(m => 'mod_' + m));
     need.push('rauschTitle', 'rauschLine', 'rauschGo', 'rauschWait', 'rauschLock', 'rauschBest', 'rauschMost', 'rauschHud', 'rauschOut', 'rauschHeal', 'rauschWin');
