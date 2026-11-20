@@ -595,6 +595,15 @@ const Audio8 = (() => {
   // über unregelmäßige Kicks samt Ducking), d = weicher Bumm auf der Eins; alle vier Takte Zeilenglocke auf 2, Wagenrücklauf auf 3
   const AW_TYPE = ['d:2 y:2 y:2 y:1 y:1 y:2 y:2', 'd:2 y:1 y:1 y:2 y:2 y:2 y:2', 'd:2 y:2 b:4 r:4'];
 
+  // Arie der Primadonna Ottilie (Bühne des Hoftheaters): d-Moll im Dreivierteltakt, 120 BPM. Die Melodie singt in großen Bögen,
+  // jede zweite Phrase endet höher – und die vorletzte gipfelt im hohen Cis, das die Kristallleuchter fürchten. Begleitung wie in
+  // einer Opernarie: Bass auf der Eins, Akkorde auf zwei und drei, Pauke, Becken zum Strophenschluss.
+  const AR = { Dm: ['d4', 'f4', 'a4'], Gm: ['g3', 'a#3', 'd4'], A7: ['c#4', 'e4', 'g4'], Bb: ['a#3', 'd4', 'f4'], A: ['c#4', 'e4', 'a4'], F: ['f3', 'a3', 'c4'], C: ['e3', 'g3', 'c4'] };
+  const AR_B = { Dm: 'd2', Gm: 'g1', A7: 'a1', Bb: 'a#1', A: 'a1', F: 'f2', C: 'c2' };
+  const AR_C = ['Dm', 'Dm', 'Gm', 'A7', 'Dm', 'Bb', 'Gm', 'A', 'F', 'C', 'Dm', 'A7', 'Bb', 'Gm', 'A7', 'Dm'];
+  const AR_L = ['a4:6 d5:3 f5:3', 'e5:6 d5:3 c#5:3', 'd5:4 g5:4 a#5:4', 'a5:6 g5:3 e5:3', 'f5:6 e5:3 d5:3', 'd5:4 f5:4 a#5:4', 'a#5:6 a5:3 g5:3', 'a5:9 -:3',
+    'c5:6 f5:3 a5:3', 'g5:6 e5:3 c5:3', 'd5:4 f5:4 a5:4', 'c#6:6 a5:3 e5:3', 'd6:6 a#5:3 f5:3', 'g5:4 a#5:4 d6:4', 'c#6:3 e6:3 c#6:3 a5:3', 'd6:9 -:3'];
+
   const SONGS = {
     title: {
       bpm: 104, loop: true,
@@ -859,6 +868,14 @@ const Audio8 = (() => {
       org: SB_C.map(c => SB[c].join('+') + ':16').join(' '),
       dr: SB_C.map((c, i) => SB_DR[i % 8 === 7 ? 1 : 0]).join(' '),
     },
+    arie: { // Primadonna Ottilie (Zwischengegnerin im Zuschauerraum, js/diva.js)
+      bpm: 120, loop: true, bar: 12, echo: { delay: 3, vol: 0.3 },
+      p1: AR_L.join(' '),
+      p2: AR_C.map(c => `-:4 ${AR[c][1]}:2 -:2 ${AR[c][2]}:2 -:2`).join(' '),
+      tri: AR_C.map(c => `${AR_B[c]}:4 -:8`).join(' '),
+      pad: AR_C.map(c => AR[c].join('+') + ':12').join(' '),
+      dr: AR_C.map((c, i) => i === 15 ? 'p:2 p:2 p:2 p:2 x:4' : i % 4 === 3 ? 'p:4 p:2 p:2 p:4' : 'p:4 -:8').join(' '),
+    },
     kuckuck: { // Kuckucksuhr (Nebenboss links an der Zeigerkammer)
       bpm: 156, loop: true, echo: { delay: 3, vol: 0.28 },
       p1: KU_L.join(' '),
@@ -963,7 +980,7 @@ const Audio8 = (() => {
   //   C Brücke (Quarte höher: Blechthema aus den Akkorden, Streicher liegen darüber) · D Tutti (Melodie mit Streichern,
   //   Glockenspiel und Pauken) · E Mollterz höher (Streicher und Flöte) · F Zwischenspiel ohne Melodie · G Original mit Flöte
   // Länge: Lieder ab 40 s vier Durchgänge, ab 28 s fünf, kürzere acht.
-  const DRIVE = new Set(['boss', 'boss2', 'kraken', 'count', 'mondboss', 'reisswolf', 'sternbild', 'dienstweg', 'amtsmarsch', 'galopp']);
+  const DRIVE = new Set(['boss', 'boss2', 'kraken', 'count', 'mondboss', 'reisswolf', 'sternbild', 'dienstweg', 'amtsmarsch', 'galopp', 'arie']);
   const mOf = (n) => { const m = /^([a-g]#?)(-?\d)$/.exec(n); return m ? NN.indexOf(m[1]) + 12 * (+m[2] + 1) : null; };
   const nOf = (m) => NN[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
   function arrange(s, name) {

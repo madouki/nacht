@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261120-0839](#20261120-0839--madame-vitrina-in-der-lichterpassage-eine-arie-für-ottilie) – Madame Vitrina in der Lichterpassage, eine Arie für Ottilie
 - [20261120-0758](#20261120-0758--neue-zwischengegnerin-primadonna-ottilie-im-hoftheater) – Neue Zwischengegnerin: Primadonna Ottilie im Hoftheater
 - [20261120-0752](#20261120-0752--neuer-zwischenboss-unter-wasser-angler-anselm) – Neuer Zwischenboss unter Wasser: Angler Anselm
 - [20261120-0619](#20261120-0619--hafenfeuer-waffenaltäre-und-präzisere-sprünge) – Hafenfeuer, Waffenaltäre und präzisere Sprünge
@@ -74,6 +75,25 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261120-0839 – Madame Vitrina in der Lichterpassage, eine Arie für Ottilie
+
+**Neu – Madame Vitrina, Königin der Schaufensterpuppen**
+- In der Ladenzeile der Lichterpassage wartet jetzt eine neue Zwischengegnerin: Madame Vitrina, die Blender-Schaufensterpuppe in Königsgröße mit Krone, Hermelinumhang und violettem Kleid.
+- Wie ihre Puppen bewegt sie sich nur, wenn du wegschaust. Schaust du sie an, erstarrt sie mit einem Porzellanklirren in einer neuen Pose.
+- Drehst du dir den Rücken zu, gleitet sie auf ihrem Ständer heran und schlägt mit dem Fächer zu. Bist du weit weg, wirft sie Hutschachteln.
+- **Erwischt:** Drehst du dich zu ihr um, während sie gerade gleitet, gerät sie aus der Fassung. Dann sitzen Treffer besser.
+- Wer sie zu lange anstarrt, hört „STARR NICHT SO!“, und schon steht sie ihm im Rücken.
+- Sie ruft Schaufensterpuppen an beide Ränder der Ladenzeile, damit du nicht alles im Blick behältst. Ab halber Energie ruft sie „SCHAUFENSTERWECHSEL!“ und wird schneller.
+- Vor dem Kampf behauptet sie, sie stehe seit 1889 völlig reglos da (in allen 8 Sprachen).
+- Lohn: die **Puppenkrone** (Abwehr +2, Glück +1). Sie steht dir erstaunlich gut.
+
+**Neu – Ottilies eigene Arie**
+- Primadonna Ottilie singt jetzt ihre eigene Arie statt der Orgel-Toccata: d-Moll im Dreivierteltakt, eine Sopranlinie in großen Bögen bis zum gefürchteten hohen Cis, Walzerbegleitung, Pauken und Becken. Der Arrangeur macht daraus gut drei Minuten mit Orchesterstimmen, ohne dass sich etwas wiederholt.
+
+**Beim Testen ansehen**
+- Madame Vitrina: Ist das Spiel mit der Blickrichtung verständlich? Kommt das „Erwischt!“ oft genug?
+- Passt die Arie zum Kampf, und ist sie nicht zu hektisch?
 
 ## 20261120-0758 – Neue Zwischengegnerin: Primadonna Ottilie im Hoftheater
 

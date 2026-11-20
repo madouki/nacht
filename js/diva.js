@@ -58,7 +58,7 @@ class Primadonna extends Boss {
   constructor(ax, aw) {
     const stage = 21 * T; // Bühnenboden des Zuschauerraums (Oberkante Reihe 21)
     super(ax + aw - 64, stage - 56, 24, 56, 48, 3);
-    this.ax = ax; this.aw = aw; this.stage = stage; this.mini = true; this.score = 20000; this.nameKey = 'bossDiva'; this.music = 'chapel';
+    this.ax = ax; this.aw = aw; this.stage = stage; this.mini = true; this.score = 20000; this.nameKey = 'bossDiva'; this.music = 'arie'; // eigene Arie (audio.js)
     this.face = -1; this.state = 'intro'; this.timer = 0; this.ph2 = false; this.lootY = stage - 30; this.spot = null; this.next = 0; this.fade = 0; this.said = 0;
     this.sx0 = Math.max(ax + 4 * T + 8, 90 * T); this.sx1 = ax + aw - 8; // Bühnenbreite (Scheinwerfer und Laufweg)
   }
