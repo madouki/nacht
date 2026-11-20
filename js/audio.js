@@ -182,6 +182,7 @@ const Audio8 = (() => {
     watch: () => { arp(['c6', 'g5', 'c6', 'g5', 'c6'], 0.08, 'pulse', 0.12, 0.125); tone('triangle', 1760, 1720, 0.9, 0.1); },
     creak: () => { tone('sawtooth', 74, 56, 0.55, 0.05); noise(0.45, 0.05, 'bandpass', 420, 240); },
     cuckoo: () => { if (!ac) return; const t = ac.currentTime; tone('triangle', 784, 780, 0.2, 0.34, 0, t); tone('pulse', 1568, 1560, 0.16, 0.05, 0.25, t); tone('triangle', 659, 655, 0.34, 0.34, 0, t + 0.24); tone('pulse', 1318, 1310, 0.28, 0.05, 0.25, t + 0.24); }, // Kuckucksruf (große Terz abwärts)
+    rooster: () => { if (!ac) return; const t = ac.currentTime, n = (f0, f1, d, at) => { tone('pulse', f0, f1, d, 0.1, 0.25, t + at); tone('triangle', f0 * 2, f1 * 2, d, 0.04, 0, t + at); }; n(640, 820, 0.08, 0); n(760, 940, 0.08, 0.11); n(900, 1100, 0.09, 0.22); n(1080, 1380, 0.14, 0.35); n(1380, 820, 0.36, 0.5); noise(0.16, 0.04, 'bandpass', 2600, 1400); }, // Kikeriki (Kirchturmhahn)
     cog: () => { noise(0.03, 0.1, 'highpass', 3200); tone('pulse', 1900, 1750, 0.025, 0.045, 0.125); },
     latch: () => { tone('pulse', 1800, 2600, 0.06, 0.12, 0.125); noise(0.08, 0.2, 'highpass', 5000); },
     whoosh: () => noise(0.22, 0.28, 'bandpass', 600, 3000),

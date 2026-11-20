@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261120-1004](#20261120-1004--kirchturmhahn-kasimir-auf-der-himmelsbrücke) – Kirchturmhahn Kasimir auf der Himmelsbrücke
 - [20261120-0919](#20261120-0919--kleiderschrank-kunibert-in-zimmer-13) – Kleiderschrank Kunibert in Zimmer 13
 - [20261120-0839](#20261120-0839--madame-vitrina-in-der-lichterpassage-eine-arie-für-ottilie) – Madame Vitrina in der Lichterpassage, eine Arie für Ottilie
 - [20261120-0758](#20261120-0758--neue-zwischengegnerin-primadonna-ottilie-im-hoftheater) – Neue Zwischengegnerin: Primadonna Ottilie im Hoftheater
@@ -76,6 +77,23 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261120-1004 – Kirchturmhahn Kasimir auf der Himmelsbrücke
+
+**Neu – Kirchturmhahn Kasimir, der Vater aller Wetterhähne**
+- Auf der Himmelsbrücke, zwischen zwei Lücken im Steg, wartet jetzt ein neuer Zwischengegner: Kirchturmhahn Kasimir, der Ur-Wetterhahn vom Kathedralenturm. Er ist ein Blender-Modell aus Kupfer mit Grünspan und hängt noch an seinem abgerissenen Turmstab mit Windkreuz und vergoldetem Turmknauf.
+- Damit hat jetzt auch die Kathedrale mit der Himmelsbrücke einen Zwischengegner.
+- **Stoß:** Wie seine kleinen Verwandten dreht er sich wie eine Wetterfahne zu dir, eine Ziellinie blinkt, dann stößt er zu. Rammt er dabei den Steg, steckt er fest. Dann ist er wehrlos, und Treffer sitzen besser.
+- **Windstoß:** Er fliegt an den Rand, dreht sich auf seinem Stab und bläst über den Steg. Der Wind schiebt dich weg, und Dachschiefer fliegt mit. Über flachen Schiefer springst du, unter hohem bleibst du unten.
+- **Blitze:** Er kräht in den Himmel, und an markierten Stellen auf dem Steg schlagen Blitze ein. Die Male blinken immer schneller, also rechtzeitig weggehen.
+- Ab halber Energie ruft er „STURMWARNUNG!“: Es regnet, zwei kleine Wetterhähne kommen ihm zu Hilfe, und die Blitze fallen dreifach und zweimal hintereinander.
+- Ein neues Geräusch für sein Krähen: ein echtes „Kikeriki“.
+- Vor dem Kampf kräht er um Mitternacht und behauptet, er irre sich nie, er drehe sich nur (in allen 8 Sprachen).
+- Lohn: die **Windrose** vom Turmknauf (Glück +2, und manchmal trägt dich der Wind aus der Bahn eines Treffers).
+
+**Beim Testen ansehen**
+- Sind die Blitzmale gut zu sehen, auch im Regen?
+- Ist der Windstoß fair, oder schiebt er zu stark?
 
 ## 20261120-0919 – Kleiderschrank Kunibert in Zimmer 13
 
