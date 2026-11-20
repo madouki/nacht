@@ -83,9 +83,9 @@ class Elevator extends Ent {
       this.wait = on ? Math.min(this.wait - 1, 14) : calls ? Math.min(this.wait - 1, 4) : this.wait - 1;
       return;
     }
-    let ny = this.y + this.dir * 1.2; // flotter (vorher 0,75 px je Schritt)
-    if (ny <= this.yHigh) { ny = this.yHigh; this.dir = 1; this.wait = 40; }
-    if (ny >= this.yLow) { ny = this.yLow; this.dir = -1; this.wait = 40; }
+    let ny = this.y + this.dir * 1.8; // flotter (erst 0,75, dann 1,2 px je Schritt)
+    if (ny <= this.yHigh) { ny = this.yHigh; this.dir = 1; this.wait = 30; }
+    if (ny >= this.yLow) { ny = this.yLow; this.dir = -1; this.wait = 30; }
     this.dy = ny - this.y; this.y = ny;
   }
   // PS2-3D: Rahmen aus Eisen, Riffelblech mit Rillen, gelbe Warnleiste vorn, Messingschäkel für die Seile

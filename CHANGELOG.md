@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261120-0430](#20261120-0430--xbox-absturz-behoben-wegweiser-an-englisch-zuerst-schnellere-aufzüge-kleinvieh-in-hd-3d) – Xbox-Absturz behoben, Wegweiser an, Englisch zuerst, schnellere Aufzüge, Kleinvieh in HD-3D
 - [20261120-0233](#20261120-0233--xbox-korrekturen-ruhigere-musik-welpe-krümel) – Xbox-Korrekturen, ruhigere Musik, Welpe Krümel
 - [20261120-0028](#20261120-0028--neuer-zwischenboss-kettenhund-brutus-im-zwinger) – Neuer Zwischenboss: Kettenhund Brutus im Zwinger
 - [20261119-2129](#20261119-2129--hd-3d-holzpuppe-und-schaufensterpuppe-neu-aus-blender) – HD-3D: Holzpuppe und Schaufensterpuppe neu aus Blender
@@ -70,6 +71,36 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261120-0430 – Xbox-Absturz behoben, Wegweiser an, Englisch zuerst, schnellere Aufzüge, Kleinvieh in HD-3D
+
+**Geändert – nach euren Rückmeldungen**
+- **Wegweiser standardmäßig an:** Der goldene Pfeil zum nächsten Ziel ist jetzt für alle eingeschaltet, auch in alten Spielständen, in denen er aus war. Wer ihn nicht möchte, schaltet ihn unter OPTIONEN wieder ab.
+- **Sprache:** Neue Spieler starten auf Englisch. In den Optionen wechselt die Sprache in der Reihenfolge Englisch, Deutsch, Spanisch, Chinesisch, Japanisch, Italienisch, Rumänisch und zuletzt Französisch. Wer schon eine Sprache gewählt hat, behält sie.
+- **Schnellere Aufzüge:** Die großen Aufzüge (Hotel, Eis, Pumpwerk, Himmel) fahren gut anderthalbmal so schnell und ziehen kräftiger an, halten aber weiter sanft. Auch die Pendelplattformen hinter den Bossen, der Rätselaufzug und der Eilgang im Paternoster sind flotter.
+- **Paternoster ohne Trennwand:** Der Pfeiler zwischen Aufwärts- und Abwärtsschacht ist weg. Man kann jetzt quer über die Schächte springen, aus der Kabine in die Gegenkabine umsteigen oder sich ein Stockwerk tiefer fallen lassen.
+
+**Behoben**
+- **Edge schloss sich auf der Xbox beim Betreten des Kolosseums:** Seit dem letzten Build lagen auf der Xbox alle vorbereiteten Bilder im Arbeitsspeicher. Grafik und Arbeitsspeicher teilen sich dort einen knappen Topf, das war vermutlich zu viel (am PC ließ sich der Absturz nicht nachstellen). Die Bilder liegen jetzt wieder auf der Grafikkarte.
+- **Schwarzer Hintergrund nach einem Grafik-Neustart:** Wirft der Browser die Bilder auf der Grafikkarte weg, merkt das Spiel das jetzt. Es sichert den Fortsetzungspunkt und lädt sich neu, statt mit schwarzem Hintergrund weiterzulaufen.
+- **Alte Version im Zwischenspeicher:** Das Spiel prüft jetzt alle zehn Minuten und beim Zurückkehren in den Tab, ob es eine neue Version gibt. Im Titelmenü lädt es sie sofort, mitten im Spiel kommt erst ein Hinweis (in allen 8 Sprachen), und geladen wird beim nächsten Besuch im Titelmenü. Auf der Xbox, wo Tabs oft tagelang offen bleiben, sollte damit keine alte Grafik mehr auftauchen.
+- **Mit dem Taucherhelm im Kanal gefangen:** Ein Schwimmzug brachte die Füße nur knapp unter die Uferkante, und am Ufer löste der Sprung einen Wandsprung aus, der vom Ufer wegschob. Jetzt gibt es im Wasser keine Wandsprünge mehr. Wer zum Ufer drückt und nah genug an der Kante ist, steigt automatisch aus dem Becken.
+
+**Neu – sieben weitere Figuren in HD-3D**
+- **Brief** (Hauptpoststelle): flattert mit Papierflügeln, die Klappe geht auf und zu, Kulleraugen.
+- **Nachnahme-Paket**: schläft, wacht auf und klappt beim Sprung die Deckel weit auf wie einen Kiefer, mit einer Zahnreihe darunter.
+- **Schiebepaket**: Paketschnur, Klebeband, Briefmarke in vier Farben, Zerbrechlich-Etikett.
+- **Qualle** (versunkene Kapelle): durchscheinende Glocke mit leuchtendem Kern, schwingende Tentakel.
+- **Mondkalb**: Mondgestein mit Kratern, das wie ein geflecktes Kalb aussieht, goldene Hörnchen, eine Käseglocke am Hals.
+- **Kerzen-Mimik**: böse rote Augen, Zickzack-Grinsen, ein Maul voller Zähne und tippelnde Beinchen. Die Kerze leuchtet etwas schwächer, weil das Wachs sonst überstrahlt.
+- Auch Grammophon, Errungenschaften und Gewissensfragen haben jetzt den gut lesbaren Auswahlbalken aus dem Optionsmenü.
+
+**Beim Testen ansehen**
+- Xbox: Kommst du ohne Absturz ins Kolosseum? Bleiben die Hintergründe sichtbar?
+- Findest du mit dem Wegweiser jetzt zuverlässig zum nächsten Ziel? Gibt es Stellen, an denen der Pfeil fehlt oder in die Irre führt?
+- Kanal mit Taucherhelm: Kommst du an jedem Ufer gut aus dem Wasser?
+- Paternoster: Ist das Queren jetzt angenehm, oder fällt man zu leicht in den Schacht?
+- Sind die Aufzüge jetzt schnell genug?
 
 ## 20261120-0233 – Xbox-Korrekturen, ruhigere Musik, Welpe Krümel
 

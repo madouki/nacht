@@ -138,6 +138,8 @@ const Mond = (() => {
     }
     draw(ctx) {
       const sx = Math.round(this.x - W.cam.x), sy = Math.round(this.y - W.cam.y), w = this.flashT > 0, f = this.face, squash = !this.air && this.cd > 52 ? 2 : 0;
+      const A = typeof Kleinvieh !== 'undefined' && Kleinvieh.S; // HD-3D aus Blender (kleinvieh.js): duckt sich nach der Landung und kurz vor dem Sprung
+      if (A) { this.spr(ctx, A.kalb[this.air ? 'air' : squash || this.cd < 6 ? 'squash' : 'idle'], f < 0, 0, 0, w); return; }
       ctx.fillStyle = '#100c14'; ctx.fillRect(sx - 1, sy + 1 + squash, 18, 13 - squash);
       ctx.fillStyle = w ? '#ffffff' : '#e8e4dc'; ctx.fillRect(sx, sy + 2 + squash, 16, 11 - squash); ctx.fillStyle = '#c8c4b8'; ctx.fillRect(sx, sy + 10, 16, 3);
       ctx.fillStyle = '#9c98a8'; ctx.fillRect(sx + 3, sy + 4, 3, 2); ctx.fillRect(sx + 10, sy + 7, 2, 2); // Mondflecken

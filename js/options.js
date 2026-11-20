@@ -3,11 +3,12 @@
 
 const Options = (() => {
   const KEY = 'nachtmahr.opts';
-  const nav = ((navigator.languages && navigator.languages[0]) || navigator.language || 'de').slice(0, 2).toLowerCase();
   const o = { easy: false, maxWhip: false, infHearts: false, crt: true, music: 8, character: 'henrik', fullscreen: true,
-    lang: ['de', 'en', 'fr', 'es', 'it', 'ro', 'ja', 'zh'].includes(nav) ? nav : 'en', voice: false, bloom: true, gore: true, speed: 100, guide: true, allRelics: false, maxLevel: false, god: false, skin: '' }; // skin: zweiter Look des Helden ('adv' = Abenteurer, nur Henrik) // die letzten drei: Testhilfen // guide: Wegweiser-Pfeil im Schloss
+    lang: 'en', voice: false, bloom: true, gore: true, speed: 100, guide: true, allRelics: false, maxLevel: false, god: false, skin: '' }; // skin: zweiter Look des Helden ('adv' = Abenteurer, nur Henrik) // die letzten drei: Testhilfen // guide: Wegweiser-Pfeil im Schloss
   try { Object.assign(o, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { /* privat */ }
-  if (o.optVer !== 2) { o.voice = false; o.optVer = 2; } // Sprachausgabe standardmäßig aus (auch für alte Speicherstände)
+  if ((o.optVer || 0) < 2) o.voice = false; // Sprachausgabe standardmäßig aus (auch für alte Speicherstände)
+  if ((o.optVer || 0) < 3) o.guide = true;  // Wegweiser standardmäßig an: ohne ihn verirrt man sich leicht (einmalig auch für alte Speicherstände)
+  o.optVer = 3;
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (e) { /* privat */ } };
   return {
     get easy() { return o.easy; }, get maxWhip() { return o.maxWhip; }, get infHearts() { return o.infHearts; },

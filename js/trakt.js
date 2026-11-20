@@ -47,7 +47,7 @@ const Trakt = (() => {
       // Eilgang: fährt der Held mit, läuft der ganze Umlauf gut dreimal so schnell (sonst steht man für vier Stockwerke zehn
       // Sekunden in der Kabine); in den Wenden gemächlicher. Wer eine Richtung hält, will aussteigen: dann bremst der Umlauf,
       // und die Aussteighilfe setzt den Helden am nächsten Stockwerk hinaus.
-      { const on = !!(c && c.pater === this), I = Input.held, want = !on ? this.speed : I.left || I.right ? 1.5 : c.seg === 1 || c.seg === 3 ? 2.2 : (this.d.fast || 3.3);
+      { const on = !!(c && c.pater === this), I = Input.held, want = !on ? this.speed : I.left || I.right ? 1.5 : c.seg === 1 || c.seg === 3 ? 2.8 : (this.d.fast || 4.4);
         this.v += clamp(want - this.v, -0.16, 0.14); }
       if (c && c.pater === this) {
         // in der Kabine bleiben, solange daneben eine Decke vorbeizieht (sonst trüge die Kabine den Helden in die Mauer)
@@ -60,8 +60,9 @@ const Trakt = (() => {
             if (c.y - fy >= -2 && c.y - fy <= 14 && !Phys.rectSolid(edge, fy - p.h, 2, p.h - 1)) { p.y = fy - p.h; p.x = side > 0 ? c.x + c.w + 1 : c.x - p.w - 1; p.vy = 0; p.ridePlat = null; this.lastSeg = -1; return; }
           }
         }
-        if (!(open && side < 0)) p.x = Math.max(p.x, lo);
-        if (!(open && side > 0)) p.x = Math.min(p.x, hi);
+        const free = !this.d.pil, inner = side < 0 ? 1 : side > 0 ? -1 : 0; // ohne Pfeiler: zur Schachtmitte hin frei (in der Wende nicht)
+        if (!(open && side < 0) && !(free && inner < 0)) p.x = Math.max(p.x, lo);
+        if (!(open && side > 0) && !(free && inner > 0)) p.x = Math.min(p.x, hi);
         if (c.seg !== this.lastSeg) {
           if (c.seg === 1 && this.lastSeg === 0 && this.spin < 0) { this.spin = 0; Audio8.sfx('whoosh'); Audio8.sfx('creak'); } // oben durch: das Bild dreht sich einmal herum
           if (c.seg === 3 && this.lastSeg === 2 && !this.cellar) { this.cellar = true; Game.note('patCellar'); Audio8.sfx('creak'); }
@@ -115,8 +116,8 @@ const Trakt = (() => {
       const a = this.ph / 40;
       if (top - 30 > -60 && top - 30 < 280) this.wheel(ctx, (xu + xd + 48) / 2, top - 28, 38, a);
       if (bot - 26 > -60 && bot - 26 < 280) this.wheel(ctx, (xu + xd + 48) / 2, bot - 26, 38, -a);
-      const [p0, p1] = this.d.pil, py0 = Math.round(p0 * T - cy), py1 = Math.round((p1 + 1) * T - cy); // Pfeiler zwischen den Schächten
-      if (py1 > 0 && py0 < 260) {
+      const [p0, p1] = this.d.pil || [0, -1], py0 = Math.round(p0 * T - cy), py1 = Math.round((p1 + 1) * T - cy); // Pfeiler zwischen den Schächten (falls es einen gibt)
+      if (this.d.pil && py1 > 0 && py0 < 260) {
         ctx.fillStyle = '#3c2414'; ctx.fillRect(xu + 48, py0, 16, py1 - py0);
         ctx.fillStyle = '#5c3820'; ctx.fillRect(xu + 50, py0, 12, py1 - py0);
         ctx.fillStyle = '#c89020'; ctx.fillRect(xu + 48, py0, 1, py1 - py0); ctx.fillRect(xu + 63, py0, 1, py1 - py0);

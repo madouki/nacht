@@ -185,7 +185,7 @@ class PzLift extends Ent {
   }
   update() {
     this.t++;
-    const ty = Puzzle.get(this.g) ? this.yHigh : this.yLow, d = ty - this.y, ny = this.y + Math.max(-1, Math.min(1, d));
+    const ty = Puzzle.get(this.g) ? this.yHigh : this.yLow, d = ty - this.y, ny = this.y + Math.max(-1.6, Math.min(1.6, d));
     this.dy = ny - this.y; this.y = ny;
     const mv = Math.abs(this.dy) > 0.01;
     if (mv && !this.moving) Audio8.sfx('chain', this.cx);

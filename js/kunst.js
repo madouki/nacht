@@ -118,9 +118,11 @@ const Kunst = (() => {
       this.physics(); this.touch();
     }
     kill(silent) { super.kill(silent); if (silent) return; W.spawn(new Item('bagBig', this.cx - 6, this.cy)); W.spawn(new Item(rollDrop(this.drop), this.cx + 6, this.cy)); W.popup(this.cx, this.y - 10, tr('mimicWin'), '#f8d848'); }
-    lightUp(L, cx, cy) { L.push({ x: this.cx - cx, y: this.y - 2 - cy, r: 26, c: [252, 180, 80], a: 0.45 }); }
+    lightUp(L, cx, cy) { L.push({ x: this.cx - cx, y: this.y - 2 - cy, r: 26, c: [252, 180, 80], a: 0.22 }); } // schwächer: das helle Blender-Wachs überstrahlt sonst
     draw(ctx) {
       const x = Math.round(this.cx - W.cam.x), b = Math.round(this.y + this.h - W.cam.y), f = this.face, R = (a, y, w, h, c) => { ctx.fillStyle = this.flashT > 0 && (this.flashT & 2) ? '#fcfcfc' : c; ctx.fillRect(f > 0 ? x + a : x - a - w, b + y, w, h); };
+      const A = typeof Kleinvieh !== 'undefined' && Kleinvieh.S; // HD-3D aus Blender (kleinvieh.js): Maul auf, Beinchen tippeln im Wechsel
+      if (A) { this.spr(ctx, A.mimik[this.mouth < 0.35 ? 'shut' : ((this.t >> 3) & 1) ? 'open_b' : 'open_a'], f < 0, 0, 0, this.flashT > 0 && (this.flashT & 2)); return; }
       const leg = Math.round(Math.sin(this.t * 0.5) * (this.onGround ? 0 : 2));
       R(-5, -3, 3, 3 + leg, '#8c6c20'); R(2, -3, 3, 3 - leg, '#8c6c20'); R(-6, -6, 12, 3, '#c89c30'); R(-4, -7, 8, 1, '#f0cc60');           // Leuchterfuß mit Beinchen
       R(-5, -20, 10, 15, '#2c1c14'); R(-4, -19, 8, 13, '#c8b898'); R(-4, -19, 2, 13, '#e0d4b8'); R(2, -19, 2, 13, '#988868'); R(-3, -20, 2, 2, '#c8b898'); // Wachskörper mit dunklem Rand

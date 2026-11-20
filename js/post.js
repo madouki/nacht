@@ -77,6 +77,8 @@ const Post = (() => {
       if (this.gone) return;
       const sx = Math.round(this.x - W.cam.x), sy = Math.round(this.y - W.cam.y);
       if (sx > View.w + 8 || sx < -40) return;
+      const A = typeof Kleinvieh !== 'undefined' && Kleinvieh.S; // HD-3D aus Blender (kleinvieh.js)
+      if (A) { Sprites.draw(ctx, A.paket[this.seed], sx, sy); return; }
       ctx.fillStyle = '#2c1c0c'; ctx.fillRect(sx, sy, 32, 32); ctx.fillStyle = '#b07c44'; ctx.fillRect(sx + 1, sy + 1, 30, 30);       // Packpapier
       ctx.fillStyle = '#c8945c'; ctx.fillRect(sx + 1, sy + 1, 30, 3); ctx.fillStyle = '#8c5c2c'; ctx.fillRect(sx + 1, sy + 28, 30, 3);
       ctx.fillStyle = '#e8dcc0'; ctx.fillRect(sx + 15, sy + 1, 2, 30); ctx.fillRect(sx + 1, sy + 15, 30, 2);                            // Paketschnur
@@ -99,6 +101,8 @@ const Post = (() => {
     }
     draw(ctx) {
       const sx = Math.round(this.x - W.cam.x), sy = Math.round(this.y - W.cam.y), fl = (this.t >> 3) & 1, w = this.flashT > 0;
+      const A = typeof Kleinvieh !== 'undefined' && Kleinvieh.S; // HD-3D aus Blender (kleinvieh.js)
+      if (A) { const s = A.brief[fl ? 'up' : 'down']; this.ds(ctx, s, Math.round(this.cx - s.w / 2 - W.cam.x), Math.round(this.cy - s.h / 2 - W.cam.y), this.face < 0, w); return; }
       ctx.fillStyle = '#100c14'; ctx.fillRect(sx - 1, sy - 1, 16, 12);
       ctx.fillStyle = w ? '#fcfcfc' : '#f4f0e4'; ctx.fillRect(sx, sy, 14, 10);
       for (let k = 0; k < 7; k++) { ctx.fillStyle = k % 2 ? '#2c5cc8' : '#c82c2c'; ctx.fillRect(sx + k * 2, sy, 2, 1); ctx.fillRect(sx + k * 2, sy + 9, 2, 1); } // Luftpoststreifen
@@ -123,6 +127,8 @@ const Post = (() => {
     }
     draw(ctx) {
       const sx = Math.round(this.x - W.cam.x), sy = Math.round(this.y - W.cam.y), w = this.flashT > 0, o = this.open, lid = Math.round(o * 7);
+      const A = typeof Kleinvieh !== 'undefined' && Kleinvieh.S; // HD-3D aus Blender (kleinvieh.js)
+      if (A) { this.spr(ctx, A.nach[this.st === 'sleep' || o < 0.1 ? 'sleep' : !this.onGround || this.tm > (this.st === 'wake' ? 22 : 38) ? 'open' : 'wake'], this.face < 0, 0, 0, w); return; }
       ctx.fillStyle = '#2c1c0c'; ctx.fillRect(sx - 1, sy - 1, 30, 26);
       ctx.fillStyle = w ? '#fcfcfc' : '#a87440'; ctx.fillRect(sx, sy + 4, 28, 20);
       if (o > 0.1) { // aufgeklappt: Zähne, Augen

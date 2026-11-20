@@ -996,8 +996,8 @@ const Castle = (() => {
     // Registratur. Wer links über das EG hinauffährt, nimmt die obere Wende – laut Dienstvorschrift dreht sich dabei nichts
     const pat = R(32, 'hotel', 56).fill(0, 0, 31, 0, '#');
     for (const f of [9, 21, 33, 45]) pat.fill(0, f + 1, 12, f + 2, '#').fill(20, f + 1, 31, f + 2, '#');
-    const patDef = pat.fill(0, 48, 12, 53, '#').fill(20, 48, 31, 53, '#').ground(0, 31).fill(16, 6, 16, 47, 'G')       // Kellergrube unter den Schächten, Pfeiler
-      .prop('trakt', { k: 'pater', x: 13, top: 4, bot: 51, pil: [6, 47], speed: 1, floors: [[9, 'patF0'], [21, 'patF1'], [33, 'patF2'], [45, 'patF3']] })
+    const patDef = pat.fill(0, 48, 12, 53, '#').fill(20, 48, 31, 53, '#').ground(0, 31)       // Kellergrube unter den Schächten (die Trennwand ist weg: quer über die Schächte geht es schneller)
+      .prop('trakt', { k: 'pater', x: 13, top: 4, bot: 51, speed: 1, floors: [[9, 'patF0'], [21, 'patF1'], [33, 'patF2'], [45, 'patF3']] })
       .prop('pz', { k: 'sign', x: 25, y: 3, title: 'patSignT', key: 'patSign', col: '#0c1c3c', reach: 3 })
       .prop('trakt', { k: 'outbox', x: 6, y: 9 })
       .candle(2, 7, 'H').candle(10, 7).candle(22, 7, '$').candle(29, 7).candle(4, 19).candle(24, 19, 'H').candle(9, 31, 'H').candle(28, 31)
@@ -2146,10 +2146,21 @@ const Castle = (() => {
     const x0 = p.x;
     p.canDouble = true; // jeder Sprung im Wasser ist ein Schwimmzug
     if (p.vy > 1.3) p.vy = 1.3;
+    p.wallDir = () => 0; p.wallT = 0; p.wallSlide = 0; // im Wasser kein Wandsprung (der schob den Helden vom Ufer weg, statt hinauf)
     up.apply(p, a);
+    delete p.wallDir;
     p.x = x0 + (p.x - x0) * 0.75; // Wasser bremst
     if (p.vy < -2.8) p.vy = -2.8; if (p.vy > 1.3) p.vy = 1.3;
     if (p.feet > W.room.h * T - 1) { p.y = W.room.h * T - 1 - p.h; p.vy = Math.min(0, p.vy); } // Grund des Beckens
+    // Ausstiegshilfe: wer zum Ufer drückt und mit den Füßen höchstens gut eine Kachel unter der Uferkante schwimmt, steigt hinaus
+    // (ein Schwimmzug reichte vorher nur bis knapp unter die Kante, am Ufer blieb man im Becken gefangen)
+    const I = Input.held, dir = I.right ? 1 : I.left ? -1 : 0;
+    if (dir && p.state === 'normal') {
+      const col = Math.floor((dir > 0 ? p.x + p.w + 1 : p.x - 2) / T), row = Math.floor((p.feet - 2) / T), top = row * T;
+      if (Phys.solidTile(col, row) && !Phys.solidTile(col, row - 1) && !Phys.solidTile(col, row - 2) && p.feet - top <= 22 && p.feet - top > 0) {
+        p.y = top - p.h; p.vy = 0; p.x += dir * 3; p.onGround = false; W.dust(p.cx, p.feet, 2); Audio8.sfx('splash', p.cx);
+      }
+    }
     if ((W.frame % 18) === 0) W.spawn(new Particle(p.cx + p.face * 3, p.y + 6, rnd(-0.2, 0.2), -0.6, '#a4e4fc', 40, 1, -0.01)); // Luftblasen
   }
   class Jelly extends Enemy { // Qualle: pulst nach oben, sinkt langsam, treibt auf den Helden zu, leuchtet
@@ -2168,6 +2179,8 @@ const Castle = (() => {
     lightUp(L, cx, cy) { L.push({ x: this.cx - cx, y: this.cy - cy, r: 18, c: [216, 128, 252], a: 0.45 }); }
     draw(ctx) {
       const x = Math.round(this.cx - W.cam.x), y = Math.round(this.y - W.cam.y), t = this.t + this.ph, sq = (t % 70) < 10 ? 1 : 0, fl = this.flash;
+      const A = typeof Kleinvieh !== 'undefined' && Kleinvieh.S; // HD-3D-Qualle aus Blender (kleinvieh.js): Puls zieht die Glocke breit, sonst schwingen die Tentakel
+      if (A) { const s = A.qualle[sq ? 'sq' : ((t >> 4) & 1) ? 'b' : 'a']; ctx.globalAlpha = 0.82; this.ds(ctx, s, Math.round(this.cx - s.w / 2 - W.cam.x), Math.round(this.y - 3 - W.cam.y), false, !!fl); ctx.globalAlpha = 1; return; }
       ctx.globalAlpha = 0.75;
       ctx.fillStyle = fl ? '#fcfcfc' : '#c870e8'; ctx.fillRect(x - 6 + sq, y + sq, 12 - sq * 2, 6); ctx.fillRect(x - 4, y - 2 + sq, 8, 2);
       ctx.fillStyle = fl ? '#fcfcfc' : '#f0b8fc'; ctx.fillRect(x - 3, y - 1 + sq, 4, 2);
@@ -5075,7 +5088,7 @@ const Castle = (() => {
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
     need.push('arenaTitle', 'arenaLine', 'arenaT1', 'arenaT2', 'arenaT3', 'arenaLockLv', 'arenaLockPrev', 'arenaBest', 'arenaWaves', 'arenaWave', 'arenaGold', 'arenaWin', 'arenaThumb', 'arenaQuip0', 'arenaQuip1', 'arenaQuip2', 'arenaQuip3', 'ach_arena', 'achD_arena', 'champ_flamme', 'champ_eile', 'champ_panzer', 'champ_spalt', 'champHunt', 'gwAngel', 'gwTitle', 'gwLabel', 'gwTier_good', 'gwTier_mid', 'gwTier_bad', 'gwUp', 'gwDown', 'gwNoGold', 'gwPerk_good', 'gwPerk_bad', 'opferTitle', 'opferLine', 'opfer_atk', 'opfer_hp', 'opfer_mp', 'opferMax', 'opferBack', 'ach_saint', 'achD_saint', 'ach_fiend', 'achD_fiend', 'optGore', 'optGoreH', 'gw_pruefer_q', 'gw_pruefer_a', 'gw_pruefer_b', 'gw_pruefer_ra', 'gw_pruefer_rb', 'gw_bein_q', 'gw_bein_a', 'gw_bein_b', 'gw_bein_ra', 'gw_bein_rb', 'gw_gast_q', 'gw_gast_a', 'gw_gast_b', 'gw_gast_ra', 'gw_gast_rb', 'gw_waisen_q', 'gw_waisen_a', 'gw_waisen_b', 'gw_waisen_ra', 'gw_waisen_rb', 'gw_antrag_q', 'gw_antrag_a', 'gw_antrag_b', 'gw_antrag_ra', 'gw_antrag_rb', 'gw_kalb_q', 'gw_kalb_a', 'gw_kalb_b', 'gw_kalb_ra', 'gw_kalb_rb', 'champWin', 'champTip', 'ach_champs', 'achD_champs', 'chgKanal', 'chgStollen', 'chgKuppel', 'chgKammer', 'hintRopeUp', 'hintRopeHold', 'hintRopeDown', 'hintTrolley', 'hintTrolley2', 'hintHand', 'npcBell', 'npcGuide', 'npcClock', 'newHere', 'chgZeiger', 'chgDoorZeiger', 'chgKlamm', 'chgDoorKlamm', 'chgGlocken', 'chgDoorGlocken', 'hintKuckuck', 'bossKuckuck', 'bossKuckuckShout', 'bossKuckuckBonk', 'bossKuckuckRage', 'bossKuckuckDie', 'bossKuckuckNote', 'banter_bossKuckuck', 'beastD_Kuckucksuhr', 'ach_kuckuck', 'achD_kuckuck', 'item_kuckucksfeder', 'itemD_kuckucksfeder', 'chgKuckuck', 'chgDoorKuckuck'); // Glockenstuhl, Tropfsteinklamm, Zeigerkammer, NEU-Markierung, Kuckucksuhr
-    need.push('kunst_eis', 'kunst_blitz', 'kunst_sterne', 'gargNote', 'wacheNote', 'spinneNote', 'frostNote', 'froschNote', 'wetterNote', 'wetterCrow', 'sargNote', 'sargGrumble', 'bossHund', 'epi_bossHund', 'bossHundNote', 'bossHundTip', 'banter_bossHund', 'hundWau', 'famSay_dog', 'walzerNote', 'walzerOuch', 'kuecheNote', 'kuecheHi', 'kuecheTab', 'kuecheHelp', 'kuecheMissing', 'kuecheAgain', 'kuecheReady', 'kuecheEaten', 'kuecheFirst', 'kuecheLoot', 'kuecheLck', 'bossHauptmann', 'epi_bossHauptmann', 'bossHauptmannNote', 'bossHauptmannTip', 'banter_bossHauptmann');
+    need.push('kunst_eis', 'kunst_blitz', 'kunst_sterne', 'gargNote', 'wacheNote', 'spinneNote', 'frostNote', 'froschNote', 'wetterNote', 'wetterCrow', 'sargNote', 'sargGrumble', 'bossHund', 'epi_bossHund', 'bossHundNote', 'bossHundTip', 'banter_bossHund', 'hundWau', 'updateReady', 'famSay_dog', 'walzerNote', 'walzerOuch', 'kuecheNote', 'kuecheHi', 'kuecheTab', 'kuecheHelp', 'kuecheMissing', 'kuecheAgain', 'kuecheReady', 'kuecheEaten', 'kuecheFirst', 'kuecheLoot', 'kuecheLck', 'bossHauptmann', 'epi_bossHauptmann', 'bossHauptmannNote', 'bossHauptmannTip', 'banter_bossHauptmann');
     need.push('kunst_wucht', 'kunst_kreuz', 'kunst_blut', 'kunst_feuer', 'kunst_reissen', 'kunstFirst', 'mimicNote', 'mimicWin');
     need.push('arenaDaily', 'arenaDailyDone', 'arenaDailyWin', ...Arena.MODS.map(m => 'mod_' + m));
     need.push('rauschTitle', 'rauschLine', 'rauschGo', 'rauschWait', 'rauschLock', 'rauschBest', 'rauschMost', 'rauschHud', 'rauschOut', 'rauschHeal', 'rauschWin');

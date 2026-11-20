@@ -2,7 +2,7 @@
 'use strict';
 
 const I18N = (() => {
-  const LANGS = ['de', 'en', 'fr', 'es', 'it', 'ro', 'ja', 'zh'];
+  const LANGS = ['en', 'de', 'es', 'zh', 'ja', 'it', 'ro', 'fr']; // Reihenfolge im Menü (Wunsch 2026-11-20), Englisch zuerst
   const NAMES = { de: 'DEUTSCH', en: 'ENGLISH', fr: 'FRANÇAIS', es: 'ESPAÑOL', it: 'ITALIANO', ro: 'ROMÂNĂ', ja: '日本語', zh: '中文' };
   const Y = '#f8b800', G = '#bcbcbc', C = '#a4e4fc';
   const S = {
@@ -1638,6 +1638,7 @@ const I18N = (() => {
       it: ["BAU!", "(ANNUSA IL TUO STIVALE.)", "BAU BAU! (C'ERA UN TOPO.)", "(MORDICCHIA LA TUA FRUSTA.)", "(ULULA ALLA LUNA.)"],
       ro: ["HAM!", "(ÎȚI MIROASE CIZMA.)", "HAM HAM! (ERA UN ȘOARECE.)", "(ÎȚI ROADE BICIUL.)", "(URLĂ LA LUNĂ.)"],
     },
+    updateReady: { de: 'NEUE VERSION DA. SIE WARTET HÖFLICH AUFS TITELMENÜ.', en: 'NEW VERSION READY. IT WAITS POLITELY FOR THE TITLE MENU.', fr: 'NOUVELLE VERSION PRÊTE. ELLE ATTEND POLIMENT LE MENU TITRE.', es: 'NUEVA VERSIÓN LISTA. ESPERA EDUCADAMENTE AL MENÚ DE TÍTULO.', ja: '新バージョン到着。タイトル画面まで行儀よく待っています。', zh: '新版本已就绪，正礼貌地等待标题菜单。', it: 'NUOVA VERSIONE PRONTA. ASPETTA EDUCATAMENTE IL MENU DEL TITOLO.', ro: 'VERSIUNE NOUĂ GATA. AȘTEAPTĂ POLITICOS MENIUL DE TITLU.' },
     beast_Schildwache: { de: "SCHILDWACHE", en: "SHIELD GUARD", fr: "GARDE AU BOUCLIER", es: "GUARDIA DEL ESCUDO", ja: "盾の衛兵", zh: "盾卫", it: "GUARDIA DELLO SCUDO", ro: "STRAJA CU SCUT" },
     beastD_Schildwache: { de: "HÄLT DEN SCHILD IMMER NACH VORN. HINTEN IST ER EHER NACHLÄSSIG.", en: "ALWAYS KEEPS ITS SHIELD UP FRONT. THE BACK IS A BIT NEGLECTED.", fr: "GARDE TOUJOURS SON BOUCLIER DEVANT. DERRIÈRE, C'EST PLUS LÂCHE.", es: "SIEMPRE LLEVA EL ESCUDO DELANTE. POR DETRÁS SE DESCUIDA.", ja: "盾はいつも前。背中はわりと無防備。", zh: "盾牌永远朝前。背后就比较马虎了。", it: "TIENE SEMPRE LO SCUDO DAVANTI. DIETRO È UN PO' TRASCURATO.", ro: "ȚINE MEREU SCUTUL ÎN FAȚĂ. ÎN SPATE E CAM NEGLIJENT." },
     wacheNote: { de: "Der Schild hält alles ab. Spring über die Wache oder triff sie nach ihrem Lanzenstoß.", en: "The shield blocks everything. Jump over the guard or strike after its lance thrust.", fr: "Le bouclier arrête tout. Sautez par-dessus la garde ou frappez après son coup de lance.", es: "El escudo lo para todo. Salta sobre la guardia o golpéala tras su estocada.", ja: "盾は全てを防ぐ。飛び越えるか、突きの後を狙え。", zh: "盾牌挡下一切。跳过守卫,或在它刺枪后出手。", it: "Lo scudo para tutto. Salta oltre la guardia o colpiscila dopo l'affondo.", ro: "Scutul oprește tot. Sari peste strajă sau lovește după lovitura de lance." },
