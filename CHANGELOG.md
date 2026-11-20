@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261120-0752](#20261120-0752--neuer-zwischenboss-unter-wasser-angler-anselm) – Neuer Zwischenboss unter Wasser: Angler Anselm
 - [20261120-0619](#20261120-0619--hafenfeuer-waffenaltäre-und-präzisere-sprünge) – Hafenfeuer, Waffenaltäre und präzisere Sprünge
 - [20261120-0430](#20261120-0430--xbox-absturz-behoben-wegweiser-an-englisch-zuerst-schnellere-aufzüge-kleinvieh-in-hd-3d) – Xbox-Absturz behoben, Wegweiser an, Englisch zuerst, schnellere Aufzüge, Kleinvieh in HD-3D
 - [20261120-0233](#20261120-0233--xbox-korrekturen-ruhigere-musik-welpe-krümel) – Xbox-Korrekturen, ruhigere Musik, Welpe Krümel
@@ -72,6 +73,21 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261120-0752 – Neuer Zwischenboss unter Wasser: Angler Anselm
+
+**Neu – Angler Anselm in der versunkenen Kapelle**
+- Der erste Bosskampf unter Wasser: Mit dem Taucherhelm geht es in der versunkenen Kapelle hinab zum Altar. Dort lauert Angler Anselm, ein Tiefsee-Anglerfisch, modelliert in Blender. Als Köder trägt er das Ewige Licht der Kapelle an seiner Angel, im dunklen Becken das hellste Licht weit und breit.
+- Flackert das Licht grell, nimmt er Maß und schießt mit aufgerissenem Maul auf dich zu. Danach ist er erschöpft, kippt zur Seite und schielt mit X-Augen. Dann sitzen Treffer besser.
+- Mit vollen Backen pustet er einen Fächer aus Luftblasen, die langsam aufsteigen.
+- Ab halber Energie flackert das Licht wie bei einem Stromausfall, und er schnappt zweimal hintereinander zu.
+- Er war der Küster der Kapelle, seit sie abgesoffen ist. Vor dem Kampf erklärt er, warum die Lampe an seiner Stirn hängt (in allen 8 Sprachen).
+- Lohn: das **Ewige Licht**, ein Amulett mit MP +6 und Glück +1. Es brennt auch unter Wasser. Frag nicht, wie.
+- Der Wegweiser schickt dich erst zu ihm, wenn du den Taucherhelm hast.
+
+**Beim Testen ansehen**
+- Ist der Kampf unter Wasser fair? Kannst du dem Ausfall rechtzeitig ausweichen, obwohl man im Wasser langsamer ist?
+- Ist das Licht im dunklen Becken gut zu sehen, auch auf dem Fernseher?
 
 ## 20261120-0619 – Hafenfeuer, Waffenaltäre und präzisere Sprünge
 
