@@ -45,7 +45,7 @@ class Blitzmal extends Ent { // markierte Stelle auf dem Steg: Warnung, dann sch
       Audio8.sfx('thunder', this.gx); Audio8.sfx('zap', this.gx); W.shake = Math.max(W.shake, 8); W.flash = Math.max(W.flash || 0, 4); Input.rumble(0.6, 0.4, 220);
       for (let i = 0; i < 10; i++) W.spawn(new Particle(this.gx, this.gy - 2, rnd(-2.2, 2.2), rnd(-2.6, -0.6), i % 2 ? '#fff4c0' : '#9cc8ff', 26, 2, 0.12));
     }
-    if (this.t <= this.warn + 6 && p.alive && !p.hidden && Math.abs(p.cx - this.gx) < 11 && p.y < this.gy) p.hurt(this.dmg, this.gx);
+    if (this.t <= this.warn + 6 && p.alive && !p.hidden && Math.abs(p.cx - this.gx) < 11 && p.y < this.gy) { if (!(p.inv > 0) && W.boss instanceof Kasimir) W.boss.struck = true; p.hurt(this.dmg, this.gx); } // struck: Urkunde Blitzableiter
     if (this.t > this.warn + 14) this.dead = true;
   }
   lightUp(L, cx, cy) { if (this.t >= this.warn) L.push({ x: this.gx - cx, y: this.gy - 40 - cy, r: 70, c: [190, 220, 255], a: 0.6 * (1 - (this.t - this.warn) / 15) }); else L.push({ x: this.gx - cx, y: this.gy - cy, r: 14 + 10 * this.t / this.warn, c: [160, 200, 255], a: 0.25 }); }
@@ -67,7 +67,7 @@ class Kasimir extends Boss {
     const c = Math.floor((ax + aw / 2) / T); let r = 2; while (r < W.room.h - 1 && !Phys.solidTile(c, r)) r++;
     const gy = r * T;
     super(ax + aw - 90, gy - 220, 40, 62, 44, 2);
-    Object.assign(this, { ax, aw, gy, mini: true, score: 16000, nameKey: 'bossHahn', music: 'boss2', face: -1, ang: 0, dx: 0, dy: 0, ph2: false, last: '', seq: 0, gustDir: 1, volley: 0, lootY: gy - 30, kids: [] });
+    Object.assign(this, { ax, aw, gy, mini: true, score: 16000, nameKey: 'bossHahn', music: 'sturm', face: -1, ang: 0, dx: 0, dy: 0, ph2: false, last: '', seq: 0, gustDir: 1, volley: 0, lootY: gy - 30, kids: [] });
     this.go('intro');
   }
   go(s) { this.state = s; this.timer = 0; }
@@ -81,7 +81,7 @@ class Kasimir extends Boss {
   update() {
     this.tick();
     if (this.dying) {
-      if (this.dying === 1) for (const k of this.kids) if (!k.dead) k.kill();
+      if (this.dying === 1) { for (const k of this.kids) if (!k.dead) k.kill(); if (!this.struck && typeof Castle !== 'undefined' && Castle.setFlag) Castle.setFlag('hahn_clean'); }
       if (this.dying % 9 === 0) W.spawn(new Particle(this.bx + rnd(-16, 16), this.by + rnd(-10, 20), rnd(-1.6, 1.6), rnd(-2, 0), this.dying % 18 ? '#5c9a86' : '#e0b040', 40, 2, 0.12));
       this.ang *= 0.95; return this.updateDeath(120);
     }

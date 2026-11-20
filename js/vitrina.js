@@ -78,7 +78,8 @@ class Vitrina extends Boss {
         break;
       case 'glide': // weggeschaut: gleitet heran, wirft aus der Ferne Hutschachteln
         if (seen) { // umgedreht – erstarrt; frisch in Bewegung erwischt: aus der Fassung
-          if (this.moved > 0) { this.go('caught'); W.popup(this.cx, this.y - 10, tr('vitrinaCaught'), '#f8d878'); this.freeze(); Audio8.sfx('crit', this.cx); if (typeof Castle !== 'undefined' && Castle.flags && !Castle.flags.vitrina_tip) { Castle.setFlag('vitrina_tip'); Game.note('bossVitrinaTip'); } }
+          if (this.moved > 0) { this.go('caught'); if (typeof Castle !== 'undefined' && Castle.flags) Castle.flags.vitrina_caught = (Castle.flags.vitrina_caught || 0) + 1; // Urkunde Erwischt!
+           W.popup(this.cx, this.y - 10, tr('vitrinaCaught'), '#f8d878'); this.freeze(); Audio8.sfx('crit', this.cx); if (typeof Castle !== 'undefined' && Castle.flags && !Castle.flags.vitrina_tip) { Castle.setFlag('vitrina_tip'); Game.note('bossVitrinaTip'); } }
           else { this.go('still'); this.freeze(); }
           break;
         }

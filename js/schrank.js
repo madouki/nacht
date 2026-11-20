@@ -54,7 +54,7 @@ class Kunibert extends Boss {
   constructor(ax, aw) {
     const floor = (W.room.h - 2) * T;
     super(ax + aw - 70, floor - 52, 26, 52, 40, 2);
-    this.ax = ax; this.aw = aw; this.floor = floor; this.mini = true; this.score = 15000; this.nameKey = 'bossSchrank'; this.music = 'boss';
+    this.ax = ax; this.aw = aw; this.floor = floor; this.mini = true; this.score = 15000; this.nameKey = 'bossSchrank'; this.music = 'tango'; // Kleiderschrank-Tango (audio.js)
     this.face = -1; this.state = 'intro'; this.timer = 0; this.ph2 = false; this.lootY = floor - 30; this.vy = 0; this.hops = 0; this.last = ''; this.swallow = 0;
     this.shoo = true; // Gast-Geist und Tentakel verkriechen sich während des Kampfs unterm Bett
   }
@@ -69,7 +69,7 @@ class Kunibert extends Boss {
     return 'closed';
   }
   update() {
-    if (this.dying) { this.updateDeath(); return; }
+    if (this.dying) { if (this.dying === 1 && !this.ate && typeof Castle !== 'undefined' && Castle.setFlag) Castle.setFlag('schrank_clean'); this.updateDeath(); return; } // Urkunde: nie verschluckt
     this.tick(); const p = W.player, dx = p.cx - this.cx, sp = this.ph2 ? 1.3 : 1;
     if (!this.ph2 && this.hp < this.maxHp / 2) { // Motten!
       this.ph2 = true; W.popup(this.cx, this.y - 10, tr('schrankMotten'), '#e8dcb0'); Audio8.sfx('flap', this.cx); W.shake = Math.max(W.shake, 8);
@@ -118,7 +118,7 @@ class Kunibert extends Boss {
       case 'gulp': { // Türen weit auf: saugt an
         const near = Math.abs(dx) < 170 && Math.abs(p.feet - this.floor) < 48 && p.alive && !p.hidden;
         if (near) { Phys.moveX(p, -Math.sign(dx) * (this.ph2 ? 1.15 : 0.85)); if (this.timer % 4 === 0) W.spawn(new Particle(p.cx + Math.sign(dx) * 20, p.cy + rnd(-12, 12), -Math.sign(dx) * 2.2, 0, '#c8bca0', 18, 1, 0)); }
-        if (near && Math.abs(dx) < 24) { this.swallow = 44; this.timer = 0; Audio8.sfx('chomp', this.cx); if (typeof Castle !== 'undefined' && Castle.flags && !Castle.flags.schrank_tip) { Castle.setFlag('schrank_tip'); Game.note('bossSchrankTip'); } break; }
+        if (near && Math.abs(dx) < 24) { this.swallow = 44; this.timer = 0; this.ate = true; Audio8.sfx('chomp', this.cx); if (typeof Castle !== 'undefined' && Castle.flags && !Castle.flags.schrank_tip) { Castle.setFlag('schrank_tip'); Game.note('bossSchrankTip'); } break; }
         if (this.timer > (this.ph2 ? 90 : 72)) { this.go('walk'); Audio8.sfx('door', this.cx); }
         break;
       }

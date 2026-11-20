@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261121-0035](#20261121-0035--kleiderschrank-tango-gewitter-toccata-und-fünf-neue-urkunden) – Kleiderschrank-Tango, Gewitter-Toccata und fünf neue Urkunden
 - [20261120-1004](#20261120-1004--kirchturmhahn-kasimir-auf-der-himmelsbrücke) – Kirchturmhahn Kasimir auf der Himmelsbrücke
 - [20261120-0919](#20261120-0919--kleiderschrank-kunibert-in-zimmer-13) – Kleiderschrank Kunibert in Zimmer 13
 - [20261120-0839](#20261120-0839--madame-vitrina-in-der-lichterpassage-eine-arie-für-ottilie) – Madame Vitrina in der Lichterpassage, eine Arie für Ottilie
@@ -77,6 +78,25 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261121-0035 – Kleiderschrank-Tango, Gewitter-Toccata und fünf neue Urkunden
+
+**Neu – eigene Musik für zwei Zwischengegner**
+- **Kleiderschrank-Tango** für Kunibert in Zimmer 13: a-Moll, gemächliche 112 BPM, mit Habanera-Rhythmus im Bass, Marcato-Akkorden und einer Melodie mit Vorschlägen und einer frechen kleinen None. Der Schrank tanzt.
+- **Gewitter-Toccata** für Kirchturmhahn Kasimir auf der Himmelsbrücke: e-Moll, 126 BPM. Gebrochene Akkorde wehen wie Windböen, die Pauke grollt alle vier Takte wie ferner Donner, und die Melodie steigt in großen Bögen.
+- Der Arrangeur macht aus beiden Stücken jeweils fünf Durchgänge mit Orchesterstimmen (Streicher, Blech, Flöte, Harfe, Glockenspiel, Pauken), ohne dass sich etwas wiederholt.
+
+**Neu – fünf Urkunden vom Amt für Heldentaten**
+- **Petri Heil:** Angler Anselm besiegen. Diesmal hing der Haken auf der anderen Seite.
+- **Zugabe!:** Primadonna Ottilie fünfmal während ihres Knickses treffen. Sie hält es für Applaus.
+- **Erwischt!:** Madame Vitrina zehnmal beim Gleiten erwischen. Sie streitet alles ab.
+- **Kleiderordnung:** Kunibert besiegen, ohne verschluckt zu werden.
+- **Blitzableiter:** Kasimir ohne Blitztreffer besiegen. Die Vorhersage lag wieder daneben.
+- Wie immer zahlt das Amt je Urkunde eine Aufwandsentschädigung. Texte in allen 8 Sprachen.
+
+**Beim Testen ansehen**
+- Passen Tango und Toccata zu den Kämpfen? Sind sie nicht zu hektisch?
+- Sind Kleiderordnung und Blitzableiter machbar, aber eine Herausforderung?
 
 ## 20261120-1004 – Kirchturmhahn Kasimir auf der Himmelsbrücke
 

@@ -604,6 +604,24 @@ const Audio8 = (() => {
   const AR_C = ['Dm', 'Dm', 'Gm', 'A7', 'Dm', 'Bb', 'Gm', 'A', 'F', 'C', 'Dm', 'A7', 'Bb', 'Gm', 'A7', 'Dm'];
   const AR_L = ['a4:6 d5:3 f5:3', 'e5:6 d5:3 c#5:3', 'd5:4 g5:4 a#5:4', 'a5:6 g5:3 e5:3', 'f5:6 e5:3 d5:3', 'd5:4 f5:4 a#5:4', 'a#5:6 a5:3 g5:3', 'a5:9 -:3',
     'c5:6 f5:3 a5:3', 'g5:6 e5:3 c5:3', 'd5:4 f5:4 a5:4', 'c#6:6 a5:3 e5:3', 'd6:6 a#5:3 f5:3', 'g5:4 a#5:4 d6:4', 'c#6:3 e6:3 c#6:3 a5:3', 'd6:9 -:3'];
+  // Kleiderschrank-Tango (Kunibert, js/schrank.js): a-Moll, 112 BPM. Habanera im Bass (punktierte Achtel, Sechzehntel, zwei Achtel),
+  // Marcato-Akkorde auf allen vier Schlägen, eine Melodie mit Vorschlägen und einer frechen kleinen None über dem E7.
+  const TG = { Am: ['a4', 'c5', 'e5'], Dm: ['a4', 'd5', 'f5'], E7: ['g#4', 'b4', 'd5'], F: ['a4', 'c5', 'f5'], B7: ['a4', 'd#5', 'f#5'], E: ['g#4', 'b4', 'e5'], A7: ['g4', 'c#5', 'e5'] };
+  const TG_B = { Am: ['a1', 'e2'], Dm: ['d2', 'a2'], E7: ['e2', 'b1'], F: ['f1', 'c2'], B7: ['b1', 'f#2'], E: ['e2', 'b1'], A7: ['a1', 'e2'] };
+  const TG_C = ['Am', 'Am', 'Dm', 'E7', 'Am', 'F', 'B7', 'E', 'Am', 'A7', 'Dm', 'Dm', 'F', 'E7', 'Am', 'E7'];
+  const TG_L = ['e5:3 e5:1 e5:2 a5:2 g#5:3 a5:1 b5:4', 'c6:6 b5:2 a5:4 e5:4', 'f5:3 f5:1 f5:2 a5:2 d6:3 c6:1 a5:4', 'g#5:6 f5:2 e5:4 d5:4',
+    'c5:2 e5:2 a5:4 a5:3 g#5:1 a5:2 c6:2', 'c6:3 a5:1 f5:4 -:2 f5:2 g5:2 a5:2', 'd#6:3 c6:1 a5:2 f#5:2 d#5:4 b4:4', 'g#5:2 a5:2 b5:4 e5:6 -:2',
+    'a5:3 a5:1 a5:2 c6:2 b5:3 a5:1 g#5:4', 'g5:6 e5:2 c#5:4 a4:4', 'd5:3 f5:1 a5:2 d6:2 c6:3 a5:1 f5:4', 'a5:6 g5:2 f5:4 d5:4',
+    'c5:3 f5:1 a5:2 c6:2 a5:3 f5:1 c5:4', 'b4:3 e5:1 g#5:2 b5:2 d6:4 b5:4', 'c6:2 b5:2 a5:2 g#5:2 a5:4 e5:4', 'e5:3 f5:1 e5:2 d5:2 b4:4 g#4:4'];
+  // Gewitter-Toccata (Kirchturmhahn Kasimir, js/kirchhahn.js): e-Moll, 126 BPM. Gebrochene Akkorde in Achteln wie Windböen, Orgelpunkt
+  // im Bass, Paukenwirbel alle vier Takte wie ferner Donner, Becken zum Schluss; die Melodie steigt in großen Bögen.
+  const ST = { Em: ['e4', 'g4', 'b4'], C: ['e4', 'g4', 'c5'], D: ['f#4', 'a4', 'd5'], Am: ['e4', 'a4', 'c5'], B7: ['d#4', 'f#4', 'a4'], G: ['d4', 'g4', 'b4'], Fd: ['f#4', 'a4', 'c5'] };
+  const ST_B = { Em: 'e2', C: 'c2', D: 'd2', Am: 'a1', B7: 'b1', G: 'g1', Fd: 'f#1' };
+  const ST_C = ['Em', 'Em', 'C', 'D', 'Em', 'Am', 'B7', 'B7', 'C', 'D', 'G', 'Em', 'Am', 'Fd', 'B7', 'B7'];
+  const ST_L = ['e5:6 g5:2 b5:4 e6:4', 'd#6:6 e6:2 b5:8', 'c6:4 b5:2 a5:2 g5:4 e5:4', 'f#5:6 g5:2 a5:8',
+    'b5:4 e6:4 d6:2 c6:2 b5:4', 'c6:6 b5:2 a5:4 e5:4', 'd#5:4 f#5:4 a5:4 c6:4', 'b5:12 -:4',
+    'e6:4 g6:4 e6:2 c6:2 g5:4', 'f#6:4 a6:4 f#6:2 d6:2 a5:4', 'g6:6 f#6:2 e6:2 d6:2 b5:4', 'e6:6 b5:2 g5:4 e5:4',
+    'a5:3 b5:1 c6:4 e6:4 a6:4', 'a6:6 g6:2 f#6:4 c6:4', 'b5:2 d#6:2 f#6:2 a6:2 g6:2 f#6:2 d#6:2 c6:2', 'b5:8 f#5:4 d#5:4'];
 
   const SONGS = {
     title: {
@@ -877,6 +895,22 @@ const Audio8 = (() => {
       pad: AR_C.map(c => AR[c].join('+') + ':12').join(' '),
       dr: AR_C.map((c, i) => i === 15 ? 'p:2 p:2 p:2 p:2 x:4' : i % 4 === 3 ? 'p:4 p:2 p:2 p:4' : 'p:4 -:8').join(' '),
     },
+    tango: { // Kleiderschrank Kunibert (Zwischengegner in Zimmer 13, js/schrank.js)
+      bpm: 112, loop: true, echo: { delay: 3, vol: 0.26 },
+      p1: TG_L.join(' '),
+      p2: TG_C.map((c, i) => { const [a, b, d] = TG[c]; return i % 4 === 3 ? `${b}:2 -:2 ${d}:2 -:2 ${b}:2 -:2 ${d}:1 ${b}:1 -:2` : `${a}+${d}:2 -:2 ${b}:2 -:2 ${a}+${d}:2 -:2 ${b}:2 -:2`; }).join(' '),
+      tri: TG_C.map(c => { const [r, f] = TG_B[c]; return `${r}:3 ${r}:1 ${f}:2 ${r}:2 ${r}:3 ${r}:1 ${f}:2 ${r}:2`; }).join(' '),
+      pad: TG_C.map(c => TG[c].join('+') + ':16').join(' '),
+      dr: TG_C.map((c, i) => i === 15 ? 't:2 t:2 u:2 u:2 s:2 s:2 x:4' : i % 4 === 3 ? 'k:3 c:1 s:2 c:2 k:2 s:2 s:2 o:2' : 'k:3 c:1 s:2 c:2 k:3 c:1 s:2 c:2').join(' '),
+    },
+    sturm: { // Kirchturmhahn Kasimir (Zwischengegner auf der Himmelsbrücke, js/kirchhahn.js)
+      bpm: 126, loop: true, echo: { delay: 3, vol: 0.3 },
+      p1: ST_L.join(' '),
+      p2: ST_C.map(c => { const [a, b, d] = ST[c]; return `${a}:2 ${b}:2 ${d}:2 ${b}:2 ${a}:2 ${b}:2 ${d}:2 ${b}:2`; }).join(' '),
+      tri: ST_C.map(c => { const r = ST_B[c]; return `${r}:6 ${r}:2 ${up8(r)}:4 ${r}:4`; }).join(' '),
+      pad: ST_C.map(c => ST[c].join('+') + ':16').join(' '),
+      dr: ST_C.map((c, i) => i === 15 ? 'p:2 p:2 p:2 p:2 u:2 u:2 x:4' : i % 4 === 3 ? 'k:4 s:2 s:2 p:2 p:2 p:2 p:2' : 'k:4 h:2 h:2 s:4 h:2 k:2').join(' '),
+    },
     kuckuck: { // Kuckucksuhr (Nebenboss links an der Zeigerkammer)
       bpm: 156, loop: true, echo: { delay: 3, vol: 0.28 },
       p1: KU_L.join(' '),
@@ -981,7 +1015,7 @@ const Audio8 = (() => {
   //   C Brücke (Quarte höher: Blechthema aus den Akkorden, Streicher liegen darüber) · D Tutti (Melodie mit Streichern,
   //   Glockenspiel und Pauken) · E Mollterz höher (Streicher und Flöte) · F Zwischenspiel ohne Melodie · G Original mit Flöte
   // Länge: Lieder ab 40 s vier Durchgänge, ab 28 s fünf, kürzere acht.
-  const DRIVE = new Set(['boss', 'boss2', 'kraken', 'count', 'mondboss', 'reisswolf', 'sternbild', 'dienstweg', 'amtsmarsch', 'galopp', 'arie']);
+  const DRIVE = new Set(['boss', 'boss2', 'kraken', 'count', 'mondboss', 'reisswolf', 'sternbild', 'dienstweg', 'amtsmarsch', 'galopp', 'arie', 'tango', 'sturm']);
   const mOf = (n) => { const m = /^([a-g]#?)(-?\d)$/.exec(n); return m ? NN.indexOf(m[1]) + 12 * (+m[2] + 1) : null; };
   const nOf = (m) => NN[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
   function arrange(s, name) {

@@ -3749,6 +3749,11 @@ const Castle = (() => {
     { id: 'gourmet', ok: () => typeof Kueche !== 'undefined' && Kueche.DISHES.every(Kueche.eaten), arg: () => (typeof Kueche !== 'undefined' ? Kueche.DISHES.length : 8) }, // alle Gerichte der Kantinenküche gegessen
     { id: 'wetter', ok: () => (flag.wetter_ram || 0) >= 5 }, // Wetterhähne fünfmal in die Wand rammen lassen
     { id: 'walzer', ok: () => !!best.Walzerpaar }, // dem Walzerpaar den letzten Tanz bereitet
+    { id: 'petri', ok: () => !!best.AnglerFisch },                  // Angler Anselm besiegt
+    { id: 'zugabe', ok: () => (flag.diva_bow || 0) >= 5 },          // Ottilie fünfmal beim Knicks getroffen (js/diva.js)
+    { id: 'erwischt', ok: () => (flag.vitrina_caught || 0) >= 10 }, // Madame Vitrina zehnmal beim Gleiten erwischt (js/vitrina.js)
+    { id: 'kleider', ok: () => !!flag.schrank_clean },              // Kunibert besiegt, ohne verschluckt zu werden (js/schrank.js)
+    { id: 'blitzab', ok: () => !!flag.hahn_clean },                 // Kasimir besiegt, ohne vom Blitz getroffen zu werden (js/kirchhahn.js)
   ];
   const ach = { q: [], cur: null, sel: 0 }, ACH_PAY = 500; // je Urkunde zahlt das Amt 500 Gold Aufwandsentschädigung
   const achGot = (a) => !!flag['ach_' + a.id];

@@ -64,7 +64,7 @@ class Primadonna extends Boss {
   }
   go(s) { this.state = s; this.timer = 0; }
   vulnerable() { return this.state !== 'intro'; }
-  hit(dmg, id) { return super.hit(this.state === 'bow' ? dmg * 1.5 : dmg, id); }
+  hit(dmg, id) { const ok = super.hit(this.state === 'bow' ? dmg * 1.5 : dmg, id); if (ok && this.state === 'bow' && typeof Castle !== 'undefined' && Castle.flags) Castle.flags.diva_bow = (Castle.flags.diva_bow || 0) + 1; return ok; } // Urkunde Zugabe!
   pose() { const s = this.state; return s === 'aria' ? 'sing' : s === 'spotWind' || s === 'spot' || s === 'roses' ? 'point' : s === 'bow' ? 'bow' : 'idle'; }
   say(key, col) { W.popup(this.cx, this.y - 10, tr(key), col || '#f8d878'); }
   update() {
