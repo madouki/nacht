@@ -413,6 +413,7 @@ const Castle = (() => {
       .candle(2, 5, 'H').candle(6, 5)
       .enemy('bat', 4, 3)
       .chest(24, 14, 'big').prop('vessel', { x: 58, y: 20 })
+      .mini('angler', 36, 62, 38, 10)                                   // Angler Anselm mit dem Ewigen Licht (js/angler.js), nur unter Wasser
       .music('stage2').label('VERSUNKENE KAPELLE').start(2, 7).done();
     chapel.waterLine = 9;
     chapel.jellies = [[18, 11], [27, 18], [35, 13], [44, 20], [54, 12]];
@@ -2117,7 +2118,8 @@ const Castle = (() => {
   if (on && typeof BOSSES !== 'undefined' && typeof Schreibtisch !== 'undefined') BOSSES.chef = Schreibtisch;        // Schreibtischtäter in der Chefetage (js/chef.js)
   if (on && typeof BOSSES !== 'undefined' && typeof Sternbild !== 'undefined') BOSSES.stern = Sternbild;             // Sternbild in der Sternkuppel (js/stern.js)
   if (on && typeof BOSSES !== 'undefined' && typeof Hauptmann !== 'undefined') BOSSES.hauptmann = Hauptmann;      // Wachhauptmann im Verlies (js/hauptmann.js)
-  if (on && typeof BOSSES !== 'undefined' && typeof Kettenhund !== 'undefined') BOSSES.hund = Kettenhund;          // Kettenhund Brutus im Zwinger (js/hund.js)
+  if (on && typeof BOSSES !== 'undefined' && typeof Kettenhund !== 'undefined') BOSSES.hund = Kettenhund;
+  if (on && typeof BOSSES !== 'undefined' && typeof AnglerFisch !== 'undefined') BOSSES.angler = AnglerFisch;       // Angler Anselm in der versunkenen Kapelle (js/angler.js)          // Kettenhund Brutus im Zwinger (js/hund.js)
   if (on && typeof BOSSES !== 'undefined' && typeof MannImMond !== 'undefined') BOSSES.mond = MannImMond;           // Mann im Mond im Krater (js/mond.js)
   if (on && typeof BOSSES !== 'undefined' && typeof Reisswolf !== 'undefined') BOSSES.reiss = Reisswolf;     // Reißwolf im Aktenkeller (js/keller.js)
   if (on && typeof BOSSES !== 'undefined' && typeof GolemBoss !== 'undefined') BOSSES.golem = GolemBoss; // Steingolem im Golemstollen (js/golem.js)
@@ -2694,6 +2696,7 @@ const Castle = (() => {
     luckcoin: { slot: 'acc', luck: 1, col: '#f8d878' },
     greedring: { slot: 'acc', greed: 1, col: '#f8b800' },
     chicken: { slot: 'acc', luck: 1, greed: 1, col: '#f8f070' },
+    ewigeslicht: { slot: 'acc', mp: 6, luck: 1, col: '#fc5c3c' },        // Ewiges Licht der versunkenen Kapelle (Lohn von Angler Anselm)
     halsband: { slot: 'acc', atk: 2, col: '#c8c8d8' },                  // Stachelhalsband von Kettenhund Brutus (Zwinger)        // Gummihuhn mit Seilrolle (Dachboden): mehr Beute und Gold
     keyring: { slot: 'acc', atk: 2, def: 2, col: '#c8c8d8' },            // Schlüsselbund des Gefangenen: passt nirgends, fühlt sich aber wichtig an
     potion: { heal: 0.5, price: 800, col: '#58f898' },
@@ -2757,7 +2760,7 @@ const Castle = (() => {
   const STOCK = ['potion', 'elixir', 'leather', 'chain', 'silver', 'heartamulet', 'fairy', 'map', 'book_spirit', 'book_hellfire', 'book_soulsteal'];
   const once = (g) => !!(g.slot || g.key || g.spell || g.rec || g.quest); // gibt es nur einmal
   const BOSS_LOOT = [[[0, -1], 'batcard']];
-  const MINI_LOOT = [[['side', 'zwinger'], 'halsband', 32, 10], [['side', 'zwinger'], 'welpe', 27, 10], [['side', 'verlies'], 'turmschild', 62, 10], [['side', 'spiegel'], 'shadowcard', 20, 10], [['side', 'golemstollen'], 'steinhaut', 12, 10], [['side', 'galvani'], 'galvheart', 97, 25], [['side', 'heldenamt'], 'dienstsiegel', 14, 17], [['side', 'aktenkeller'], 'reisszahn', 8, 15], [['side', 'hauptpost'], 'posthorn', 100, 19], [['side', 'chefetage'], 'goldstempel', 69, 19], [['side', 'sternkuppel'], 'orrery', 30, 21], [['side', 'krater'], 'mondstein', 30, 19], [['side', 'kuckuck'], 'kuckucksfeder', 4, 13]]; // nach dem Doppelgänger: sein Schatten; nach dem Steingolem: Steinhaut; nach dem Erweckten: sein Glasherz
+  const MINI_LOOT = [[['side', 'kapelle'], 'ewigeslicht', 44, 20], [['side', 'zwinger'], 'halsband', 32, 10], [['side', 'zwinger'], 'welpe', 27, 10], [['side', 'verlies'], 'turmschild', 62, 10], [['side', 'spiegel'], 'shadowcard', 20, 10], [['side', 'golemstollen'], 'steinhaut', 12, 10], [['side', 'galvani'], 'galvheart', 97, 25], [['side', 'heldenamt'], 'dienstsiegel', 14, 17], [['side', 'aktenkeller'], 'reisszahn', 8, 15], [['side', 'hauptpost'], 'posthorn', 100, 19], [['side', 'chefetage'], 'goldstempel', 69, 19], [['side', 'sternkuppel'], 'orrery', 30, 21], [['side', 'krater'], 'mondstein', 30, 19], [['side', 'kuckuck'], 'kuckucksfeder', 4, 13]]; // nach dem Doppelgänger: sein Schatten; nach dem Steingolem: Steinhaut; nach dem Erweckten: sein Glasherz
   const FINDS = [ // Einzelstücke: [Raum, Gegenstand, Kachel-x, Standreihe]
     [['side', 'kolosseum'], 'leather', 12, 7], [['side', 'kanal'], 'bloodstone', 43, 7], [['side', 'schatz'], 'greedring', 25, 6],
     [['side', 'verlies'], 'dragonfang', 28, 6], [['side', 'wehrgang'], 'luckcoin', 37, 6], [['side', 'himmel'], 'mirror', 44, 5],
@@ -3566,8 +3569,8 @@ const Castle = (() => {
   // ---------------- Bestiarium wie die Gegnerliste in SotN (Status, dritte Seite): Siege je Gegnerart, absurde Einträge ----------------
   const BEASTS = ['Bat', 'Skeleton', 'Ghoul', 'Raven', 'Knight', 'LivingArmor', 'Panther', 'Skull', 'Fishman', 'Ghost', 'Snake', 'FlyBook', 'Tome',
     'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Automat', 'Mannequin', 'Jelly', 'Ordner', 'Flieger', 'Conductor', 'Doppel', 'GolemBoss', 'Awakened', 'Amtsschimmel', 'Reisswolf', 'Brief', 'Nachnahme', 'Frankiermaschine', 'Schreibtisch', 'Sternschnuppe', 'Astrolab', 'Sternbild', 'Mondkalb', 'Mimik', 'Gargoyle', 'Schildwache', 'Hoehlenspinne', 'Frostgeist', 'Galvanifrosch', 'Wetterhahn', 'Huepfsarg', 'Walzerpaar', 'MannImMond', 'Kuckucksuhr',
-    'Hauptmann', 'Kettenhund', 'TentacleBoss', 'GiantBat', 'IceWitch', 'GiantSkeleton', 'Medusa', 'SunWarden', 'ManTrap', 'Count'];
-  const BEAST_BOSS = { Hauptmann: 'bossHauptmann', Kettenhund: 'bossHund', TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel', GolemBoss: 'bossGolem', Amtsschimmel: 'bossAmt', Reisswolf: 'bossReiss', Frankiermaschine: 'bossFrank', Schreibtisch: 'bossChef', Sternbild: 'bossStern', MannImMond: 'bossMond', Awakened: 'bossAwakened', Kuckucksuhr: 'bossKuckuck' };
+    'Hauptmann', 'Kettenhund', 'AnglerFisch', 'TentacleBoss', 'GiantBat', 'IceWitch', 'GiantSkeleton', 'Medusa', 'SunWarden', 'ManTrap', 'Count'];
+  const BEAST_BOSS = { Hauptmann: 'bossHauptmann', Kettenhund: 'bossHund', AnglerFisch: 'bossAngler', TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel', GolemBoss: 'bossGolem', Amtsschimmel: 'bossAmt', Reisswolf: 'bossReiss', Frankiermaschine: 'bossFrank', Schreibtisch: 'bossChef', Sternbild: 'bossStern', MannImMond: 'bossMond', Awakened: 'bossAwakened', Kuckucksuhr: 'bossKuckuck' };
   const BEAST_SET = new Set(BEASTS);
   const beastName = (k) => tr(BEAST_BOSS[k] || 'beast_' + k);
   const beasts = { sel: 0 };
@@ -3824,7 +3827,7 @@ const Castle = (() => {
   // Nebenbosse (Zusatzräume mit .mini) gehören seit 20261112 zum Wegweiser: sobald der Hauptweg eine höhere Gefahrenstufe
   // erreicht hat als ihr Raum und ihr Tor offen ist, schickt er den Helden zuerst dorthin (leichtere zuerst, dann der nähere).
   // Der Mond hängt nur an der Mondkanone (kein Türweg): nach dem Sternbild zeigt das Ziel auf die Sternkuppel.
-  const MINI_NAME = { hauptmann: 'bossHauptmann', hund: 'bossHund', conductor: 'bossConductor', doppel: 'bossDoppel', golem: 'bossGolem', awakened: 'bossAwakened', amt: 'bossAmt', post: 'bossFrank', chef: 'bossChef', stern: 'bossStern', mond: 'bossMond', reiss: 'bossReiss', kuckuck: 'bossKuckuck' };
+  const MINI_NAME = { hauptmann: 'bossHauptmann', hund: 'bossHund', angler: 'bossAngler', conductor: 'bossConductor', doppel: 'bossDoppel', golem: 'bossGolem', awakened: 'bossAwakened', amt: 'bossAmt', post: 'bossFrank', chef: 'bossChef', stern: 'bossStern', mond: 'bossMond', reiss: 'bossReiss', kuckuck: 'bossKuckuck' };
   let sideMemo = null;
   function sideBosses() {
     if (!sideMemo) { sideMemo = []; S().forEach((st, s) => st.rooms.forEach((d, r) => { if (d.mini && MINI_NAME[d.mini.boss]) sideMemo.push({ s, r, d, id: d.mini.boss }); })); }
@@ -3840,6 +3843,7 @@ const Castle = (() => {
     let best = null, bs = Infinity;
     for (const b of sideBosses()) {
       if (sideDone(b)) continue;
+      if (b.d.waterLine !== undefined && !rel('diver')) continue; // unter Wasser: erst mit dem Taucherhelm
       let h = hopsFrom(b.s + ':' + b.r, true)[here], via = null;
       if (h === undefined && b.id === 'mond') { const st = sideBosses().find(x => x.id === 'stern'); if (st && sideDone(st)) { h = hopsFrom(st.s + ':' + st.r, true)[here]; via = st; } }
       if (h === undefined) continue;
@@ -5088,7 +5092,7 @@ const Castle = (() => {
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
     need.push('arenaTitle', 'arenaLine', 'arenaT1', 'arenaT2', 'arenaT3', 'arenaLockLv', 'arenaLockPrev', 'arenaBest', 'arenaWaves', 'arenaWave', 'arenaGold', 'arenaWin', 'arenaThumb', 'arenaQuip0', 'arenaQuip1', 'arenaQuip2', 'arenaQuip3', 'ach_arena', 'achD_arena', 'champ_flamme', 'champ_eile', 'champ_panzer', 'champ_spalt', 'champHunt', 'gwAngel', 'gwTitle', 'gwLabel', 'gwTier_good', 'gwTier_mid', 'gwTier_bad', 'gwUp', 'gwDown', 'gwNoGold', 'gwPerk_good', 'gwPerk_bad', 'opferTitle', 'opferLine', 'opfer_atk', 'opfer_hp', 'opfer_mp', 'opferMax', 'opferBack', 'ach_saint', 'achD_saint', 'ach_fiend', 'achD_fiend', 'optGore', 'optGoreH', 'gw_pruefer_q', 'gw_pruefer_a', 'gw_pruefer_b', 'gw_pruefer_ra', 'gw_pruefer_rb', 'gw_bein_q', 'gw_bein_a', 'gw_bein_b', 'gw_bein_ra', 'gw_bein_rb', 'gw_gast_q', 'gw_gast_a', 'gw_gast_b', 'gw_gast_ra', 'gw_gast_rb', 'gw_waisen_q', 'gw_waisen_a', 'gw_waisen_b', 'gw_waisen_ra', 'gw_waisen_rb', 'gw_antrag_q', 'gw_antrag_a', 'gw_antrag_b', 'gw_antrag_ra', 'gw_antrag_rb', 'gw_kalb_q', 'gw_kalb_a', 'gw_kalb_b', 'gw_kalb_ra', 'gw_kalb_rb', 'champWin', 'champTip', 'ach_champs', 'achD_champs', 'chgKanal', 'chgStollen', 'chgKuppel', 'chgKammer', 'hintRopeUp', 'hintRopeHold', 'hintRopeDown', 'hintTrolley', 'hintTrolley2', 'hintHand', 'npcBell', 'npcGuide', 'npcClock', 'newHere', 'chgZeiger', 'chgDoorZeiger', 'chgKlamm', 'chgDoorKlamm', 'chgGlocken', 'chgDoorGlocken', 'hintKuckuck', 'bossKuckuck', 'bossKuckuckShout', 'bossKuckuckBonk', 'bossKuckuckRage', 'bossKuckuckDie', 'bossKuckuckNote', 'banter_bossKuckuck', 'beastD_Kuckucksuhr', 'ach_kuckuck', 'achD_kuckuck', 'item_kuckucksfeder', 'itemD_kuckucksfeder', 'chgKuckuck', 'chgDoorKuckuck'); // Glockenstuhl, Tropfsteinklamm, Zeigerkammer, NEU-Markierung, Kuckucksuhr
-    need.push('kunst_eis', 'kunst_blitz', 'kunst_sterne', 'gargNote', 'wacheNote', 'spinneNote', 'frostNote', 'froschNote', 'wetterNote', 'wetterCrow', 'sargNote', 'sargGrumble', 'bossHund', 'epi_bossHund', 'bossHundNote', 'bossHundTip', 'banter_bossHund', 'hundWau', 'updateReady', 'famSay_dog', 'walzerNote', 'walzerOuch', 'kuecheNote', 'kuecheHi', 'kuecheTab', 'kuecheHelp', 'kuecheMissing', 'kuecheAgain', 'kuecheReady', 'kuecheEaten', 'kuecheFirst', 'kuecheLoot', 'kuecheLck', 'bossHauptmann', 'epi_bossHauptmann', 'bossHauptmannNote', 'bossHauptmannTip', 'banter_bossHauptmann');
+    need.push('kunst_eis', 'kunst_blitz', 'kunst_sterne', 'gargNote', 'wacheNote', 'spinneNote', 'frostNote', 'froschNote', 'wetterNote', 'wetterCrow', 'sargNote', 'sargGrumble', 'bossAngler', 'epi_bossAngler', 'bossAnglerNote', 'bossAnglerTip', 'beastD_AnglerFisch', 'banter_bossAngler', 'bossHund', 'epi_bossHund', 'bossHundNote', 'bossHundTip', 'banter_bossHund', 'hundWau', 'updateReady', 'famSay_dog', 'walzerNote', 'walzerOuch', 'kuecheNote', 'kuecheHi', 'kuecheTab', 'kuecheHelp', 'kuecheMissing', 'kuecheAgain', 'kuecheReady', 'kuecheEaten', 'kuecheFirst', 'kuecheLoot', 'kuecheLck', 'bossHauptmann', 'epi_bossHauptmann', 'bossHauptmannNote', 'bossHauptmannTip', 'banter_bossHauptmann');
     need.push('kunst_wucht', 'kunst_kreuz', 'kunst_blut', 'kunst_feuer', 'kunst_reissen', 'kunstFirst', 'mimicNote', 'mimicWin');
     need.push('arenaDaily', 'arenaDailyDone', 'arenaDailyWin', ...Arena.MODS.map(m => 'mod_' + m));
     need.push('rauschTitle', 'rauschLine', 'rauschGo', 'rauschWait', 'rauschLock', 'rauschBest', 'rauschMost', 'rauschHud', 'rauschOut', 'rauschHeal', 'rauschWin');
