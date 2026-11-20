@@ -22,6 +22,7 @@ const OPTION_ITEMS = [ // label/hint sind Schlüssel für tr()
   { key: 'back', label: 'optBack', hint: '' },
 ].filter(it => !['guide', 'allRelics', 'maxLevel'].includes(it.key) || Castle.on);
 const BAY4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+const HERO_CARD = { w: 146, step: 154, y: 51, h: 150 };
 
 const Game = {
   state: 'title', t: 0, hi: 0, sel: 0, tallyPhase: 0, bossName: 0, crt: true, pendingView: null,
@@ -488,6 +489,7 @@ const Game = {
           if (it === 'sections') { this.go('sections'); break; } // Abschnittswahl fürs Testspielen
           if (it === 'test') { this.go('milestones'); this.msSel = 0; this.msFrom = 'title'; break; } // Testmodus: Meilensteine
           if (it === 'testEnd') { this.endTest(); break; }
+          this.selX = undefined;
           this.go('charsel');
         }
         break;
@@ -953,7 +955,17 @@ const Game = {
   menuTap(clientX, clientY) {
     const r = this.canvas.getBoundingClientRect(), y = (clientY - r.top) / r.height * 240;
     let rows = null, sel = 0;
-    if (this.state === 'charsel') return y > 199 && y < 212 && HEROES.hasSkin(Options.character) ? 'down' : null; // Zeile „Look“: umschalten
+    if (this.state === 'charsel') {
+      const x = (clientX - r.left) / r.width * View.w, dx = x - View.cx;
+      if (x < 0 || x >= View.w) return null;
+      if (y >= 202 && y <= 215 && Math.abs(dx) <= HERO_CARD.w / 2 && HEROES.hasSkin(Options.character)) return 'down';
+      if (y < HERO_CARD.y || y >= HERO_CARD.y + HERO_CARD.h || this.selX === undefined) return null;
+      const slot = Math.round(this.selX + dx / HERO_CARD.step);
+      if (Math.abs(dx - (slot - this.selX) * HERO_CARD.step) >= HERO_CARD.w / 2 || Math.abs(dx) >= this.galleryWidth() / 2) return null;
+      const id = this.heroAtSlot(slot).id;
+      if (id === Options.character) return 'jump';
+      Options.set('character', id); Audio8.sfx('select'); return null;
+    }
     if (this.state === 'title' && this.revealed && this.titleRows) { rows = this.titleRows; sel = this.menu; }
     else if (this.state === 'options') {
       const n = OPTION_ITEMS.length, step = n > 9 ? 12 : 14, first = this.optFirst(); // wie drawOptions
@@ -1798,37 +1810,64 @@ const Game = {
     });
   },
   cap: (id) => id[0].toUpperCase() + id.slice(1),
+  heroAtSlot(slot) {
+    const heroes = HEROES.list, i = ((slot % heroes.length) + heroes.length) % heroes.length;
+    return heroes[i];
+  },
+  galleryWidth() { return Math.min(View.w, (HEROES.list.length - 1) * HERO_CARD.step + HERO_CARD.w); },
   drawCharSel(ctx) {
     const cx = View.cx;
     this.menuBg(ctx);
     this.drawBootHeading(ctx, tr('choose'), cx, 18);
-    // Karussell: der gewählte Held in der Mitte, die anderen daneben (gleitet beim Wechseln, passt auf jede Bildbreite)
+    if (!this.weaponAltars) {
+      this.weaponAltars = {};
+      for (const hero of HEROES.list) {
+        const plate = new Image();
+        plate.src = 'img/waffenaltar/' + hero.id + '.png?v=' + window.BUILD;
+        this.weaponAltars[hero.id] = plate;
+      }
+    }
+    // Zum nächsten Exemplar derselben Karte gleiten, auch beim Wechsel zwischen der ersten und letzten.
     const sel = Math.max(0, HEROES.list.findIndex(d => d.id === Options.character));
-    this.selX = this.selX === undefined ? sel : this.selX + (sel - this.selX) * 0.25;
-    HEROES.list.forEach((d, i) => {
-      const on = Options.character === d.id, pw = 146, px = Math.round(cx - pw / 2 + (i - this.selX) * (pw + 8)), py = 52, ph = 150, mid = px + pw / 2;
-      if (px > View.w || px + pw < 0) return;
-      ctx.fillStyle = on ? 'rgba(42,6,22,0.5)' : 'rgba(6,2,10,0.7)'; ctx.fillRect(px, py, pw, ph); // Rahmen wie der Ladebalken: dunkles Violett, goldene Zier
-      ctx.fillStyle = on ? '#c89020' : '#3c2848';
-      ctx.fillRect(px, py, pw, 1); ctx.fillRect(px, py + ph - 1, pw, 1); ctx.fillRect(px, py, 1, ph); ctx.fillRect(px + pw - 1, py, 1, ph);
-      if (on) { ctx.fillStyle = '#fce0a8'; for (const [ex, ey] of [[px, py], [px + pw - 1, py], [px, py + ph - 1], [px + pw - 1, py + ph - 1]]) { ctx.fillRect(ex - 1, ey, 3, 1); ctx.fillRect(ex, ey - 1, 1, 3); } }
-      const H = HEROES.get(d.id), spr = on ? H.walk[Math.floor(this.t / 5) % 8] : H.idle[Math.floor(this.t / 40) % 2];
-      ctx.imageSmoothingEnabled = false;
-      if (!on) ctx.globalAlpha = 0.7;
-      ctx.drawImage(spr.c, mid - spr.c.width, py + 10, spr.c.width * 2, spr.c.height * 2);
-      ctx.globalAlpha = 1;
-      this.bootText(ctx, d.name, mid, py + 96, on ? '#fce0a8' : '#8c7a9c', on ? '#400008' : '#000', 'center', pw - 8);
-      this.bootText(ctx, tr(d.id + 'Title'), mid, py + 108, on ? '#fc7460' : '#5c4a6c', '#14000c', 'center', pw - 8); // Rand frei lassen: bis 22 Zeichen passen ungestaucht
-      tr(d.id + 'Desc').forEach((l, k) => this.bootText(ctx, l, mid, py + 121 + k * 11, on ? '#e8d4f0' : '#5c4a6c', '#14000c', 'center', pw - 8));
-      if (on && (this.t >> 4) % 2 === 0) Sprites.draw(ctx, Sprites.S.heartS, mid - 4, py + ph - 8);
-    });
-    const pulse = 0.55 + 0.45 * Math.sin(this.t * 0.1);
-    ctx.globalAlpha = pulse; this.bootText(ctx, '<', 8, 124, '#fce0a8', '#400008', 'left'); this.bootText(ctx, '>', View.w - 8, 124, '#fce0a8', '#400008', 'right'); ctx.globalAlpha = 1;
+    if (this.selX === undefined) this.selX = sel;
+    const n = HEROES.list.length, nearest = sel + n * Math.round((this.selX - sel) / n);
+    this.selX += (nearest - this.selX) * 0.25;
+    const width = this.galleryWidth(), half = width / 2, first = Math.round(this.selX - half / HERO_CARD.step);
+    ctx.save();
+    ctx.beginPath(); ctx.rect(cx - half, HERO_CARD.y - 1, width, HERO_CARD.h + 2); ctx.clip();
+    for (let slot = first; slot <= Math.round(this.selX + half / HERO_CARD.step); slot++) {
+      const mid = Math.round(cx + (slot - this.selX) * HERO_CARD.step);
+      this.drawHeroCard(ctx, this.heroAtSlot(slot), mid, slot === nearest);
+    }
+    ctx.restore();
     if (HEROES.hasSkin(Options.character)) { // Look wählen (▲▼ oder Tipp auf die Zeile)
       const adv = Options.skin === 'adv';
-      Font.draw(ctx, '▲▼ ' + tr('skinLbl') + ': ' + tr(adv ? 'skinAdv' : 'skinClassic'), cx, 204, adv ? '#fca070' : '#d0b8e0', { align: 'center', shadow: '#000' });
+      Font.draw(ctx, '▲▼ ' + tr('skinLbl') + ': ' + tr(adv ? 'skinAdv' : 'skinClassic'), cx, 205, adv ? '#fca070' : '#d0b8e0', { align: 'center', shadow: '#000' });
     }
-    this.bootText(ctx, tr(Input.device === 'pad' ? 'selPad' : 'selKey'), cx, 214, '#d0b8e0', '#000');
+    const hint = Input.device === 'pad' ? 'selPad' : Input.device === 'touch' ? 'selTouch' : 'selKey';
+    this.bootText(ctx, tr(hint), cx, 220, '#e0d2e4', '#000', 'center', View.w - 12);
+  },
+  drawHeroCard(ctx, d, mid, on) {
+    const {w, y, h} = HERO_CARD, x = mid - w / 2;
+    ctx.fillStyle = on ? '#c29854' : '#59465b'; ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = '#160f1b'; ctx.fillRect(x + 1, y + 1, w - 2, h - 2);
+    const image = this.weaponAltars[d.id];
+    const ready = image.complete && image.naturalWidth > 0;
+    if (ready) {
+      ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(image, x + 1, y + 1, w - 2, 86);
+    }
+    const H = HEROES.get(d.id), spr = H.idle[Math.floor(this.t / 38) % 2];
+    const foot = ready ? mid + 24 : mid, base = y + 77;
+    ctx.fillStyle = 'rgba(12,6,18,.60)';
+    ctx.beginPath(); ctx.ellipse(foot, base - 1, 13, 2, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(spr.c, foot - 34, base - 72, 68, 72);
+    if (!on) { ctx.fillStyle = 'rgba(11,5,18,.38)'; ctx.fillRect(x + 1, y + 1, w - 2, 86); }
+    ctx.fillStyle = on ? '#b08a54' : '#554456'; ctx.fillRect(x + 1, y + 87, w - 2, 1);
+    this.bootText(ctx, d.name, mid, y + 93, on ? '#ffe2a8' : '#d0bdba', '#2c100e', 'center', w - 8);
+    this.bootText(ctx, tr(d.id + 'Title'), mid, y + 105, on ? '#fc947e' : '#baa3b5', '#14000c', 'center', w - 8);
+    tr(d.id + 'Desc').forEach((line, k) => this.bootText(ctx, line, mid, y + 122 + k * 11, on ? '#e8ddec' : '#b5a9bc', '#100c14', 'center', w - 8));
   },
 
   drawIntro(ctx) {

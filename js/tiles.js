@@ -854,6 +854,55 @@ const Tiles = (() => {
     const X = Math.round(View.w * 0.66 - 130 + (end - cam.x) * 0.16);
     if (X < View.w && X > -270) ctx.drawImage(coastC, X, shipView(cam).hy + 2 - 132);
   }
+  // Das Hafenfeuer steht auf einer eigenen Schäre zwischen Burg und Takelage.
+  // Die Fresnellinse dreht sich. Beim Blick in die Linse wandert ein Lichtpfad über die Wellen.
+  let beaconSprite, beaconRay;
+  function prepareBeacon(source) {
+    if (beaconSprite) return;
+    beaconSprite = C(80, 80);
+    const stone = beaconSprite.getContext('2d');
+    stone.imageSmoothingEnabled = true;
+    stone.imageSmoothingQuality = 'high';
+    stone.drawImage(source, 0, 0, 80, 80);
+    beaconRay = C(104, 16);
+    const ray = beaconRay.getContext('2d');
+    const fade = ray.createLinearGradient(0, 0, 104, 0);
+    fade.addColorStop(0, 'rgba(145,255,233,.55)');
+    fade.addColorStop(0.44, 'rgba(98,208,211,.28)');
+    fade.addColorStop(1, 'rgba(88,174,204,0)');
+    ray.fillStyle = fade;
+    ray.beginPath(); ray.moveTo(0, 8); ray.lineTo(104, 0); ray.lineTo(104, 16); ray.fill();
+  }
+  function drawBeacon(ctx, cam, frame) {
+    if (!beaconSprite) return;
+    const x = Math.round(View.w * (W.room.atSea ? 0.48 : 0.63) - cam.x * 0.19);
+    if (x < -104 || x > View.w + 104) return;
+    const water = shipView(cam).hy + 5, top = water - 74, lampY = top + 23;
+    const phase = frame * 0.015, sweep = Math.cos(phase);
+    const glint = Math.max(0, Math.sin(phase)) ** 6;
+    ctx.save();
+    ctx.translate(x, lampY);
+    ctx.scale(sweep, 1);
+    ctx.globalAlpha = 0.57 + 0.31 * Math.sin(phase);
+    ctx.drawImage(beaconRay, 0, -8);
+    ctx.restore();
+
+    ctx.drawImage(beaconSprite, x - 40, top);
+    ctx.save();
+    ctx.fillStyle = '#bcfff1';
+    ctx.globalAlpha = 0.28 + glint * 0.65;
+    ctx.fillRect(x - 2, lampY, 4, 1);
+    ctx.fillStyle = '#89d5d8';
+    const rows = View.lite ? 4 : 7;
+    for (let i = 0; i < rows; i++) {
+      const y = water + 1 + i * 3;
+      const drift = Math.sin(i * 2.4 + frame * 0.061) * (1.1 + i * 0.63);
+      const width = 2 + Math.round((1.5 + i * 1.4) * (0.3 + glint));
+      ctx.globalAlpha = (0.11 + 0.39 * glint) * (1 - i / rows);
+      ctx.fillRect(Math.round(x + drift - width / 2), y, width, 1);
+    }
+    ctx.restore();
+  }
   // ---------------- Takelage: hohe Masten, Wanten, Wimpel und riesige Segel ----------------
   // Segel werden zeilenweise gezeichnet (HDMA wie bei Mode 7): jede Zeile wird eigen verschoben und skaliert –
   // der Bauch bläht sich, eine Welle läuft das Tuch hinab, Böen reißen es kurz weiter auf. Das Wappen verformt sich mit.
@@ -1555,6 +1604,8 @@ const Tiles = (() => {
       add('clouds', cl, 0.04, { drift: 0.04, sail: 0.18 });
       L.push({ name: 'coast', custom: drawCoast, par: 0, c: C(1, 1) });
       L.push({ name: 'sea', custom: drawSea, par: 0, c: C(1, 1) });
+      BG3D.on('ship', imgs => prepareBeacon(imgs.beacon));
+      L.push({ name: 'beacon', custom: drawBeacon, par: 0, c: C(1, 1) });
       L.push({ name: 'rig', custom: drawRig, par: 1, c: C(1, 1) });
     } else if (theme === 'foyer') { // Eingangshalle: deckenhohe Fenster mit Sturm dahinter, schwere Vorhänge, Risse und Verfall
       const sky = C(640, 208), xs = sky.getContext('2d');

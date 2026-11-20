@@ -46,3 +46,9 @@ Kartenschlüssel bleiben, damit im Spiel nichts verrutscht.
    Öffnungswinkeln (34×48) und den Riegelbalken (28×9); `python pack_riegel.py r_riegel ../../js/riegel.js ../../img/riegel3d.png` packt den Atlas und trägt die Karte ein.
 
 10. Kulissen hinter der Spielebene: `python bl.py kulisse_bl.py '{"dir": "<dieser Ordner>", "out": "<Ausgabe>", "ss": 4}'`, danach `python pack_kulisse.py <Ausgabe> ../../js/kulisse.js ../../img/kulisse3d.png`. Welche Stücke in welchem Raum stehen, steht in `ROOMS` in `js/kulisse.js`.
+
+## Hafenfeuer und Waffenaltäre
+
+Aus dem Projektstamm rendert `blender -b --factory-startup -P tools/blender/waffenaltar.py` die drei Waffenaltäre für die Heldenwahl. `blender -b --factory-startup -P tools/blender/hafenfeuer_bl.py` erzeugt das Schiffs-Sprite und das Modell `hafenfeuer.glb`.
+
+Die [Unreal-Lichtstudie](../unreal/HarbourPreview/HarbourPreview.uproject) öffnet in UE 5.8 die Karte `HarbourStudy`. Mit **Play** zeigt die orthografische Kamera das Hafenfeuer im Mondlicht.

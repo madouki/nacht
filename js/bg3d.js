@@ -4,7 +4,8 @@
 'use strict';
 
 const BG3D = (() => {
-  const SRC = { // je 512×208, nahtlos kachelbar
+  const SRC = { // Wandebenen sind je 512×208 und nahtlos kachelbar.
+    ship: { beacon: 'img/bg/hafenfeuer.png' },                                 // einzelnes freigestelltes Hafenfeuer
     crypt: { wall: 'img/bg/crypt_wall.png', far: 'img/bg/crypt_far.png' },   // Gruft: Arkadenwand, ferne Arkaden
     cave: { far: 'img/bg/cave_far.png', pillars: 'img/bg/cave_pillars.png' }, // Grotte: Felswand, Tropfsteinsäulen
     tower: { wall: 'img/bg/tower_wall.png' },                                 // Uhrturm: Quaderwand mit Pilastern, Balken, Fenstern

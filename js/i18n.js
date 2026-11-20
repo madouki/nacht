@@ -92,6 +92,7 @@ const I18N = (() => {
     kasparDesc: { de: ['HELLEBARDE', 'GRÖSSTE REICHWEITE'], en: ['HALBERD', 'LONGEST REACH'], fr: ['HALLEBARDE', 'PLUS GRANDE PORTÉE'], es: ['ALABARDA', 'MAYOR ALCANCE'], ja: ['ハルバード', '最長のリーチ'], zh: ['戟', '攻击距离最远'], it: ['ALABARDA', 'PORTATA MASSIMA'], ro: ['HALEBARDĂ', 'CEA MAI LUNGĂ BĂTAIE'] },
     selPad: { de: 'STICK WÄHLEN   A = LOS', en: 'STICK SELECT   A = GO', fr: 'STICK CHOISIR   A = GO', es: 'STICK ELEGIR   A = YA', ja: 'スティックで選択  A = 決定', zh: '摇杆选择  A = 确定', it: 'STICK SCEGLI   A = VIA', ro: 'STICK ALEGE   A = START' },
     selKey: { de: 'PFEILE WÄHLEN   Z / ENTER = LOS', en: 'ARROWS SELECT   Z / ENTER = GO', fr: 'FLÈCHES CHOISIR   Z / ENTRÉE = GO', es: 'FLECHAS ELEGIR   Z / ENTER = YA', ja: '矢印で選択  Z / ENTER = 決定', zh: '方向键选择  Z / ENTER = 确定', it: 'FRECCE SCEGLI   Z / INVIO = VIA', ro: 'SĂGEȚI ALEGE   Z / ENTER = START' },
+    selTouch: { de: 'KARTE WÄHLEN · ERNEUT TIPPEN ZUM START', en: 'TAP A CARD · TAP AGAIN TO START', fr: 'TOUCHEZ UNE CARTE · RETOUCHEZ POUR JOUER', es: 'TOCA UNA CARTA · VUELVE A TOCAR PARA JUGAR', ja: 'カードで選択  もう一度タップで開始', zh: '轻点卡片选择  再点一次开始', it: 'TOCCA UNA CARTA · RITOCCA PER INIZIARE', ro: 'ATINGE O CARTE · ATINGE DIN NOU PENTRU START' },
     // ---------------- Vorspann ----------------
     intro: {
       de: ['ANNO 1691.', 'ALLE HUNDERT JAHRE ERWACHT', 'GRAF NACHTMAHR UNTER DEM BLUTMOND.'],

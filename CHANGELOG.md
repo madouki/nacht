@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261120-0619](#20261120-0619--hafenfeuer-waffenaltäre-und-präzisere-sprünge) – Hafenfeuer, Waffenaltäre und präzisere Sprünge
 - [20261120-0430](#20261120-0430--xbox-absturz-behoben-wegweiser-an-englisch-zuerst-schnellere-aufzüge-kleinvieh-in-hd-3d) – Xbox-Absturz behoben, Wegweiser an, Englisch zuerst, schnellere Aufzüge, Kleinvieh in HD-3D
 - [20261120-0233](#20261120-0233--xbox-korrekturen-ruhigere-musik-welpe-krümel) – Xbox-Korrekturen, ruhigere Musik, Welpe Krümel
 - [20261120-0028](#20261120-0028--neuer-zwischenboss-kettenhund-brutus-im-zwinger) – Neuer Zwischenboss: Kettenhund Brutus im Zwinger
@@ -71,6 +72,20 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261120-0619 – Hafenfeuer, Waffenaltäre und präzisere Sprünge
+
+**Schiffsreise**
+- Zwischen Burg und Takelage steht ein Hafenfeuer auf einer Felsschäre. Seine Laterne dreht sich und zieht eine Lichtspur über die Wellen. Das Modell wurde in Blender gebaut und in Unreal Engine 5.8.4 geprüft.
+
+**Heldenwahl**
+- In drei beleuchteten Nischen stehen Morgenstern, Breitschwert und Hellebarde neben den zugehörigen Helden. Die Galerie dreht sich in beide Richtungen durch. Auf dem Touchscreen lässt sich eine Karte antippen und mit einem zweiten Tipp bestätigen.
+
+**Bewegung**
+- Ein kurz vor der Landung oder am Ende eines Hiebs angetippter Sprung wird acht Spielschritte lang vorgemerkt. Beim Aufsetzen auf Stein, Schnee und nassem Boden hängen Partikel, Ton und Controller-Feedback von Untergrund und Fallgeschwindigkeit ab.
+
+**Beim Testen ansehen**
+- In der Heldenwahl von Henrik nach links zu Kaspar wechseln. Auf dem Achterdeck den Doppelsprung verbrauchen und den Sprung kurz vor dem Aufsetzen noch einmal antippen.
 
 ## 20261120-0430 – Xbox-Absturz behoben, Wegweiser an, Englisch zuerst, schnellere Aufzüge, Kleinvieh in HD-3D
 
