@@ -42,6 +42,7 @@ const Duell = (() => {
     AnglerFisch: { tell: [14], puff: [10] },
     Primadonna: { spotWind: [12], aria: [10] },
     Vitrina: { slap: [8] },
+    Kunibert: { gulpWind: [10], hangers: [10] },
     TentacleBoss: { aim: [0], coil: [0], warn: [0], spit: [0] },
   };
   // Sprünge mit eigener Bahn: der Boden zeigt, wo der Boss wirklich aufkommt (g: Schwerkraft, m: Abstand zur Arenawand, k: Tempo im Endspurt)

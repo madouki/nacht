@@ -347,6 +347,7 @@ const Castle = (() => {
     const room13 = R(28, 'hotel', 13)
       .ground(0, 27)
       .candle(6, 7, 'H').candle(24, 7)
+      .mini('schrank', 1, 26, 4, 0)                                      // Kleiderschrank Kunibert, seit 1391 verschlossen (js/schrank.js)
       .music('hotel').label('ZIMMER 13').start(2, 10).done();
     room13.decor = [D('bed', 15.5, 10), D('chair', 10, 10), D('cart', 25, 10, true)];
     add('zimmer13', 0, 1, null, room13);
@@ -2123,7 +2124,8 @@ const Castle = (() => {
   if (on && typeof BOSSES !== 'undefined' && typeof Kettenhund !== 'undefined') BOSSES.hund = Kettenhund;
   if (on && typeof BOSSES !== 'undefined' && typeof AnglerFisch !== 'undefined') BOSSES.angler = AnglerFisch;
   if (on && typeof BOSSES !== 'undefined' && typeof Primadonna !== 'undefined') BOSSES.diva = Primadonna;
-  if (on && typeof BOSSES !== 'undefined' && typeof Vitrina !== 'undefined') BOSSES.vitrina = Vitrina;            // Madame Vitrina in der Lichterpassage (js/vitrina.js)          // Primadonna Ottilie im Zuschauerraum (js/diva.js)       // Angler Anselm in der versunkenen Kapelle (js/angler.js)          // Kettenhund Brutus im Zwinger (js/hund.js)
+  if (on && typeof BOSSES !== 'undefined' && typeof Vitrina !== 'undefined') BOSSES.vitrina = Vitrina;
+  if (on && typeof BOSSES !== 'undefined' && typeof Kunibert !== 'undefined') BOSSES.schrank = Kunibert;          // Kleiderschrank Kunibert in Zimmer 13 (js/schrank.js)            // Madame Vitrina in der Lichterpassage (js/vitrina.js)          // Primadonna Ottilie im Zuschauerraum (js/diva.js)       // Angler Anselm in der versunkenen Kapelle (js/angler.js)          // Kettenhund Brutus im Zwinger (js/hund.js)
   if (on && typeof BOSSES !== 'undefined' && typeof MannImMond !== 'undefined') BOSSES.mond = MannImMond;           // Mann im Mond im Krater (js/mond.js)
   if (on && typeof BOSSES !== 'undefined' && typeof Reisswolf !== 'undefined') BOSSES.reiss = Reisswolf;     // Reißwolf im Aktenkeller (js/keller.js)
   if (on && typeof BOSSES !== 'undefined' && typeof GolemBoss !== 'undefined') BOSSES.golem = GolemBoss; // Steingolem im Golemstollen (js/golem.js)
@@ -2700,6 +2702,7 @@ const Castle = (() => {
     luckcoin: { slot: 'acc', luck: 1, col: '#f8d878' },
     greedring: { slot: 'acc', greed: 1, col: '#f8b800' },
     chicken: { slot: 'acc', luck: 1, greed: 1, col: '#f8f070' },
+    smoking: { slot: 'armor', def: 5, luck: 1, col: '#2c2c3c' },            // Smoking von 1391 (Zimmer 13, Lohn von Kleiderschrank Kunibert)
     puppenkrone: { slot: 'acc', def: 2, luck: 1, col: '#e8b848' },        // Krone der Madame Vitrina (Lichterpassage)
     opernglas: { slot: 'acc', luck: 2, crit: 4, col: '#e8b848' },          // Opernglas der Primadonna (Zuschauerraum)
     ewigeslicht: { slot: 'acc', mp: 6, luck: 1, col: '#fc5c3c' },        // Ewiges Licht der versunkenen Kapelle (Lohn von Angler Anselm)
@@ -2766,7 +2769,7 @@ const Castle = (() => {
   const STOCK = ['potion', 'elixir', 'leather', 'chain', 'silver', 'heartamulet', 'fairy', 'map', 'book_spirit', 'book_hellfire', 'book_soulsteal'];
   const once = (g) => !!(g.slot || g.key || g.spell || g.rec || g.quest); // gibt es nur einmal
   const BOSS_LOOT = [[[0, -1], 'batcard']];
-  const MINI_LOOT = [[['side', 'passage'], 'puppenkrone', 46, 17], [['side', 'theater'], 'opernglas', 96, 20], [['side', 'kapelle'], 'ewigeslicht', 44, 20], [['side', 'zwinger'], 'halsband', 32, 10], [['side', 'zwinger'], 'welpe', 27, 10], [['side', 'verlies'], 'turmschild', 62, 10], [['side', 'spiegel'], 'shadowcard', 20, 10], [['side', 'golemstollen'], 'steinhaut', 12, 10], [['side', 'galvani'], 'galvheart', 97, 25], [['side', 'heldenamt'], 'dienstsiegel', 14, 17], [['side', 'aktenkeller'], 'reisszahn', 8, 15], [['side', 'hauptpost'], 'posthorn', 100, 19], [['side', 'chefetage'], 'goldstempel', 69, 19], [['side', 'sternkuppel'], 'orrery', 30, 21], [['side', 'krater'], 'mondstein', 30, 19], [['side', 'kuckuck'], 'kuckucksfeder', 4, 13]]; // nach dem Doppelgänger: sein Schatten; nach dem Steingolem: Steinhaut; nach dem Erweckten: sein Glasherz
+  const MINI_LOOT = [[['side', 'zimmer13'], 'smoking', 13, 10], [['side', 'passage'], 'puppenkrone', 46, 17], [['side', 'theater'], 'opernglas', 96, 20], [['side', 'kapelle'], 'ewigeslicht', 44, 20], [['side', 'zwinger'], 'halsband', 32, 10], [['side', 'zwinger'], 'welpe', 27, 10], [['side', 'verlies'], 'turmschild', 62, 10], [['side', 'spiegel'], 'shadowcard', 20, 10], [['side', 'golemstollen'], 'steinhaut', 12, 10], [['side', 'galvani'], 'galvheart', 97, 25], [['side', 'heldenamt'], 'dienstsiegel', 14, 17], [['side', 'aktenkeller'], 'reisszahn', 8, 15], [['side', 'hauptpost'], 'posthorn', 100, 19], [['side', 'chefetage'], 'goldstempel', 69, 19], [['side', 'sternkuppel'], 'orrery', 30, 21], [['side', 'krater'], 'mondstein', 30, 19], [['side', 'kuckuck'], 'kuckucksfeder', 4, 13]]; // nach dem Doppelgänger: sein Schatten; nach dem Steingolem: Steinhaut; nach dem Erweckten: sein Glasherz
   const FINDS = [ // Einzelstücke: [Raum, Gegenstand, Kachel-x, Standreihe]
     [['side', 'kolosseum'], 'leather', 12, 7], [['side', 'kanal'], 'bloodstone', 43, 7], [['side', 'schatz'], 'greedring', 25, 6],
     [['side', 'verlies'], 'dragonfang', 28, 6], [['side', 'wehrgang'], 'luckcoin', 37, 6], [['side', 'himmel'], 'mirror', 44, 5],
@@ -2971,7 +2974,7 @@ const Castle = (() => {
       if (this.vx) this.face = Math.sign(this.vx); else if (!this.target) this.face = p.face;
       this.vy = Math.min((this.vy || 0) + 0.26, 5.5);
       const wall = Phys.moveX(this, this.vx), r = Phys.moveY(this, this.vy); this.onGround = r === 1; if (r) this.vy = 0;
-      if (this.onGround && (wall || (p.onGround && p.feet < this.y + this.h - 18 && Math.abs(p.cx - this.cx) < 70))) { this.vy = -4.4; Audio8.sfx('jump', this.cx); }
+      if (this.onGround && (wall || (p.onGround && p.feet < this.y + this.h - 18 && Math.abs(p.cx - this.cx) < 70))) { this.vy = -4.4; Audio8.sfx('djump', this.cx); }
       if (this.target && Math.abs(this.target.cx - this.cx) < 14 && Math.abs(this.target.cy - this.cy) < 22 && !this.bite) { // Biss
         this.bite = 14; this.face = this.target.cx > this.cx ? 1 : -1; Audio8.sfx('chomp', this.cx);
         if (famStrike({ x: this.face > 0 ? this.cx : this.cx - 16, y: this.y - 6, w: 16, h: 18 }, 0.6 + 0.12 * (lv - 1))) this.gain(1);
@@ -3575,8 +3578,8 @@ const Castle = (() => {
   // ---------------- Bestiarium wie die Gegnerliste in SotN (Status, dritte Seite): Siege je Gegnerart, absurde Einträge ----------------
   const BEASTS = ['Bat', 'Skeleton', 'Ghoul', 'Raven', 'Knight', 'LivingArmor', 'Panther', 'Skull', 'Fishman', 'Ghost', 'Snake', 'FlyBook', 'Tome',
     'Pillar', 'MedusaHead', 'IceSkeleton', 'IceBoulder', 'SeaEagle', 'Snapper', 'Pitcher', 'Cocoon', 'Puppet', 'Automat', 'Mannequin', 'Jelly', 'Ordner', 'Flieger', 'Conductor', 'Doppel', 'GolemBoss', 'Awakened', 'Amtsschimmel', 'Reisswolf', 'Brief', 'Nachnahme', 'Frankiermaschine', 'Schreibtisch', 'Sternschnuppe', 'Astrolab', 'Sternbild', 'Mondkalb', 'Mimik', 'Gargoyle', 'Schildwache', 'Hoehlenspinne', 'Frostgeist', 'Galvanifrosch', 'Wetterhahn', 'Huepfsarg', 'Walzerpaar', 'MannImMond', 'Kuckucksuhr',
-    'Hauptmann', 'Kettenhund', 'AnglerFisch', 'Primadonna', 'Vitrina', 'TentacleBoss', 'GiantBat', 'IceWitch', 'GiantSkeleton', 'Medusa', 'SunWarden', 'ManTrap', 'Count'];
-  const BEAST_BOSS = { Hauptmann: 'bossHauptmann', Kettenhund: 'bossHund', AnglerFisch: 'bossAngler', Primadonna: 'bossDiva', Vitrina: 'bossVitrina', TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel', GolemBoss: 'bossGolem', Amtsschimmel: 'bossAmt', Reisswolf: 'bossReiss', Frankiermaschine: 'bossFrank', Schreibtisch: 'bossChef', Sternbild: 'bossStern', MannImMond: 'bossMond', Awakened: 'bossAwakened', Kuckucksuhr: 'bossKuckuck' };
+    'Hauptmann', 'Kettenhund', 'AnglerFisch', 'Primadonna', 'Vitrina', 'Kunibert', 'TentacleBoss', 'GiantBat', 'IceWitch', 'GiantSkeleton', 'Medusa', 'SunWarden', 'ManTrap', 'Count'];
+  const BEAST_BOSS = { Hauptmann: 'bossHauptmann', Kettenhund: 'bossHund', AnglerFisch: 'bossAngler', Primadonna: 'bossDiva', Vitrina: 'bossVitrina', Kunibert: 'bossSchrank', TentacleBoss: 'bossTentacle', GiantBat: 'boss1', IceWitch: 'bossWitch', GiantSkeleton: 'boss2', Medusa: 'boss3', SunWarden: 'bossKnight', ManTrap: 'bossTrap', Count: 'boss4', Conductor: 'bossConductor', Doppel: 'bossDoppel', GolemBoss: 'bossGolem', Amtsschimmel: 'bossAmt', Reisswolf: 'bossReiss', Frankiermaschine: 'bossFrank', Schreibtisch: 'bossChef', Sternbild: 'bossStern', MannImMond: 'bossMond', Awakened: 'bossAwakened', Kuckucksuhr: 'bossKuckuck' };
   const BEAST_SET = new Set(BEASTS);
   const beastName = (k) => tr(BEAST_BOSS[k] || 'beast_' + k);
   const beasts = { sel: 0 };
@@ -3833,7 +3836,7 @@ const Castle = (() => {
   // Nebenbosse (Zusatzräume mit .mini) gehören seit 20261112 zum Wegweiser: sobald der Hauptweg eine höhere Gefahrenstufe
   // erreicht hat als ihr Raum und ihr Tor offen ist, schickt er den Helden zuerst dorthin (leichtere zuerst, dann der nähere).
   // Der Mond hängt nur an der Mondkanone (kein Türweg): nach dem Sternbild zeigt das Ziel auf die Sternkuppel.
-  const MINI_NAME = { hauptmann: 'bossHauptmann', hund: 'bossHund', angler: 'bossAngler', diva: 'bossDiva', vitrina: 'bossVitrina', conductor: 'bossConductor', doppel: 'bossDoppel', golem: 'bossGolem', awakened: 'bossAwakened', amt: 'bossAmt', post: 'bossFrank', chef: 'bossChef', stern: 'bossStern', mond: 'bossMond', reiss: 'bossReiss', kuckuck: 'bossKuckuck' };
+  const MINI_NAME = { hauptmann: 'bossHauptmann', hund: 'bossHund', angler: 'bossAngler', diva: 'bossDiva', vitrina: 'bossVitrina', schrank: 'bossSchrank', conductor: 'bossConductor', doppel: 'bossDoppel', golem: 'bossGolem', awakened: 'bossAwakened', amt: 'bossAmt', post: 'bossFrank', chef: 'bossChef', stern: 'bossStern', mond: 'bossMond', reiss: 'bossReiss', kuckuck: 'bossKuckuck' };
   let sideMemo = null;
   function sideBosses() {
     if (!sideMemo) { sideMemo = []; S().forEach((st, s) => st.rooms.forEach((d, r) => { if (d.mini && MINI_NAME[d.mini.boss]) sideMemo.push({ s, r, d, id: d.mini.boss }); })); }
@@ -4423,12 +4426,14 @@ const Castle = (() => {
       if (b && b !== this.b && same(ref(b.at[0]), W.stage, W.roomIdx) && b.at[1] === this.b.at[1] && b.at[2] === this.b.at[2]) this.b = b;
     }
     lightUp(L, cx, cy) {
+      if (W.boss && W.boss.shoo && W.arenaOn) return;
       if (this.b.who === 'conc') { const l = k3pt('desk', 1, this.cx, this.y + this.h); L.push({ x: l.x - cx, y: l.y - cy, r: 36, c: [140, 252, 160], a: 0.35 }); } // grüne Tresenlampe
       const hd = ['bell', 'guide', 'clock', 'bones', 'barber', 'carto', 'cook', 'lib', 'pris', 'speed', 'clerk', 'chick'].includes(this.b.who); // Blender-Figuren sind schon beleuchtet: nur ein schwacher, warmer Schein (sonst überstrahlen Glatzen und Schädel)
       L.push({ x: this.cx - cx, y: this.y - cy + (hd ? 18 : 10), r: 30 + Math.sin(this.t * 0.05) * 2, c: hd ? [252, 210, 160] : this.b.who === 'lib' || this.b.who === 'conc' || this.b.who === 'gramo' ? [252, 200, 130] : this.b.who === 'tent' ? [200, 110, 250] : [190, 200, 255], a: hd ? 0.14 : 0.4 });
     }
     draw(ctx) {
       const cam = W.cam, feet = this.y + this.h;
+      if (W.boss && W.boss.shoo && W.arenaOn) return; // verkriecht sich während des Kampfs (z. B. Zimmer 13)
       if (this.b.who === 'lib') drawLibrarian(ctx, Math.round(this.cx - cam.x), Math.round(feet - cam.y), this.t, this.face < 0);
       else if (this.b.who === 'tent') drawTentacle(ctx, Math.round(this.cx - cam.x), Math.round(feet - cam.y), this.t, this.face < 0);
       else if (this.b.who === 'pris') drawPrisoner(ctx, Math.round(this.cx - cam.x), Math.round(feet - cam.y), this.t, this.face < 0);
@@ -5098,7 +5103,7 @@ const Castle = (() => {
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
     need.push('arenaTitle', 'arenaLine', 'arenaT1', 'arenaT2', 'arenaT3', 'arenaLockLv', 'arenaLockPrev', 'arenaBest', 'arenaWaves', 'arenaWave', 'arenaGold', 'arenaWin', 'arenaThumb', 'arenaQuip0', 'arenaQuip1', 'arenaQuip2', 'arenaQuip3', 'ach_arena', 'achD_arena', 'champ_flamme', 'champ_eile', 'champ_panzer', 'champ_spalt', 'champHunt', 'gwAngel', 'gwTitle', 'gwLabel', 'gwTier_good', 'gwTier_mid', 'gwTier_bad', 'gwUp', 'gwDown', 'gwNoGold', 'gwPerk_good', 'gwPerk_bad', 'opferTitle', 'opferLine', 'opfer_atk', 'opfer_hp', 'opfer_mp', 'opferMax', 'opferBack', 'ach_saint', 'achD_saint', 'ach_fiend', 'achD_fiend', 'optGore', 'optGoreH', 'gw_pruefer_q', 'gw_pruefer_a', 'gw_pruefer_b', 'gw_pruefer_ra', 'gw_pruefer_rb', 'gw_bein_q', 'gw_bein_a', 'gw_bein_b', 'gw_bein_ra', 'gw_bein_rb', 'gw_gast_q', 'gw_gast_a', 'gw_gast_b', 'gw_gast_ra', 'gw_gast_rb', 'gw_waisen_q', 'gw_waisen_a', 'gw_waisen_b', 'gw_waisen_ra', 'gw_waisen_rb', 'gw_antrag_q', 'gw_antrag_a', 'gw_antrag_b', 'gw_antrag_ra', 'gw_antrag_rb', 'gw_kalb_q', 'gw_kalb_a', 'gw_kalb_b', 'gw_kalb_ra', 'gw_kalb_rb', 'champWin', 'champTip', 'ach_champs', 'achD_champs', 'chgKanal', 'chgStollen', 'chgKuppel', 'chgKammer', 'hintRopeUp', 'hintRopeHold', 'hintRopeDown', 'hintTrolley', 'hintTrolley2', 'hintHand', 'npcBell', 'npcGuide', 'npcClock', 'newHere', 'chgZeiger', 'chgDoorZeiger', 'chgKlamm', 'chgDoorKlamm', 'chgGlocken', 'chgDoorGlocken', 'hintKuckuck', 'bossKuckuck', 'bossKuckuckShout', 'bossKuckuckBonk', 'bossKuckuckRage', 'bossKuckuckDie', 'bossKuckuckNote', 'banter_bossKuckuck', 'beastD_Kuckucksuhr', 'ach_kuckuck', 'achD_kuckuck', 'item_kuckucksfeder', 'itemD_kuckucksfeder', 'chgKuckuck', 'chgDoorKuckuck'); // Glockenstuhl, Tropfsteinklamm, Zeigerkammer, NEU-Markierung, Kuckucksuhr
-    need.push('kunst_eis', 'kunst_blitz', 'kunst_sterne', 'gargNote', 'wacheNote', 'spinneNote', 'frostNote', 'froschNote', 'wetterNote', 'wetterCrow', 'sargNote', 'sargGrumble', 'bossVitrina', 'epi_bossVitrina', 'bossVitrinaNote', 'bossVitrinaTip', 'beastD_Vitrina', 'banter_bossVitrina', 'vitrinaCaught', 'vitrinaStare', 'vitrinaRage', 'bossDiva', 'epi_bossDiva', 'bossDivaNote', 'bossDivaTip', 'beastD_Primadonna', 'banter_bossDiva', 'divaApplaus', 'divaBravo', 'divaZugabe', 'bossAngler', 'epi_bossAngler', 'bossAnglerNote', 'bossAnglerTip', 'beastD_AnglerFisch', 'banter_bossAngler', 'bossHund', 'epi_bossHund', 'bossHundNote', 'bossHundTip', 'banter_bossHund', 'hundWau', 'updateReady', 'famSay_dog', 'walzerNote', 'walzerOuch', 'kuecheNote', 'kuecheHi', 'kuecheTab', 'kuecheHelp', 'kuecheMissing', 'kuecheAgain', 'kuecheReady', 'kuecheEaten', 'kuecheFirst', 'kuecheLoot', 'kuecheLck', 'bossHauptmann', 'epi_bossHauptmann', 'bossHauptmannNote', 'bossHauptmannTip', 'banter_bossHauptmann');
+    need.push('kunst_eis', 'kunst_blitz', 'kunst_sterne', 'gargNote', 'wacheNote', 'spinneNote', 'frostNote', 'froschNote', 'wetterNote', 'wetterCrow', 'sargNote', 'sargGrumble', 'bossSchrank', 'epi_bossSchrank', 'bossSchrankNote', 'bossSchrankTip', 'beastD_Kunibert', 'banter_bossSchrank', 'schrankSpit', 'schrankMotten', 'bossVitrina', 'epi_bossVitrina', 'bossVitrinaNote', 'bossVitrinaTip', 'beastD_Vitrina', 'banter_bossVitrina', 'vitrinaCaught', 'vitrinaStare', 'vitrinaRage', 'bossDiva', 'epi_bossDiva', 'bossDivaNote', 'bossDivaTip', 'beastD_Primadonna', 'banter_bossDiva', 'divaApplaus', 'divaBravo', 'divaZugabe', 'bossAngler', 'epi_bossAngler', 'bossAnglerNote', 'bossAnglerTip', 'beastD_AnglerFisch', 'banter_bossAngler', 'bossHund', 'epi_bossHund', 'bossHundNote', 'bossHundTip', 'banter_bossHund', 'hundWau', 'updateReady', 'famSay_dog', 'walzerNote', 'walzerOuch', 'kuecheNote', 'kuecheHi', 'kuecheTab', 'kuecheHelp', 'kuecheMissing', 'kuecheAgain', 'kuecheReady', 'kuecheEaten', 'kuecheFirst', 'kuecheLoot', 'kuecheLck', 'bossHauptmann', 'epi_bossHauptmann', 'bossHauptmannNote', 'bossHauptmannTip', 'banter_bossHauptmann');
     need.push('kunst_wucht', 'kunst_kreuz', 'kunst_blut', 'kunst_feuer', 'kunst_reissen', 'kunstFirst', 'mimicNote', 'mimicWin');
     need.push('arenaDaily', 'arenaDailyDone', 'arenaDailyWin', ...Arena.MODS.map(m => 'mod_' + m));
     need.push('rauschTitle', 'rauschLine', 'rauschGo', 'rauschWait', 'rauschLock', 'rauschBest', 'rauschMost', 'rauschHud', 'rauschOut', 'rauschHeal', 'rauschWin');

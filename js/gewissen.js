@@ -41,8 +41,9 @@ const Gewissen = (() => {
     constructor(c, fy) { super(c.x, fy, 28); this.c = c; }
     open() { return !pickOf(this.c.id); }
     use() { ui = { mode: 'case', c: this.c, sel: 0, phase: 'ask', t: 0, msg: null, src: this }; Game.go('gewissen'); Audio8.sfx('select'); }
-    lightUp(L, cx, cy) { if (this.open()) L.push({ x: this.cx - cx, y: this.cy - cy, r: 34, c: [248, 200, 110], a: 0.3 }); }
+    lightUp(L, cx, cy) { if (this.open() && !(W.boss && W.boss.shoo)) L.push({ x: this.cx - cx, y: this.cy - cy, r: 34, c: [248, 200, 110], a: 0.3 }); }
     draw(ctx) {
+      if (W.boss && W.boss.shoo && this.open()) return; // versteckt sich während des Kampfs
       const x = Math.round(this.cx - W.cam.x), b = Math.round(this.fy - W.cam.y), t = this.t, on = this.open(), R = (a, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x + a, b + y, w, h); };
       switch (this.c.art) {
         case 'cage': { for (let i = -10; i <= 10; i += 5) if (on || i < 0) R(i, -36, 1, 34, '#6c6878'); R(-11, -37, 23, 2, '#8c8898'); R(-11, -3, 23, 2, '#54505c'); R(0, -56, 1, 19, '#54505c'); if (on) { const w = Math.round(Math.sin(t * 0.05)); R(-4 + w, -30, 8, 13, '#34344c'); R(-3 + w, -36, 6, 6, '#e0b090'); R(-3 + w, -38, 6, 2, '#4c3c2c'); R(-2 + w, -34, 1, 1, '#100808'); R(1 + w, -34, 1, 1, '#100808'); R(-3 + w, -17, 2, 11, '#24243c'); R(1 + w, -17, 2, 11, '#24243c'); R(5 + w, -26, 4, 5, '#f0e8d0'); } break; }

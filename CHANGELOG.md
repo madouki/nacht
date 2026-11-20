@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261120-0919](#20261120-0919--kleiderschrank-kunibert-in-zimmer-13) – Kleiderschrank Kunibert in Zimmer 13
 - [20261120-0839](#20261120-0839--madame-vitrina-in-der-lichterpassage-eine-arie-für-ottilie) – Madame Vitrina in der Lichterpassage, eine Arie für Ottilie
 - [20261120-0758](#20261120-0758--neue-zwischengegnerin-primadonna-ottilie-im-hoftheater) – Neue Zwischengegnerin: Primadonna Ottilie im Hoftheater
 - [20261120-0752](#20261120-0752--neuer-zwischenboss-unter-wasser-angler-anselm) – Neuer Zwischenboss unter Wasser: Angler Anselm
@@ -75,6 +76,23 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261120-0919 – Kleiderschrank Kunibert in Zimmer 13
+
+**Neu – Kleiderschrank Kunibert, seit 1391 verschlossen**
+- In Zimmer 13 des Hotels Krat (die Tür mit dem Schlüsselbund) wartet jetzt ein neuer Zwischengegner: Kleiderschrank Kunibert, ein besessener Nussbaumschrank mit Kranzgesims, Klauenfüßen und Messingknäufen. Er ist ein Blender-Modell, wie die anderen neuen Gegner.
+- Er kippelt von Kante zu Kante auf dich zu, und seine Augen glühen durch die Schlüssellöcher.
+- **Bügel:** Er öffnet einen Spalt und wirft Kleiderbügel wie Bumerangs. Sie fliegen auch wieder zurück.
+- **Stampfen:** Er hüpft und schlägt auf. Über die Staubwellen, die dann über den Boden rollen, musst du springen.
+- **Schlucken:** Er reißt die Türen auf und saugt dich an. Wer hineingerät, wird verschluckt und mit einem „PFUI! STAUBIG!“ wieder ausgespuckt. Weit offen ist aber auch sein Innerstes ungeschützt, und Treffer sitzen dann besser.
+- Ab halber Energie flattern Motten heraus, und er stampft zweimal hintereinander.
+- Vor dem Kampf besteht er darauf, kein bloßer Schrank zu sein, sondern ein Nussbaum-Kleiderschrank mit Kranzgesims (in allen 8 Sprachen).
+- Der Gast-Geist und der Tentakel verkriechen sich während des Kampfs.
+- Lohn: der **Smoking von 1391** (Rüstung, Abwehr +5, Glück +1). Er riecht nur leicht nach Mottenkugeln.
+
+**Beim Testen ansehen**
+- Merkt man rechtzeitig, dass er gleich schluckt? Kann man dem Sog gut entkommen?
+- Kommen die Bügel-Bumerangs auf dem Rückweg überraschend?
 
 ## 20261120-0839 – Madame Vitrina in der Lichterpassage, eine Arie für Ottilie
 
