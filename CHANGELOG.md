@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261121-0219](#20261121-0219--grottenolm-gustav-im-unterirdischen-kanal) – Grottenolm Gustav im Unterirdischen Kanal
 - [20261121-0035](#20261121-0035--kleiderschrank-tango-gewitter-toccata-und-fünf-neue-urkunden) – Kleiderschrank-Tango, Gewitter-Toccata und fünf neue Urkunden
 - [20261120-1004](#20261120-1004--kirchturmhahn-kasimir-auf-der-himmelsbrücke) – Kirchturmhahn Kasimir auf der Himmelsbrücke
 - [20261120-0919](#20261120-0919--kleiderschrank-kunibert-in-zimmer-13) – Kleiderschrank Kunibert in Zimmer 13
@@ -78,6 +79,24 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261121-0219 – Grottenolm Gustav im Unterirdischen Kanal
+
+**Neu – Grottenolm Gustav: er sieht nichts, aber er hört alles**
+- Im Unterirdischen Kanal, hinter dem zweiten Becken, liegt jetzt ein neuer Zwischengegner: Grottenolm Gustav, ein riesiger, blinder Höhlenmolch mit rosiger Haut und roten, gefiederten Kiemen. Er ist ein Blender-Modell wie die anderen neuen Gegner.
+- **Er ist blind und jagt nach Gehör.** Lärm machen: Gehen in seiner Nähe, Rennen, Landen nach einem Sprung, Peitschenhiebe und Wurfwaffen. Hat er etwas gehört, zeigt ein Schallring am Helden das an. Über seinem Kopf erscheint ein „!“, dann schnellt er flach auf die Stelle zu.
+- Wer still steht oder weit weg leise geht, bleibt ungehört. Hört er lange nichts, kriecht er suchend umher („?“).
+- **Von hinten** sitzen Treffer besser. Getroffen braucht er einen Moment, bis er sich umdreht.
+- Seinen flachen Vorstößen kannst du ausweichen, indem du über ihn springst. Prallt er an die Wand, ist er kurz benommen.
+- Ist das Geräusch weit weg, spuckt er einen Schleimklumpen dorthin, und die Pfütze ätzt eine Weile.
+- Ab halber Energie ruft er „ICH HÖRE DEIN HERZ!“, hört noch feiner und schlägt mit dem Schwanz gegen die Wand. Dann fallen Tropfsteine von der Decke, angekündigt durch rieselnden Staub.
+- **Eigene Musik:** ein leises Schleich-Stück in d-Moll mit gezupftem Bass, Rimclicks statt Trommeln und einer Melodie, die immer wieder innehält.
+- Vor dem Kampf fragt er „WER DA?“ und hört sogar deinen Magen (in allen 8 Sprachen).
+- Lohn: die **Filzpantoffeln**. Wer leise kommt, trifft besser: kritische Treffer +6 %.
+
+**Beim Testen ansehen**
+- Ist verständlich, was Gustav hört und was nicht?
+- Macht das Anschleichen Spaß, oder fühlt es sich zu langsam an?
 
 ## 20261121-0035 – Kleiderschrank-Tango, Gewitter-Toccata und fünf neue Urkunden
 

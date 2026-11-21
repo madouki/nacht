@@ -622,6 +622,15 @@ const Audio8 = (() => {
     'b5:4 e6:4 d6:2 c6:2 b5:4', 'c6:6 b5:2 a5:4 e5:4', 'd#5:4 f#5:4 a5:4 c6:4', 'b5:12 -:4',
     'e6:4 g6:4 e6:2 c6:2 g5:4', 'f#6:4 a6:4 f#6:2 d6:2 a5:4', 'g6:6 f#6:2 e6:2 d6:2 b5:4', 'e6:6 b5:2 g5:4 e5:4',
     'a5:3 b5:1 c6:4 e6:4 a6:4', 'a6:6 g6:2 f#6:4 c6:4', 'b5:2 d#6:2 f#6:2 a6:2 g6:2 f#6:2 d#6:2 c6:2', 'b5:8 f#5:4 d#5:4'];
+  // Lauschen (Grottenolm Gustav, js/olm.js): d-Moll, 100 BPM, auf Zehenspitzen. Gezupfter Bass in Vierteln mit Pausen, vereinzelte
+  // Tupfer auf den Offbeats, Rimclicks statt Trommeln, eine Melodie, die sich chromatisch heranschleicht und immer wieder innehält.
+  const OL = { Dm: ['a4', 'd5', 'f5'], Bb: ['a#4', 'd5', 'f5'], A: ['a4', 'c#5', 'e5'], Gm: ['a#4', 'd5', 'g5'], F: ['a4', 'c5', 'f5'], C: ['g4', 'c5', 'e5'], A7: ['g4', 'c#5', 'e5'] };
+  const OL_B = { Dm: ['d2', 'f2', 'a2'], Bb: ['a#1', 'd2', 'f2'], A: ['a1', 'c#2', 'e2'], Gm: ['g1', 'a#1', 'd2'], F: ['f1', 'a1', 'c2'], C: ['c2', 'e2', 'g2'], A7: ['a1', 'c#2', 'g2'] };
+  const OL_C = ['Dm', 'Dm', 'Bb', 'A', 'Dm', 'Dm', 'Gm', 'A', 'Dm', 'F', 'C', 'Dm', 'Bb', 'Gm', 'A7', 'A7'];
+  const OL_L = ['d5:2 -:2 f5:2 -:2 e5:1 f5:1 e5:2 d5:4', 'a4:2 -:2 c#5:2 d5:2 -:4 a4:4', 'a#4:2 -:2 d5:2 -:2 f5:2 e5:2 d5:4', 'c#5:6 d5:2 e5:4 -:4',
+    'f5:2 -:2 a5:2 -:2 g#5:1 a5:1 g#5:2 f5:4', 'd5:2 -:2 f5:2 a5:2 -:4 d6:4', 'd6:2 c6:2 a#5:2 a5:2 g5:4 -:4', 'e5:2 f5:2 e5:2 c#5:2 a4:8',
+    'a5:3 -:1 a5:2 -:2 g#5:2 a5:2 -:4', 'c6:3 -:1 c6:2 -:2 b5:2 c6:2 -:4', 'e6:2 d6:2 c6:2 g5:2 e5:4 -:4', 'f5:2 e5:2 d5:2 c#5:2 d5:4 -:4',
+    'd5:2 -:2 f5:2 -:2 a#5:4 a5:4', 'g5:2 -:2 a#5:2 -:2 d6:4 c6:2 a#5:2', 'a5:2 g5:2 e5:2 c#5:2 e5:2 g5:2 a5:4', 'a5:2 -:2 a4:2 -:2 a4:2 -:6'];
 
   const SONGS = {
     title: {
@@ -910,6 +919,14 @@ const Audio8 = (() => {
       tri: ST_C.map(c => { const r = ST_B[c]; return `${r}:6 ${r}:2 ${up8(r)}:4 ${r}:4`; }).join(' '),
       pad: ST_C.map(c => ST[c].join('+') + ':16').join(' '),
       dr: ST_C.map((c, i) => i === 15 ? 'p:2 p:2 p:2 p:2 u:2 u:2 x:4' : i % 4 === 3 ? 'k:4 s:2 s:2 p:2 p:2 p:2 p:2' : 'k:4 h:2 h:2 s:4 h:2 k:2').join(' '),
+    },
+    olm: { // Grottenolm Gustav (Zwischengegner im Unterirdischen Kanal, js/olm.js) – leise, damit man lauschen mag
+      bpm: 100, loop: true, echo: { delay: 3, vol: 0.34 },
+      p1: OL_L.join(' '),
+      p2: OL_C.map(c => { const [a, b] = OL[c]; return `-:2 ${a}:1 -:5 -:2 ${b}:1 -:5`; }).join(' '),
+      tri: OL_C.map(c => { const [a, b, d] = OL_B[c]; return `${a}:2 -:2 ${b}:2 -:2 ${d}:2 -:2 ${b}:2 -:2`; }).join(' '),
+      pad: OL_C.map(c => OL[c].join('+') + ':16').join(' '),
+      dr: OL_C.map((c, i) => i === 15 ? 'p:2 p:2 p:2 p:2 -:4 x:4' : i % 4 === 3 ? 'p:4 -:4 c:2 -:2 c:2 c:2' : 'c:2 -:6 c:2 -:2 h:2 -:2').join(' '),
     },
     kuckuck: { // Kuckucksuhr (Nebenboss links an der Zeigerkammer)
       bpm: 156, loop: true, echo: { delay: 3, vol: 0.28 },
