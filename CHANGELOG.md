@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261121-0256](#20261121-0256--gustav-knurrt) – Gustav knurrt
 - [20261121-0219](#20261121-0219--grottenolm-gustav-im-unterirdischen-kanal) – Grottenolm Gustav im Unterirdischen Kanal
 - [20261121-0035](#20261121-0035--kleiderschrank-tango-gewitter-toccata-und-fünf-neue-urkunden) – Kleiderschrank-Tango, Gewitter-Toccata und fünf neue Urkunden
 - [20261120-1004](#20261120-1004--kirchturmhahn-kasimir-auf-der-himmelsbrücke) – Kirchturmhahn Kasimir auf der Himmelsbrücke
@@ -79,6 +80,14 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261121-0256 – Gustav knurrt
+
+**Behoben**
+- Grottenolm Gustav knurrt jetzt hörbar, wenn er dich gehört hat und das „!“ über seinem Kopf erscheint. Bisher blieb er dabei stumm.
+
+**Beim Testen ansehen**
+- Hört man das Knurren rechtzeitig, bevor er zustößt?
 
 ## 20261121-0219 – Grottenolm Gustav im Unterirdischen Kanal
 

@@ -119,7 +119,7 @@ class Gustav extends Boss {
         if (t > 140) this.go('listen');
         break;
       case 'alert': // dreht sich zum Geräusch: '!'
-        if (t === 0) Audio8.sfx('growl', this.cx);
+        if (t === 1) Audio8.sfx('growl', this.cx); // (tick() zählt vor dem ersten Durchlauf schon auf 1)
         if (this.ear && t >= 0) this.face = Math.sign(this.ear.x - this.cx) || this.face;
         if (t > (this.ph2 ? 12 : 18)) {
           this.alerts++; const far = this.ear && Math.abs(this.ear.x - this.cx) > 150;
