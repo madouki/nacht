@@ -243,6 +243,9 @@ const Audio8 = (() => {
     spin: () => noise(0.09, 0.07, 'bandpass', 1400, 2600), // wirbelndes Wurfkreuz
     glug: () => { tone('sine', 380, 190, 0.09, 0.22); noise(0.06, 0.08, 'lowpass', 700, 300); }, // Pflanze trinkt
     burp: () => { tone('sawtooth', 96, 62, 0.42, 0.34); tone('square', 120, 74, 0.38, 0.12); noise(0.36, 0.22, 'lowpass', 500, 160); }, // ... und rülpst
+    snore: () => { tone('sawtooth', 72, 54, 0.62, 0.16); noise(0.6, 0.12, 'lowpass', 320, 120); }, // Walross Waldemar schnarcht (js/walross.js)
+    clap: () => { noise(0.06, 0.4, 'bandpass', 1800, 900); noise(0.05, 0.26, 'bandpass', 2400, 1200, ac.currentTime + 0.03); }, // nasser Flossenklatscher
+    sneeze: () => { noise(0.26, 0.12, 'bandpass', 900, 1700); noise(0.32, 0.46, 'highpass', 2800, 5200, ac.currentTime + 0.3); tone('square', 320, 110, 0.22, 0.08); }, // Ha… TSCHI!
     chomp: () => { noise(0.07, 0.4, 'bandpass', 1500, 500); tone('square', 240, 70, 0.09, 0.16); tone('triangle', 120, 50, 0.12, 0.2); }, // Fangblatt schnappt zu
     growl: () => { noise(0.5, 0.3, 'lowpass', 500, 160); tone('sawtooth', 110, 70, 0.45, 0.12); tone('pulse', 220, 140, 0.3, 0.05, 0.25); }, // Jaguar faucht
     shatter: () => { noise(0.5, 0.45, 'highpass', 5000, 1800); arp(['e7', 'c7', 'g6', 'e7', 'b6', 'g7'], 0.03, 'pulse', 0.06, 0.125); tone('triangle', 180, 60, 0.3, 0.3); }, // Kristall zerspringt
@@ -632,6 +635,17 @@ const Audio8 = (() => {
     'a5:3 -:1 a5:2 -:2 g#5:2 a5:2 -:4', 'c6:3 -:1 c6:2 -:2 b5:2 c6:2 -:4', 'e6:2 d6:2 c6:2 g5:2 e5:4 -:4', 'f5:2 e5:2 d5:2 c#5:2 d5:4 -:4',
     'd5:2 -:2 f5:2 -:2 a#5:4 a5:4', 'g5:2 -:2 a#5:2 -:2 d6:4 c6:2 a#5:2', 'a5:2 g5:2 e5:2 c#5:2 e5:2 g5:2 a5:4', 'a5:2 -:2 a4:2 -:2 a4:2 -:6'];
 
+  // Schlittschuh-Walzer (Walross Waldemar, js/walross.js): B-Dur, 3/4, ein wenig tapsig – Tuba auf der Eins, Pizzicato auf 2 und 3,
+  // die Melodie schwingt in langen Bögen und landet jedes Mal etwas zu spät; im B-Teil nach Es-Dur und g-Moll
+  const WR = { Bb: ['a#3', 'd4', 'f4'], F7: ['a3', 'c4', 'd#4'], Eb: ['a#3', 'd#4', 'g4'], Gm: ['a#3', 'd4', 'g4'], Cm: ['c4', 'd#4', 'g4'], C7: ['a#3', 'c4', 'e4'], F: ['a3', 'c4', 'f4'] };
+  const WR_B = { Bb: 'a#1', F7: 'f1', Eb: 'd#2', Gm: 'g1', Cm: 'c2', C7: 'c2', F: 'f1' };
+  const WR_C = ['Bb', 'Bb', 'F7', 'F7', 'F7', 'F7', 'Bb', 'Bb', 'Bb', 'Bb', 'Eb', 'Eb', 'F7', 'F7', 'Bb', 'Bb',
+    'Eb', 'Eb', 'Bb', 'Bb', 'C7', 'C7', 'F', 'F', 'Gm', 'Gm', 'Cm', 'Cm', 'F7', 'F7', 'Bb', 'Bb'];
+  const WR_L = ['f5:6 d5:3 f5:3', 'a#5:9 a5:3', 'a5:6 g5:3 f5:3', 'd#5:9 -:3', 'c5:6 d#5:3 f5:3', 'a5:6 g5:3 d#5:3', 'd5:6 f5:3 a#5:3', 'f5:9 -:3',
+    'f5:6 d5:3 f5:3', 'a#5:6 c6:3 d6:3', 'd#6:9 d6:3', 'c6:6 a#5:3 g5:3', 'f5:6 a5:3 c6:3', 'd#6:6 c6:3 a5:3', 'a#5:9 f5:3', 'a#5:6 -:6',
+    'g5:3 a#5:3 d#6:6', 'd#6:3 d6:3 c6:6', 'f5:3 a#5:3 d6:6', 'd6:3 c6:3 a#5:6', 'e5:3 g5:3 c6:6', 'a#5:6 a5:3 g5:3', 'a5:9 c6:3', 'f5:9 -:3',
+    'g5:6 a#5:3 d6:3', 'g6:9 f6:3', 'd#6:6 d6:3 c6:3', 'g5:9 -:3', 'a5:6 c6:3 d#6:3', 'f6:6 d#6:3 c6:3', 'd6:6 c6:3 a#5:3', 'a#5:6 f5:3 a#4:3'];
+
   const SONGS = {
     title: {
       bpm: 104, loop: true,
@@ -928,6 +942,14 @@ const Audio8 = (() => {
       pad: OL_C.map(c => OL[c].join('+') + ':16').join(' '),
       dr: OL_C.map((c, i) => i === 15 ? 'p:2 p:2 p:2 p:2 -:4 x:4' : i % 4 === 3 ? 'p:4 -:4 c:2 -:2 c:2 c:2' : 'c:2 -:6 c:2 -:2 h:2 -:2').join(' '),
     },
+    walross: { // Walross Waldemar (Zwischengegner im Eiskeller, js/walross.js)
+      bpm: 150, loop: true, bar: 12, echo: { delay: 3, vol: 0.26 },
+      p1: WR_L.join(' '),
+      p2: WR_C.map(c => `-:4 ${WR[c][1]}:2 -:2 ${WR[c][2]}:2 -:2`).join(' '),
+      tri: WR_C.map((c, i) => `${i % 2 ? up8(WR_B[c]) : WR_B[c]}:4 -:8`).join(' '),
+      pad: WR_C.map(c => WR[c].join('+') + ':12').join(' '),
+      dr: WR_C.map((c, i) => i === 31 ? 'k:2 h:2 s:2 w:6' : i % 8 === 7 ? 'k:2 h:2 s:2 t:1 t:1 u:1 u:1 s:2' : 'k:2 h:2 o:2 h:2 o:2 h:2').join(' '),
+    },
     kuckuck: { // Kuckucksuhr (Nebenboss links an der Zeigerkammer)
       bpm: 156, loop: true, echo: { delay: 3, vol: 0.28 },
       p1: KU_L.join(' '),
@@ -1032,7 +1054,7 @@ const Audio8 = (() => {
   //   C Brücke (Quarte höher: Blechthema aus den Akkorden, Streicher liegen darüber) · D Tutti (Melodie mit Streichern,
   //   Glockenspiel und Pauken) · E Mollterz höher (Streicher und Flöte) · F Zwischenspiel ohne Melodie · G Original mit Flöte
   // Länge: Lieder ab 40 s vier Durchgänge, ab 28 s fünf, kürzere acht.
-  const DRIVE = new Set(['boss', 'boss2', 'kraken', 'count', 'mondboss', 'reisswolf', 'sternbild', 'dienstweg', 'amtsmarsch', 'galopp', 'arie', 'tango', 'sturm']);
+  const DRIVE = new Set(['boss', 'boss2', 'kraken', 'count', 'mondboss', 'reisswolf', 'sternbild', 'dienstweg', 'amtsmarsch', 'galopp', 'arie', 'tango', 'sturm', 'walross']);
   const mOf = (n) => { const m = /^([a-g]#?)(-?\d)$/.exec(n); return m ? NN.indexOf(m[1]) + 12 * (+m[2] + 1) : null; };
   const nOf = (m) => NN[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
   function arrange(s, name) {

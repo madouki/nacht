@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261125-1630](#20261125-1630--walross-waldemar-der-kellermeister-im-eiskeller) – Walross Waldemar, der Kellermeister im Eiskeller
 - [20261125-1540](#20261125-1540--wahrsageautomat-madame-mystika-in-der-hotel-lobby) – Wahrsageautomat „Madame Mystika“ in der Hotel-Lobby
 - [20261125-1454](#20261125-1454--wurfbude-dosenwerfen-in-der-lichterpassage) – Wurfbude „Dosenwerfen“ in der Lichterpassage
 - [20261125-0943](#20261125-0943--küster-ruprecht-und-seine-ausgebüxten-klingelbeutel) – Küster Ruprecht und seine ausgebüxten Klingelbeutel
@@ -85,6 +86,22 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261125-1630 – Walross Waldemar, der Kellermeister im Eiskeller
+
+**Neu – Zwischenboss Walross Waldemar**
+- Im Eiskeller unter der Eisrutsche hält Walross Waldemar Mittagsschlaf. Er ist 1,4 Tonnen schwer und trägt Monokel mit Goldkette, Schnauzbart und einen rot-weißen Strickschal. Er ist neu in Blender gebaut und hat sechs Posen.
+- Er hütet „den Jahrgang 1702“, und das sind Eiszapfen. Weckt man ihn, ruft er „WER STÖRT MEINE SIESTA?!“.
+- **Bauchrutscher:** Er holt Schwung, ein Strich am Boden zeigt die Bahn, dann schlittert er übers Eis. Spring rechtzeitig drüber! Prallt er gegen die Wand, ist er benommen, und jeder Treffer zählt doppelt („AUF DIE SPECKSCHWARTE!“).
+- **Stampfer:** Er rammt die Stoßzähne ins Eis, und Eiswellen laufen nach beiden Seiten.
+- **Eisblock:** Er wirft gefrorene Kellerware, also eine Weinflasche im Eisblock. Sie zerspringt in drei schlitternde Splitter.
+- **Ab halber Energie:** Er rutscht zweimal hintereinander, stampft doppelt und holt tief Luft. Der Sog zieht dich heran, dann kommt „HATSCHI!“ mit Eissplittern.
+- Eigenes Lied: ein leicht tapsiger Schlittschuh-Walzer in B-Dur.
+- Lohn: der **Strickschal** von Oma Krat (Verteidigung +3, Leben +4).
+- Neue Geräusche für Schnarchen, Flossenklatschen und Niesen. Wortgeplänkel und alle Texte gibt es in 8 Sprachen.
+
+**Beim Testen ansehen**
+- Lässt sich der Bauchrutscher gut überspringen, und ist der Kampf fair?
 
 ## 20261125-1540 – Wahrsageautomat „Madame Mystika“ in der Hotel-Lobby
 
