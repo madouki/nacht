@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261125-2306](#20261125-2306--totengräber-theobald-und-calaca-skelette) – Totengräber Theobald und Calaca-Skelette
 - [20261125-1630](#20261125-1630--walross-waldemar-der-kellermeister-im-eiskeller) – Walross Waldemar, der Kellermeister im Eiskeller
 - [20261125-1540](#20261125-1540--wahrsageautomat-madame-mystika-in-der-hotel-lobby) – Wahrsageautomat „Madame Mystika“ in der Hotel-Lobby
 - [20261125-1454](#20261125-1454--wurfbude-dosenwerfen-in-der-lichterpassage) – Wurfbude „Dosenwerfen“ in der Lichterpassage
@@ -86,6 +87,28 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261125-2306 – Totengräber Theobald und Calaca-Skelette
+
+**Neu – Die Skelette feiern Totenfest**
+- Alle Skelette tragen jetzt den Calaca-Look nach mexikanischem Día de los Muertos. Die Skelett-Gegner haben bemalte Zuckerschädel mit Blütenringen um die Augen, eine Ringelblume am Kopf und eine bunte Schärpe.
+- Auch Knochen-Kalle vom Betriebsrat hat jetzt einen bemalten Schädel und eine Ringelblume an der Schiebermütze.
+- Wer ein Skelett zerlegt, sieht Knochen und Ringelblumen-Blüten fliegen.
+
+**Neu – Zwischenboss Totengräber Theobald**
+- Im Gruftgang gräbt Theobald seit 1648 ohne Pause. Er ist ein Calaca-Skelett mit Zylinder, Gehrock, Laterne und rostiger Schaufel, neu in Blender gebaut, mit Ringelblume am Hutband und im Knopfloch. Knochen-Kalle vom Betriebsrat hat schon eine Akte über ihn.
+- Er redet wie ein Noir-Erzähler: „DIE NACHT WAR KALT, DIE ERDE NOCH KÄLTER. UND DANN KAMST DU – MIT PEITSCHE UND ZU VIEL PULS.“
+- **Abtauchen:** Er gräbt sich ein, und nur ein Erdhügel wandert unter dem Boden auf dich zu. Zittert der Hügel, spring weg! Verfehlt er dich, steckt seine Schaufel fest, und Treffer sitzen besser.
+- **Grabstein:** Er wirft einen Grabstein. Wo der zerspringt, entsteht ein frisches Grab, aus dem eine Knochenhand greift.
+- **Schaufelhieb** für alle, die ihm zu nahe kommen.
+- **Ab halber Energie** heißt es „JETZT WERDEN ÜBERSTUNDEN GEMACHT!“: Risse laufen über den Boden, dann brechen fünf Knochenhände rund um dich hervor.
+- Eigenes Lied: die Knochen-Polka im Norteño-Schwung (a-Moll, im B-Teil C-Dur, mit klappernden Knochen).
+- Lohn: **Theobalds Schaufel** (Waffe, Angriff +5).
+- Neues Kichern, Wortgeplänkel und alle Texte gibt es in 8 Sprachen.
+
+**Beim Testen ansehen**
+- Erkennt man rechtzeitig, wann er auftaucht, und wirkt die Schaufel als Waffe gut?
+- Gefällt dir der Calaca-Look der Skelette?
 
 ## 20261125-1630 – Walross Waldemar, der Kellermeister im Eiskeller
 

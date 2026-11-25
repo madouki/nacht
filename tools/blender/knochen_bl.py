@@ -25,6 +25,7 @@ def skelett(pose, ice=False):
     else:
         BONE, JOINT = M('#e4dcc4', 0.6), M('#a89c80', 0.65)
         EYE, CLOTH = M('#ff5020', 0.2, 0, 3.5), M('#4c3828', 0.85)
+    SASH = [M('#f08020', 0.8), M('#20a8a0', 0.8), M('#e04890', 0.8)] if not ice else None   # Calaca: Schärpe in Totenfest-Farben
     DARK = M('#140c08', 0.9)
     kind = pose.split('_')[1]
     cx, hy = 16.0, 21.5
@@ -38,7 +39,7 @@ def skelett(pose, ice=False):
         S(a[0] + 1.3, 35.0, d, 1.7, BONE, 0.9, 0.55)   # Fuß
     # Becken, Lendenschurz, Wirbelsäule, Brustkorb
     S(cx + 0.3, hy, 0.2, 2.8, BONE, 1.9, 1.3)
-    for k in range(3): S(cx - 0.6 + k * 1.2, hy + 2.0 + (k % 2) * 0.6, -1.0, 1.4, CLOTH, 0.5, 2.0 + (k % 2) * 0.6)
+    for k in range(3): S(cx - 0.6 + k * 1.2, hy + 2.0 + (k % 2) * 0.6, -1.0, 1.4, SASH[k] if SASH else CLOTH, 0.5, 2.0 + (k % 2) * 0.6)
     top = (cx + lean, 12.6)
     for i in range(9):
         t = i / 8; S(cx + 0.2 + (top[0] - cx) * t, hy - 1.2 - (hy - 1.2 - top[1]) * t, 0.8, 0.62, JOINT if i % 2 else BONE)
@@ -57,6 +58,15 @@ def skelett(pose, ice=False):
     for ex, ey, dd in ((hx + 1.9, hy2 - 0.2, -2.1), (hx + 0.1, hy2 - 0.3, -2.6)):
         S(ex, ey, dd, 0.95, DARK, 0.5, 1.05); S(ex + 0.1, ey + 0.1, dd - 0.4, 0.42, EYE)
     S(hx + 2.7, hy2 + 1.0, -1.6, 0.45, DARK, 0.3, 0.6)    # Nasenloch
+    if not ice:   # Calaca: bemalter Zuckerschädel – Blütenringe um die Augen, Stirnblume, genähter Mund, Ringelblume hinterm Ohr
+        TEAL, PINK, YEL, ORA, ORA2 = M('#20c8c0', 0.4), M('#f050a0', 0.4), M('#f8d020', 0.4), M('#f89820', 0.6), M('#fcc040', 0.6)
+        for ex, ey, dd in ((hx + 1.9, hy2 - 0.2, -2.3), (hx + 0.1, hy2 - 0.3, -2.8)):
+            for k in range(8): a = k / 8 * math.tau; S(ex + math.cos(a) * 1.45, ey + math.sin(a) * 1.55, dd - 0.15, 0.55, TEAL if k % 2 else PINK)
+        S(hx + 0.9, hy2 - 2.7, -2.6, 0.7, YEL)
+        for k in range(5): a = k / 5 * math.tau - 1.57; S(hx + 0.9 + math.cos(a) * 1.0, hy2 - 2.7 + math.sin(a) * 1.0, -2.5, 0.6, PINK)
+        for k in range(5): S(hx + 0.4 + k * 0.75, hy2 + 3.3, -2.0, 0.22, DARK, 0.15, 0.5)   # Nähte über dem Mund
+        for k in range(7): a = k / 7 * math.tau; S(hx - 2.6 + math.cos(a) * 1.2, hy2 - 1.6 + math.sin(a) * 1.2, -0.6, 0.85, ORA if k % 2 else ORA2)   # Ringelblume
+        S(hx - 2.6, hy2 - 1.6, -1.2, 0.7, M('#c86010', 0.7))
     # Arme: hinterer Arm, vorderer Arm (beim Wurf mit Knochen über dem Kopf)
     shf, shb = (cx + lean + 1.6, 13.4), (cx + lean - 1.6, 13.4)
     if kind == 'throw':

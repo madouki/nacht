@@ -89,6 +89,13 @@ def kalle(f):  # Knochen-Kalle, Betriebsrat der Skelette: Schiebermütze, rote A
     for ex in (19.2, 22.6): S(ex, 16.6 + dy, -3.4, 1.15, PUP)
     S(21.3, 19.2 + dy, -3.6, 0.6, PUP); box(21, 21.2 + dy, -3.0, 4.6, 1.4, 1.0, BONED, 0.3)
     S(20.5, 13.6 + dy, -0.4, 4.6, CAP, 4.7, 1.6); box(23.6, 14.2 + dy, -3.6, 5, 1.2, 3, CAPL, 0.4)                       # Schiebermütze mit Schirm
+    TEAL, PINK, YEL = M('#20c8c0', 0.4), M('#f050a0', 0.4), M('#f8d020', 0.4)                                           # Calaca: Zuckerschädel
+    for ex in (19.2, 22.6):
+        for k in range(8): a = k / 8 * math.tau; S(ex + math.cos(a) * 1.75, 16.6 + dy + math.sin(a) * 1.8, -3.9, 0.38, TEAL if k % 2 else PINK)
+    S(21.0, 14.8 + dy, -3.9, 0.45, YEL)
+    for k in range(5): S(19.4 + k * 0.85, 21.9 + dy, -3.7, 0.2, PUP, 0.15, 0.55)                                         # Nähte
+    for k in range(7): a = k / 7 * math.tau; S(17.2 + math.cos(a) * 1.0, 12.8 + dy + math.sin(a) * 1.0, -3.0, 0.7, M('#f89820', 0.6) if k % 2 else M('#fcc040', 0.6))   # Ringelblume an der Mütze
+    S(17.2, 12.8 + dy, -3.5, 0.6, M('#c86010', 0.7))
     shot('kalle%d' % f)
 
 def anatol(f):  # Friseur Anatol: hager, gestreiftes Hemd, Schürze, Pomade, gezwirbelter Schnurrbart, Schere, Pflaster

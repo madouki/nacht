@@ -46,6 +46,7 @@ const Duell = (() => {
     Kasimir: { aim: [14], crow: [10] },
     Gustav: { alert: [10], tail: [10] },
     Waldemar: { windup: [14, 'line'], rear: [12], throw: [10], clap: [0] },
+    Theobald: { throw: [12], swing: [10], hands: [12] },
     TentacleBoss: { aim: [0], coil: [0], warn: [0], spit: [0] },
   };
   // Sprünge mit eigener Bahn: der Boden zeigt, wo der Boss wirklich aufkommt (g: Schwerkraft, m: Abstand zur Arenawand, k: Tempo im Endspurt)

@@ -245,6 +245,7 @@ const Audio8 = (() => {
     burp: () => { tone('sawtooth', 96, 62, 0.42, 0.34); tone('square', 120, 74, 0.38, 0.12); noise(0.36, 0.22, 'lowpass', 500, 160); }, // ... und rülpst
     snore: () => { tone('sawtooth', 72, 54, 0.62, 0.16); noise(0.6, 0.12, 'lowpass', 320, 120); }, // Walross Waldemar schnarcht (js/walross.js)
     clap: () => { noise(0.06, 0.4, 'bandpass', 1800, 900); noise(0.05, 0.26, 'bandpass', 2400, 1200, ac.currentTime + 0.03); }, // nasser Flossenklatscher
+    laugh: () => { arp(['a5', 'f5', 'a5', 'f5', 'd5'], 0.07, 'square', 0.06, 0.1); noise(0.38, 0.07, 'bandpass', 1500, 900); }, // Totengräber Theobald kichert (js/totengraeber.js)
     sneeze: () => { noise(0.26, 0.12, 'bandpass', 900, 1700); noise(0.32, 0.46, 'highpass', 2800, 5200, ac.currentTime + 0.3); tone('square', 320, 110, 0.22, 0.08); }, // Ha… TSCHI!
     chomp: () => { noise(0.07, 0.4, 'bandpass', 1500, 500); tone('square', 240, 70, 0.09, 0.16); tone('triangle', 120, 50, 0.12, 0.2); }, // Fangblatt schnappt zu
     growl: () => { noise(0.5, 0.3, 'lowpass', 500, 160); tone('sawtooth', 110, 70, 0.45, 0.12); tone('pulse', 220, 140, 0.3, 0.05, 0.25); }, // Jaguar faucht
@@ -646,6 +647,21 @@ const Audio8 = (() => {
     'g5:3 a#5:3 d#6:6', 'd#6:3 d6:3 c6:6', 'f5:3 a#5:3 d6:6', 'd6:3 c6:3 a#5:6', 'e5:3 g5:3 c6:6', 'a#5:6 a5:3 g5:3', 'a5:9 c6:3', 'f5:9 -:3',
     'g5:6 a#5:3 d6:3', 'g6:9 f6:3', 'd#6:6 d6:3 c6:3', 'g5:9 -:3', 'a5:6 c6:3 d#6:3', 'f6:6 d#6:3 c6:3', 'd6:6 c6:3 a#5:3', 'a#5:6 f5:3 a#4:3'];
 
+  // Knochen-Polka (Totengräber Theobald, js/totengraeber.js): a-Moll, im B-Teil C-Dur; Tuba im Wechselbass, Nachschlag auf den
+  // Achteln, Rimclicks wie klappernde Knochen – lustig, aber mit Grabesstaub
+  const TB = { Am: ['a3', 'c4', 'e4'], E7: ['g#3', 'b3', 'd4'], Dm: ['a3', 'd4', 'f4'], C: ['g3', 'c4', 'e4'], G: ['g3', 'b3', 'd4'], F: ['a3', 'c4', 'f4'] };
+  const TB_B = { Am: ['a1', 'e2'], E7: ['e1', 'b1'], Dm: ['d2', 'a1'], C: ['c2', 'g1'], G: ['g1', 'd2'], F: ['f1', 'c2'] };
+  const TB_C = ['Am', 'Am', 'E7', 'E7', 'E7', 'E7', 'Am', 'Am', 'Am', 'Am', 'Dm', 'Dm', 'E7', 'E7', 'Am', 'Am',
+    'C', 'C', 'G', 'G', 'G', 'G', 'C', 'C', 'F', 'F', 'C', 'C', 'E7', 'E7', 'Am', 'Am'];
+  const TB_L = ['e5:2 a5:2 c6:2 a5:2 e5:4 c5:4', 'a5:2 b5:2 c6:2 b5:2 a5:4 -:4', 'g#5:2 b5:2 d6:2 b5:2 g#5:4 e5:4', 'b5:2 c6:2 d6:2 c6:2 b5:4 -:4',
+    'e6:3 d6:1 c6:2 b5:2 g#5:4 b5:4', 'd6:3 c6:1 b5:2 a5:2 g#5:4 e5:4', 'a5:2 e5:2 a5:2 c6:2 e6:4 c6:4', 'a5:4 e5:2 c5:2 a4:4 -:4',
+    'e5:2 a5:2 c6:2 a5:2 e5:4 c5:4', 'a5:2 b5:2 c6:2 d6:2 e6:4 -:4', 'f6:3 e6:1 d6:2 a5:2 f5:4 a5:4', 'd6:2 e6:2 f6:2 e6:2 d6:4 -:4',
+    'b5:2 d6:2 g#6:2 f6:2 e6:4 d6:4', 'c6:2 b5:2 a5:2 g#5:2 b5:4 e5:4', 'a5:2 c6:2 e6:2 c6:2 a5:4 e5:4', 'a5:4 -:2 e5:2 a4:4 -:4',
+    'g5:2 c6:2 e6:2 c6:2 g5:4 e5:4', 'c6:2 d6:2 e6:2 f6:2 g6:4 -:4', 'f6:2 d6:2 b5:2 d6:2 g5:4 b5:4', 'd6:2 e6:2 f6:2 e6:2 d6:4 -:4',
+    'b5:3 c6:1 d6:2 g6:2 f6:4 d6:4', 'b5:2 a5:2 g5:2 a5:2 b5:4 -:4', 'c6:2 e6:2 g6:2 e6:2 c6:4 g5:4', 'c6:4 g5:2 e5:2 c5:4 -:4',
+    'a5:2 c6:2 f6:2 c6:2 a5:4 f5:4', 'a5:2 b5:2 c6:2 d6:2 c6:4 -:4', 'g5:2 c6:2 e6:2 g6:2 e6:4 c6:4', 'e6:2 d6:2 c6:2 b5:2 c6:4 -:4',
+    'b5:2 d6:2 e6:2 g#6:2 b6:4 g#6:4', 'e6:2 d6:2 c6:2 b5:2 g#5:4 b5:4', 'a5:2 c6:2 e6:2 a6:2 e6:4 c6:4', 'a5:4 e5:2 c5:2 a4:4 -:4'];
+
   const SONGS = {
     title: {
       bpm: 104, loop: true,
@@ -942,6 +958,14 @@ const Audio8 = (() => {
       pad: OL_C.map(c => OL[c].join('+') + ':16').join(' '),
       dr: OL_C.map((c, i) => i === 15 ? 'p:2 p:2 p:2 p:2 -:4 x:4' : i % 4 === 3 ? 'p:4 -:4 c:2 -:2 c:2 c:2' : 'c:2 -:6 c:2 -:2 h:2 -:2').join(' '),
     },
+    polka: { // Totengräber Theobald (Zwischengegner im Gruftgang, js/totengraeber.js)
+      bpm: 152, loop: true, echo: { delay: 3, vol: 0.22 },
+      p1: TB_L.join(' '),
+      p2: TB_C.map(c => { const [a, b, d] = TB[c]; return `-:2 ${b}:2 -:2 ${d}:2 -:2 ${b}:2 -:2 ${d}:2`; }).join(' '),
+      tri: TB_C.map(c => { const [r, f] = TB_B[c]; return `${r}:2 -:2 ${f}:2 -:2 ${r}:2 -:2 ${f}:2 -:2`; }).join(' '),
+      pad: TB_C.map(c => TB[c].join('+') + ':16').join(' '),
+      dr: TB_C.map((c, i) => i === 31 ? 'k:2 h:2 s:2 h:2 x:4 -:4' : i % 8 === 7 ? 'k:2 s:2 s:2 s:2 t:2 t:2 u:2 u:2' : i >= 16 ? 'k:2 c:2 s:2 c:2 k:2 c:2 s:2 c:2' : 'k:2 h:2 s:2 h:2 k:2 h:2 s:2 h:2').join(' '),
+    },
     walross: { // Walross Waldemar (Zwischengegner im Eiskeller, js/walross.js)
       bpm: 150, loop: true, bar: 12, echo: { delay: 3, vol: 0.26 },
       p1: WR_L.join(' '),
@@ -1054,7 +1078,7 @@ const Audio8 = (() => {
   //   C Brücke (Quarte höher: Blechthema aus den Akkorden, Streicher liegen darüber) · D Tutti (Melodie mit Streichern,
   //   Glockenspiel und Pauken) · E Mollterz höher (Streicher und Flöte) · F Zwischenspiel ohne Melodie · G Original mit Flöte
   // Länge: Lieder ab 40 s vier Durchgänge, ab 28 s fünf, kürzere acht.
-  const DRIVE = new Set(['boss', 'boss2', 'kraken', 'count', 'mondboss', 'reisswolf', 'sternbild', 'dienstweg', 'amtsmarsch', 'galopp', 'arie', 'tango', 'sturm', 'walross']);
+  const DRIVE = new Set(['boss', 'boss2', 'kraken', 'count', 'mondboss', 'reisswolf', 'sternbild', 'dienstweg', 'amtsmarsch', 'galopp', 'arie', 'tango', 'sturm', 'walross', 'polka']);
   const mOf = (n) => { const m = /^([a-g]#?)(-?\d)$/.exec(n); return m ? NN.indexOf(m[1]) + 12 * (+m[2] + 1) : null; };
   const nOf = (m) => NN[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
   function arrange(s, name) {
