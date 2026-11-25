@@ -2709,6 +2709,7 @@ const Castle = (() => {
     smoking: { slot: 'armor', def: 5, luck: 1, col: '#2c2c3c' },            // Smoking von 1391 (Zimmer 13, Lohn von Kleiderschrank Kunibert)
     puppenkrone: { slot: 'acc', def: 2, luck: 1, col: '#e8b848' },
     windrose: { slot: 'acc', dodge: 8, luck: 2, col: '#5c9a86' },
+    sammelteller: { slot: 'acc', greed: 2, luck: 1, col: '#e0b040' },           // Sammelteller des Küsters (Lohn für drei erwischte Klingelbeutel)
     filz: { slot: 'acc', crit: 6, luck: 1, col: '#9c8c78' },                   // Filzpantoffeln (Kanal, Lohn von Grottenolm Gustav)            // Windrose vom Turmknauf (Himmelsbrücke, Lohn von Kirchturmhahn Kasimir)        // Krone der Madame Vitrina (Lichterpassage)
     opernglas: { slot: 'acc', luck: 2, crit: 4, col: '#e8b848' },          // Opernglas der Primadonna (Zuschauerraum)
     ewigeslicht: { slot: 'acc', mp: 6, luck: 1, col: '#fc5c3c' },        // Ewiges Licht der versunkenen Kapelle (Lohn von Angler Anselm)
@@ -4125,6 +4126,8 @@ const Castle = (() => {
     { id: 'tent4', who: 'tent', at: [['side', 'zimmer13'], 21, 10], when: () => !!inv.keyring, give: 'pillow' }, // Zimmer 13: der Tentakel wohnt jetzt hier
     { id: 'gramo', who: 'gramo', at: [['side', 'hotel'], 14, 17], when: () => true, lines: false },      // Grammophon (↑: Platten)
     { id: 'speed', who: 'speed', at: [['side', 'kaleido'], 6, 8], when: () => true },                   // Kaleidoskop: der Geist eines Speedrunners
+    { id: 'kuester', who: 'kuester', at: [['sun', 0], 7, 15], when: () => true },                         // Sonnenkathedrale: Küster Ruprecht, die Klingelbeutel sind ausgeflogen (js/kuester.js)
+    { id: 'kuester2', who: 'kuester', at: [['sun', 0], 7, 15], when: () => (flag.beutel_n || 0) >= 3, give: 'sammelteller', gold: 2000 }, // ... drei auf der Flucht erwischt
     { id: 'bones', who: 'bones', at: [['side', 'gruftgang'], 10, 10], when: () => true, gold: 500 },     // Gruftgang: der Betriebsrat der Skelette (Streikgeld)
     { id: 'chick', who: 'chick', at: [['side', 'fundbuero'], 58, 17], when: () => true },                // Fundbüro: Fundsache Nr. 13
     { id: 'barber', who: 'barber', at: [['side', 'passage'], 22, 17], when: () => true },               // Lichterpassage: Medusas Friseur
@@ -4143,7 +4146,7 @@ const Castle = (() => {
     { id: 'clockq', who: 'clock', at: [['side', 'zeiger'], 31, 11], when: () => !!flag.story_clock },  // Auftrag: die verlorene Zeit
     { id: 'clockq2', who: 'clock', at: [['side', 'zeiger'], 31, 11], when: () => questHas(QUESTS[4]) || !!flag.story_clockq2, give: 'unruh', take: QUESTS[4].items },
   ];
-  const WHO = ['ally', 'lib', 'tent', 'pris', 'conc', 'gramo', 'speed', 'bones', 'chick', 'barber', 'carto', 'clerk', 'cook', 'bell', 'guide', 'clock'], VOICE = { ally: 'A', lib: 'L', tent: 'T', pris: 'P', conc: 'C', speed: 'S', bones: 'B', chick: 'W', barber: 'F', carto: 'M', clerk: 'O', cook: 'E', bell: 'N', guide: 'G', clock: 'U' }; // K ist Kaspar vorbehalten (startTalk)
+  const WHO = ['ally', 'lib', 'tent', 'pris', 'conc', 'gramo', 'speed', 'bones', 'chick', 'barber', 'carto', 'clerk', 'cook', 'bell', 'guide', 'clock', 'kuester'], VOICE = { ally: 'A', lib: 'L', tent: 'T', pris: 'P', conc: 'C', speed: 'S', bones: 'B', chick: 'W', barber: 'F', carto: 'M', clerk: 'O', cook: 'E', bell: 'N', guide: 'G', clock: 'U', kuester: 'R' }; // K ist Kaspar vorbehalten (startTalk)
   const allyId = () => { const ids = HEROES.list.map(d => d.id), i = Math.max(0, ids.indexOf(Options.character)); return ids[(i + 1) % ids.length]; };
   const beatDone = (b) => b.lines === false || !!flag['story_' + b.id];
   function beatNow(who) { let b = null; for (const x of BEATS) if (x.who === who && x.when()) b = x; return b; }
@@ -4364,8 +4367,8 @@ const Castle = (() => {
     R(-5, -38 + bob, 10, 6, '#fcfcfc'); R(-4, -40 + bob, 8, 2, '#fcfcfc'); R(-5, -33 + bob, 10, 1, '#d8d8d8');                     // Haube
     R(0, -30 + bob, 1, 1, '#1c1c24'); R(3, -30 + bob, 1, 1, '#1c1c24'); R(0, -28 + bob, 3, 1, '#a84848');                         // Augen, Lächeln
   }
-  const EGG = { speed: drawSpeedGhost, bones: drawBones, chick: drawChicken, barber: drawBarber, carto: drawCarto, clerk: drawClerk, cook: drawCook, bell: drawBellRinger, guide: drawMountainGuide, clock: drawClockmaker }; // Figur je Sprecher
-  const EGG_OF = { S: 'speed', B: 'bones', W: 'chick', F: 'barber', M: 'carto', O: 'clerk', E: 'cook', N: 'bell', G: 'guide', U: 'clock' };
+  const EGG = { speed: drawSpeedGhost, bones: drawBones, chick: drawChicken, barber: drawBarber, carto: drawCarto, clerk: drawClerk, cook: drawCook, bell: drawBellRinger, guide: drawMountainGuide, clock: drawClockmaker, kuester: drawKuester }; // Figur je Sprecher
+  const EGG_OF = { S: 'speed', B: 'bones', W: 'chick', F: 'barber', M: 'carto', O: 'clerk', E: 'cook', N: 'bell', G: 'guide', U: 'clock', R: 'kuester' };
   const noseOf = (npc) => { if (!talk || talk.npc !== npc) return 0; const pg = talk.pages[talk.i]; return pg && pg.lie ? Math.min(9, (Game.t - (talk.lieAt || 0)) * 0.35) : 0; };
   // Kammern im Hotel: Sternlampe (Speichern) und Aufzug (Schnellreise) statt Steinnische – Blender-Modelle
   function drawHotelChamber(ch, ctx) {
@@ -4442,7 +4445,7 @@ const Castle = (() => {
     lightUp(L, cx, cy) {
       if (W.boss && W.boss.shoo && W.arenaOn) return;
       if (this.b.who === 'conc') { const l = k3pt('desk', 1, this.cx, this.y + this.h); L.push({ x: l.x - cx, y: l.y - cy, r: 36, c: [140, 252, 160], a: 0.35 }); } // grüne Tresenlampe
-      const hd = ['bell', 'guide', 'clock', 'bones', 'barber', 'carto', 'cook', 'lib', 'pris', 'speed', 'clerk', 'chick'].includes(this.b.who); // Blender-Figuren sind schon beleuchtet: nur ein schwacher, warmer Schein (sonst überstrahlen Glatzen und Schädel)
+      const hd = ['kuester', 'bell', 'guide', 'clock', 'bones', 'barber', 'carto', 'cook', 'lib', 'pris', 'speed', 'clerk', 'chick'].includes(this.b.who); // Blender-Figuren sind schon beleuchtet: nur ein schwacher, warmer Schein (sonst überstrahlen Glatzen und Schädel)
       L.push({ x: this.cx - cx, y: this.y - cy + (hd ? 18 : 10), r: 30 + Math.sin(this.t * 0.05) * 2, c: hd ? [252, 210, 160] : this.b.who === 'lib' || this.b.who === 'conc' || this.b.who === 'gramo' ? [252, 200, 130] : this.b.who === 'tent' ? [200, 110, 250] : [190, 200, 255], a: hd ? 0.14 : 0.4 });
     }
     draw(ctx) {
@@ -4552,7 +4555,7 @@ const Castle = (() => {
     else if (who === 'T') { ctx.translate(x + 18, y + 80); ctx.scale(2, 2); drawTentacle(ctx, 0, 0, t, false); }
     else if (who === 'P') { ctx.translate(x + 20, y + 66); ctx.scale(2, 2); drawPrisoner(ctx, 0, 0, t, false); }
     else if (who === 'C') { ctx.translate(x + 18, y + 70); ctx.scale(2, 2); drawConcierge(ctx, 0, 0, t, false, talk ? noseOf(talk.npc) : 0); }
-    else if (EGG_OF[who]) { const lift = { S: 66, B: 74, W: 54, F: 70, M: 70, O: 70, E: 74 , N: 70 , G: 74 , U: 70 }[who]; ctx.translate(x + 18, y + lift); ctx.scale(2, 2); EGG[EGG_OF[who]](ctx, 0, 0, t, false); }
+    else if (EGG_OF[who]) { const lift = { S: 66, B: 74, W: 54, F: 70, M: 70, O: 70, E: 74 , N: 70 , G: 74 , U: 70 , R: 74 }[who]; ctx.translate(x + 18, y + lift); ctx.scale(2, 2); EGG[EGG_OF[who]](ctx, 0, 0, t, false); }
     else {
       const H = HEROES.get(who === 'A' ? allyId() : Options.character), spr = H.idle[0], img = who === 'H' ? spr.f : spr.c;
       ctx.imageSmoothingEnabled = false;
@@ -4570,7 +4573,7 @@ const Castle = (() => {
     ctx.fillStyle = '#fce0a8'; for (const [ex, ey] of [[x, y], [x + w - 1, y], [x, y + h - 1], [x + w - 1, y + h - 1]]) { ctx.fillRect(ex - 1, ey, 3, 1); ctx.fillRect(ex, ey - 1, 1, 3); }
     const px = hero ? x + w - 48 : x + 8, tx = hero ? x + 10 : x + 56;
     portrait(ctx, pg.who, px, y + 10, t);
-    const EGN = { S: 'npcSpeed', B: 'npcBones', W: 'npcChicken', F: 'npcBarber', M: 'npcCarto', O: 'npcClerk', E: 'npcCook', N: 'npcBell', G: 'npcGuide', U: 'npcClock' }, EGC = { S: '#b8d4ff', B: '#e8e4d0', W: '#fcf4c8', F: '#f0a0a0', M: '#e8dcb8', O: '#c8e0b0', E: '#f8d8a0', N: '#f0d890', G: '#a8d8f8', U: '#e8c8a0' };
+    const EGN = { S: 'npcSpeed', B: 'npcBones', W: 'npcChicken', F: 'npcBarber', M: 'npcCarto', O: 'npcClerk', E: 'npcCook', N: 'npcBell', G: 'npcGuide', U: 'npcClock', R: 'npcKuester' }, EGC = { S: '#b8d4ff', B: '#e8e4d0', W: '#fcf4c8', F: '#f0a0a0', M: '#e8dcb8', O: '#c8e0b0', E: '#f8d8a0', N: '#f0d890', G: '#a8d8f8', U: '#e8c8a0', R: '#d8d8f0' };
     const name = pg.who === 'L' ? tr('npcLib') : pg.who === 'T' ? tr('bossTentacle') : pg.who === 'P' ? tr('npcPrisoner') : pg.who === 'C' ? tr('npcConcierge') : EGN[pg.who] ? tr(EGN[pg.who]) : HEROES.def(pg.who === 'A' ? allyId() : Options.character).name;
     Font.draw(ctx, name, tx, y + 7, hero ? '#7cdcfc' : pg.who === 'L' ? '#c8a0fc' : pg.who === 'T' ? '#d880fc' : pg.who === 'P' ? '#e8e0c8' : pg.who === 'C' ? '#a8e8c0' : EGC[pg.who] || '#f8b800', { shadow: '#000' });
     let left = Math.floor(talk.n);
@@ -5117,7 +5120,7 @@ const Castle = (() => {
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
     need.push('arenaTitle', 'arenaLine', 'arenaT1', 'arenaT2', 'arenaT3', 'arenaLockLv', 'arenaLockPrev', 'arenaBest', 'arenaWaves', 'arenaWave', 'arenaGold', 'arenaWin', 'arenaThumb', 'arenaQuip0', 'arenaQuip1', 'arenaQuip2', 'arenaQuip3', 'ach_arena', 'achD_arena', 'champ_flamme', 'champ_eile', 'champ_panzer', 'champ_spalt', 'champHunt', 'gwAngel', 'gwTitle', 'gwLabel', 'gwTier_good', 'gwTier_mid', 'gwTier_bad', 'gwUp', 'gwDown', 'gwNoGold', 'gwPerk_good', 'gwPerk_bad', 'opferTitle', 'opferLine', 'opfer_atk', 'opfer_hp', 'opfer_mp', 'opferMax', 'opferBack', 'ach_saint', 'achD_saint', 'ach_fiend', 'achD_fiend', 'optGore', 'optGoreH', 'gw_pruefer_q', 'gw_pruefer_a', 'gw_pruefer_b', 'gw_pruefer_ra', 'gw_pruefer_rb', 'gw_bein_q', 'gw_bein_a', 'gw_bein_b', 'gw_bein_ra', 'gw_bein_rb', 'gw_gast_q', 'gw_gast_a', 'gw_gast_b', 'gw_gast_ra', 'gw_gast_rb', 'gw_waisen_q', 'gw_waisen_a', 'gw_waisen_b', 'gw_waisen_ra', 'gw_waisen_rb', 'gw_antrag_q', 'gw_antrag_a', 'gw_antrag_b', 'gw_antrag_ra', 'gw_antrag_rb', 'gw_kalb_q', 'gw_kalb_a', 'gw_kalb_b', 'gw_kalb_ra', 'gw_kalb_rb', 'champWin', 'champTip', 'ach_champs', 'achD_champs', 'chgKanal', 'chgStollen', 'chgKuppel', 'chgKammer', 'hintRopeUp', 'hintRopeHold', 'hintRopeDown', 'hintTrolley', 'hintTrolley2', 'hintHand', 'npcBell', 'npcGuide', 'npcClock', 'newHere', 'chgZeiger', 'chgDoorZeiger', 'chgKlamm', 'chgDoorKlamm', 'chgGlocken', 'chgDoorGlocken', 'hintKuckuck', 'bossKuckuck', 'bossKuckuckShout', 'bossKuckuckBonk', 'bossKuckuckRage', 'bossKuckuckDie', 'bossKuckuckNote', 'banter_bossKuckuck', 'beastD_Kuckucksuhr', 'ach_kuckuck', 'achD_kuckuck', 'item_kuckucksfeder', 'itemD_kuckucksfeder', 'chgKuckuck', 'chgDoorKuckuck'); // Glockenstuhl, Tropfsteinklamm, Zeigerkammer, NEU-Markierung, Kuckucksuhr
-    need.push('kunst_eis', 'kunst_blitz', 'kunst_sterne', 'gargNote', 'wacheNote', 'spinneNote', 'frostNote', 'froschNote', 'wetterNote', 'wetterCrow', 'sargNote', 'sargGrumble', 'beutelBitte', 'beutelDanke', 'beutelZurueck', 'sub_quietsch', 'sub_flasche', 'bossOlm', 'epi_bossOlm', 'bossOlmNote', 'bossOlmTip', 'beastD_Gustav', 'banter_bossOlm', 'olmBack', 'olmWut', 'bossHahn', 'epi_bossHahn', 'bossHahnNote', 'bossHahnTip', 'beastD_Kasimir', 'banter_bossHahn', 'hahnCrow', 'hahnSturm', 'bossSchrank', 'epi_bossSchrank', 'bossSchrankNote', 'bossSchrankTip', 'beastD_Kunibert', 'banter_bossSchrank', 'schrankSpit', 'schrankMotten', 'bossVitrina', 'epi_bossVitrina', 'bossVitrinaNote', 'bossVitrinaTip', 'beastD_Vitrina', 'banter_bossVitrina', 'vitrinaCaught', 'vitrinaStare', 'vitrinaRage', 'bossDiva', 'epi_bossDiva', 'bossDivaNote', 'bossDivaTip', 'beastD_Primadonna', 'banter_bossDiva', 'divaApplaus', 'divaBravo', 'divaZugabe', 'bossAngler', 'epi_bossAngler', 'bossAnglerNote', 'bossAnglerTip', 'beastD_AnglerFisch', 'banter_bossAngler', 'bossHund', 'epi_bossHund', 'bossHundNote', 'bossHundTip', 'banter_bossHund', 'hundWau', 'updateReady', 'famSay_dog', 'walzerNote', 'walzerOuch', 'kuecheNote', 'kuecheHi', 'kuecheTab', 'kuecheHelp', 'kuecheMissing', 'kuecheAgain', 'kuecheReady', 'kuecheEaten', 'kuecheFirst', 'kuecheLoot', 'kuecheLck', 'bossHauptmann', 'epi_bossHauptmann', 'bossHauptmannNote', 'bossHauptmannTip', 'banter_bossHauptmann');
+    need.push('kunst_eis', 'kunst_blitz', 'kunst_sterne', 'gargNote', 'wacheNote', 'spinneNote', 'frostNote', 'froschNote', 'wetterNote', 'wetterCrow', 'sargNote', 'sargGrumble', 'npcKuester', 'story_kuester', 'story_kuesterAgain', 'story_kuester2', 'story_kuester2Again', 'kollekteN', 'beutelBitte', 'beutelDanke', 'beutelZurueck', 'sub_quietsch', 'sub_flasche', 'bossOlm', 'epi_bossOlm', 'bossOlmNote', 'bossOlmTip', 'beastD_Gustav', 'banter_bossOlm', 'olmBack', 'olmWut', 'bossHahn', 'epi_bossHahn', 'bossHahnNote', 'bossHahnTip', 'beastD_Kasimir', 'banter_bossHahn', 'hahnCrow', 'hahnSturm', 'bossSchrank', 'epi_bossSchrank', 'bossSchrankNote', 'bossSchrankTip', 'beastD_Kunibert', 'banter_bossSchrank', 'schrankSpit', 'schrankMotten', 'bossVitrina', 'epi_bossVitrina', 'bossVitrinaNote', 'bossVitrinaTip', 'beastD_Vitrina', 'banter_bossVitrina', 'vitrinaCaught', 'vitrinaStare', 'vitrinaRage', 'bossDiva', 'epi_bossDiva', 'bossDivaNote', 'bossDivaTip', 'beastD_Primadonna', 'banter_bossDiva', 'divaApplaus', 'divaBravo', 'divaZugabe', 'bossAngler', 'epi_bossAngler', 'bossAnglerNote', 'bossAnglerTip', 'beastD_AnglerFisch', 'banter_bossAngler', 'bossHund', 'epi_bossHund', 'bossHundNote', 'bossHundTip', 'banter_bossHund', 'hundWau', 'updateReady', 'famSay_dog', 'walzerNote', 'walzerOuch', 'kuecheNote', 'kuecheHi', 'kuecheTab', 'kuecheHelp', 'kuecheMissing', 'kuecheAgain', 'kuecheReady', 'kuecheEaten', 'kuecheFirst', 'kuecheLoot', 'kuecheLck', 'bossHauptmann', 'epi_bossHauptmann', 'bossHauptmannNote', 'bossHauptmannTip', 'banter_bossHauptmann');
     need.push('kunst_wucht', 'kunst_kreuz', 'kunst_blut', 'kunst_feuer', 'kunst_reissen', 'kunstFirst', 'mimicNote', 'mimicWin');
     need.push('arenaDaily', 'arenaDailyDone', 'arenaDailyWin', ...Arena.MODS.map(m => 'mod_' + m));
     need.push('rauschTitle', 'rauschLine', 'rauschGo', 'rauschWait', 'rauschLock', 'rauschBest', 'rauschMost', 'rauschHud', 'rauschOut', 'rauschHeal', 'rauschWin');

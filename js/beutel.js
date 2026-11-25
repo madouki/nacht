@@ -65,7 +65,11 @@ class Klingelbeutel extends Enemy {
     const back = Math.round(loot * 1.5); W.score += back; Audio8.sfx('money', this.cx);
     W.popup(this.cx, this.y - 20, '+' + back + ' G', '#f8d048'); W.popup(this.cx, this.y - 30, tr('beutelZurueck'), '#7cf0a0');
     for (let i = 0; i < 14; i++) W.spawn(new Particle(this.cx, this.cy, rnd(-2, 2), rnd(-2.6, -0.4), i % 2 ? '#f8d048' : '#fce0a8', 30, 2, 0.12));
-    if (fleeing && typeof Castle !== 'undefined' && Castle.setFlag) Castle.setFlag('beutel_back');
+    if (fleeing && typeof Castle !== 'undefined' && Castle.setFlag) {
+      const n = Castle.flags.beutel_n = (Castle.flags.beutel_n || 0) + 1; // Auftrag des Küsters (castle.js, BEATS kuester)
+      if (Castle.flags.story_kuester && n <= 3) W.popup(this.cx, this.y - 40, tr('kollekteN', n, 3), '#c8a0fc');
+      Castle.setFlag('beutel_back');
+    }
   }
   lightUp(L, cx, cy) { L.push({ x: this.cx - cx, y: this.cy - 3 - cy, r: 14, c: [255, 220, 110], a: this.st === 'wind' || this.st === 'lunge' ? 0.32 : 0.18 }); }
   draw(ctx) {

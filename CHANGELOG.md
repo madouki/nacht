@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261125-0943](#20261125-0943--küster-ruprecht-und-seine-ausgebüxten-klingelbeutel) – Küster Ruprecht und seine ausgebüxten Klingelbeutel
 - [20261125-0930](#20261125-0930--der-klingelbeutel-und-drei-neue-urkunden) – Der Klingelbeutel und drei neue Urkunden
 - [20261125-0914](#20261125-0914--zwei-neue-nebenwaffen-gummihuhn-und-leidener-flasche) – Zwei neue Nebenwaffen: Gummihuhn und Leidener Flasche
 - [20261121-0256](#20261121-0256--gustav-knurrt) – Gustav knurrt
@@ -82,6 +83,17 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261125-0943 – Küster Ruprecht und seine ausgebüxten Klingelbeutel
+
+**Neu – Küster Ruprecht**
+- Auf dem Vorplatz der Sonnenkathedrale steht jetzt Küster Ruprecht, eine neue Figur aus Blender: Glatze, runde Brille, schwarzer Talar mit Beffchen und ein langer Kollektenstab, an dessen Haken nichts mehr hängt.
+- Seit dem Fluch sind ihm die Klingelbeutel ausgeflogen, und sie sammeln jetzt auf eigene Rechnung. Er bittet dich, drei von ihnen auf der Flucht zu erwischen.
+- Jeder erwischte Beutel zählt mit („KOLLEKTE 1/3“ …). Nach dem dritten bedankt er sich mit seinem alten **Sammelteller** (Gold +2, Glück +1) und 2000 Gold „als Rückerstattung“.
+- Mit Wortwechsel über Zinsen in der Kirche, wie immer in allen 8 Sprachen.
+
+**Beim Testen ansehen**
+- Ist der Auftrag klar, und lassen sich drei fliehende Beutel gut erwischen?
 
 ## 20261125-0930 – Der Klingelbeutel und drei neue Urkunden
 
