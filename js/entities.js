@@ -235,7 +235,7 @@ class Player {
   throwSub() {
     const hy = this.feet - (this.crouchAtk ? 24 : 32) + 8;
     W.spawn(new SubWeapon(this.sub, this.cx + this.face * 6, hy, this.face));
-    Audio8.sfx(this.sub === 'axe' ? 'axe' : 'throw');
+    Audio8.sfx(this.sub === 'axe' ? 'axe' : this.sub === 'quietsch' ? 'squeak' : 'throw');
   }
 
   // Laufschritt (Schloss-Modus): wer gut eine halbe Sekunde ohne Unterbrechung am Boden läuft, wird schneller – gegen die langen Wege

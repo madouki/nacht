@@ -78,6 +78,7 @@ const ITEM_SPR = {
   whip: () => Sprites.S.whipUp, dagger: () => Sprites.S.dagger, axe: () => Sprites.S.axe, holy: () => Sprites.S.holy,
   cross: () => Sprites.S.cross, rosary: () => Sprites.S.rosary, roast: () => Sprites.S.roast, oneUp: () => Sprites.S.oneUp,
   orb: () => Sprites.S.orb[Math.floor(W.frame / 8) % 2], watch: () => Sprites.S.watch,
+  quietsch: () => Sprites.S.quietsch, flasche: () => Sprites.S.flasche, // neue Nebenwaffen: Gummihuhn, Leidener Flasche
 };
 
 const MAGNET = new Set(['heartS', 'heartB', 'bag', 'bagBig']);
@@ -129,14 +130,16 @@ class Item extends Ent {
       case 'oneUp': W.lives++; Audio8.sfx('oneUp'); W.popup(this.cx, this.y, '1UP', '#3cbcfc'); break;
       case 'rosary': W.rosary(); Audio8.sfx('rosary'); break;
       case 'orb': p.hp = p.maxHp; Audio8.sfx('orb'); W.stageClear(); break;
-      default: p.sub = this.type; Audio8.sfx('item'); break;
+      default: p.sub = this.type; Audio8.sfx('item');
+        if ((this.type === 'quietsch' || this.type === 'flasche') && typeof Castle !== 'undefined' && Castle.flags && !Castle.flags['sub_' + this.type]) { Castle.setFlag('sub_' + this.type); Game.note('sub_' + this.type); } // neue Waffe: einmal erklären
+        break;
     }
   }
 }
 
 function rollDrop(drop) {
   const p = W.player;
-  const map = { '1': 'dagger', '2': 'axe', '3': 'holy', '4': 'cross', '5': 'watch', W: 'whip', H: 'heartB', R: 'rosary', $: 'bag', U: 'oneUp' };
+  const map = { '1': 'dagger', '2': 'axe', '3': 'holy', '4': 'cross', '5': 'watch', '6': 'quietsch', '7': 'flasche', W: 'whip', H: 'heartB', R: 'rosary', $: 'bag', U: 'oneUp' };
   if (drop === 'W' && p.whip >= 3) return 'heartB';
   if (map[drop]) return map[drop];
   const r = Math.random();
@@ -210,13 +213,15 @@ const CROSS_SPIN = (() => {
 })();
 class SubWeapon extends Ent {
   constructor(type, x, y, face) {
-    const dims = { dagger: [14, 5], axe: [12, 12], holy: [8, 10], cross: [13, 13] }[type];
+    const dims = { dagger: [14, 5], axe: [12, 12], holy: [8, 10], cross: [13, 13], quietsch: [11, 11], flasche: [10, 12] }[type];
     super(x - dims[0] / 2, y - dims[1] / 2, dims[0], dims[1]);
     this.type = type; this.face = face; this.kind = 'sub'; this.hits = new Map();
     if (type === 'dagger') { this.vx = face * 4.2; this.dmg = 2; this.cd = 999; }
     if (type === 'axe') { this.vx = face * 1.7; this.vy = -5.4; this.dmg = 3; this.cd = 20; }
     if (type === 'holy') { this.vx = face * 1.7; this.vy = -2; this.dmg = 1; this.cd = 12; this.burnT = -1; }
     if (type === 'cross') { this.vx = face * 3.4; this.dmg = 2; this.cd = 20; this.back = false; this.trail = []; }
+    if (type === 'quietsch') { this.vx = face * 2.3; this.vy = -3.2; this.dmg = 2; this.cd = 14; this.bounces = 0; this.spin = 0; } // Gummihuhn: hüpft quietschend
+    if (type === 'flasche') { this.vx = face * 3.2; this.vy = -0.6; this.dmg = 2; this.cd = 999; this.zap = null; }        // Leidener Flasche: Kettenblitz
   }
   update() {
     this.t++;
@@ -247,11 +252,56 @@ class SubWeapon extends Ent {
       if (this.back && Phys.overlap(this, W.player)) this.dead = true;
       if (!this.onScreen(40)) this.dead = true;
     }
+    if (tp === 'quietsch') { // hüpft über den Boden, prallt von Wänden ab, quietscht bei jedem Aufprall und Treffer
+      this.vy = Math.min(this.vy + 0.22, 5); this.spin += this.vx * 0.12;
+      if (Phys.moveX(this, this.vx)) { this.vx = -this.vx; this.face = -this.face; Audio8.sfx('squeak', this.cx); }
+      const m = Phys.moveY(this, this.vy);
+      if (m === 1) { this.bounces++; this.vy = -Math.max(2.2, Math.abs(this.vy) * 0.78); Audio8.sfx('squeak', this.cx); W.dust && W.dust(this.cx, this.y + this.h, 2); }
+      else if (m === -1) this.vy = 0.5;
+      if (this.bounces > 4 || this.t > 200 || this.y > W.room.h * T) { this.dead = true; W.puff && W.puff(this.cx, this.cy); return; }
+      const n = this.hits.size; W.subHit(this); if (this.hits.size > n) Audio8.sfx('squeak', this.cx);
+      return;
+    } else if (tp === 'flasche') { // fliegt fast gerade; am ersten Gegner (oder an der Wand) zerplatzt sie, der Blitz springt weiter
+      if (this.zap) { if (--this.zap.t <= 0) this.dead = true; return; }
+      if (this.storm) { this.burst(SubWeapon.near(this, 9, View.w)); return; }
+      this.vy += 0.03; this.x += this.vx; this.y += this.vy;
+      if (this.t % 4 === 0) W.spawn(new Particle(this.cx, this.cy, rnd(-0.4, 0.4), rnd(-0.4, 0.4), '#a4e4fc', 10, 1, 0));
+      const first = W.ents.find(e => !e.dead && (e.kind === 'enemy' || e.kind === 'boss') && !(e.rise !== undefined && e.rise < 12) && Phys.hitsEnt(this, e));
+      for (const c of W.ents) if (c.kind === 'candle' && !c.dead && Phys.overlap(this, c)) c.hit();
+      if (first) { this.burst([first].concat(SubWeapon.near(first, 4, 96, first))); return; }
+      if (Phys.rectSolid(this.x, this.y, this.w, this.h) || !this.onScreen(8) || this.t > 90) { this.burst(SubWeapon.near(this, 3, 56)); return; } // an Wand oder Sims: Funken springen auf Gegner in der Nähe
+      return;
+    }
     if (tp !== 'holy' || this.burnT >= 0) W.subHit(this);
   }
+  static near(from, n, range, first) { // die nächsten Gegner nacheinander (Kette): jeder Sprung höchstens range weit
+    const out = [], used = new Set(first ? [first] : []); let at = first || from;
+    for (let k = 0; k < n; k++) {
+      let best = null, bd = range;
+      for (const e of W.ents) { if (e.dead || used.has(e) || (e.kind !== 'enemy' && e.kind !== 'boss') || (e.rise !== undefined && e.rise < 12) || !e.onScreen(0)) continue; const d = Math.hypot(e.cx - at.cx, e.cy - at.cy); if (d < bd) { bd = d; best = e; } }
+      if (!best) break; used.add(best); out.push(best); at = best;
+    }
+    return out;
+  }
+  burst(list) { // zerplatzen: Glas klirrt, der Blitz springt von Gegner zu Gegner
+    const pts = [[this.cx, this.cy]];
+    for (const e of list) { if (e.hit(this.dmg * Options.dmgMul, 0)) {} pts.push([e.cx, e.cy]); W.sparks && W.sparks(e.cx, e.cy, 4); }
+    this.zap = { t: 14, pts, segs: pts.slice(1).map((q, i) => SubWeapon.bolt(pts[i], q)) };
+    Audio8.sfx('shatter', this.cx); if (list.length) Audio8.sfx('zap', this.cx);
+    for (let i = 0; i < 6; i++) W.spawn(new Particle(this.cx, this.cy, rnd(-1.6, 1.6), rnd(-2, 0.4), i % 2 ? '#a4e4fc' : '#fcfcfc', 16, 1, 0.1));
+    this.vx = this.vy = 0;
+  }
+  static bolt(a, b) { const n = Math.max(3, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) / 9)), out = [a]; for (let i = 1; i < n; i++) { const t = i / n; out.push([a[0] + (b[0] - a[0]) * t + rnd(-4, 4), a[1] + (b[1] - a[1]) * t + rnd(-4, 4)]); } out.push(b); return out; }
   draw(ctx) {
     const S = Sprites.S, x = Math.round(this.x - W.cam.x), y = Math.round(this.y - W.cam.y);
     if (this.type === 'dagger') Sprites.draw(ctx, S.dagger, x, y, this.face < 0);
+    else if (this.type === 'quietsch') { const s = S.quietsch; ctx.save(); ctx.translate(Math.round(this.cx - W.cam.x), Math.round(this.cy - W.cam.y)); ctx.rotate(Math.sin(this.spin) * 0.5); Sprites.draw(ctx, s, -Math.floor(s.w / 2), -Math.floor(s.h / 2), this.face < 0); ctx.restore(); }
+    else if (this.type === 'flasche') {
+      if (!this.zap) { Sprites.draw(ctx, S.flasche, x, y, this.face < 0); return; }
+      const cx = W.cam.x, cy = W.cam.y, a = Math.min(1, this.zap.t / 8); ctx.save(); ctx.globalAlpha = a; ctx.lineCap = 'round';
+      for (const [w, col] of [[4, 'rgba(120,190,255,0.45)'], [1.5, '#f4fcff']]) { ctx.strokeStyle = col; ctx.lineWidth = w; for (const seg of this.zap.segs) { ctx.beginPath(); seg.forEach(([px, py], i) => i ? ctx.lineTo(px - cx, py - cy) : ctx.moveTo(px - cx, py - cy)); ctx.stroke(); } }
+      ctx.restore();
+    }
     else if (this.type === 'holy') {
       if (this.burnT < 0) Sprites.draw(ctx, S.holy, x, y);
       else for (let i = 0; i < 3; i++) Sprites.draw(ctx, S.flame[(Math.floor(this.burnT / 4) + i) % 2], x + i * 8, y + 6 - ((i === 1) ? 2 : 0));

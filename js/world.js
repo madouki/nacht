@@ -431,6 +431,8 @@ const W = {
     if (c.type === 'axe' && c.t === 1) for (let i = 0; i < 8; i++) { const s = mk('axe', p.cx, p.cy - 6, i < 4 ? -1 : 1); s.vx = (i - 3.5) * 0.7; s.vy = -5.2 - (i % 2) * 0.9; }
     if (c.type === 'holy' && c.t === 1) for (let i = 0; i < 8; i++) { const s = mk('holy', p.cx, p.cy - 6, i < 4 ? -1 : 1); s.vx = (i - 3.5) * 0.85; s.vy = -2.6 - (i % 3) * 0.7; }
     if (c.type === 'cross' && (c.t === 1 || c.t === 14 || c.t === 28)) [-1, 1].forEach(f => { const s = mk('cross', p.cx, p.cy - 8 + (c.t % 3) * 4, f); s.vx = f * 4; });
+    if (c.type === 'quietsch' && c.t % 4 === 1 && c.t <= 44) { const s = mk('quietsch', this.cam.x + 24 + Math.random() * (View.w - 48), this.cam.y + 40, Math.random() < 0.5 ? -1 : 1); s.vy = 0.5; s.vx = s.face * 1.3; } // Gummihuhn-Regen
+    if (c.type === 'flasche' && (c.t === 1 || c.t === 22 || c.t === 44)) { const s = mk('flasche', p.cx, p.cy - 8, p.face); s.storm = true; } // Gewitter: Blitz in alle Gegner im Bild
     if (c.t > 60) this.crash = null;
   },
 

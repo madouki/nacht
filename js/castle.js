@@ -269,7 +269,7 @@ const Castle = (() => {
       .fill(0, 9, 5, 12, '#').fill(6, 9, 121, 9, '=').fill(122, 9, 127, 12, '#')
       .fill(24, 9, 26, 9, '.').fill(52, 9, 55, 9, '.').fill(72, 9, 74, 9, '.').fill(98, 9, 100, 9, '.')
       .fill(42, 6, 47, 6, '=').fill(106, 6, 110, 6, '=')
-      .candle(10, 6, 'H').candle(30, 6).candle(44, 4, '$').candle(60, 6, 'H').candle(80, 6).candle(96, 6).candle(108, 4, 'H')
+      .candle(10, 6, 'H').candle(30, 6).candle(44, 4, '$').candle(60, 6, 'H').candle(80, 6, '7').candle(96, 6).candle(108, 4, 'H')
       .enemy('raven', 20, 7).enemy('raven', 64, 7).enemy('ghost', 40, 5).enemy('raven', 104, 7)
       .statue(46, 8)
       .mini('hahn', 75, 97, 77, 0)                                      // Kirchturmhahn Kasimir zwischen zwei Lücken im Steg (js/kirchhahn.js)
@@ -320,7 +320,7 @@ const Castle = (() => {
       .stair(36, 17, 7, 1).fill(43, 11, 69, 11, '=').stair(76, 17, 7, -1)   // Fußgängerbrücke über die Halle
       .fill(0, 9, 12, 9, '=').stair(21, 17, 9, -1).stair(2, 8, 9, 1)          // Sims am Stellwerk als Podest: Treppe hinauf, weiter zum Schacht in den Lokschuppen
       .fill(70, 4, 84, 4, '=').chest(84, 3)                                   // Signalbrücke unter dem Dach (nur mit Supersprung)
-      .candle(4, 15, 'H').candle(28, 15).candle(46, 8, '$').candle(56, 8, 'H').candle(66, 8).candle(88, 15, 'W').candle(104, 15)
+      .candle(4, 15, 'H').candle(28, 15, '6').candle(46, 8, '$').candle(56, 8, 'H').candle(66, 8).candle(88, 15, 'W').candle(104, 15)
       .enemy('raven', 30, 5).enemy('raven', 84, 4)
       .chest(0, 8, 'big').prop('vessel', { x: 56, y: 10 })
       .music('stage1').label('BAHNHOF KRAT').start(2, 17).done();
@@ -881,7 +881,7 @@ const Castle = (() => {
       .prop('belt', { x0: 84, x1: 105, row: 22, v: 0.9 }).prop('press', { x: 88, row: 22, period: 120, phase: 0 }).prop('press', { x: 94, row: 22, period: 120, phase: 80 }).prop('press', { x: 100, row: 22, period: 120, phase: 40 })
       .prop('hint', { x: 7, y: 17, w: 4, h: 5, key: 'hintPress' }).prop('hint', { x: 32, y: 15, w: 3, h: 5, key: 'hintVent' })
       .enemy('automat', 37, 19).enemy('automat', 46, 9).enemy('automat', 81, 21).enemy('automat', 92, 9).enemy('automat', 107, 21).enemy('automat', 116, 19).enemy('automat', 122, 19)
-      .candle(5, 18, 'H').candle(13, 17).candle(30, 17, '$').candle(41, 18, 'H').candle(44, 7).candle(50, 7, '1').candle(60, 17)
+      .candle(5, 18, 'H').candle(13, 17).candle(30, 17, '$').candle(41, 18, 'H').candle(44, 7, '7').candle(50, 7, '1').candle(60, 17)
       .candle(68, 15, 'H').candle(83, 18, '$').candle(89, 7).candle(97, 7, 'H').candle(103, 1).candle(108, 18, 'H').candle(114, 16).candle(121, 16, '$').candle(126, 16)
       .chest(51, 9).chest(125, 19, 'big').prop('vessel', { x: 101, y: 3 })
       .music('stage3').label('AUTOMATENWERK').start(2, 21).done();
@@ -901,7 +901,7 @@ const Castle = (() => {
       .prop('luster', { x: 34, y: 1, len: 118 }).prop('luster', { x: 52, y: 1, len: 44 }).prop('luster', { x: 66, y: 1, len: 44 }).prop('luster', { x: 84, y: 1, len: 118 }) // über dem Boden tief genug, dass man sie von unten sieht
       .enemy('mannequin', 13, 17).enemy('mannequin', 31, 17, { pose: 'point' }).enemy('mannequin', 49, 17).enemy('mannequin', 68, 17, { pose: 'wave' })
       .enemy('mannequin', 12, 9, { pose: 'shy' }).enemy('mannequin', 56, 9).enemy('mannequin', 72, 9, { pose: 'hip' }).enemy('mannequin', 104, 17, { pose: 'show' })
-      .candle(4, 15, 'H').candle(24, 15).candle(46, 7, '$').candle(62, 7, 'H').candle(80, 7).candle(86, 15, 'W').candle(108, 15)
+      .candle(4, 15, 'H').candle(24, 15).candle(46, 7, '$').candle(62, 7, 'H').candle(80, 7, '7').candle(86, 15, 'W').candle(108, 15)
       .chest(2, 9, 'big').prop('vessel', { x: 6, y: 9 })
       .mini('vitrina', 34, 59, 36, 12)                                    // Madame Vitrina in der Ladenzeile (js/vitrina.js): bewegt sich nur, wenn man wegschaut
       .music('hotel').label('LICHTERPASSAGE').start(108, 17).done();
@@ -1031,7 +1031,7 @@ const Castle = (() => {
       .prop('pz', { k: 'sign', x: 2, y: 25, title: 'regSignT', key: 'regSign', col: '#3c2414', reach: 3 })
       .enemy('ordner', 23, 29).enemy('ordner', 34, 29, { col: 1 }).enemy('ordner', 33, 17, { col: 2 }).enemy('ordner', 24, 22, { col: 3 })
       .enemy('book', 30, 4).enemy('ghost', 26, 12)
-      .candle(3, 27, 'H').candle(12, 13).candle(20, 3, '$').candle(31, 27).candle(35, 16, 'H').candle(26, 3)
+      .candle(3, 27, 'H').candle(12, 13).candle(20, 3, '$').candle(31, 27, '6').candle(35, 16, 'H').candle(26, 3)
       .chest(38, 4, 'big').prop('vessel', { x: 33, y: 4 })
       .music('amt').label('REGISTRATUR').start(1, 29).done();
     add('registratur', 0, 3, null, reg);
@@ -5114,7 +5114,7 @@ const Castle = (() => {
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
     need.push('arenaTitle', 'arenaLine', 'arenaT1', 'arenaT2', 'arenaT3', 'arenaLockLv', 'arenaLockPrev', 'arenaBest', 'arenaWaves', 'arenaWave', 'arenaGold', 'arenaWin', 'arenaThumb', 'arenaQuip0', 'arenaQuip1', 'arenaQuip2', 'arenaQuip3', 'ach_arena', 'achD_arena', 'champ_flamme', 'champ_eile', 'champ_panzer', 'champ_spalt', 'champHunt', 'gwAngel', 'gwTitle', 'gwLabel', 'gwTier_good', 'gwTier_mid', 'gwTier_bad', 'gwUp', 'gwDown', 'gwNoGold', 'gwPerk_good', 'gwPerk_bad', 'opferTitle', 'opferLine', 'opfer_atk', 'opfer_hp', 'opfer_mp', 'opferMax', 'opferBack', 'ach_saint', 'achD_saint', 'ach_fiend', 'achD_fiend', 'optGore', 'optGoreH', 'gw_pruefer_q', 'gw_pruefer_a', 'gw_pruefer_b', 'gw_pruefer_ra', 'gw_pruefer_rb', 'gw_bein_q', 'gw_bein_a', 'gw_bein_b', 'gw_bein_ra', 'gw_bein_rb', 'gw_gast_q', 'gw_gast_a', 'gw_gast_b', 'gw_gast_ra', 'gw_gast_rb', 'gw_waisen_q', 'gw_waisen_a', 'gw_waisen_b', 'gw_waisen_ra', 'gw_waisen_rb', 'gw_antrag_q', 'gw_antrag_a', 'gw_antrag_b', 'gw_antrag_ra', 'gw_antrag_rb', 'gw_kalb_q', 'gw_kalb_a', 'gw_kalb_b', 'gw_kalb_ra', 'gw_kalb_rb', 'champWin', 'champTip', 'ach_champs', 'achD_champs', 'chgKanal', 'chgStollen', 'chgKuppel', 'chgKammer', 'hintRopeUp', 'hintRopeHold', 'hintRopeDown', 'hintTrolley', 'hintTrolley2', 'hintHand', 'npcBell', 'npcGuide', 'npcClock', 'newHere', 'chgZeiger', 'chgDoorZeiger', 'chgKlamm', 'chgDoorKlamm', 'chgGlocken', 'chgDoorGlocken', 'hintKuckuck', 'bossKuckuck', 'bossKuckuckShout', 'bossKuckuckBonk', 'bossKuckuckRage', 'bossKuckuckDie', 'bossKuckuckNote', 'banter_bossKuckuck', 'beastD_Kuckucksuhr', 'ach_kuckuck', 'achD_kuckuck', 'item_kuckucksfeder', 'itemD_kuckucksfeder', 'chgKuckuck', 'chgDoorKuckuck'); // Glockenstuhl, Tropfsteinklamm, Zeigerkammer, NEU-Markierung, Kuckucksuhr
-    need.push('kunst_eis', 'kunst_blitz', 'kunst_sterne', 'gargNote', 'wacheNote', 'spinneNote', 'frostNote', 'froschNote', 'wetterNote', 'wetterCrow', 'sargNote', 'sargGrumble', 'bossOlm', 'epi_bossOlm', 'bossOlmNote', 'bossOlmTip', 'beastD_Gustav', 'banter_bossOlm', 'olmBack', 'olmWut', 'bossHahn', 'epi_bossHahn', 'bossHahnNote', 'bossHahnTip', 'beastD_Kasimir', 'banter_bossHahn', 'hahnCrow', 'hahnSturm', 'bossSchrank', 'epi_bossSchrank', 'bossSchrankNote', 'bossSchrankTip', 'beastD_Kunibert', 'banter_bossSchrank', 'schrankSpit', 'schrankMotten', 'bossVitrina', 'epi_bossVitrina', 'bossVitrinaNote', 'bossVitrinaTip', 'beastD_Vitrina', 'banter_bossVitrina', 'vitrinaCaught', 'vitrinaStare', 'vitrinaRage', 'bossDiva', 'epi_bossDiva', 'bossDivaNote', 'bossDivaTip', 'beastD_Primadonna', 'banter_bossDiva', 'divaApplaus', 'divaBravo', 'divaZugabe', 'bossAngler', 'epi_bossAngler', 'bossAnglerNote', 'bossAnglerTip', 'beastD_AnglerFisch', 'banter_bossAngler', 'bossHund', 'epi_bossHund', 'bossHundNote', 'bossHundTip', 'banter_bossHund', 'hundWau', 'updateReady', 'famSay_dog', 'walzerNote', 'walzerOuch', 'kuecheNote', 'kuecheHi', 'kuecheTab', 'kuecheHelp', 'kuecheMissing', 'kuecheAgain', 'kuecheReady', 'kuecheEaten', 'kuecheFirst', 'kuecheLoot', 'kuecheLck', 'bossHauptmann', 'epi_bossHauptmann', 'bossHauptmannNote', 'bossHauptmannTip', 'banter_bossHauptmann');
+    need.push('kunst_eis', 'kunst_blitz', 'kunst_sterne', 'gargNote', 'wacheNote', 'spinneNote', 'frostNote', 'froschNote', 'wetterNote', 'wetterCrow', 'sargNote', 'sargGrumble', 'sub_quietsch', 'sub_flasche', 'bossOlm', 'epi_bossOlm', 'bossOlmNote', 'bossOlmTip', 'beastD_Gustav', 'banter_bossOlm', 'olmBack', 'olmWut', 'bossHahn', 'epi_bossHahn', 'bossHahnNote', 'bossHahnTip', 'beastD_Kasimir', 'banter_bossHahn', 'hahnCrow', 'hahnSturm', 'bossSchrank', 'epi_bossSchrank', 'bossSchrankNote', 'bossSchrankTip', 'beastD_Kunibert', 'banter_bossSchrank', 'schrankSpit', 'schrankMotten', 'bossVitrina', 'epi_bossVitrina', 'bossVitrinaNote', 'bossVitrinaTip', 'beastD_Vitrina', 'banter_bossVitrina', 'vitrinaCaught', 'vitrinaStare', 'vitrinaRage', 'bossDiva', 'epi_bossDiva', 'bossDivaNote', 'bossDivaTip', 'beastD_Primadonna', 'banter_bossDiva', 'divaApplaus', 'divaBravo', 'divaZugabe', 'bossAngler', 'epi_bossAngler', 'bossAnglerNote', 'bossAnglerTip', 'beastD_AnglerFisch', 'banter_bossAngler', 'bossHund', 'epi_bossHund', 'bossHundNote', 'bossHundTip', 'banter_bossHund', 'hundWau', 'updateReady', 'famSay_dog', 'walzerNote', 'walzerOuch', 'kuecheNote', 'kuecheHi', 'kuecheTab', 'kuecheHelp', 'kuecheMissing', 'kuecheAgain', 'kuecheReady', 'kuecheEaten', 'kuecheFirst', 'kuecheLoot', 'kuecheLck', 'bossHauptmann', 'epi_bossHauptmann', 'bossHauptmannNote', 'bossHauptmannTip', 'banter_bossHauptmann');
     need.push('kunst_wucht', 'kunst_kreuz', 'kunst_blut', 'kunst_feuer', 'kunst_reissen', 'kunstFirst', 'mimicNote', 'mimicWin');
     need.push('arenaDaily', 'arenaDailyDone', 'arenaDailyWin', ...Arena.MODS.map(m => 'mod_' + m));
     need.push('rauschTitle', 'rauschLine', 'rauschGo', 'rauschWait', 'rauschLock', 'rauschBest', 'rauschMost', 'rauschHud', 'rauschOut', 'rauschHeal', 'rauschWin');

@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261125-0914](#20261125-0914--zwei-neue-nebenwaffen-gummihuhn-und-leidener-flasche) – Zwei neue Nebenwaffen: Gummihuhn und Leidener Flasche
 - [20261121-0256](#20261121-0256--gustav-knurrt) – Gustav knurrt
 - [20261121-0219](#20261121-0219--grottenolm-gustav-im-unterirdischen-kanal) – Grottenolm Gustav im Unterirdischen Kanal
 - [20261121-0035](#20261121-0035--kleiderschrank-tango-gewitter-toccata-und-fünf-neue-urkunden) – Kleiderschrank-Tango, Gewitter-Toccata und fünf neue Urkunden
@@ -80,6 +81,23 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261125-0914 – Zwei neue Nebenwaffen: Gummihuhn und Leidener Flasche
+
+**Neu – Gummihuhn**
+- Eine neue Nebenwaffe: Das Gummihuhn hüpft quietschend über den Boden, prallt von Wänden ab und trifft jeden Gegner auf seinem Weg, auch mehrere hintereinander. Bei jedem Aufprall und Treffer quietscht es.
+- **Heiliger Sturm** (Nebenwaffe gedrückt halten, ab 10 Herzen): Ein Regen aus elf Gummihühnern fällt vom Himmel.
+- Zu finden in Kerzen im Hotel Krat und in der Kantine.
+
+**Neu – Leidener Flasche**
+- Eine Glasflasche voller Elektrizität aus dem Galvani-Labor: Sie fliegt fast gerade und zerplatzt am ersten Gegner. Der Blitz springt dann auf bis zu vier weitere Gegner in der Nähe über. Zerplatzt sie an einer Wand, springen die Funken auf Gegner in der Nähe.
+- **Heiliger Sturm:** ein Gewitter, das dreimal in alle Gegner im Bild einschlägt.
+- Zu finden in Kerzen im Galvani-Laboratorium, im Automatenwerk und auf der Himmelsbrücke.
+- Beim ersten Aufheben erklärt ein Hinweis, was die neue Waffe kann (in allen 8 Sprachen).
+
+**Beim Testen ansehen**
+- Fühlen sich die beiden neuen Waffen nützlich an? Ist der Kettenblitz zu stark oder zu schwach?
+- Nervt das Quietschen, oder macht es Spaß?
 
 ## 20261121-0256 – Gustav knurrt
 

@@ -366,6 +366,14 @@ const Sprites = (() => {
     '.....yYYy.....', '.....yYYy.....', '.....yYYy.....', '.....yYYy.....',
     '.....yyyy.....',
   ]);
+  S.quietsch = make([ // Gummihuhn: gelb, roter Kamm, oranger Schnabel, Blick nach rechts
+    '....rr......', '...rryy.....', '...yyky.oo..', '...yyyyooo..', '....yyy.....', '.y.yyyyyy...',
+    'yYyyyyyyyyy.', 'yYYyyyyyyyy.', '.yYyyyyyyy..', '..yyyyyyy...', '...o...o....', '..oo..oo....',
+  ]);
+  S.flasche = make([ // Leidener Flasche: Messingknauf, Stab, Glas mit blauem Leuchten, Metallbelag unten
+    '....yy....', '...yYYy...', '....yy....', '....gg....', '.WWWggWWW.', '.WCCggCCW.',
+    '.WCcguCcW.', '.WCuuuucW.', '.WYYYYYYW.', '.WyYYYYyW.', '.WyyyyyyW.', '..WWWWWW..',
+  ]);
   S.rosary = make([
     '..W.W.W.W.....', '.W.......W....', 'W.........W...', '.W.......W....',
     '..W.....W.....', '...W...W......', '....W.W.......', '.....y........',
