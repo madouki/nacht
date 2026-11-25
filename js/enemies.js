@@ -259,7 +259,7 @@ class SubWeapon extends Ent {
       if (m === 1) { this.bounces++; this.vy = -Math.max(2.2, Math.abs(this.vy) * 0.78); Audio8.sfx('squeak', this.cx); W.dust && W.dust(this.cx, this.y + this.h, 2); }
       else if (m === -1) this.vy = 0.5;
       if (this.bounces > 4 || this.t > 200 || this.y > W.room.h * T) { this.dead = true; W.puff && W.puff(this.cx, this.cy); return; }
-      const n = this.hits.size; W.subHit(this); if (this.hits.size > n) Audio8.sfx('squeak', this.cx);
+      const n = this.hits.size; W.subHit(this); if (this.hits.size > n) { Audio8.sfx('squeak', this.cx); if (typeof Castle !== 'undefined' && Castle.flags) Castle.flags.quietsch_hits = (Castle.flags.quietsch_hits || 0) + this.hits.size - n; } // Urkunde Quietschvergnügt
       return;
     } else if (tp === 'flasche') { // fliegt fast gerade; am ersten Gegner (oder an der Wand) zerplatzt sie, der Blitz springt weiter
       if (this.zap) { if (--this.zap.t <= 0) this.dead = true; return; }
@@ -288,6 +288,7 @@ class SubWeapon extends Ent {
     for (const e of list) { if (e.hit(this.dmg * Options.dmgMul, 0)) {} pts.push([e.cx, e.cy]); W.sparks && W.sparks(e.cx, e.cy, 4); }
     this.zap = { t: 14, pts, segs: pts.slice(1).map((q, i) => SubWeapon.bolt(pts[i], q)) };
     Audio8.sfx('shatter', this.cx); if (list.length) Audio8.sfx('zap', this.cx);
+    if (list.length >= 5 && typeof Castle !== 'undefined' && Castle.setFlag && !Castle.flags.kette5) Castle.setFlag('kette5'); // Urkunde Kettenreaktion
     for (let i = 0; i < 6; i++) W.spawn(new Particle(this.cx, this.cy, rnd(-1.6, 1.6), rnd(-2, 0.4), i % 2 ? '#a4e4fc' : '#fcfcfc', 16, 1, 0.1));
     this.vx = this.vy = 0;
   }
@@ -327,8 +328,8 @@ class SubWeapon extends Ent {
 
 // ---------------- Gegner-Basis ----------------
 // Trefferwucht: wer getroffen wird, weicht zurück und ist kurz aus dem Tritt. Wert = Stoß in Pixeln je Bild, FLY: fliegt (ohne Boden und Kanten)
-const WUCHT = { Ghoul: 2.2, Bat: 2.0, Skull: 1.8, Skeleton: 2.4, IceSkeleton: 2.4, Panther: 2.6, FlyBook: 2.2, Ghost: 1.8, Automat: 1.7, Mondkalb: 2.6, Ordner: 2.2, Flieger: 2.0, Raven: 2.0, Knight: 1.2 };
-const WUCHT_FLY = new Set(['Bat', 'Skull', 'FlyBook', 'Ghost', 'Flieger', 'Raven']);
+const WUCHT = { Ghoul: 2.2, Bat: 2.0, Skull: 1.8, Skeleton: 2.4, IceSkeleton: 2.4, Panther: 2.6, FlyBook: 2.2, Ghost: 1.8, Automat: 1.7, Mondkalb: 2.6, Ordner: 2.2, Flieger: 2.0, Raven: 2.0, Klingelbeutel: 2.0, Knight: 1.2 };
+const WUCHT_FLY = new Set(['Bat', 'Skull', 'FlyBook', 'Ghost', 'Flieger', 'Raven', 'Klingelbeutel']);
 class Enemy extends Ent {
   constructor(x, y, w, h, hp, dmg, score) {
     super(x, y, w, h);

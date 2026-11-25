@@ -505,7 +505,7 @@ const Levels = (() => {
     .candle(45, 2).candle(52, 2, 'H').candle(65, 2, '2').candle(74, 12).candle(78, 12, 'H').candle(90, 12, '$').candle(94, 12)
     .candle(98, 9, 'H').candle(108, 5, 'W').candle(121, 9).candle(125, 9, 'H')
     .enemy('knight', 30, 15).enemy('raven', 47, 4).enemy('raven', 68, 4).enemy('skel', 90, 14).enemy('knight', 95, 14)
-    .enemy('ghost', 112, 4)
+    .enemy('ghost', 112, 4).enemy('beutel', 25, 11).enemy('beutel', 76, 10)                  // Klingelbeutel: klauen Gold (js/beutel.js)
     .zone('skull', 41, 70, { interval: 640, max: 1 })
     .music('sun')
     .start(2, 15).exit(124).done();
@@ -539,7 +539,7 @@ const Levels = (() => {
     .candle(53, 35, 'W').candle(2, 33, 'H').candle(15, 31).candle(21, 24, '$').candle(28, 29, 'H').candle(34, 26)
     .candle(40, 23, 'H').candle(46, 16).candle(52, 5, 'H').candle(6, 4, 'U').candle(8, 4)
     .enemy('bat', 18, 50).enemy('raven', 30, 52).enemy('skel', 41, 36).enemy('ghost', 2, 30).enemy('knight', 27, 30)
-    .enemy('bat', 36, 22).enemy('raven', 52, 6).enemy('bat', 8, 3)
+    .enemy('bat', 36, 22).enemy('raven', 52, 6).enemy('bat', 8, 3).enemy('beutel', 24, 50)
     .wrap().music('sun')
     .start(2, 61).exitAt(9, 0, 12, 5).done();
 

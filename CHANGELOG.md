@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261125-0930](#20261125-0930--der-klingelbeutel-und-drei-neue-urkunden) – Der Klingelbeutel und drei neue Urkunden
 - [20261125-0914](#20261125-0914--zwei-neue-nebenwaffen-gummihuhn-und-leidener-flasche) – Zwei neue Nebenwaffen: Gummihuhn und Leidener Flasche
 - [20261121-0256](#20261121-0256--gustav-knurrt) – Gustav knurrt
 - [20261121-0219](#20261121-0219--grottenolm-gustav-im-unterirdischen-kanal) – Grottenolm Gustav im Unterirdischen Kanal
@@ -81,6 +82,23 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261125-0930 – Der Klingelbeutel und drei neue Urkunden
+
+**Neu – Klingelbeutel**
+- In der Sonnenkathedrale und im Sonnenturm schweben jetzt Klingelbeutel herum: besessene Kollektenbeutel aus rotem Samt an langen Holzstäben, mit Goldring, Quaste, Glöckchen und gierig glühenden Augen. Sie sind Blender-Modelle wie die anderen neuen Gegner.
+- Ein Klingelbeutel schwebt heran, bimmelt („EINE KLEINE SPENDE?“) und stößt zu. Statt dich zu verletzen, klaut er Gold (4 %, höchstens 300) und flieht prall gefüllt nach oben („DANKE FÜR DIE SPENDE!“).
+- Erwischst du ihn auf der Flucht, bekommst du die Spende mit 50 % Zinsen zurück („SPENDENQUITTUNG!“). Entkommt er, ist das Gold weg.
+- Hast du kein Gold, gibt es nur einen Stups.
+- Im Bestiarium: Er sammelt seit 1452 für die Dachsanierung, und das Dach ist immer noch undicht.
+
+**Neu – drei Urkunden**
+- **Quietschvergnügt:** 50 Treffer mit dem Gummihuhn.
+- **Kettenreaktion:** Ein einziger Blitz der Leidener Flasche trifft fünf Gegner.
+- **Spendenquittung:** Einen Klingelbeutel auf der Flucht erwischen.
+
+**Beim Testen ansehen**
+- Ist der Klingelbeutel lustig oder eher lästig? Ist er auf der Flucht gut zu erwischen?
 
 ## 20261125-0914 – Zwei neue Nebenwaffen: Gummihuhn und Leidener Flasche
 

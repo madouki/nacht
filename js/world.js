@@ -104,6 +104,7 @@ const W = {
         case 'armor': this.spawn(new ArmorSuit(d)); break;
         case 'pillar': this.spawn(new Pillar(d.x, d.y)); break;
         case 'raven': this.spawn(new Raven(d.x, d.y)); break;
+        case 'beutel': this.spawn(new Klingelbeutel(d.x, d.y)); break; // Sonnenkathedrale: klaut Gold (js/beutel.js)
         case 'ghost': this.spawn(new Ghost(d.x, d.y)); break;
         case 'ring': this.spawn(new Ring(d)); break;
         case 'sbell': this.spawn(new SwingBell(d)); break; // Glockenstuhl: Glocke im Gebälk (glocken.js)
