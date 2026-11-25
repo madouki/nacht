@@ -9,6 +9,25 @@ const Audio8 = (() => {
   // ±2 dB – korrigiert ist nur, was in allen Läufen übereinstimmte (Amtsstuben-Walzer rund 5 dB zu leise, Dienstweg, Graf, stage2 zu laut)
   const SONG_GAIN = { amt: 1.6, sun: 1.2, amtsmarsch: 1.1, posthorn: 1.1, fahrstuhl: 1.15, mondmeer: 1.1, library: 0.92, chapel: 0.88, dienstweg: 0.8, galopp: 0.9, count: 0.82, stage2: 0.8, kuckuck: 1.1 };
   let ac = null, master, comp, musicBus, melBus, sfxBus, duckBus, voiceBus, muffleF, noiseBuf, pulseWaves = {};
+  let roomRev = null, roomWet = null, echoD = null, echoFb = null, echoLp = null, echoWet = null, acoustic = null; const irCache = {};
+  // Raumakustik je Gebiet: [Halllänge s, Helligkeit 0–1, Hallanteil, Echoanteil, Echozeit s]
+  const ACOUS = { cathedral: [3.6, 0.35, 0.34, 0, 0], spire: [3.2, 0.4, 0.3, 0, 0], crypt: [2.8, 0.25, 0.3, 0.06, 0.24], cave: [2.2, 0.3, 0.22, 0.2, 0.32], ice: [2.4, 0.65, 0.26, 0.16, 0.28],
+    tower: [2.4, 0.4, 0.22, 0, 0], hall: [2.2, 0.4, 0.2, 0, 0], foyer: [2.0, 0.45, 0.18, 0, 0], gallery: [2.2, 0.5, 0.2, 0, 0], throne: [3.0, 0.35, 0.3, 0, 0], ballroom: [2.4, 0.55, 0.22, 0, 0],
+    theater: [2.0, 0.45, 0.2, 0, 0], library: [1.3, 0.3, 0.12, 0, 0], hotel: [1.4, 0.4, 0.12, 0, 0], station: [2.6, 0.45, 0.22, 0.08, 0.36], passage: [2.0, 0.5, 0.18, 0, 0],
+    werk: [1.8, 0.45, 0.16, 0.06, 0.2], lab: [1.6, 0.5, 0.14, 0, 0], expo: [2.6, 0.55, 0.22, 0, 0], vortex: [3.4, 0.7, 0.34, 0.12, 0.4], glass: [3.0, 0.75, 0.3, 0, 0], mirror: [2.6, 0.8, 0.26, 0.1, 0.22],
+    kaleido: [2.8, 0.75, 0.28, 0.1, 0.3], courtyard: [0.8, 0.5, 0.05, 0, 0], forest: [0.6, 0.5, 0.03, 0, 0], bridge: [0.9, 0.55, 0.06, 0.05, 0.45], ship: [0.8, 0.5, 0.05, 0, 0] };
+  function roomIR(len, bright) { // erzeugte Impulsantwort: gefiltertes Rauschen, exponentiell abklingend (gemerkt je Länge/Helligkeit)
+    const key = len + ':' + bright; if (irCache[key]) return irCache[key];
+    const n = Math.floor(ac.sampleRate * len), b = ac.createBuffer(2, n, ac.sampleRate), a = 0.06 + bright * 0.5;
+    for (let ch = 0; ch < 2; ch++) { const d = b.getChannelData(ch); let lp = 0, e = 0; for (let i = 0; i < n; i++) { lp += ((Math.random() * 2 - 1) - lp) * a; d[i] = lp * Math.pow(1 - i / n, 3) * (i < 300 ? i / 300 : 1); e += d[i] * d[i]; } const k = 1 / Math.sqrt(e || 1); for (let i = 0; i < n; i++) d[i] *= k; }
+    return (irCache[key] = b);
+  }
+  function setAcoustics(theme) {
+    if (!ac || !roomRev || theme === acoustic) return; acoustic = theme;
+    const A = ACOUS[theme] || [1.6, 0.45, 0.12, 0, 0], t = ac.currentTime;
+    roomRev.buffer = roomIR(A[0], A[1]); roomWet.gain.setTargetAtTime(A[2], t, 0.3);
+    echoWet.gain.setTargetAtTime(A[3], t, 0.3); echoFb.gain.setTargetAtTime(A[3] ? 0.32 : 0, t, 0.3); if (A[4]) echoD.delayTime.setTargetAtTime(A[4], t, 0.2);
+  }
   let muted = false;
   const MUSIC_VOL = 0.28; // ≈ bisher gehörter Pegel: früher 0.82, aber ab der ersten Kick ungewollt × 0.3 (Sidechain rief duck(on) auf)
   let musicLevel = 1;
@@ -54,6 +73,10 @@ const Audio8 = (() => {
     musicBus = ac.createGain(); musicBus.gain.value = MUSIC_VOL * musicLevel; musicBus.connect(songGain || muffleF);
     melBus = ac.createGain(); melBus.connect(musicBus);
     sfxBus = ac.createGain(); sfxBus.gain.value = 0.7; sfxBus.connect(master);
+    // Raumakustik: die Effekte schicken zusätzlich in einen Raumhall (Länge und Helligkeit je Gebiet) und ein Echo (Höhlen, Eis)
+    roomRev = ac.createConvolver(); roomWet = ac.createGain(); roomWet.gain.value = 0; sfxBus.connect(roomRev); roomRev.connect(roomWet); roomWet.connect(comp);
+    echoD = ac.createDelay(1.0); echoD.delayTime.value = 0.3; echoFb = ac.createGain(); echoFb.gain.value = 0; echoLp = ac.createBiquadFilter(); echoLp.type = 'lowpass'; echoLp.frequency.value = 1800;
+    echoWet = ac.createGain(); echoWet.gain.value = 0; sfxBus.connect(echoD); echoD.connect(echoLp); echoLp.connect(echoFb); echoFb.connect(echoD); echoLp.connect(echoWet); echoWet.connect(comp);
     loadSamples();
     noiseBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
     const d = noiseBuf.getChannelData(0);
@@ -245,6 +268,7 @@ const Audio8 = (() => {
     burp: () => { tone('sawtooth', 96, 62, 0.42, 0.34); tone('square', 120, 74, 0.38, 0.12); noise(0.36, 0.22, 'lowpass', 500, 160); }, // ... und rülpst
     snore: () => { tone('sawtooth', 72, 54, 0.62, 0.16); noise(0.6, 0.12, 'lowpass', 320, 120); }, // Walross Waldemar schnarcht (js/walross.js)
     clap: () => { noise(0.06, 0.4, 'bandpass', 1800, 900); noise(0.05, 0.26, 'bandpass', 2400, 1200, ac.currentTime + 0.03); }, // nasser Flossenklatscher
+    trompete: () => { arp(['a4', 'd5', 'f#5', 'a5', 'd6'], 0.085, 'pulse', 0.09, 0.25); noise(0.5, 0.05, 'bandpass', 1800, 2400); }, // Mariachi-Trompete: Ständchen (js/kapelle.js)
     laugh: () => { arp(['a5', 'f5', 'a5', 'f5', 'd5'], 0.07, 'square', 0.06, 0.1); noise(0.38, 0.07, 'bandpass', 1500, 900); }, // Totengräber Theobald kichert (js/totengraeber.js)
     sneeze: () => { noise(0.26, 0.12, 'bandpass', 900, 1700); noise(0.32, 0.46, 'highpass', 2800, 5200, ac.currentTime + 0.3); tone('square', 320, 110, 0.22, 0.08); }, // Ha… TSCHI!
     chomp: () => { noise(0.07, 0.4, 'bandpass', 1500, 500); tone('square', 240, 70, 0.09, 0.16); tone('triangle', 120, 50, 0.12, 0.2); }, // Fangblatt schnappt zu
@@ -662,6 +686,17 @@ const Audio8 = (() => {
     'a5:2 c6:2 f6:2 c6:2 a5:4 f5:4', 'a5:2 b5:2 c6:2 d6:2 c6:4 -:4', 'g5:2 c6:2 e6:2 g6:2 e6:4 c6:4', 'e6:2 d6:2 c6:2 b5:2 c6:4 -:4',
     'b5:2 d6:2 e6:2 g#6:2 b6:4 g#6:4', 'e6:2 d6:2 c6:2 b5:2 g#5:4 b5:4', 'a5:2 c6:2 e6:2 a6:2 e6:4 c6:4', 'a5:4 e5:2 c5:2 a4:4 -:4'];
 
+  // Son der Knochenkapelle (js/kapelle.js): D-Dur, 6/8 mit Sesquialtera – gerade Takte in zwei Dreiergruppen, ungerade wie 3/4;
+  // Guitarrón im Wechselbass, Vihuela-Schlag auf den Nachschlägen, Geige und Trompete im Wechsel; B-Teil nach h-Moll
+  const MR = { D: ['a3', 'd4', 'f#4'], A7: ['a3', 'c#4', 'g4'], G: ['b3', 'd4', 'g4'], Bm: ['b3', 'd4', 'f#4'], 'F#7': ['a#3', 'c#4', 'e4'] };
+  const MR_B = { D: ['d2', 'a1'], A7: ['a1', 'e2'], G: ['g1', 'd2'], Bm: ['b1', 'f#2'], 'F#7': ['f#1', 'c#2'] };
+  const MR_C = ['D', 'D', 'A7', 'A7', 'A7', 'A7', 'D', 'D', 'D', 'D', 'G', 'G', 'A7', 'A7', 'D', 'D',
+    'Bm', 'Bm', 'F#7', 'F#7', 'F#7', 'F#7', 'Bm', 'Bm', 'G', 'G', 'D', 'D', 'A7', 'A7', 'D', 'D'];
+  const MR_L = ['a5:4 f#5:2 a5:4 d6:2', 'd6:6 c#6:2 b5:2 a5:2', 'g5:4 e5:2 g5:4 a5:2', 'c#6:6 b5:2 a5:2 g5:2', 'e6:2 d6:2 c#6:2 b5:2 a5:2 g5:2', 'f#5:4 e5:4 c#5:4', 'd5:4 f#5:2 a5:4 d6:2', 'd6:8 -:4',
+    'f#6:4 e6:2 d6:4 a5:2', 'b5:2 a5:2 f#5:2 a5:6', 'g5:4 b5:2 d6:4 g6:2', 'g6:6 f#6:2 e6:2 d6:2', 'c#6:4 e6:4 a6:4', 'g6:2 f#6:2 e6:2 d6:2 c#6:2 e6:2', 'd6:4 a5:2 f#5:4 a5:2', 'd6:6 -:6',
+    'f#5:4 b5:2 d6:4 f#6:2', 'e6:6 d6:2 c#6:2 b5:2', 'a#5:4 c#6:2 e6:4 f#6:2', 'e6:6 d6:2 c#6:2 a#5:2', 'c#6:4 a#5:4 f#5:4', 'e5:2 f#5:2 a#5:2 c#6:2 e6:2 c#6:2', 'd6:4 b5:2 f#5:4 b5:2', 'b5:8 -:4',
+    'b5:4 d6:2 g6:4 b6:2', 'a6:6 g6:2 f#6:2 e6:2', 'f#6:4 d6:4 a5:4', 'd6:2 e6:2 f#6:2 a6:6', 'g6:4 e6:2 c#6:4 a5:2', 'b5:2 c#6:2 d6:2 e6:2 g6:4', 'f#6:4 e6:2 d6:4 a5:2', 'd6:6 a5:3 d6:3'];
+
   const SONGS = {
     title: {
       bpm: 104, loop: true,
@@ -957,6 +992,14 @@ const Audio8 = (() => {
       tri: OL_C.map(c => { const [a, b, d] = OL_B[c]; return `${a}:2 -:2 ${b}:2 -:2 ${d}:2 -:2 ${b}:2 -:2`; }).join(' '),
       pad: OL_C.map(c => OL[c].join('+') + ':16').join(' '),
       dr: OL_C.map((c, i) => i === 15 ? 'p:2 p:2 p:2 p:2 -:4 x:4' : i % 4 === 3 ? 'p:4 -:4 c:2 -:2 c:2 c:2' : 'c:2 -:6 c:2 -:2 h:2 -:2').join(' '),
+    },
+    mariachi: { // Knochenkapelle (js/kapelle.js)
+      bpm: 150, loop: true, bar: 12, echo: { delay: 3, vol: 0.2 },
+      p1: MR_L.join(' '),
+      p2: MR_C.map((c, i) => { const [a, b, d] = MR[c]; return i % 2 ? `-:2 ${b}:2 -:2 ${d}:2 -:2 ${b}:2` : `-:2 ${b}:2 ${d}:2 -:2 ${b}:2 ${d}:2`; }).join(' '),
+      tri: MR_C.map((c, i) => { const [r, f] = MR_B[c]; return i % 2 ? `${r}:4 ${f}:4 ${r}:4` : `${r}:6 ${f}:6`; }).join(' '),
+      pad: MR_C.map(c => MR[c].join('+') + ':12').join(' '),
+      dr: MR_C.map((c, i) => i === 31 ? 'k:2 s:2 s:2 t:2 u:2 x:2' : i % 8 === 7 ? 'k:2 c:2 s:2 c:2 s:2 s:2' : i % 2 ? 'k:2 c:2 k:2 c:2 k:2 c:2' : 'k:2 c:2 c:2 k:2 c:2 c:2').join(' '),
     },
     polka: { // Totengräber Theobald (Zwischengegner im Gruftgang, js/totengraeber.js)
       bpm: 152, loop: true, echo: { delay: 3, vol: 0.22 },
@@ -1817,6 +1860,7 @@ const Audio8 = (() => {
     if (theme === true) theme = 'courtyard';
     theme = theme || null;
     if (theme !== ambTheme) { stopAmb(); ambTheme = theme; if (theme) amb = startAmb(theme); }
+    setAcoustics(theme); // Raumhall und Echo der Effekte folgen dem Gebiet
     if (theme && ac.state === 'running') ambEvents(theme);
   }
 
@@ -1840,7 +1884,7 @@ const Audio8 = (() => {
   function danger(on) { on = !!on; if (on === dangerOn) return; dangerOn = on; if (muffleF && ac && !slowOn) muffleF.frequency.setTargetAtTime(rest(), ac.currentTime, on ? 0.5 : 0.8); }
   function duck(on) { if (duckBus && ac) duckBus.gain.setTargetAtTime(on ? 0.45 : 1, ac.currentTime, on ? 0.06 : 0.5); }
 
-  return { setFloor(m) { floor = m || ''; }, get floor() { return floor; }, init, prepare, sfx, play, stop, ambience, drip, peep, ambProbe, toggleMute, setMusicVolume, setMusicLevel, ready, duck, muffle, tempo, intensity, slow, danger,
+  return { setFloor(m) { floor = m || ''; }, get floor() { return floor; }, get acoustic() { return acoustic; }, get roomWet() { return roomWet ? roomWet.gain.value : 0; }, init, prepare, sfx, play, stop, ambience, drip, peep, ambProbe, toggleMute, setMusicVolume, setMusicLevel, ready, duck, muffle, tempo, intensity, slow, danger,
     get drumLevel() { return drumLvl; },
     steps: () => (ac && song ? Math.max(0, ac.currentTime - songT0) * song.bpm * tempoMul / 15 : null), // Sechzehntel seit Liedbeginn (Taktduell)
     context: () => ac, voiceOut: () => voiceBus,

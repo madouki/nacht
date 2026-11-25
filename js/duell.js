@@ -2,14 +2,14 @@
 // – Taumel: Treffer (und Perfekt-Ausweichen, Konter) füllen die gelbe Leiste unter der Bossleiste. Ist sie voll, steht der Boss zwei
 //   Sekunden benommen da: sein Ablauf, seine Helfer und alle Geschosse halten an, Treffer kommen schneller und härter durch.
 // – Letztes Aufgebot: unter einem Viertel der Energie wird der Boss sichtbar wütend und rund 12 % schneller.
-// – Finisher: der letzte Treffer friert das Bild ein (Scherenschnitt mit Strahlen und Schnitt), danach läuft der Tod des Bosses.
+// – Finisher: der letzte Treffer friert das Bild ein (Blutmond, Goldstrahlen, Silhouetten mit Randlicht, dann Tusche mit roter Sonne, glühender Schnitt), danach läuft der Tod des Bosses.
 // – Kampfakte: nach dem Sieg ein kleiner Bericht mit Zeit, kassierten Treffern, Taumeln, Rang (S bis C) und Bonusgold.
 // – Ansagen: vor jedem großen Angriff hält der Boss kurz inne und blitzt auf, ein Ring zieht sich um ihn zusammen; Sturzflüge zeigen
 //   ihre Bahn, Sprünge und Stürze den Einschlag am Boden. Alle Bosse sprechen damit dieselbe Bildsprache.
 'use strict';
 
 const Duell = (() => {
-  const STUN = 120, NEED0 = 10, NEED_UP = 5, NEED_MAX = 20, LAST_AT = 0.25, IMP = 20, REP = 480, PANEL = 172;
+  const STUN = 120, NEED0 = 10, NEED_UP = 5, NEED_MAX = 20, LAST_AT = 0.25, IMP = 24, REP = 480, PANEL = 172;
   const RANKS = ['C', 'B', 'A', 'S'], BONUS = [0, 0.1, 0.25, 0.5];
   const INK = { S: '#f8d848', A: '#7cdcfc', B: '#c8c8d8', C: '#c89878' };
   const FACE = {
@@ -147,26 +147,41 @@ const Duell = (() => {
     const x = c.getContext('2d'); x.drawImage(img, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = col; x.fillRect(0, 0, c.width, c.height);
     return (m[col] = c);
   }
-  function drawImpact(ctx) {
+  function drawImpact(ctx) { // Finisher-Standbild: erst Nacht mit Blutmond und Goldstrahlen, dann Tusche auf Papier mit roter Sonne
     if (!imp) return;
     const k = W.frame - imp.f; if (k >= IMP || k < 0) { imp = null; return; }
-    const light = k >= 9, bg = light ? '#f4efe4' : '#06030c', fg = light ? '#06030c' : '#f4efe4'; // erst weiß auf schwarz, dann umgekehrt
-    const cx = Math.round(imp.x - W.cam.x), cy = Math.round(imp.y - W.cam.y) + 32;
+    const light = k >= 10, cx = Math.round(imp.x - W.cam.x), cy = Math.round(imp.y - W.cam.y) + 32, TAU = Math.PI * 2;
     ctx.save(); ctx.beginPath(); ctx.rect(0, 32, View.w, 208); ctx.clip();
-    ctx.globalAlpha = k < 15 ? 1 : 1 - (k - 14) / (IMP - 14);
+    ctx.globalAlpha = k < 17 ? 1 : 1 - (k - 16) / (IMP - 16);
+    const bg = ctx.createRadialGradient(cx, cy, 8, cx, cy, 360);
+    if (light) { bg.addColorStop(0, '#fff6e0'); bg.addColorStop(0.6, '#f0e0c0'); bg.addColorStop(1, '#d8c098'); }
+    else { bg.addColorStop(0, '#7c1028'); bg.addColorStop(0.4, '#300820'); bg.addColorStop(1, '#06030c'); }
     ctx.fillStyle = bg; ctx.fillRect(0, 32, View.w, 208);
-    ctx.fillStyle = fg;
-    for (let i = 0; i < 26; i++) { // Strahlen, die vom Boss wegschießen
-      const a = i / 26 * Math.PI * 2 + (i * 37 % 11) * 0.03, sp = 0.014 + (i * 13 % 7) * 0.004, r0 = 46 + (i * 29 % 5) * 7 + k * 2;
+    const R = 40 + k * 1.6; // Blutmond (Nacht) bzw. rote Sonne (Tusche) hinter dem Boss
+    if (!light) {
+      const gl = ctx.createRadialGradient(cx, cy, R * 0.6, cx, cy, R * 2.4); gl.addColorStop(0, 'rgba(255,120,80,0.55)'); gl.addColorStop(1, 'rgba(255,60,60,0)');
+      ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(cx, cy, R * 2.4, 0, TAU); ctx.fill();
+      const md = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.3, 2, cx, cy, R); md.addColorStop(0, '#ffc890'); md.addColorStop(0.5, '#e04038'); md.addColorStop(1, '#8c1024');
+      ctx.fillStyle = md; ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.fill();
+    } else { ctx.fillStyle = '#c8102e'; ctx.beginPath(); ctx.arc(cx, cy, R * 1.15, 0, TAU); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,0.12)'; ctx.beginPath(); ctx.arc(cx - R * 0.35, cy - R * 0.35, R * 0.5, 0, TAU); ctx.fill(); }
+    if (!light) ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = light ? 'rgba(124,12,28,0.82)' : 'rgba(255,196,120,0.42)';
+    for (let i = 0; i < 26; i++) { // Strahlen, die vom Boss wegschießen (drehen sich ganz leicht)
+      const a = i / 26 * TAU + (i * 37 % 11) * 0.03 + k * 0.004, sp = 0.012 + (i * 13 % 7) * 0.004, r0 = R + 6 + (i * 29 % 5) * 7 + k * 2;
       ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); ctx.lineTo(cx + Math.cos(a - sp) * 520, cy + Math.sin(a - sp) * 520); ctx.lineTo(cx + Math.cos(a + sp) * 520, cy + Math.sin(a + sp) * 520); ctx.fill();
     }
-    const put = (d) => { if (!d) return; const img = d.flip ? d.s.f : d.s.c; if (!img) return; const pad = d.s.pad || 0; ctx.drawImage(silhouette(img, fg), Math.round(d.x - W.cam.x) - pad, Math.round(d.y - W.cam.y) + 32 - pad); };
-    if (imp.boss) put(imp.boss); else { ctx.beginPath(); ctx.arc(cx, cy, 26, 0, Math.PI * 2); ctx.fill(); }
-    put(imp.hero);
-    if (k >= 3) { // der Schnitt quer durch den Boss
-      const th = Math.min(7, (k - 2) * 1.6), L = 210;
-      ctx.fillStyle = light ? '#a80020' : '#fcfcfc';
-      ctx.beginPath(); ctx.moveTo(cx - L, cy + L * 0.46); ctx.lineTo(cx, cy - th); ctx.lineTo(cx + L, cy - L * 0.46); ctx.lineTo(cx, cy + th); ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+    const put = (d, body, rim) => { if (!d) return; const img = d.flip ? d.s.f : d.s.c; if (!img) return; const pad = d.s.pad || 0, x = Math.round(d.x - W.cam.x) - pad, y = Math.round(d.y - W.cam.y) + 32 - pad;
+      if (rim) { const r = silhouette(img, rim); for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ctx.drawImage(r, x + ox, y + oy); }
+      ctx.drawImage(silhouette(img, body), x, y); };
+    if (imp.boss) put(imp.boss, light ? '#160608' : '#06030c', light ? null : '#ff4060'); else { ctx.fillStyle = light ? '#160608' : '#06030c'; ctx.beginPath(); ctx.arc(cx, cy, 26, 0, TAU); ctx.fill(); }
+    put(imp.hero, light ? '#160608' : '#06030c', light ? null : '#ffd070');
+    if (light) { ctx.fillStyle = '#7c0c1c'; for (let i = 0; i < 14; i++) { const a = i * 2.39, d = R + 18 + (i * 47 % 60), r = 1 + (i % 3); ctx.beginPath(); ctx.arc(cx + Math.cos(a) * d, cy + Math.sin(a) * d * 0.7, r, 0, TAU); ctx.fill(); } } // Tuschespritzer
+    if (k >= 3) { // der Schnitt quer durch den Boss: goldener Schein, weißer Kern, Funken
+      const th = Math.min(7, (k - 2) * 1.6), L = 210, sl = (w, col) => { ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(cx - L, cy + L * 0.46); ctx.lineTo(cx, cy - w); ctx.lineTo(cx + L, cy - L * 0.46); ctx.lineTo(cx, cy + w); ctx.fill(); };
+      sl(th * 2.6, light ? 'rgba(200,16,46,0.5)' : 'rgba(255,190,90,0.45)'); sl(th, light ? '#a80020' : '#fff4dc'); sl(Math.max(1, th * 0.35), '#ffffff');
+      ctx.fillStyle = light ? '#a80020' : '#ffd070';
+      for (let i = 0; i < 16; i++) { const t = (i / 15) * 2 - 1, sx = cx + t * L * 0.9, sy = cy - t * L * 0.46 * 0.9, o = ((i * 31) % 9 - 4) * (1 + k * 0.4); ctx.fillRect(Math.round(sx + o * 0.5), Math.round(sy + o), 2, 2); }
     }
     ctx.restore();
   }

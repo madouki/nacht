@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261125-2340](#20261125-2340--die-knochenkapelle-deutsche-sprachausgabe-raumakustik-und-ein-farbiger-finisher) – Die Knochenkapelle, deutsche Sprachausgabe, Raumakustik und ein farbiger Finisher
 - [20261125-2306](#20261125-2306--totengräber-theobald-und-calaca-skelette) – Totengräber Theobald und Calaca-Skelette
 - [20261125-1630](#20261125-1630--walross-waldemar-der-kellermeister-im-eiskeller) – Walross Waldemar, der Kellermeister im Eiskeller
 - [20261125-1540](#20261125-1540--wahrsageautomat-madame-mystika-in-der-hotel-lobby) – Wahrsageautomat „Madame Mystika“ in der Hotel-Lobby
@@ -87,6 +88,33 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261125-2340 – Die Knochenkapelle, deutsche Sprachausgabe, Raumakustik und ein farbiger Finisher
+
+**Neu – Die Knochenkapelle**
+- Drei Calaca-Mariachis mit Guitarrón, Trompete und Geige ziehen durchs Schloss: Charro-Anzüge mit Silberknöpfen, Sombreros mit Ringelblume, bemalte Zuckerschädel. Alle sind neu in Blender gebaut.
+- Alle paar Spielminuten stehen sie woanders: auf der Galerie der Hotel-Lobby, am Bahnsteig, in der Kantine, in der Lichterpassage oder hinten im Gruftgang.
+- Kommst du näher, spielen sie ihren Son, ein eigenes Lied im 6/8-Takt mit dem typischen Wechsel zwischen 6/8 und 3/4. Bunte Noten steigen dabei auf.
+- Bleib ein paar Sekunden stehen und hör zu. Dann kommt „¡OLÉ!“ und das **Ständchen**: Angriff +2 und Glück +2 für drei Minuten. Es wirkt zusätzlich zum Kantinenessen und erscheint als Note im HUD.
+- Gehst du weiter, kehrt die Raummusik zurück.
+- Neue Urkunde „Stammpublikum“ für drei Ständchen.
+
+**Neu – Deutsche Sprachausgabe**
+- Der Erzähler spricht jetzt auch auf Deutsch mit echter Studiostimme statt Browser-Stimme: Titel, Prolog, Heldenvorstellung, Kapitel, Bosse, Spott, Game Over und Abspann, insgesamt 14 Ansagen. Der Pegel ist an die englischen Aufnahmen angeglichen.
+
+**Neu – Raumakustik**
+- Die Geräusche klingen jetzt je nach Ort anders. Kathedrale und Thronsaal hallen lang nach, Gruft, Höhle und Eis werfen ein Echo zurück, im Hotel und in der Bibliothek klingt es gedämpft, und draußen bleibt es trocken.
+
+**Neu – Finisher in Farbe**
+- Das Standbild beim letzten Treffer gegen einen Boss ist nicht mehr schwarz-weiß.
+- Erst kommt die Nacht: ein glühender Blutmond hinter dem Boss, goldene Strahlen und die Silhouetten von Boss und Held mit rotem und goldenem Randlicht.
+- Dann kommt Tusche auf Papier: eine rote Sonne, dunkelrote Strahlen und Tuschespritzer. In beiden Phasen leuchtet der Schnitt mit Funken.
+
+**Beim Testen ansehen**
+- Findest du die Kapelle, und lohnt sich das Zuhören?
+- Hörst du den Unterschied zwischen Kathedrale, Gruft und draußen?
+- Gefällt dir der neue Finisher?
+- Klingt die deutsche Stimme gut (Spracheinstellung Deutsch, Sprachausgabe an)?
 
 ## 20261125-2306 – Totengräber Theobald und Calaca-Skelette
 

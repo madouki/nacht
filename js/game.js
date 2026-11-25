@@ -1272,6 +1272,8 @@ const Game = {
       if (Castle.testing) Font.draw(ctx, Castle.god ? 'TEST *' : 'TEST', 4, 34, '#58f898', { shadow: '#000' }); // Testmodus sichtbar (* = unverwundbar)
       const bf = Castle.buffInfo && Castle.buffInfo(); // Mahlzeit aus der Kantine: Teller und Restzeit
       if (bf && !(bf.k < 0.06 && (W.frame & 8))) { const by = Castle.testing ? 44 : 35; R('#000', 3, by, 44, 9); R('#e8e4d8', 4, by + 5, 10, 2); R('#a8a49c', 5, by + 7, 8, 1); R('#d8a040', 6, by + 2, 6, 3); R('#fce0a8', 7, by + 2, 2, 1); R('#2c1c08', 16, by + 3, 29, 3); R('#f8d878', 16, by + 3, Math.round(29 * bf.k), 3); }
+      const sv = Castle.sereInfo && Castle.sereInfo(); // Ständchen der Knochenkapelle: Note und Restzeit (neben der Mahlzeit)
+      if (sv && !(sv.k < 0.06 && (W.frame & 8))) { const by = Castle.testing ? 44 : 35, bx = bf ? 50 : 3; R('#000', bx, by, 34, 9); R('#f8d048', bx + 2, by + 5, 3, 3); R('#f8d048', bx + 4, by + 1, 1, 5); R('#f8d048', bx + 5, by + 1, 3, 1); R('#f050a0', bx + 7, by + 2, 1, 2); R('#2c1c08', bx + 11, by + 3, 21, 3); R('#20c8c0', bx + 11, by + 3, Math.round(21 * sv.k), 3); }
       this.drawCastleHud(ctx, R, boxCx - 16);
     } else {
       Font.draw(ctx, tr('hudScore'), 36, 3, label, { align: 'right' }); Font.draw(ctx, pad(this.dispScore || 0, 6), 40, 3, this.dispScore < W.score ? '#fce0a8' : val, { shadow: '#000' });

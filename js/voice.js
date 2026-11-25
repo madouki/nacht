@@ -1,9 +1,10 @@
-// Sprachausgabe: Studio-Aufnahmen (ElevenLabs, Stimme „Obsidian“) für EN/FR/ES/JA/ZH über WebAudio.
-// Fehlt eine Aufnahme (Deutsch, Italienisch, Rumänisch), spricht die Browser-Stimme (speechSynthesis) denselben Text.
+// Sprachausgabe: Studio-Aufnahmen (ElevenLabs, Stimme „Obsidian“) für DE/EN/FR/ES/JA/ZH über WebAudio (Deutsch seit 2026-11-25:
+// „Obsidian – A Dark Fantasy Storyteller“, eleven_v4, Pegel an die englischen Aufnahmen angeglichen).
+// Fehlt eine Aufnahme (Italienisch, Rumänisch), spricht die Browser-Stimme (speechSynthesis) denselben Text.
 'use strict';
 
 const Voice = (() => {
-  const REC = ['en', 'fr', 'es', 'ja', 'zh'];
+  const REC = ['de', 'en', 'fr', 'es', 'ja', 'zh'];
   const KEYS = ['title', 'intro', 'henrik', 'ragnor', 'stage1', 'stage2', 'stage3', 'boss1', 'boss2', 'boss3', 'taunt', 'clear', 'gameover', 'ending'];
   const BCP = { de: 'de-DE', en: 'en-US', fr: 'fr-FR', es: 'es-ES', it: 'it-IT', ro: 'ro-RO', ja: 'ja-JP', zh: 'zh-CN' };
   const cache = new Map(); // 'lang/key' → Promise<AudioBuffer|null>
