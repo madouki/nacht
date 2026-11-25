@@ -309,6 +309,7 @@ const Castle = (() => {
       .fill(56, 12, 56, 16, '#')                                 // Wand des Gepäckraums, unten die Haustierklappe
       .candle(6, 14, 'H').candle(19, 14).candle(41, 8, '$').candle(52, 8, 'H').candle(60, 8)
       .chest(61, 10).chest(62, 17, 'big').prop('vessel', { x: 60, y: 17 })
+      .prop('orakel', { x: 39, y: 17 })                         // unter der Galerie: Wahrsageautomat „Madame Mystika“ (js/orakel.js)
       .music('hotel').label('HOTEL KRAT').start(2, 17).done();
     hotel.grates = [{ x: 56, y0: 17, y1: 17, pet: true }];
     hotel.decor = [D('keys', 24, 14.6), D('chair', 6.6, 17), D('chair', 11.4, 17, true), D('cart', 17.5, 17), D('chair', 48, 17), D('cart', 52.5, 17, true)];
@@ -3762,7 +3763,8 @@ const Castle = (() => {
     { id: 'quietsch', ok: () => (flag.quietsch_hits || 0) >= 50 },        // 50 Treffer mit dem Gummihuhn (enemies.js)
     { id: 'kette', ok: () => !!flag.kette5 },                             // ein Blitz der Leidener Flasche trifft fünf Gegner
     { id: 'spende', ok: () => !!flag.beutel_back },
-    { id: 'schuetze', ok: () => (flag.bude_best || 0) >= 1500 },          // Wurfbude: 1500 Punkte (js/bude.js)                       // Klingelbeutel auf der Flucht erwischt (js/beutel.js)                 // Kasimir besiegt, ohne vom Blitz getroffen zu werden (js/kirchhahn.js)
+    { id: 'schuetze', ok: () => (flag.bude_best || 0) >= 1500 },
+    { id: 'orakel', ok: () => (flag.orakel_n || 0) >= 5 },                  // Madame Mystika fünfmal befragt (js/orakel.js)          // Wurfbude: 1500 Punkte (js/bude.js)                       // Klingelbeutel auf der Flucht erwischt (js/beutel.js)                 // Kasimir besiegt, ohne vom Blitz getroffen zu werden (js/kirchhahn.js)
   ];
   const ach = { q: [], cur: null, sel: 0 }, ACH_PAY = 500; // je Urkunde zahlt das Amt 500 Gold Aufwandsentschädigung
   const achGot = (a) => !!flag['ach_' + a.id];
@@ -3860,6 +3862,28 @@ const Castle = (() => {
     return sideMemo;
   }
   const sideDone = (b) => !!mini[roomKey(b.s, b.r)];
+  // Wahrsageautomat (js/orakel.js): was liegt noch verborgen? Lebensgefäße, unbesiegte Nebenbosse, nie betretene Zusatzräume.
+  // Zuerst Räume, in denen man schon war (also erreichbar), dann nach Gefahrenstufe. Gemerkt in flag.orakel (Kapitel-id, Raum,
+  // Stelle), auf der Karte violett umrahmt, bis es gefunden ist.
+  function prophecy() {
+    const out = [];
+    S().forEach((st, s) => st.rooms.forEach((d, r) => {
+      const k = roomKey(s, r), been = !!seen[k], where = d.label || tr(st.nameKey);
+      for (const e of d.ents || []) if (e.type === 'vessel') { const vk = k + ':v' + (e.id ?? e.x); if (!vessel[vk]) out.push({ kind: 'vessel', s, r, x: e.x, y: e.y, vk, where, pri: been ? 0 : 1 }); }
+      if (d.mini && MINI_NAME[d.mini.boss] && !mini[k]) out.push({ kind: 'mini', s, r, x: d.mini.x, y: (d.start && d.start.y) || 10, name: MINI_NAME[d.mini.boss], where, pri: been ? 0 : 1 });
+      if (d.side && !been) out.push({ kind: 'room', s, r, x: d.start ? d.start.x : 0, y: d.start ? d.start.y : 0, where, pri: 2 });
+    }));
+    out.sort((a, b) => a.pri - b.pri || tierOf(a.s, a.r) - tierOf(b.s, b.r) || a.s - b.s || a.r - b.r);
+    return out[0] || null;
+  }
+  function orakelSet(p) { flag.orakel = { kind: p.kind, sid: S()[p.s].id, r: p.r, x: p.x, y: p.y, vk: p.vk || '' }; save(); }
+  function orakelMark() { // offene Weissagung oder null (gefunden: vergessen)
+    const o = flag.orakel; if (!o || typeof o !== 'object') return null;
+    const s = S().findIndex(st => st.id === o.sid), k = s >= 0 ? roomKey(s, o.r) : '';
+    const open = s >= 0 && (o.kind === 'vessel' ? !vessel[o.vk] : o.kind === 'mini' ? !mini[k] : !seen[k]);
+    if (!open) { delete flag.orakel; return null; }
+    return { s, r: o.r, x: o.x, y: o.y, kind: o.kind };
+  }
   const sideGoalOf = (b, via) => { const t = via || b; return { side: b, id: 'm' + b.id, done: () => sideDone(b), verb: 'castleGoalBoss', obj: () => tr(MINI_NAME[b.id]), whereRaw: t.d.label || '', at: [[S()[t.s].id, t.r], t.d.mini.x, (t.d.start && t.d.start.y) || 10] }; };
   const sgMemo = { key: '', f: -999, g: null };
   function sideGoal() {
@@ -4925,6 +4949,12 @@ const Castle = (() => {
       ctx.strokeRect(px - g + 0.5, py - g + 0.5, cs + g * 2 - 1, cs + g * 2 - 1);
       if (on) ctx.strokeRect(px - g - 0.5, py - g - 0.5, cs + g * 2 + 1, cs + g * 2 + 1);
     });
+    const om = !warpMode && orakelMark(), orm = om && roomAt(om.s, om.r);
+    if (orm && (t >> 3) % 3 !== 0) { // Weissagung von Madame Mystika: Zielzelle violett umrahmt, mit Funkeln
+      const oc = placeCell(orm, { x: om.x, y: om.y }), px = ox + (orm.ax + oc.x) * cs, py = oy + (orm.ay + oc.y) * cs, m = 2 + ((t >> 3) & 1);
+      ctx.strokeStyle = '#c070ff'; ctx.lineWidth = 1; ctx.strokeRect(px - m + 0.5, py - m + 0.5, cs + m * 2 - 1, cs + m * 2 - 1);
+      ctx.fillStyle = '#f0d8ff'; ctx.fillRect(px + Math.floor(cs / 2) - 1, py + Math.floor(cs / 2) - 1, 2, 2);
+    }
     const g = !warpMode && goal(), gc = g && goalCell(g);
     if (gc && (t >> 4) % 2 === 0) { // Wegweiser: Zielraum golden umrahmt (auch wenn er noch nicht betreten ist)
       const px = ox + gc.x * cs, py = oy + gc.y * cs, m = 2;
@@ -5122,7 +5152,7 @@ const Castle = (() => {
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
     need.push('arenaTitle', 'arenaLine', 'arenaT1', 'arenaT2', 'arenaT3', 'arenaLockLv', 'arenaLockPrev', 'arenaBest', 'arenaWaves', 'arenaWave', 'arenaGold', 'arenaWin', 'arenaThumb', 'arenaQuip0', 'arenaQuip1', 'arenaQuip2', 'arenaQuip3', 'ach_arena', 'achD_arena', 'champ_flamme', 'champ_eile', 'champ_panzer', 'champ_spalt', 'champHunt', 'gwAngel', 'gwTitle', 'gwLabel', 'gwTier_good', 'gwTier_mid', 'gwTier_bad', 'gwUp', 'gwDown', 'gwNoGold', 'gwPerk_good', 'gwPerk_bad', 'opferTitle', 'opferLine', 'opfer_atk', 'opfer_hp', 'opfer_mp', 'opferMax', 'opferBack', 'ach_saint', 'achD_saint', 'ach_fiend', 'achD_fiend', 'optGore', 'optGoreH', 'gw_pruefer_q', 'gw_pruefer_a', 'gw_pruefer_b', 'gw_pruefer_ra', 'gw_pruefer_rb', 'gw_bein_q', 'gw_bein_a', 'gw_bein_b', 'gw_bein_ra', 'gw_bein_rb', 'gw_gast_q', 'gw_gast_a', 'gw_gast_b', 'gw_gast_ra', 'gw_gast_rb', 'gw_waisen_q', 'gw_waisen_a', 'gw_waisen_b', 'gw_waisen_ra', 'gw_waisen_rb', 'gw_antrag_q', 'gw_antrag_a', 'gw_antrag_b', 'gw_antrag_ra', 'gw_antrag_rb', 'gw_kalb_q', 'gw_kalb_a', 'gw_kalb_b', 'gw_kalb_ra', 'gw_kalb_rb', 'champWin', 'champTip', 'ach_champs', 'achD_champs', 'chgKanal', 'chgStollen', 'chgKuppel', 'chgKammer', 'hintRopeUp', 'hintRopeHold', 'hintRopeDown', 'hintTrolley', 'hintTrolley2', 'hintHand', 'npcBell', 'npcGuide', 'npcClock', 'newHere', 'chgZeiger', 'chgDoorZeiger', 'chgKlamm', 'chgDoorKlamm', 'chgGlocken', 'chgDoorGlocken', 'hintKuckuck', 'bossKuckuck', 'bossKuckuckShout', 'bossKuckuckBonk', 'bossKuckuckRage', 'bossKuckuckDie', 'bossKuckuckNote', 'banter_bossKuckuck', 'beastD_Kuckucksuhr', 'ach_kuckuck', 'achD_kuckuck', 'item_kuckucksfeder', 'itemD_kuckucksfeder', 'chgKuckuck', 'chgDoorKuckuck'); // Glockenstuhl, Tropfsteinklamm, Zeigerkammer, NEU-Markierung, Kuckucksuhr
-    need.push('kunst_eis', 'kunst_blitz', 'kunst_sterne', 'gargNote', 'wacheNote', 'spinneNote', 'frostNote', 'froschNote', 'wetterNote', 'wetterCrow', 'sargNote', 'sargGrumble', 'budeTitel', 'budeSchild', 'budeIn', 'budeArm', 'budeLos', 'budePunkte', 'budeZeit', 'budeEnde', 'budeBest', 'budeRekord', 'budeWeiter', 'budeNix', 'budeTrost', 'budeHerz', 'budeGold', 'budeKoenig', 'budeOma', 'budeAlle', 'npcKuester', 'story_kuester', 'story_kuesterAgain', 'story_kuester2', 'story_kuester2Again', 'kollekteN', 'beutelBitte', 'beutelDanke', 'beutelZurueck', 'sub_quietsch', 'sub_flasche', 'bossOlm', 'epi_bossOlm', 'bossOlmNote', 'bossOlmTip', 'beastD_Gustav', 'banter_bossOlm', 'olmBack', 'olmWut', 'bossHahn', 'epi_bossHahn', 'bossHahnNote', 'bossHahnTip', 'beastD_Kasimir', 'banter_bossHahn', 'hahnCrow', 'hahnSturm', 'bossSchrank', 'epi_bossSchrank', 'bossSchrankNote', 'bossSchrankTip', 'beastD_Kunibert', 'banter_bossSchrank', 'schrankSpit', 'schrankMotten', 'bossVitrina', 'epi_bossVitrina', 'bossVitrinaNote', 'bossVitrinaTip', 'beastD_Vitrina', 'banter_bossVitrina', 'vitrinaCaught', 'vitrinaStare', 'vitrinaRage', 'bossDiva', 'epi_bossDiva', 'bossDivaNote', 'bossDivaTip', 'beastD_Primadonna', 'banter_bossDiva', 'divaApplaus', 'divaBravo', 'divaZugabe', 'bossAngler', 'epi_bossAngler', 'bossAnglerNote', 'bossAnglerTip', 'beastD_AnglerFisch', 'banter_bossAngler', 'bossHund', 'epi_bossHund', 'bossHundNote', 'bossHundTip', 'banter_bossHund', 'hundWau', 'updateReady', 'famSay_dog', 'walzerNote', 'walzerOuch', 'kuecheNote', 'kuecheHi', 'kuecheTab', 'kuecheHelp', 'kuecheMissing', 'kuecheAgain', 'kuecheReady', 'kuecheEaten', 'kuecheFirst', 'kuecheLoot', 'kuecheLck', 'bossHauptmann', 'epi_bossHauptmann', 'bossHauptmannNote', 'bossHauptmannTip', 'banter_bossHauptmann');
+    need.push('kunst_eis', 'kunst_blitz', 'kunst_sterne', 'gargNote', 'wacheNote', 'spinneNote', 'frostNote', 'froschNote', 'wetterNote', 'wetterCrow', 'sargNote', 'sargGrumble', 'orakelIn', 'orakelArm', 'orakelTitel', 'orakelSieht', 'orakel_vessel', 'orakel_mini', 'orakel_room', 'orakelWo', 'orakelKarte', 'orakelLeer', 'orakelJ1', 'orakelJ2', 'orakelJ3', 'orakelJ4', 'orakelJ5', 'orakelJ6', 'budeTitel', 'budeSchild', 'budeIn', 'budeArm', 'budeLos', 'budePunkte', 'budeZeit', 'budeEnde', 'budeBest', 'budeRekord', 'budeWeiter', 'budeNix', 'budeTrost', 'budeHerz', 'budeGold', 'budeKoenig', 'budeOma', 'budeAlle', 'npcKuester', 'story_kuester', 'story_kuesterAgain', 'story_kuester2', 'story_kuester2Again', 'kollekteN', 'beutelBitte', 'beutelDanke', 'beutelZurueck', 'sub_quietsch', 'sub_flasche', 'bossOlm', 'epi_bossOlm', 'bossOlmNote', 'bossOlmTip', 'beastD_Gustav', 'banter_bossOlm', 'olmBack', 'olmWut', 'bossHahn', 'epi_bossHahn', 'bossHahnNote', 'bossHahnTip', 'beastD_Kasimir', 'banter_bossHahn', 'hahnCrow', 'hahnSturm', 'bossSchrank', 'epi_bossSchrank', 'bossSchrankNote', 'bossSchrankTip', 'beastD_Kunibert', 'banter_bossSchrank', 'schrankSpit', 'schrankMotten', 'bossVitrina', 'epi_bossVitrina', 'bossVitrinaNote', 'bossVitrinaTip', 'beastD_Vitrina', 'banter_bossVitrina', 'vitrinaCaught', 'vitrinaStare', 'vitrinaRage', 'bossDiva', 'epi_bossDiva', 'bossDivaNote', 'bossDivaTip', 'beastD_Primadonna', 'banter_bossDiva', 'divaApplaus', 'divaBravo', 'divaZugabe', 'bossAngler', 'epi_bossAngler', 'bossAnglerNote', 'bossAnglerTip', 'beastD_AnglerFisch', 'banter_bossAngler', 'bossHund', 'epi_bossHund', 'bossHundNote', 'bossHundTip', 'banter_bossHund', 'hundWau', 'updateReady', 'famSay_dog', 'walzerNote', 'walzerOuch', 'kuecheNote', 'kuecheHi', 'kuecheTab', 'kuecheHelp', 'kuecheMissing', 'kuecheAgain', 'kuecheReady', 'kuecheEaten', 'kuecheFirst', 'kuecheLoot', 'kuecheLck', 'bossHauptmann', 'epi_bossHauptmann', 'bossHauptmannNote', 'bossHauptmannTip', 'banter_bossHauptmann');
     need.push('kunst_wucht', 'kunst_kreuz', 'kunst_blut', 'kunst_feuer', 'kunst_reissen', 'kunstFirst', 'mimicNote', 'mimicWin');
     need.push('arenaDaily', 'arenaDailyDone', 'arenaDailyWin', ...Arena.MODS.map(m => 'mod_' + m));
     need.push('rauschTitle', 'rauschLine', 'rauschGo', 'rauschWait', 'rauschLock', 'rauschBest', 'rauschMost', 'rauschHud', 'rauschOut', 'rauschHeal', 'rauschWin');
@@ -5202,6 +5232,7 @@ const Castle = (() => {
     toolCount: TOOLS.length, get toolSel() { return tools.sel; }, set toolSel(v) { tools.sel = v; },
     startTest, enterTest, finishTest, drawMilestones, milestones: MILESTONES.length, msLabel: (n) => msName(MILESTONES[n]), msTarget: (n) => { const a = ref(MILESTONES[n].at); return { s: a.s, r: a.r }; }, get testing() { return testing; },
     setBossRank: (k, n) => { if (n > (flag['rank_' + k] | 0)) { flag['rank_' + k] = n; save(); } }, // Kampfakte: bester Rang je Boss (1 = C … 4 = S)
+    prophecy, orakelSet, orakelMark,
     setFlag: (k) => { flag[k] = 1; save(); }, // z. B. Aufzug als Abkürzung freigeschaltet (lift.js)
     k3at, art, whenArt, dishToday, buffInfo: () => buff && { id: buff.id, k: buff.t / BUFF_T }, // Behördentrakt (js/trakt.js), HUD: Mahlzeit
     bolts: () => BOLTS.map(b => ({ id: b[0], open: !!flag['bolt_' + b[0]], a: ref(b[1]), ax: b[2], ay: b[3], b: ref(b[4]), bx: b[5], by: b[6] })), gateOk, // Tests

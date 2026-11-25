@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261125-1540](#20261125-1540--wahrsageautomat-madame-mystika-in-der-hotel-lobby) – Wahrsageautomat „Madame Mystika“ in der Hotel-Lobby
 - [20261125-1454](#20261125-1454--wurfbude-dosenwerfen-in-der-lichterpassage) – Wurfbude „Dosenwerfen“ in der Lichterpassage
 - [20261125-0943](#20261125-0943--küster-ruprecht-und-seine-ausgebüxten-klingelbeutel) – Küster Ruprecht und seine ausgebüxten Klingelbeutel
 - [20261125-0930](#20261125-0930--der-klingelbeutel-und-drei-neue-urkunden) – Der Klingelbeutel und drei neue Urkunden
@@ -84,6 +85,21 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261125-1540 – Wahrsageautomat „Madame Mystika“ in der Hotel-Lobby
+
+**Neu – Madame Mystika weiß, was du übersehen hast**
+- In der Hotel-Lobby steht unter der Galerie ein Wahrsageautomat: eine Glasvitrine mit Bogenaufsatz und Halbmond, darin die Automatenfrau mit Turban, Federbusch und Kristallkugel. Alles ist neu in Blender gebaut.
+- Davor ↑ drücken und 300 Gold einwerfen. In der Großansicht hebt sie die Hände über die Kugel, die Kugel glüht, und eine Karte fährt aus dem Schlitz.
+- Die Karte verrät, wo noch etwas wartet: ein Lebensgefäß, ein unbesiegter Nebenboss oder ein Raum, den du nie betreten hast. Zuerst kommen Orte, an denen du schon warst, also sicher erreichbar sind.
+- Der Ort wird auf deiner Karte **violett markiert**, bis du ihn gefunden hast.
+- Dazu gibt es eine Weissagung mit Augenzwinkern, etwa „ICH SEHE ETWAS GROSSES, DUNKLES … NEIN, DAS IST MEIN DAUMEN.“
+- Hast du schon alles gefunden, bekommst du dein Gold zurück.
+- Neue Urkunde „Abergläubisch“: Madame Mystika fünfmal befragen.
+- Alle Texte in 8 Sprachen.
+
+**Beim Testen ansehen**
+- Helfen die Hinweise beim Weiterkommen, und ist die violette Markierung auf der Karte gut zu sehen?
 
 ## 20261125-1454 – Wurfbude „Dosenwerfen“ in der Lichterpassage
 
