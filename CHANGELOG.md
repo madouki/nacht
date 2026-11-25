@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261125-1454](#20261125-1454--wurfbude-dosenwerfen-in-der-lichterpassage) – Wurfbude „Dosenwerfen“ in der Lichterpassage
 - [20261125-0943](#20261125-0943--küster-ruprecht-und-seine-ausgebüxten-klingelbeutel) – Küster Ruprecht und seine ausgebüxten Klingelbeutel
 - [20261125-0930](#20261125-0930--der-klingelbeutel-und-drei-neue-urkunden) – Der Klingelbeutel und drei neue Urkunden
 - [20261125-0914](#20261125-0914--zwei-neue-nebenwaffen-gummihuhn-und-leidener-flasche) – Zwei neue Nebenwaffen: Gummihuhn und Leidener Flasche
@@ -83,6 +84,23 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261125-1454 – Wurfbude „Dosenwerfen“ in der Lichterpassage
+
+**Neu – Minispiel Dosenwerfen**
+- In der Lichterpassage steht neben dem Café jetzt eine Wurfbude mit gestreiftem Vordach. Davor ↑ drücken: eine Runde kostet 100 Gold.
+- 40 Sekunden in der Frontansicht der Bude: Mit den Pfeilen zielst du, Angriff wirft einen Ball.
+  - Dosenpyramiden: 10 Punkte je Dose. Was darauf steht, fällt mit. Eine ganze Pyramide bringt +30 und wird nachgefüllt.
+  - Enten auf der Schiene: 20 Punkte.
+  - Hinter dem Tresen klappen Pappfiguren hoch: Graf Krat bringt 40, das seltene goldene Gummihuhn 100. Oma Krat kostet 30 Punkte („NICHT DIE OMA!“).
+- Der Zielring dreht sich und färbt sich über einem Ziel: grün bei einem Treffer, rot mit Kreuz bei der Oma, gold beim Huhn. Das Nachladen zeigt er als goldenen Bogen, und beim Wurf pulsiert er.
+- Das Zielen ist erst fein und wird schneller, wenn du die Taste hältst.
+- Preise: ab 500 Punkten Trostgold, ab 900 einmalig das **Lebkuchenherz** (Leben +6, Glück +1), danach Gold. Ab 1500 Punkten wirst du Schützenkönig und bekommst die gleichnamige Urkunde.
+- Dein Bestwert wird gespeichert. Alle Texte gibt es in 8 Sprachen.
+
+**Beim Testen ansehen**
+- Fühlt sich das Zielen gut an, und sind die Punktgrenzen fair (Herz ab 900, König ab 1500)?
+- Gefällt dir der neue Zielring?
 
 ## 20261125-0943 – Küster Ruprecht und seine ausgebüxten Klingelbeutel
 
