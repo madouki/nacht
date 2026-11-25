@@ -697,6 +697,15 @@ const Audio8 = (() => {
     'f#5:4 b5:2 d6:4 f#6:2', 'e6:6 d6:2 c#6:2 b5:2', 'a#5:4 c#6:2 e6:4 f#6:2', 'e6:6 d6:2 c#6:2 a#5:2', 'c#6:4 a#5:4 f#5:4', 'e5:2 f#5:2 a#5:2 c#6:2 e6:2 c#6:2', 'd6:4 b5:2 f#5:4 b5:2', 'b5:8 -:4',
     'b5:4 d6:2 g6:4 b6:2', 'a6:6 g6:2 f#6:2 e6:2', 'f#6:4 d6:4 a5:4', 'd6:2 e6:2 f#6:2 a6:6', 'g6:4 e6:2 c#6:4 a5:2', 'b5:2 c#6:2 d6:2 e6:2 g6:4', 'f#6:4 e6:2 d6:4 a5:2', 'd6:6 a5:3 d6:3'];
 
+  // Wanderlied der Grafschaft (js/umland.js): F-Dur, Marsch mit langem Atem – Hörner im A-Teil, im B-Teil nach d-Moll und zurück
+  const UL = { F: ['a3', 'c4', 'f4'], C: ['g3', 'c4', 'e4'], Bb: ['a#3', 'd4', 'f4'], Dm: ['a3', 'd4', 'f4'], Gm: ['a#3', 'd4', 'g4'], C7: ['a#3', 'c4', 'e4'], Am: ['a3', 'c4', 'e4'] };
+  const UL_B = { F: 'f2', C: 'c2', Bb: 'a#1', Dm: 'd2', Gm: 'g1', C7: 'c2', Am: 'a1' };
+  const UL_C = ['F', 'F', 'C', 'C', 'Dm', 'Dm', 'Bb', 'C7', 'F', 'F', 'C', 'C', 'Bb', 'Gm', 'C7', 'F', 'Dm', 'Dm', 'Am', 'Am', 'Bb', 'Bb', 'F', 'C', 'Dm', 'Dm', 'Am', 'Am', 'Bb', 'C7', 'F', 'F'];
+  const UL_L = ['c5:4 f5:4 a5:6 g5:2', 'f5:4 c5:4 a4:8', 'g4:4 c5:4 e5:6 d5:2', 'c5:4 g4:4 e4:8', 'd5:4 f5:4 a5:4 d6:4', 'c6:6 a#5:2 a5:8', 'a#5:4 a5:4 g5:4 f5:4', 'e5:6 f5:2 g5:8',
+    'c5:4 f5:4 a5:6 c6:2', 'c6:4 a5:4 f5:8', 'g5:4 e5:4 c5:6 e5:2', 'g5:4 c6:4 e6:8', 'd6:4 c6:4 a#5:4 d6:4', 'c6:4 a#5:4 g5:8', 'e5:4 g5:4 a#5:4 e5:4', 'f5:12 -:4',
+    'a5:6 g5:2 f5:4 e5:4', 'd5:4 f5:4 a5:8', 'e5:6 d5:2 c5:4 e5:4', 'a5:12 -:4', 'a#5:4 d6:4 f6:6 d6:2', 'c6:4 a#5:4 f5:8', 'a5:4 c6:4 f6:6 e6:2', 'g6:4 e6:4 c6:8',
+    'd6:6 c6:2 a5:4 f5:4', 'a5:4 d6:4 f6:8', 'e6:6 d6:2 c6:4 a5:4', 'c6:4 e6:4 a6:8', 'f6:4 d6:4 a#5:4 d6:4', 'e6:4 c6:4 g5:4 a#5:4', 'a5:4 c6:4 f6:8', 'f6:8 c6:4 f5:4'];
+
   const SONGS = {
     title: {
       bpm: 104, loop: true,
@@ -992,6 +1001,14 @@ const Audio8 = (() => {
       tri: OL_C.map(c => { const [a, b, d] = OL_B[c]; return `${a}:2 -:2 ${b}:2 -:2 ${d}:2 -:2 ${b}:2 -:2`; }).join(' '),
       pad: OL_C.map(c => OL[c].join('+') + ':16').join(' '),
       dr: OL_C.map((c, i) => i === 15 ? 'p:2 p:2 p:2 p:2 -:4 x:4' : i % 4 === 3 ? 'p:4 -:4 c:2 -:2 c:2 c:2' : 'c:2 -:6 c:2 -:2 h:2 -:2').join(' '),
+    },
+    umland: { // Die Grafschaft Krat (Oberwelt, js/umland.js)
+      bpm: 120, loop: true, echo: { delay: 3, vol: 0.26 },
+      p1: UL_L.join(' '),
+      p2: UL_C.map(c => { const [a, b, d] = UL[c]; return `${a}:2 ${b}:2 ${d}:2 ${b}:2 ${a}:2 ${b}:2 ${d}:2 ${b}:2`; }).join(' '),
+      tri: UL_C.map(c => { const r = UL_B[c]; return `${r}:4 -:2 ${r}:2 ${up8(r)}:4 ${r}:4`; }).join(' '),
+      pad: UL_C.map(c => UL[c].join('+') + ':16').join(' '),
+      dr: UL_C.map((c, i) => i === 31 ? 'k:4 s:4 x:8' : i % 8 === 7 ? 'k:4 s:2 s:2 t:2 t:2 u:2 u:2' : 'k:4 h:2 h:2 s:4 h:2 h:2').join(' '),
     },
     mariachi: { // Knochenkapelle (js/kapelle.js)
       bpm: 150, loop: true, bar: 12, echo: { delay: 3, vol: 0.2 },

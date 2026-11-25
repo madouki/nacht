@@ -324,6 +324,7 @@ const Castle = (() => {
       .candle(4, 15, 'H').candle(28, 15, '6').candle(46, 8, '$').candle(56, 8, 'H').candle(66, 8).candle(88, 15, 'W').candle(104, 15)
       .enemy('raven', 30, 5).enemy('raven', 84, 4)
       .chest(0, 8, 'big').prop('vessel', { x: 56, y: 10 })
+      .prop('zugtor', { x: 58, y: 17 })                                      // Gleis 2: Zug ins Umland (js/umland.js)
       .music('stage1').label('BAHNHOF KRAT').start(2, 17).done();
     station.puppets = [[20, 17], [50, 10], [63, 10], [70, 17], [92, 17], [102, 17]];
     const rail = 18 * T + 10, plat = 18 * T; // Gleis hinter der Bahnsteigkante: die Räder verschwinden unter der Kante
@@ -909,6 +910,14 @@ const Castle = (() => {
       .mini('vitrina', 34, 59, 36, 12)                                    // Madame Vitrina in der Ladenzeile (js/vitrina.js): bewegt sich nur, wenn man wegschaut
       .music('hotel').label('LICHTERPASSAGE').start(108, 17).done();
     add('passage', 0, 2, null, passage);
+    // Die Grafschaft Krat (js/umland.js): Kampfplätze der Oberwelt – ein Schatten zieht den Helden hierher (Gelände bestimmt den
+    // Platz), über den linken oder rechten Rand geht es zurück. Ohne Platz auf der Schlosskarte (offmap), erreichbar über den Zug.
+    const feld = (key, w, theme, label, music, f) => { const r = f(R(w, theme).ground(0, w - 1)).prop('feldrand', {}).music(music).label(label).start(2, 10).done(); r.offmap = true; add(key, 0, 2, null, r); };
+    feld('umland_wiese', 40, 'forest', 'WIESE', 'stage1', r => r.fill(14, 8, 18, 8, '=').fill(26, 7, 30, 7, '=').enemy('panther', 30, 10).enemy('raven', 24, 4).enemy('bat', 16, 5).enemy('skel', 35, 10).candle(10, 9, 'H').candle(33, 9, '$'));
+    feld('umland_wald', 40, 'forest', 'WALD', 'stage1', r => r.fill(10, 7, 13, 7, '=').fill(22, 8, 26, 8, '=').fill(32, 6, 35, 6, '=').enemy('skel', 18, 10).enemy('panther', 29, 10).enemy('bat', 22, 4).enemy('bat', 33, 3).candle(24, 6, 'H'));
+    feld('umland_sumpf', 40, 'forest', 'SUMPF', 'stage1', r => r.fill(18, 8, 21, 8, '=').enemy('snapper', 14, 10).enemy('pitcher', 25, 10).enemy('snapper', 33, 10).enemy('bat', 20, 4).candle(28, 9, 'H'));
+    feld('umland_friedhof', 40, 'courtyard', 'FRIEDHOF', 'chapel', r => r.statue(8, 10).fill(20, 8, 24, 8, '=').enemy('skel', 14, 10).enemy('skel', 26, 10).enemy('ghost', 20, 4).enemy('knight', 33, 10).candle(22, 7, '$'));
+    feld('umland_hoehle', 56, 'cave', 'TIEFE HÖHLE', 'stage2', r => r.fill(12, 8, 16, 8, '=').fill(24, 7, 28, 7, '=').fill(36, 8, 40, 8, '=').enemy('skel', 14, 10).enemy('knight', 26, 10).enemy('bat', 20, 4).enemy('skel', 38, 10).enemy('knight', 46, 10).candle(26, 6, 'H').chest(50, 10, 'big').prop('vessel', { x: 53, y: 10 }));
     LINKS.push([['side', 'bahnhof'], { e: 'L', y: 17 }, ['side', 'passage'], { e: 'R', y: 17 }, {}]); // Bahnhof (links am Bahnsteig) → Lichterpassage
     // Fundbüro (links an der Lichterpassage; js/puzzle.js): Schalterrätsel in drei Abschnitten. Gepäckaufzug: ein Peitschenhieb legt den
     // Stellhebel um, der Aufzug trägt hinauf zur Öffnung in der Mauer. Gepäckwaage: der Held allein ist zu leicht – den Schrankkoffer
@@ -1189,6 +1198,7 @@ const Castle = (() => {
     };
     S()[s].rooms.forEach((def, i) => {
       const { cw, ch } = dims(def), sc = { x: cellX(def.start.x, cw), y: cellY(def.start.y, ch) };
+      if (def.offmap) { out.push({ def, s, i, key: roomKey(s, i), gx: NaN, gy: NaN, cw, ch, start: sc, exit: sc, link: null, count: new Uint8Array(cw * ch), marks: [] }); return; } // Kampfplatz im Umland: nicht auf der Karte
       let gx = 0, gy = 0, link = null;
       if (def.side && !def.mapAt) { gx = NaN; gy = NaN; } // Zusatzraum ohne festen Platz: castle() legt ihn an seinen Randausgang
       else if (def.side) { const at = REGION_AT[S()[s].id] || [0, 0]; gx = def.mapAt[0] - at[0]; gy = def.mapAt[1] - at[1]; } // Zusatzraum: fester Platz
@@ -1220,7 +1230,7 @@ const Castle = (() => {
     });
     S().forEach((st, s) => {
       const at = REGION_AT[st.id] || [0, bottom + 2 + (extra++) * 4];
-      layout(s).forEach(r => rooms.push({ ...r, ax: at[0] + r.gx, ay: at[1] + r.gy }));
+      layout(s).forEach(r => { if (!r.def.offmap) rooms.push({ ...r, ax: at[0] + r.gx, ay: at[1] + r.gy }); });
     });
     // Zusatzräume ohne festen Platz: an den Randausgang eines schon gelegten Nachbarn anlegen (Tür an Tür, Zelle an Zelle)
     const free = (r) => Number.isNaN(r.ax), find = (a) => a && rooms.find(x => x.s === a.s && x.i === a.r);
@@ -2719,6 +2729,7 @@ const Castle = (() => {
     lebkuchen: { slot: 'acc', hp: 6, luck: 1, col: '#c86c3c' },                 // Lebkuchenherz von der Wurfbude (ab 900 Punkten)           // Sammelteller des Küsters (Lohn für drei erwischte Klingelbeutel)
     filz: { slot: 'acc', crit: 6, luck: 1, col: '#9c8c78' },
     strickschal: { slot: 'acc', def: 3, hp: 4, col: '#b02828' },
+    kraeuter: { slot: 'acc', mp: 8, hp: 4, col: '#6c9c3c' },                  // Kräuterbeutel von Walburga (Umland, js/umland.js)
     schaufel: { slot: 'weapon', atk: 5, col: '#8c6c4c' },                     // Theobalds Schaufel (Gruftgang, Lohn von Totengräber Theobald)              // Strickschal (Eiskeller, Lohn von Walross Waldemar)                   // Filzpantoffeln (Kanal, Lohn von Grottenolm Gustav)            // Windrose vom Turmknauf (Himmelsbrücke, Lohn von Kirchturmhahn Kasimir)        // Krone der Madame Vitrina (Lichterpassage)
     opernglas: { slot: 'acc', luck: 2, crit: 4, col: '#e8b848' },          // Opernglas der Primadonna (Zuschauerraum)
     ewigeslicht: { slot: 'acc', mp: 6, luck: 1, col: '#fc5c3c' },        // Ewiges Licht der versunkenen Kapelle (Lohn von Angler Anselm)
@@ -3773,7 +3784,8 @@ const Castle = (() => {
     { id: 'spende', ok: () => !!flag.beutel_back },
     { id: 'schuetze', ok: () => (flag.bude_best || 0) >= 1500 },
     { id: 'orakel', ok: () => (flag.orakel_n || 0) >= 5 },
-    { id: 'mariachi', ok: () => (flag.kapelle_n || 0) >= 3 },               // drei Ständchen der Knochenkapelle (js/kapelle.js)                  // Madame Mystika fünfmal befragt (js/orakel.js)          // Wurfbude: 1500 Punkte (js/bude.js)                       // Klingelbeutel auf der Flucht erwischt (js/beutel.js)                 // Kasimir besiegt, ohne vom Blitz getroffen zu werden (js/kirchhahn.js)
+    { id: 'mariachi', ok: () => (flag.kapelle_n || 0) >= 3 },
+    { id: 'wandern', ok: () => !!(flag.umland_hut && flag.umland_grab && flag.umland_hoehle) }, // Umland: Hütte, Grab und Höhle (js/umland.js)               // drei Ständchen der Knochenkapelle (js/kapelle.js)                  // Madame Mystika fünfmal befragt (js/orakel.js)          // Wurfbude: 1500 Punkte (js/bude.js)                       // Klingelbeutel auf der Flucht erwischt (js/beutel.js)                 // Kasimir besiegt, ohne vom Blitz getroffen zu werden (js/kirchhahn.js)
   ];
   const ach = { q: [], cur: null, sel: 0 }, ACH_PAY = 500; // je Urkunde zahlt das Amt 500 Gold Aufwandsentschädigung
   const achGot = (a) => !!flag['ach_' + a.id];
@@ -3877,6 +3889,7 @@ const Castle = (() => {
   function prophecy() {
     const out = [];
     S().forEach((st, s) => st.rooms.forEach((d, r) => {
+      if (d.offmap) return; // Kampfplätze im Umland zählen nicht
       const k = roomKey(s, r), been = !!seen[k], where = d.label || tr(st.nameKey);
       for (const e of d.ents || []) if (e.type === 'vessel') { const vk = k + ':v' + (e.id ?? e.x); if (!vessel[vk]) out.push({ kind: 'vessel', s, r, x: e.x, y: e.y, vk, where, pri: been ? 0 : 1 }); }
       if (d.mini && MINI_NAME[d.mini.boss] && !mini[k]) out.push({ kind: 'mini', s, r, x: d.mini.x, y: (d.start && d.start.y) || 10, name: MINI_NAME[d.mini.boss], where, pri: been ? 0 : 1 });
@@ -5161,7 +5174,7 @@ const Castle = (() => {
     for (const a of ACH) need.push('ach_' + a.id, 'achD_' + a.id);
     if (typeof Mahr !== 'undefined') for (const d of Mahr.LIST) { need.push('mahr_' + d.id, 'mahrD_' + d.id); if (!BEAST_SET.has(d.from)) out.push('Mahr ohne Bestiarium-Eintrag: ' + d.id); }
     need.push('arenaTitle', 'arenaLine', 'arenaT1', 'arenaT2', 'arenaT3', 'arenaLockLv', 'arenaLockPrev', 'arenaBest', 'arenaWaves', 'arenaWave', 'arenaGold', 'arenaWin', 'arenaThumb', 'arenaQuip0', 'arenaQuip1', 'arenaQuip2', 'arenaQuip3', 'ach_arena', 'achD_arena', 'champ_flamme', 'champ_eile', 'champ_panzer', 'champ_spalt', 'champHunt', 'gwAngel', 'gwTitle', 'gwLabel', 'gwTier_good', 'gwTier_mid', 'gwTier_bad', 'gwUp', 'gwDown', 'gwNoGold', 'gwPerk_good', 'gwPerk_bad', 'opferTitle', 'opferLine', 'opfer_atk', 'opfer_hp', 'opfer_mp', 'opferMax', 'opferBack', 'ach_saint', 'achD_saint', 'ach_fiend', 'achD_fiend', 'optGore', 'optGoreH', 'gw_pruefer_q', 'gw_pruefer_a', 'gw_pruefer_b', 'gw_pruefer_ra', 'gw_pruefer_rb', 'gw_bein_q', 'gw_bein_a', 'gw_bein_b', 'gw_bein_ra', 'gw_bein_rb', 'gw_gast_q', 'gw_gast_a', 'gw_gast_b', 'gw_gast_ra', 'gw_gast_rb', 'gw_waisen_q', 'gw_waisen_a', 'gw_waisen_b', 'gw_waisen_ra', 'gw_waisen_rb', 'gw_antrag_q', 'gw_antrag_a', 'gw_antrag_b', 'gw_antrag_ra', 'gw_antrag_rb', 'gw_kalb_q', 'gw_kalb_a', 'gw_kalb_b', 'gw_kalb_ra', 'gw_kalb_rb', 'champWin', 'champTip', 'ach_champs', 'achD_champs', 'chgKanal', 'chgStollen', 'chgKuppel', 'chgKammer', 'hintRopeUp', 'hintRopeHold', 'hintRopeDown', 'hintTrolley', 'hintTrolley2', 'hintHand', 'npcBell', 'npcGuide', 'npcClock', 'newHere', 'chgZeiger', 'chgDoorZeiger', 'chgKlamm', 'chgDoorKlamm', 'chgGlocken', 'chgDoorGlocken', 'hintKuckuck', 'bossKuckuck', 'bossKuckuckShout', 'bossKuckuckBonk', 'bossKuckuckRage', 'bossKuckuckDie', 'bossKuckuckNote', 'banter_bossKuckuck', 'beastD_Kuckucksuhr', 'ach_kuckuck', 'achD_kuckuck', 'item_kuckucksfeder', 'itemD_kuckucksfeder', 'chgKuckuck', 'chgDoorKuckuck'); // Glockenstuhl, Tropfsteinklamm, Zeigerkammer, NEU-Markierung, Kuckucksuhr
-    need.push('kunst_eis', 'kunst_blitz', 'kunst_sterne', 'gargNote', 'wacheNote', 'spinneNote', 'frostNote', 'froschNote', 'wetterNote', 'wetterCrow', 'sargNote', 'sargGrumble', 'kapelleHoer', 'kapelleOle', 'kapelleBuff', 'kapelleEnd', 'bossTheo', 'epi_bossTheo', 'bossTheoNote', 'bossTheoTip', 'beastD_Theobald', 'item_schaufel', 'itemD_schaufel', 'theoFeierabend', 'theoWut', 'theoFest', 'bossWalross', 'epi_bossWalross', 'bossWalrossNote', 'bossWalrossTip', 'beastD_Waldemar', 'item_strickschal', 'itemD_strickschal', 'walrossWach', 'walrossWut', 'walrossSpeck', 'walrossHatschi', 'orakelIn', 'orakelArm', 'orakelTitel', 'orakelSieht', 'orakel_vessel', 'orakel_mini', 'orakel_room', 'orakelWo', 'orakelKarte', 'orakelLeer', 'orakelJ1', 'orakelJ2', 'orakelJ3', 'orakelJ4', 'orakelJ5', 'orakelJ6', 'budeTitel', 'budeSchild', 'budeIn', 'budeArm', 'budeLos', 'budePunkte', 'budeZeit', 'budeEnde', 'budeBest', 'budeRekord', 'budeWeiter', 'budeNix', 'budeTrost', 'budeHerz', 'budeGold', 'budeKoenig', 'budeOma', 'budeAlle', 'npcKuester', 'story_kuester', 'story_kuesterAgain', 'story_kuester2', 'story_kuester2Again', 'kollekteN', 'beutelBitte', 'beutelDanke', 'beutelZurueck', 'sub_quietsch', 'sub_flasche', 'bossOlm', 'epi_bossOlm', 'bossOlmNote', 'bossOlmTip', 'beastD_Gustav', 'banter_bossOlm', 'olmBack', 'olmWut', 'bossHahn', 'epi_bossHahn', 'bossHahnNote', 'bossHahnTip', 'beastD_Kasimir', 'banter_bossHahn', 'hahnCrow', 'hahnSturm', 'bossSchrank', 'epi_bossSchrank', 'bossSchrankNote', 'bossSchrankTip', 'beastD_Kunibert', 'banter_bossSchrank', 'schrankSpit', 'schrankMotten', 'bossVitrina', 'epi_bossVitrina', 'bossVitrinaNote', 'bossVitrinaTip', 'beastD_Vitrina', 'banter_bossVitrina', 'vitrinaCaught', 'vitrinaStare', 'vitrinaRage', 'bossDiva', 'epi_bossDiva', 'bossDivaNote', 'bossDivaTip', 'beastD_Primadonna', 'banter_bossDiva', 'divaApplaus', 'divaBravo', 'divaZugabe', 'bossAngler', 'epi_bossAngler', 'bossAnglerNote', 'bossAnglerTip', 'beastD_AnglerFisch', 'banter_bossAngler', 'bossHund', 'epi_bossHund', 'bossHundNote', 'bossHundTip', 'banter_bossHund', 'hundWau', 'updateReady', 'famSay_dog', 'walzerNote', 'walzerOuch', 'kuecheNote', 'kuecheHi', 'kuecheTab', 'kuecheHelp', 'kuecheMissing', 'kuecheAgain', 'kuecheReady', 'kuecheEaten', 'kuecheFirst', 'kuecheLoot', 'kuecheLck', 'bossHauptmann', 'epi_bossHauptmann', 'bossHauptmannNote', 'bossHauptmannTip', 'banter_bossHauptmann');
+    need.push('kunst_eis', 'kunst_blitz', 'kunst_sterne', 'gargNote', 'wacheNote', 'spinneNote', 'frostNote', 'froschNote', 'wetterNote', 'wetterCrow', 'sargNote', 'sargGrumble', 'umlandTitel', 'umlandBahnhof', 'umlandHuette', 'umlandHoehle', 'umlandGrab', 'umlandBetreten', 'umlandZug', 'umlandGraben', 'umlandEinsteigen', 'umlandGleis', 'umlandHilfe', 'umlandKampf', 'umlandLeer', 'umlandDu', 'grabFund', 'npcWalburga', 'walburgaAgain', 'story_walburga', 'kapelleHoer', 'kapelleOle', 'kapelleBuff', 'kapelleEnd', 'bossTheo', 'epi_bossTheo', 'bossTheoNote', 'bossTheoTip', 'beastD_Theobald', 'item_schaufel', 'itemD_schaufel', 'theoFeierabend', 'theoWut', 'theoFest', 'bossWalross', 'epi_bossWalross', 'bossWalrossNote', 'bossWalrossTip', 'beastD_Waldemar', 'item_strickschal', 'itemD_strickschal', 'walrossWach', 'walrossWut', 'walrossSpeck', 'walrossHatschi', 'orakelIn', 'orakelArm', 'orakelTitel', 'orakelSieht', 'orakel_vessel', 'orakel_mini', 'orakel_room', 'orakelWo', 'orakelKarte', 'orakelLeer', 'orakelJ1', 'orakelJ2', 'orakelJ3', 'orakelJ4', 'orakelJ5', 'orakelJ6', 'budeTitel', 'budeSchild', 'budeIn', 'budeArm', 'budeLos', 'budePunkte', 'budeZeit', 'budeEnde', 'budeBest', 'budeRekord', 'budeWeiter', 'budeNix', 'budeTrost', 'budeHerz', 'budeGold', 'budeKoenig', 'budeOma', 'budeAlle', 'npcKuester', 'story_kuester', 'story_kuesterAgain', 'story_kuester2', 'story_kuester2Again', 'kollekteN', 'beutelBitte', 'beutelDanke', 'beutelZurueck', 'sub_quietsch', 'sub_flasche', 'bossOlm', 'epi_bossOlm', 'bossOlmNote', 'bossOlmTip', 'beastD_Gustav', 'banter_bossOlm', 'olmBack', 'olmWut', 'bossHahn', 'epi_bossHahn', 'bossHahnNote', 'bossHahnTip', 'beastD_Kasimir', 'banter_bossHahn', 'hahnCrow', 'hahnSturm', 'bossSchrank', 'epi_bossSchrank', 'bossSchrankNote', 'bossSchrankTip', 'beastD_Kunibert', 'banter_bossSchrank', 'schrankSpit', 'schrankMotten', 'bossVitrina', 'epi_bossVitrina', 'bossVitrinaNote', 'bossVitrinaTip', 'beastD_Vitrina', 'banter_bossVitrina', 'vitrinaCaught', 'vitrinaStare', 'vitrinaRage', 'bossDiva', 'epi_bossDiva', 'bossDivaNote', 'bossDivaTip', 'beastD_Primadonna', 'banter_bossDiva', 'divaApplaus', 'divaBravo', 'divaZugabe', 'bossAngler', 'epi_bossAngler', 'bossAnglerNote', 'bossAnglerTip', 'beastD_AnglerFisch', 'banter_bossAngler', 'bossHund', 'epi_bossHund', 'bossHundNote', 'bossHundTip', 'banter_bossHund', 'hundWau', 'updateReady', 'famSay_dog', 'walzerNote', 'walzerOuch', 'kuecheNote', 'kuecheHi', 'kuecheTab', 'kuecheHelp', 'kuecheMissing', 'kuecheAgain', 'kuecheReady', 'kuecheEaten', 'kuecheFirst', 'kuecheLoot', 'kuecheLck', 'bossHauptmann', 'epi_bossHauptmann', 'bossHauptmannNote', 'bossHauptmannTip', 'banter_bossHauptmann');
     need.push('kunst_wucht', 'kunst_kreuz', 'kunst_blut', 'kunst_feuer', 'kunst_reissen', 'kunstFirst', 'mimicNote', 'mimicWin');
     need.push('arenaDaily', 'arenaDailyDone', 'arenaDailyWin', ...Arena.MODS.map(m => 'mod_' + m));
     need.push('rauschTitle', 'rauschLine', 'rauschGo', 'rauschWait', 'rauschLock', 'rauschBest', 'rauschMost', 'rauschHud', 'rauschOut', 'rauschHeal', 'rauschWin');
@@ -5179,6 +5192,7 @@ const Castle = (() => {
         for (const d of doorsOf(s, r)) push(d.to.s, d.to.r);
         for (const [A, pa, B] of LINKS) { const a = ref(A), b = ref(B); if (a && b && same(a, s, r) && pa === 'exit') push(b.s, b.r); }
         for (const e of rooms[r].ents || []) if ((e.type === 'mond' || e.type === 'express') && e.dest && SIDE[e.dest]) push(SIDE[e.dest].s, SIDE[e.dest].r); // Reisen per Mondkanone / Rohrpost-Express
+        for (const e of rooms[r].ents || []) if (e.type === 'zugtor') for (const k of Object.keys(SIDE)) if (k.startsWith('umland_')) push(SIDE[k].s, SIDE[k].r); // Zug ins Umland: Kampfplätze und Höhle
       }
       S().forEach((st, s) => st.rooms.forEach((def, r) => { if (!seenR.has(key(s, r))) out.push('Raum unerreichbar: ' + roomKey(s, r) + (def.label ? ' (' + def.label + ')' : '')); }));
     }

@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261126-0039](#20261126-0039--die-grafschaft-krat-das-umland-in-draufsicht-dazu-sprachausgabe-auf-italienisch-und-rumänisch) – Die Grafschaft Krat: das Umland in Draufsicht, dazu Sprachausgabe auf Italienisch und Rumänisch
 - [20261125-2340](#20261125-2340--die-knochenkapelle-deutsche-sprachausgabe-raumakustik-und-ein-farbiger-finisher) – Die Knochenkapelle, deutsche Sprachausgabe, Raumakustik und ein farbiger Finisher
 - [20261125-2306](#20261125-2306--totengräber-theobald-und-calaca-skelette) – Totengräber Theobald und Calaca-Skelette
 - [20261125-1630](#20261125-1630--walross-waldemar-der-kellermeister-im-eiskeller) – Walross Waldemar, der Kellermeister im Eiskeller
@@ -88,6 +89,32 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261126-0039 – Die Grafschaft Krat: das Umland in Draufsicht, dazu Sprachausgabe auf Italienisch und Rumänisch
+
+**Neu – Das Umland**
+- Am Bahnhof Krat fährt jetzt ein Zug von Gleis 2 ins Umland. Dort wanderst du in Draufsicht über die Grafschaft Krat bei Nacht: Wiesen mit Blumen, dichte Wälder, verschneite Gebirgsketten, ein Fluss mit nur einer Brücke, ein Sumpf und ein alter Friedhof. Der Blutmond steht am Himmel, und deine Laterne leuchtet dir den Weg.
+- Die ganze Karte ist ein in Blender gebautes 3D-Diorama bei Mondlicht, schräg von oben gesehen. Berge mit Schneegipfeln werfen Schatten, Tannen und Laubbäume stehen dicht an dicht, und der Fluss hat ein flaches Ufer. Dazu gibt es Sumpftümpel mit Schilf und Seerosen, Grabsteine hinter Eisengittern, die Hütte mit erleuchteten Fenstern und grün dampfendem Kessel, den Bahnhof mit wartendem Zug und den Höhleneingang mit zwei Fackeln.
+- Über das Land ziehen Wolkenschatten, über Fluss und Sumpf treiben Nebelschwaden, Glühwürmchen blinken im Gras, und auf dem Wasser glitzert der Mond.
+- **Schatten** tauchen auf und jagen dich. Erwischt dich einer, geht es in einen **Kampfplatz in Seitenansicht**. Je nach Gelände ist das Wiese, Wald, Sumpf oder Friedhof. Große Schatten mit Hörnern bringen Ritter und Panther als Verstärkung mit.
+- Über den linken oder rechten Rand des Kampfplatzes kommst du jederzeit zurück, genau an die Stelle, an der du warst.
+- **Orte zum Betreten:**
+  - Die **Kräuterhütte** der Kräuterfrau Walburga („Hexen haben bessere Arbeitszeiten“). Sie schenkt dir den Kräuterbeutel: Magie +8, Leben +4.
+  - Das **alte Grab** auf dem Friedhof: Graben lohnt sich, und Totengräber Theobald hat einen Zettel hinterlassen.
+  - Die **Tiefe Höhle** am Gebirge, ein eigener Raum mit starken Gegnern, Truhe und Lebensgefäß.
+  - Am Bahnhof steigst du wieder in den Zug zurück ins Schloss.
+- Eigenes Wanderlied in F-Dur, ein Marsch mit langem Atem.
+- Neue Urkunde „Wandersmann“ für Hütte, Grab und Höhle.
+- Alle Texte gibt es in 8 Sprachen.
+
+**Neu – Sprachausgabe auf Italienisch und Rumänisch**
+- Der Erzähler spricht jetzt auch auf Italienisch und Rumänisch mit echter Studiostimme statt Browser-Stimme. Das sind je 14 Ansagen vom Titel bis zum Abspann, im Pegel an die englischen Aufnahmen angeglichen. Damit haben alle acht Sprachen eine Studiostimme.
+
+**Beim Testen ansehen**
+- Wie fühlt sich das Wandern an, sind die Schatten zu schnell oder zu langsam?
+- Findest du Hütte, Grab und Höhle?
+- Wie wirkt die neue Karte mit Nebel, Glühwürmchen und Wolkenschatten?
+- Klingen die Stimmen auf Italienisch und Rumänisch gut (Sprache umstellen, Sprachausgabe an)?
 
 ## 20261125-2340 – Die Knochenkapelle, deutsche Sprachausgabe, Raumakustik und ein farbiger Finisher
 

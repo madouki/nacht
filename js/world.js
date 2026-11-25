@@ -106,7 +106,9 @@ const W = {
         case 'raven': this.spawn(new Raven(d.x, d.y)); break;
         case 'beutel': this.spawn(new Klingelbeutel(d.x, d.y)); break;
         case 'bude': this.spawn(Bude.make(d)); break;
-        case 'orakel': this.spawn(Orakel.make(d)); break; // Hotel-Lobby: Wahrsageautomat „Madame Mystika“ (js/orakel.js) // Lichterpassage: Wurfbude „Dosenwerfen“ (js/bude.js) // Sonnenkathedrale: klaut Gold (js/beutel.js)
+        case 'orakel': this.spawn(Orakel.make(d)); break;
+        case 'zugtor': this.spawn(Umland.gate(d)); break; // Bahnhof: Zug ins Umland (js/umland.js)
+        case 'feldrand': this.spawn(Umland.edge(d)); break; // Kampfplatz im Umland: über den Rand zurück // Hotel-Lobby: Wahrsageautomat „Madame Mystika“ (js/orakel.js) // Lichterpassage: Wurfbude „Dosenwerfen“ (js/bude.js) // Sonnenkathedrale: klaut Gold (js/beutel.js)
         case 'ghost': this.spawn(new Ghost(d.x, d.y)); break;
         case 'ring': this.spawn(new Ring(d)); break;
         case 'sbell': this.spawn(new SwingBell(d)); break; // Glockenstuhl: Glocke im Gebälk (glocken.js)
