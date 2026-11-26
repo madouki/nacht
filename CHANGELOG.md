@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261126-0116](#20261126-0116--die-grafschaft-krat-wird-lebendiger) – Die Grafschaft Krat wird lebendiger
 - [20261126-0039](#20261126-0039--die-grafschaft-krat-das-umland-in-draufsicht-dazu-sprachausgabe-auf-italienisch-und-rumänisch) – Die Grafschaft Krat: das Umland in Draufsicht, dazu Sprachausgabe auf Italienisch und Rumänisch
 - [20261125-2340](#20261125-2340--die-knochenkapelle-deutsche-sprachausgabe-raumakustik-und-ein-farbiger-finisher) – Die Knochenkapelle, deutsche Sprachausgabe, Raumakustik und ein farbiger Finisher
 - [20261125-2306](#20261125-2306--totengräber-theobald-und-calaca-skelette) – Totengräber Theobald und Calaca-Skelette
@@ -89,6 +90,20 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261126-0116 – Die Grafschaft Krat wird lebendiger
+
+**Neu – Mehr Leben im Umland**
+- An den Wegen stehen jetzt Laternen. Sie werfen warme Lichtinseln auf den Weg und flackern leise.
+- Zwischen Bahnhof und Fluss liegen zwei Felder: ein frisch gepflügter Acker mit Vogelscheuche und ein Weizenfeld mit Heuhaufen, beide mit Holzzaun.
+- Am Fuß der Berge wächst Tannenwald zwischen Felsbrocken, im Laubwald färben sich einzelne Bäume herbstlich.
+- Wo der Fluss aus den Bergen kommt, schäumt Gischt, und im Wasser liegen Steine.
+- Die Fenster von Hütte und Bahnhof, die Fackeln an der Höhle und Walburgas Kessel flackern jetzt.
+- Über dem Friedhof und dem Sumpf schweben Irrlichter.
+- Ab und zu zieht ein Fledermausschwarm über das Land.
+
+**Beim Testen ansehen**
+- Wirkt die Karte jetzt lebendiger, ohne unruhig zu sein?
 
 ## 20261126-0039 – Die Grafschaft Krat: das Umland in Draufsicht, dazu Sprachausgabe auf Italienisch und Rumänisch
 

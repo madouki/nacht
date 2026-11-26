@@ -101,6 +101,11 @@ H = 0.06 * N1 + 0.03 * N2 + Hm
 wd = ss(0.28, 0.75, wB); H = H * (1 - wd) - 0.42 * wd
 pud = ss(0.45, 0.8, sB) * ss(0.0, 0.25, NP); H = H - 0.22 * pud
 rf = ss(0.5, 0.78, rB) * (1 - wd); H = H - 0.015 * rf
+FIELDS = [(8.25, 20.2, 12.75, 23.8, 'acker'), (13.3, 20.2, 17.7, 23.1, 'weizen')]
+FM = {}
+for (x0, y0, x1, y1, kind) in FIELDS:
+    f = ss(0.0, 0.12, np.minimum(np.minimum(UU - x0, x1 - UU), np.minimum(VV - y0, y1 - VV)))
+    rows = 0.5 + 0.5 * np.sin(VV * math.tau * 3.2); FM[kind] = (f, rows); H = H + 0.035 * f * rows
 WL = -0.08
 gy, gx = np.gradient(H, 1 / SUB); slope = np.sqrt(gx ** 2 + (gy / K) ** 2)
 
@@ -122,6 +127,8 @@ rock = mix(rock, np.broadcast_to(C('#4e4a3c'), (NY, NX, 3)), 0.4 * ss(0.2, 0.6, 
 rock = mix(rock, np.broadcast_to(C('#2e4a2c'), (NY, NX, 3)), 0.6 * (1 - ss(0.15, 0.7, H)))                # grüner Bergfuß
 col = mix(col, rock, ss(0.02, 0.18, mt))
 snow = ss(3.25, 3.6, H + 0.35 * N2) * (1 - ss(3.0, 4.2, slope))
+f, rows = FM['acker']; col = mix(col, mix(np.broadcast_to(C('#2e2216'), (NY, NX, 3)), np.broadcast_to(C('#5a4630'), (NY, NX, 3)), rows), f)
+f, rows = FM['weizen']; col = mix(col, mix(np.broadcast_to(C('#4a4a22'), (NY, NX, 3)), np.broadcast_to(C('#a89448'), (NY, NX, 3)), rows), f)
 col = mix(col, np.broadcast_to(C('#e6eaf4'), (NY, NX, 3)), snow)
 
 # ---------------- Gelände ----------------
@@ -195,6 +202,8 @@ def tube(key, a, b, r, hexc, seg=6):
     bm, _ = bmget(key); q = d.to_track_quat('Z', 'Y')
     g = bmesh.ops.create_cone(bm, cap_ends=True, segments=seg, radius1=r, radius2=r * 0.8, depth=L, matrix=Matrix.Translation((a + b) / 2) @ q.to_matrix().to_4x4())
     paint(key, g['verts'], hexc)
+LIGHTS = []   # sichtbare Lichtquellen (Welt, Art) → Bildpunkte für das Flackern im Spiel
+def glow_at(p, kind): LIGHTS.append((p, kind))
 def lamp(p, hexc, watt, rad=0.05):
     l = bpy.data.lights.new('l', 'POINT'); l.energy = watt; l.color = lin(hexc); l.shadow_soft_size = rad
     o = bpy.data.objects.new('l', l); o.location = p; link(o)
@@ -208,7 +217,7 @@ for y in range(-PAD, MH + PAD):
             for k in range(3):
                 px, py = x + rng.uniform(0.1, 0.9), y + rng.uniform(0.1, 0.95); z = ground(px, py)
                 if DECID(x, y):
-                    r = rng.uniform(0.36, 0.5); tone = rng.choice(['#2c5a2c', '#33652e', '#284e2a', '#3a6a30', '#4a6c2a'])
+                    r = rng.uniform(0.36, 0.5); tone = rng.choice(['#2c5a2c', '#33652e', '#284e2a', '#3a6a30', '#4a6c2a']) if rng.random() > 0.18 else rng.choice(['#8a5a1c', '#9a4420', '#7a6a20', '#a07428'])
                     ball('leaf', W(px, py, z + r * 0.95 + 0.12), r, tone, 2, 0.85, 0.09, 0.08)
                 else:
                     h = rng.uniform(0.95, 1.3); r = rng.uniform(0.3, 0.4); tone = rng.choice(['#1e4430', '#22503a', '#1a3c2c', '#28563a'])
@@ -219,7 +228,7 @@ for y in range(-PAD, MH + PAD):
             for k in range(2):
                 px, py = x + rng.uniform(0.25, 0.75), y + rng.uniform(0.3, 0.8)
                 ball('leaf', W(px, py, ground(px, py) + 0.16), rng.uniform(0.18, 0.26), '#3c6c30', 2, 0.8, 0.05, 0.1)
-        elif c == '.' and 0 <= x < MW and 0 <= y < MH:
+        elif c == '.' and 0 <= x < MW and 0 <= y < MH and not any(f[0] - 0.9 <= x <= f[2] and f[1] - 0.9 <= y <= f[3] for f in FIELDS):
             if rng.random() < 0.1:
                 fc = rng.choice(['#f0e8f8', '#f8d048', '#c880e8', '#f07090'])
                 for k in range(rng.randint(1, 3)):
@@ -267,10 +276,10 @@ tbox('stone', hx + 0.68, hy + 0.32, hx + 0.82, hy + 0.46, 0.4, 1.0, '#6a6470')
 tbox('wood', hx + 0.42, hy + 0.83, hx + 0.58, hy + 0.86, 0.0, 0.3, '#3a2410')
 tbox('glow', hx + 0.16, hy + 0.83, hx + 0.32, hy + 0.86, 0.18, 0.32, '#ffb450')
 tbox('glow', hx + 0.68, hy + 0.83, hx + 0.84, hy + 0.86, 0.18, 0.32, '#ffb450')
-lamp(W(hx + 0.5, hy + 1.1, 0.35), '#ffa850', 18, 0.2)
+lamp(W(hx + 0.5, hy + 1.1, 0.35), '#ffa850', 18, 0.2); glow_at(W(hx + 0.24, hy + 0.85, 0.25), 'win'); glow_at(W(hx + 0.76, hy + 0.85, 0.25), 'win')
 ball('iron', W(hx - 0.25, hy + 0.95, 0.12), 0.14, '#18161c', 2, 0.8)
 cone('brew', W(hx - 0.25, hy + 0.95, 0.2), 0.11, 0.11, 0.02, '#60ff70', 10)
-lamp(W(hx - 0.25, hy + 0.95, 0.4), '#70ff80', 8, 0.1)
+lamp(W(hx - 0.25, hy + 0.95, 0.4), '#70ff80', 8, 0.1); glow_at(W(hx - 0.25, hy + 0.95, 0.22), 'brew')
 for k in range(6):
     tbox('flower', hx + 1.05 + (k % 3) * 0.16, hy + 0.35 + (k // 3) * 0.22, hx + 1.13 + (k % 3) * 0.16, hy + 0.43 + (k // 3) * 0.22, 0.0, 0.08, rng.choice(['#c880e8', '#f8d048', '#e8e0f0']))
 CHIM = W(hx + 0.75, hy + 0.39, 1.0)
@@ -282,7 +291,7 @@ for k in range(4): tbox('glow', sx - 0.7 + k * 0.55, sy + 0.42, sx - 0.5 + k * 0
 tbox('stone', sx - 1.6, sy + 0.45, sx + 1.9, sy + 0.95, 0.0, 0.07, '#6e6c74')
 for xx in (sx - 1.3, sx + 1.6):
     tbox('iron', xx - 0.03, sy + 0.82, xx + 0.03, sy + 0.88, 0.0, 0.5, '#20202a'); ball('glow', W(xx, sy + 0.85, 0.54), 0.06, '#ffd070', 1)
-    lamp(W(xx, sy + 0.95, 0.6), '#ffc060', 10, 0.1)
+    lamp(W(xx, sy + 0.95, 0.6), '#ffc060', 10, 0.1); glow_at(W(xx, sy + 0.85, 0.54), 'lamp')
 ry = sy + 1.2
 for k in range(int((sx + 6 + PAD) / 0.25)):
     xx = -PAD + k * 0.25; tbox('wood', xx, ry - 0.02, xx + 0.1, ry + 0.38, 0.0, 0.03, '#3c2a1c')
@@ -308,7 +317,7 @@ bm.faces.new(vs); paint('hole', vs, '#020104')
 lamp(W(kx + 0.5, ky - 0.3, kz + 0.3), '#ff3020', 5, 0.2)   # rötlicher Schein aus der Tiefe
 for xx in (kx - 0.45, kx + 1.45):
     tbox('wood', xx - 0.03, ky + 0.1, xx + 0.03, ky + 0.16, kz, kz + 0.5, '#4a3020'); ball('fire', W(xx, ky + 0.13, kz + 0.56), 0.07, '#ffa040', 1, 1.4)
-    lamp(W(xx, ky + 0.35, kz + 0.6), '#ff9040', 9, 0.1)
+    lamp(W(xx, ky + 0.35, kz + 0.6), '#ff9040', 9, 0.1); glow_at(W(xx, ky + 0.13, kz + 0.56), 'fire')
 # Friedhof: Grabsteine und Kreuze, Eisengitter oben und unten, ein toter Baum, das offene Grab mit Erdhaufen, Schaufel und Laterne
 gx, gy = G0
 for y in range(MH):
@@ -336,16 +345,60 @@ tbox('stone', gx + 0.25, gy + 0.08, gx + 0.75, gy + 0.2, 0.0, 0.5, '#9c9ca8'); t
 ball('dirt', W(gx + 0.95, gy + 0.6, 0.02), 0.22, '#4a3420', 2, 0.55, 0.05)
 tube('wood', W(gx + 0.98, gy + 0.62, 0.05), W(gx + 1.02, gy + 0.55, 0.62), 0.02, '#7a5a34', 5); tbox('iron', gx + 0.93, gy + 0.6, gx + 1.06, gy + 0.64, 0.0, 0.14, '#7a7a84')
 tbox('iron', gx + 0.08, gy + 0.72, gx + 0.18, gy + 0.82, 0.0, 0.18, '#24222c'); ball('glow', W(gx + 0.13, gy + 0.77, 0.12), 0.045, '#ffc060', 1)
-lamp(W(gx + 0.2, gy + 0.95, 0.3), '#ffb050', 6, 0.1)
+lamp(W(gx + 0.2, gy + 0.95, 0.3), '#ffb050', 6, 0.1); glow_at(W(gx + 0.13, gy + 0.77, 0.12), 'lamp')
 # Wegweiser an der Kreuzung
 wx, wy = 33.75, 17.35
 tbox('wood', wx - 0.03, wy - 0.03, wx + 0.03, wy + 0.03, 0.0, 0.5, '#5c3a1c'); tbox('wood', wx - 0.25, wy - 0.02, wx + 0.12, wy + 0.02, 0.38, 0.46, '#8c6434'); tbox('wood', wx - 0.08, wy - 0.02, wx + 0.28, wy + 0.02, 0.27, 0.35, '#8c6434')
+
+# Laternen am Weg: warme Lichtinseln
+LOCS = [spot(c) for c in 'SHKG']
+for y in range(MH):
+    for x in range(MW):
+        if MAP[y][x] != '=' or (x * 3 + y * 5) % 8 or any(abs(x - a) + abs(y - b) < 3 for a, b in LOCS): continue
+        horiz = 0 < x < MW - 1 and (MAP[y][x - 1] in '=SB' or MAP[y][x + 1] in '=SB')
+        lx, ly = (x + 0.5, y + 0.06) if horiz else (x + 0.94, y + 0.5)
+        tbox('iron', lx - 0.025, ly - 0.025, lx + 0.025, ly + 0.025, 0.0, 0.56, '#24222c'); tbox('iron', lx - 0.05, ly - 0.05, lx + 0.05, ly + 0.05, 0.6, 0.63, '#24222c')
+        ball('glow', W(lx, ly, 0.56), 0.05, '#ffd070', 1); lamp(W(lx, ly + 0.25, 0.62), '#ffb860', 5, 0.08); glow_at(W(lx, ly, 0.56), 'lamp')
+# Felder: Zaun, Vogelscheuche, Heuhaufen
+for (x0, y0, x1, y1, kind) in FIELDS:
+    for (a, b, c_, d) in ((x0, y0, x1, y0), (x0, y1, x1, y1), (x0, y0, x0, y1), (x1, y0, x1, y1)):
+        L = math.hypot(c_ - a, d - b); n = int(L / 0.34)
+        for k in range(n + 1):
+            px_, py_ = a + (c_ - a) * k / n, b + (d - b) * k / n
+            if kind == 'acker' and a == x1 and abs(py_ - (y0 + y1) / 2) < 0.4: continue   # Tor zum Weg
+            tbox('wood', px_ - 0.025, py_ - 0.025, px_ + 0.025, py_ + 0.025, 0.0, 0.24, '#6a4a2a')
+        if b == d: tbox('wood', a, b - 0.015, c_, b + 0.015, 0.15, 0.19, '#7a5632')
+        else: tbox('wood', a - 0.015, b, a + 0.015, d, 0.15, 0.19, '#7a5632')
+cx_, cy_ = 10.5, 22.0   # Vogelscheuche mit Hut
+tbox('wood', cx_ - 0.03, cy_ - 0.03, cx_ + 0.03, cy_ + 0.03, 0.0, 0.7, '#5a3a1c'); tbox('wood', cx_ - 0.3, cy_ - 0.02, cx_ + 0.3, cy_ + 0.02, 0.48, 0.53, '#5a3a1c')
+tbox('house', cx_ - 0.13, cy_ - 0.06, cx_ + 0.13, cy_ + 0.06, 0.3, 0.55, '#6a2c24'); ball('dirt', W(cx_, cy_, 0.66), 0.09, '#c8a050', 1)
+cone('wood', W(cx_, cy_, 0.72), 0.16, 0.0, 0.2, '#3a2a1c', 8); cone('wood', W(cx_, cy_, 0.72), 0.2, 0.2, 0.02, '#3a2a1c', 10)
+for (hx_, hy_) in ((14.2, 21.0), (16.6, 22.4), (15.3, 22.6)):   # Heuhaufen
+    ball('dirt', W(hx_, hy_, 0.05), 0.24, '#b09048', 2, 0.85, 0.04)
+# Bergwald: Tannen am Fuß der Berge, Felsbrocken
+for y in range(-PAD, MH + PAD):
+    for x in range(-PAD, MW + PAD):
+        if CELLS[y + PAD][x + PAD] != 'M': continue
+        for k in range(2):
+            px_, py_ = x + rng.random(), y + rng.random(); z = ground(px_, py_)
+            if 0.12 < z < 1.4 and rng.random() < 0.45:
+                h = rng.uniform(0.7, 1.0); r = rng.uniform(0.22, 0.3); tone = rng.choice(['#1a3a2c', '#1e4232', '#163426'])
+                cone('leaf', W(px_, py_, z), r, 0.0, h * 0.6, tone, 7, 0.08, rng.random()); cone('leaf', W(px_, py_, z + h * 0.35), r * 0.7, 0.0, h * 0.6, tone, 7, 0.08, rng.random())
+            elif 0.02 < z < 0.4 and rng.random() < 0.25:
+                ball('stone', W(px_, py_, z), rng.uniform(0.12, 0.22), '#6a6470', 1, 0.7, 0.05, 0.1)
+# Steine im Fluss und Gischt, wo er aus den Bergen kommt
+for y in range(-PAD, MH + PAD):
+    for x in range(-PAD, MW + PAD):
+        if CELLS[y + PAD][x + PAD] != '~': continue
+        if rng.random() < 0.14: ball('stone', W(x + rng.uniform(0.2, 0.8), y + rng.uniform(0.2, 0.8), WL - 0.03), rng.uniform(0.07, 0.12), '#5a5a66', 1, 0.6, 0.03, 0.1)
+        if y <= 1:
+            for k in range(6): cone('foam', W(x + rng.uniform(0.05, 0.95), y + rng.uniform(0.0, 1.0), WL + 0.005), rng.uniform(0.05, 0.12), rng.uniform(0.05, 0.12), 0.01, '#d0e0f4', 8)
 
 # Netze bauen, Materialien
 MATS = {'leaf': ('leaf', 0.75, 0, 0, True), 'wood': ('wood', 0.8, 0, 0, True), 'flower': ('flower', 0.5, 0, 0.25, True), 'stone': ('stone', 0.85, 0, 0, True),
         'house': ('house', 0.8, 0, 0, True), 'roof': ('roof', 0.9, 0, 0, True), 'glow': ('#ffc060', 0.5, 0, 6.0, False), 'iron': ('iron', 0.45, 0.6, 0, True),
         'brew': ('#60ff70', 0.3, 0, 5.0, False), 'brick': ('brick', 0.85, 0, 0, True), 'slate': ('slate', 0.6, 0, 0, True), 'red': ('red', 0.5, 0.2, 0, True),
-        'car': ('car', 0.6, 0, 0, True), 'hole': ('#020104', 1.0, 0, 0, False), 'fire': ('#ffa040', 0.5, 0, 8.0, False), 'dirt': ('dirt', 0.95, 0, 0, True)}
+        'car': ('car', 0.6, 0, 0, True), 'hole': ('#020104', 1.0, 0, 0, False), 'fire': ('#ffa040', 0.5, 0, 8.0, False), 'dirt': ('dirt', 0.95, 0, 0, True), 'foam': ('foam', 0.4, 0, 0.35, True)}
 for key, (bm, lay) in BM.items():
     me = bpy.data.meshes.new(key); bm.to_mesh(me); bm.free()
     nm, rough, metal, emit, attr = MATS.get(key, (key, 0.8, 0, 0, True))
@@ -381,4 +434,6 @@ sc.render.resolution_x, sc.render.resolution_y, sc.render.resolution_percentage 
 sc.render.film_transparent = False; sc.render.image_settings.file_format = 'PNG'
 sc.render.filepath = CFG['out']; bpy.ops.render.render(write_still=True)
 px = lambda p: (round(p.x * 16, 1), round((-p.y / K - p.z * math.sin(TILT)) * 16, 1))
-print('ok', 'Schornstein', px(CHIM), 'Verts', len(land.data.vertices))
+import json
+if CFG.get('lights'): json.dump([[px(p)[0], px(p)[1], k] for p, k in LIGHTS], open(CFG['lights'], 'w'))
+print('ok', 'Schornstein', px(CHIM), 'Verts', len(land.data.vertices), 'Lichter', len(LIGHTS))

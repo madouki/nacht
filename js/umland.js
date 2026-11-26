@@ -5,13 +5,15 @@
 // Schloss), Kräuterhütte (Walburga, Lohn: Kräuterbeutel), Tiefe Höhle (eigener Raum mit Truhe und Lebensgefäß), altes Grab
 // (graben: 3000 Gold). Kampfplätze: castle.js (umland_*, offmap), Lied 'umland' (audio.js). Bild: tools/blender/umland_bl.py
 // (Diorama bei Mondlicht, 16 px je Kachel) → pack_umland.py → img/umland3d.png; bis es geladen ist, zeichnet paint() die Karte selbst.
-// Darüber Nebel über Fluss und Sumpf, Glühwürmchen und ziehende Wolkenschatten.
+// Darüber Nebel über Fluss und Sumpf, Glühwürmchen, ziehende Wolkenschatten, flackernde Laternen und Fackeln, Irrlichter über
+// Friedhof und Sumpf und ab und zu ein Fledermausschwarm.
 'use strict';
 const Umland = (() => {
   const MW = 56, MH = 32, TS = 16, BLOCK = new Set(['M', '~']);
   const LOC = { S: 'umlandBahnhof', H: 'umlandHuette', K: 'umlandHoehle', G: 'umlandGrab' };
   let map = null, pre = null, G = null, pendingStation = false, extra = 0, pre3d = false, FX = null;
   const IMG = new Image();
+  const LIGHTS = [[228,172,"win"],[236,172,"win"],[220,173,"brew"],[75,425,"lamp"],[122,425,"lamp"],[697,114,"fire"],[727,114,"fire"],[642,219,"lamp"],[719,195,"lamp"],[104,220,"lamp"],[232,220,"lamp"],[543,275,"lamp"],[552,284,"lamp"],[680,284,"lamp"],[111,355,"lamp"],[543,403,"lamp"],[168,412,"lamp"],[296,412,"lamp"],[424,412,"lamp"]]; // Lichtquellen im Diorama [x, y, Art] – von pack_umland.py aus umland_bl.py eingetragen
   const img3d = () => IMG.complete && IMG.naturalWidth > 0;
   let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   function build() {
@@ -88,7 +90,11 @@ const Umland = (() => {
       if ((c === 's' && r() < 0.24) || (c === '~' && r() < 0.14)) fog.push({ x: tx * TS + 8, y: ty * TS + 8, p: r() * 6.28, w: 34 + r() * 34 });
       if ((c === '.' || c === 's' || c === 'T' || c === 'h') && r() < 0.06) flies.push({ x: tx * TS + r() * 16, y: ty * TS + r() * 16, p: r() * 6.28, q: 0.6 + r() * 0.8 }); }
     const glow = (n, col) => { const c = Sprites.canvas(n, n), g = c.getContext('2d'), gr = g.createRadialGradient(n / 2, n / 2, 0, n / 2, n / 2, n / 2); gr.addColorStop(0, col); gr.addColorStop(1, col.replace(/[\d.]+\)$/, '0)')); g.fillStyle = gr; g.fillRect(0, 0, n, n); return c; };
-    FX = { fog, flies, puff: glow(64, 'rgba(196,206,236,0.5)'), cloud: glow(128, 'rgba(2,4,18,0.55)'), fly: glow(12, 'rgba(220,255,140,0.9)') };
+    const wisps = [];   // Irrlichter: kalte Lichter, die über Friedhof und Sumpf schweben
+    for (const [c, n] of [['+', 2], ['s', 3]]) { const cells = []; for (let ty = 0; ty < MH; ty++) for (let tx = 0; tx < MW; tx++) if (map[ty][tx] === c) cells.push([tx, ty]);
+      for (let i = 0; i < n && cells.length; i++) { const [tx, ty] = cells[Math.floor(r() * cells.length)]; wisps.push({ x: tx * TS + 8, y: ty * TS + 8, p: r() * 6.28, q: 0.6 + r() * 0.6 }); } }
+    FX = { fog, flies, wisps, bats: [], puff: glow(64, 'rgba(196,206,236,0.5)'), cloud: glow(128, 'rgba(2,4,18,0.55)'), fly: glow(12, 'rgba(220,255,140,0.9)'),
+      warm: glow(32, 'rgba(255,176,90,0.55)'), fire: glow(40, 'rgba(255,130,50,0.6)'), brew: glow(28, 'rgba(110,255,130,0.55)'), wisp: glow(24, 'rgba(140,220,255,0.8)') };
   }
   function start() { // vom Bahnhof Krat aus
     ensure(); const st = spot('S');
@@ -180,6 +186,11 @@ const Umland = (() => {
     const vis = (x, y, m) => x > cx - m && x < cx + vw + m && y > cy - m && y < cy + vh + m;
     for (let ty = Math.floor(cy / TS); ty <= Math.floor((cy + vh) / TS); ty++) for (let tx = Math.floor(cx / TS); tx <= Math.floor((cx + vw) / TS); tx++) { // Wellen glitzern im Mondlicht
       if ((map[ty] || [])[tx] !== '~') continue; const k = (tx * 7 + ty * 3 + (t >> 4)) % (pre3d ? 7 : 5); if (k < 2) { ctx.fillStyle = pre3d ? (k ? 'rgba(150,190,255,0.55)' : 'rgba(220,236,255,0.8)') : (k ? '#4c7cc0' : '#7cacf0'); ctx.fillRect(tx * TS + 3 + k * 5, ty * TS + 5 + ((t >> 3) + tx) % 6, pre3d ? 2 : 3, 1); } }
+    if (pre3d) { ctx.globalCompositeOperation = 'lighter'; // Laternen, Fenster, Fackeln und Kessel flackern
+      LIGHTS.forEach(([x, y, k], i) => { if (!vis(x, y, 30)) return; const fl = 0.75 + 0.18 * Math.sin(t * 0.31 + i * 1.7) * Math.sin(t * 0.13 + i * 0.9) + (k === 'fire' ? 0.12 * Math.sin(t * 0.9 + i) : 0);
+        const im = k === 'fire' ? FX.fire : k === 'brew' ? FX.brew : FX.warm, sz = (k === 'fire' ? 40 : k === 'win' ? 20 : k === 'brew' ? 28 : 30) * (0.92 + 0.08 * fl);
+        ctx.globalAlpha = Math.min(1, fl * (k === 'win' ? 0.6 : 0.85)); ctx.drawImage(im, Math.round(x - sz / 2), Math.round(y - sz / 2), Math.round(sz), Math.round(sz)); });
+      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; }
     for (const f of FX.fog) { const x = f.x + Math.sin(t * 0.006 + f.p) * 10, y = f.y + Math.cos(t * 0.004 + f.p) * 3; if (!vis(x, y, 60)) continue; // Nebelschwaden
       ctx.globalAlpha = 0.32 + 0.18 * Math.sin(t * 0.01 + f.p); ctx.drawImage(FX.puff, Math.round(x - f.w / 2), Math.round(y - f.w * 0.22), Math.round(f.w), Math.round(f.w * 0.44)); }
     ctx.globalAlpha = 1;
@@ -190,6 +201,16 @@ const Umland = (() => {
     ents.sort((a, b) => a.y - b.y).forEach(e => e.d());
     for (const f of FX.flies) { const x = f.x + Math.sin(t * 0.02 * f.q + f.p) * 6, y = f.y + Math.cos(t * 0.017 * f.q + f.p * 2) * 4, a = Math.sin(t * 0.045 * f.q + f.p); // Glühwürmchen
       if (a <= 0 || !vis(x, y, 10)) continue; ctx.globalAlpha = a; ctx.drawImage(FX.fly, Math.round(x) - 6, Math.round(y) - 6); ctx.fillStyle = '#f4ffc0'; ctx.fillRect(Math.round(x), Math.round(y), 1, 1); }
+    ctx.globalCompositeOperation = 'lighter';
+    for (const w of FX.wisps) { const x = w.x + Math.sin(t * 0.011 * w.q + w.p) * 22, y = w.y + Math.sin(t * 0.017 * w.q + w.p * 2) * 9 - 6, a = 0.45 + 0.4 * Math.sin(t * 0.05 + w.p); // Irrlichter
+      if (!vis(x, y, 20)) continue; ctx.globalAlpha = Math.max(0, a); ctx.drawImage(FX.wisp, Math.round(x) - 12, Math.round(y) - 12); ctx.fillStyle = '#e8fbff'; ctx.fillRect(Math.round(x), Math.round(y), 1, 1); }
+    ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+    if (!FX.bats.length && G.t % 840 === 400) { const dir = (G.t / 840) % 2 < 1 ? 1 : -1, y0 = cy + 40 + ((G.t * 7) % 120); // ab und zu ein Fledermausschwarm vor dem Mond
+      for (let i = 0; i < 5; i++) FX.bats.push({ x: dir > 0 ? cx - 20 - i * 14 : cx + vw + 20 + i * 14, y: y0 + ((i * 37) % 30) - 15, v: dir * (1.5 + (i % 3) * 0.25), p: i * 1.3 }); }
+    ctx.fillStyle = '#0a0610';
+    for (const b of FX.bats) { b.x += b.v; b.p += 0.35; const x = Math.round(b.x), y = Math.round(b.y + Math.sin(b.p * 0.3) * 4), f = Math.sin(b.p) > 0 ? 1 : 0;
+      ctx.fillRect(x - 1, y, 3, 2); ctx.fillRect(x - 4, y - 1 - f * 2, 3, 1 + f); ctx.fillRect(x + 2, y - 1 - f * 2, 3, 1 + f); }
+    FX.bats = FX.bats.filter(b => b.x > cx - 120 && b.x < cx + vw + 120);
     for (let k = 0; k < 4; k++) { const x = ((k * 330 + t * 0.12) % (MW * TS + 320)) - 160, y = 60 + ((k * 197) % (MH * TS - 120)) + Math.sin(t * 0.002 + k) * 20; // Wolkenschatten ziehen über das Land
       if (!vis(x, y, 160)) continue; ctx.globalAlpha = 0.5; ctx.drawImage(FX.cloud, Math.round(x - 130), Math.round(y - 70), 260, 140); }
     ctx.globalAlpha = 1;
