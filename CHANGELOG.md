@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261126-0852](#20261126-0852--neue-heldenfigur-auf-der-oberwelt) – Neue Heldenfigur auf der Oberwelt
 - [20261126-0757](#20261126-0757--der-moorpalast-und-pförtner-granitus) – Der Moorpalast und Pförtner Granitus
 - [20261126-0116](#20261126-0116--die-grafschaft-krat-wird-lebendiger) – Die Grafschaft Krat wird lebendiger
 - [20261126-0039](#20261126-0039--die-grafschaft-krat-das-umland-in-draufsicht-dazu-sprachausgabe-auf-italienisch-und-rumänisch) – Die Grafschaft Krat: das Umland in Draufsicht, dazu Sprachausgabe auf Italienisch und Rumänisch
@@ -91,6 +92,16 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261126-0852 – Neue Heldenfigur auf der Oberwelt
+
+**Neu – Henrik und Ragnor in 3D auf der Oberwelt**
+- Auf der Karte der Grafschaft Krat läuft jetzt eine richtige kleine 3D-Figur statt der Pixelfigur. Sie ist in Blender gebaut und passt zum Diorama.
+- Henrik trägt rotes Kopftuch, langes Haar, Ledermantel und die aufgerollte Peitsche am Gürtel. Ragnor hat Mähne, rotes Stirnband, Fellschurz und das Schwert auf dem Rücken. Es läuft der Held, den du im Menü gewählt hast.
+- Beide tragen eine Laterne, die beim Gehen schaukelt. Es gibt vier Blickrichtungen mit eigenen Laufbildern.
+
+**Beim Testen ansehen**
+- Gefällt dir die neue Figur, und erkennst du, wohin sie schaut?
 
 ## 20261126-0757 – Der Moorpalast und Pförtner Granitus
 

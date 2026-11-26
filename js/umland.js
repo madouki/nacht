@@ -13,6 +13,9 @@ const Umland = (() => {
   const LOC = { S: 'umlandBahnhof', H: 'umlandHuette', K: 'umlandHoehle', G: 'umlandGrab', P: 'umlandPalast' };
   let map = null, pre = null, G = null, pendingStation = false, extra = 0, pre3d = false, FX = null;
   const IMG = new Image();
+  const HERO_MAP = {"henrik_0_0":[0,0,22,30],"henrik_0_1":[23,0,22,30],"henrik_0_2":[46,0,22,30],"henrik_1_0":[69,0,22,30],"henrik_1_1":[92,0,22,30],"henrik_1_2":[115,0,22,30],"henrik_2_0":[138,0,22,30],"henrik_2_1":[161,0,22,30],"henrik_2_2":[184,0,22,30],"henrik_3_0":[207,0,22,30],"henrik_3_1":[230,0,22,30],"henrik_3_2":[253,0,22,30],"ragnor_0_0":[0,31,22,30],"ragnor_0_1":[23,31,22,30],"ragnor_0_2":[46,31,22,30],"ragnor_1_0":[69,31,22,30],"ragnor_1_1":[92,31,22,30],"ragnor_1_2":[115,31,22,30],"ragnor_2_0":[138,31,22,30],"ragnor_2_1":[161,31,22,30],"ragnor_2_2":[184,31,22,30],"ragnor_3_0":[207,31,22,30],"ragnor_3_1":[230,31,22,30],"ragnor_3_2":[253,31,22,30]}; // Henrik und Ragnor in Schrägsicht (tools/blender/wanderer_bl.py → pack_wanderer.py): <held>_<richtung>_<bild>, 22×30
+  const HIMG = new Image(); let HS = null;
+  HIMG.onload = () => { HS = {}; for (const [n, r] of Object.entries(HERO_MAP)) { const c = Sprites.canvas(r[2], r[3]); c.getContext('2d').drawImage(HIMG, r[0], r[1], r[2], r[3], 0, 0, r[2], r[3]); HS[n] = c; } };
   const LIGHTS = [[228,172,"win"],[236,172,"win"],[220,173,"brew"],[75,425,"lamp"],[122,425,"lamp"],[697,114,"fire"],[727,114,"fire"],[642,219,"lamp"],[728,365,"fire"],[760,365,"fire"],[719,195,"lamp"],[104,220,"lamp"],[232,220,"lamp"],[543,275,"lamp"],[552,284,"lamp"],[680,284,"lamp"],[111,355,"lamp"],[543,403,"lamp"],[168,412,"lamp"],[296,412,"lamp"],[424,412,"lamp"]]; // Lichtquellen im Diorama [x, y, Art] – von pack_umland.py aus umland_bl.py eingetragen
   const img3d = () => IMG.complete && IMG.naturalWidth > 0;
   let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
@@ -83,7 +86,7 @@ const Umland = (() => {
     loc('G', (X, Y) => { R('#16101a', X + 3, Y - 2, 11, 16); x.fillStyle = '#7c7c8c'; x.beginPath(); x.moveTo(X + 4, Y + 13); x.lineTo(X + 4, Y + 2); x.arc(X + 8.5, Y + 2, 4.5, Math.PI, 0); x.lineTo(X + 13, Y + 13); x.fill(); R('#a8a8b8', X + 5, Y + 1, 1, 10); R('#3c3c48', X + 8, Y + 2, 1, 7); R('#3c3c48', X + 6, Y + 4, 5, 1); R('#5c3c24', X + 2, Y + 13, 13, 2); });
   }
   // ---------------- Spiel ----------------
-  function ensure() { if (!map) { map = build(); if (!IMG.src) IMG.src = 'img/umland3d.png?v=' + (window.BUILD || ''); paint(); fxInit(); } }
+  function ensure() { if (!map) { map = build(); if (!IMG.src) IMG.src = 'img/umland3d.png?v=' + (window.BUILD || ''); if (!HIMG.src) HIMG.src = 'img/wanderer3d.png?v=' + (window.BUILD || ''); paint(); fxInit(); } }
   function fxInit() { // Nebelschwaden über Fluss und Sumpf, Glühwürmchen, Wolkenschatten – feste Plätze, Bewegung nur beim Zeichnen
     let s = 31; const r = () => (s = (s * 16807) % 2147483647) / 2147483647, fog = [], flies = [];
     for (let ty = 0; ty < MH; ty++) for (let tx = 0; tx < MW; tx++) { const c = map[ty][tx];
@@ -137,7 +140,7 @@ const Umland = (() => {
     }
     const mx = (I.right ? 1 : 0) - (I.left ? 1 : 0), my = (I.down ? 1 : 0) - (I.up ? 1 : 0), c0 = at(G.x, G.y);
     const sp = (c0 === 's' ? 0.62 : c0 === 'T' ? 0.86 : 1.12) / (mx && my ? 1.41 : 1);
-    if (mx || my) { G.step += sp; G.dir = my > 0 ? 2 : my < 0 ? 0 : mx > 0 ? 1 : 3; }
+    G.mv = !!(mx || my); if (mx || my) { G.step += sp; G.dir = my > 0 ? 2 : my < 0 ? 0 : mx > 0 ? 1 : 3; }
     const nx = G.x + mx * sp, ny = G.y + my * sp;
     if (free(nx - 5, G.y + 4) && free(nx + 5, G.y + 4)) G.x = nx;
     if (free(G.x - 5, ny + 4) && free(G.x + 5, ny + 4) && free(G.x, ny - 2)) G.y = ny;
@@ -160,7 +163,11 @@ const Umland = (() => {
     return false;
   }
   // ---------------- Zeichnen ----------------
-  function hero(ctx, x, y, dir, step, t) { // kleiner Held in Draufsicht (14×18)
+  function hero(ctx, x, y, dir, step, t) { // Held in Schrägsicht: Blender-Figur mit Laterne, sonst kleine Pixelfigur (14×18)
+    if (HS) {
+      const who = typeof Options !== 'undefined' && Options.character === 'ragnor' ? 'ragnor' : 'henrik', fr = G && G.mv ? [1, 0, 2, 0][Math.floor(step / 4) % 4] : 0, im = HS[who + '_' + dir + '_' + fr];
+      if (im) { ctx.fillStyle = 'rgba(0,0,0,0.38)'; ctx.beginPath(); ctx.ellipse(Math.round(x), Math.round(y + 7), 6, 2.5, 0, 0, Math.PI * 2); ctx.fill(); ctx.drawImage(im, Math.round(x - 11), Math.round(y - 20)); return; }
+    }
     const f = Math.floor(step / 5) % 2, R = (c, X, Y, w, h) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x + X), Math.round(y + Y), w, h); };
     ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(Math.round(x), Math.round(y + 7), 6, 2.5, 0, 0, Math.PI * 2); ctx.fill();
     R('#1c1010', -4, 2 + (f ? 1 : 0), 3, 5); R('#1c1010', 1, 2 + (f ? 0 : 1), 3, 5);           // Beine
