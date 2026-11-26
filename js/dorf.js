@@ -10,7 +10,7 @@
 // Bild: tools/blender/dorf_bl.py → pack_dorf.py → img/dorf3d.png (Figuren 40×48, Füße bei 20/48).
 'use strict';
 const Dorf = (() => {
-  const MAP = {"turm":[0,0,72,160],"haus2":[73,0,96,144],"wirtshaus":[170,0,160,136],"haus":[331,0,112,128],"skyline":[0,161,768,112],"brunnen":[0,274,72,80],"laterne":[73,274,16,64],"brett":[90,274,40,56],"wirtin0":[131,274,40,48],"wirtin1":[172,274,40,48],"buerger0":[213,274,40,48],"buerger1":[254,274,40,48],"eulalia0":[295,274,40,48],"eulalia1":[336,274,40,48],"angel":[377,274,20,48],"katze0":[398,274,40,40],"katze1":[439,274,40,40],"katze2":[480,274,40,40],"unke_wach":[521,274,40,36],"zaun":[562,274,64,24]};
+  const MAP = {"turm":[0,0,56,204],"haus2":[57,0,108,170],"wirtshaus":[166,0,172,154],"haus":[339,0,130,144],"haus3":[470,0,122,138],"skyline":[0,205,768,112],"brunnen":[0,318,72,80],"laterne":[73,318,16,64],"brett":[90,318,40,56],"wirtin0":[131,318,40,48],"wirtin1":[172,318,40,48],"buerger0":[213,318,40,48],"buerger1":[254,318,40,48],"eulalia0":[295,318,40,48],"eulalia1":[336,318,40,48],"angel":[377,318,20,48],"katze0":[398,318,40,40],"katze1":[439,318,40,40],"katze2":[480,318,40,40],"unke_wach":[521,318,40,36],"zaun":[562,318,64,24]};
   const C = {}, img = new Image(); let asked = false;
   img.onload = () => { for (const [n, r] of Object.entries(MAP)) { const c = Sprites.canvas(r[2], r[3]); c.getContext('2d').drawImage(img, r[0], r[1], r[2], r[3], 0, 0, r[2], r[3]); C[n] = c; } };
   const load = () => { if (!asked) { asked = true; img.src = 'img/dorf3d.png?v=' + (window.BUILD || ''); } };
@@ -22,11 +22,12 @@ const Dorf = (() => {
   const fl = () => Castle.flags;
   // ---------------- Dorfstraße ----------------
   // [Stück, Mitte x in Kacheln, gespiegelt] – unten auf dem Boden, hinter der Spielebene
-  const ROW = [['zaun', 2.6], ['haus', 7], ['laterne', 12.2], ['wirtshaus', 18.5], ['laterne', 27.6], ['brunnen', 31], ['brett', 38.5], ['laterne', 41.4],
-    ['haus2', 45.5], ['zaun', 50.6], ['turm', 55], ['laterne', 58.4], ['haus', 63, true]];
+  // Häuser aus tools/blender/dorfhaus_bl.py in Schrägansicht (alle zeigen die rechte Seite, darum nie spiegeln)
+  const ROW = [['zaun', 2.6], ['haus3', 7], ['laterne', 12.2], ['wirtshaus', 18.5], ['laterne', 27.6], ['brunnen', 31], ['brett', 38.5], ['laterne', 41.4],
+    ['haus2', 45.5], ['zaun', 50.6], ['turm', 55], ['laterne', 58.4], ['haus', 63]];
   const LAMPS = ROW.filter(r => r[0] === 'laterne').map(r => r[1]);
-  const SMOKE = [[7, 84 - 56, 128], [45.5, 26 - 48, 146], [63, 56 - 84, 128]]; // Schornsteine: Haus x, Versatz im Bild, Höhe über dem Boden
-  const GARLAND = [[23.3, 100, 27.6, 60, 10], [27.6, 60, 41.4, 60, 26], [48.6, 104, 52.9, 112, 8]]; // Lichterketten: von (x, Höhe) nach (x, Höhe), Durchhang
+  const SMOKE = [[7, 19, 136], [18.5, 29, 152], [45.5, 17, 168], [63, 21, 142]]; // Schornsteine (aus <haus>_meta.json): Haus x, Versatz zur Mitte, Höhe über dem Boden
+  const GARLAND = [[22.8, 88, 27.6, 60, 10], [27.6, 60, 41.4, 60, 26], [48.7, 96, 53.8, 122, 8]]; // Lichterketten: von (x, Höhe) nach (x, Höhe), Durchhang
   const BULB = ['#ff6050', '#ffd040', '#60d0ff', '#90ff70', '#ff80e0'];
   const WELL = { x: 31, k: 72 / 2 }; // Brunnen 72×80: Wasserstrahl tritt bei x 57 aus, Becken bei y 60, Steinunke bei (37, 21)
   // Dinge zum Untersuchen: x in Kacheln (Mitte), sy = Sprechhöhe über dem Boden, who = Sprecherfarbe
@@ -107,7 +108,7 @@ const Dorf = (() => {
       ctx.globalAlpha = 1;
     }
     lightUp(L, cx, cy) { // Fensterschein, Laternen, Brunnen
-      for (const [k, x] of ROW) if (k === 'haus' || k === 'haus2' || k === 'wirtshaus' || k === 'turm') L.push({ x: x * T - cx, y: this.gy - 50 - cy, r: 48, c: k === 'turm' ? [200, 150, 255] : [252, 200, 130], a: 0.2 });
+      for (const [k, x] of ROW) if (k === 'haus' || k === 'haus2' || k === 'haus3' || k === 'wirtshaus' || k === 'turm') L.push({ x: x * T - cx, y: this.gy - 50 - cy, r: 48, c: k === 'turm' ? [200, 150, 255] : [252, 200, 130], a: 0.2 });
       for (const x of LAMPS) L.push({ x: x * T - cx, y: this.gy - 52 - cy, r: 44 + Math.sin(this.t * 0.07 + x) * 2, c: [255, 210, 140], a: 0.42 });
       L.push({ x: WELL.x * T - cx, y: this.gy - 30 - cy, r: 36, c: [120, 200, 255], a: 0.22 });
       if (awake()) L.push({ x: WELL.x * T - cx, y: this.gy - 62 - cy, r: 50, c: [150, 255, 120], a: 0.45 });

@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261126-1610](#20261126-1610--neue-häuser-für-unkenbrunn) – Neue Häuser für Unkenbrunn
 - [20261126-1515](#20261126-1515--unkenbrunn-wird-hübscher-und-im-dorf-gibt-es-ein-abenteuer) – Unkenbrunn wird hübscher, und im Dorf gibt es ein Abenteuer
 - [20261126-1424](#20261126-1424--das-dorf-unkenbrunn-die-unkenkrone-und-das-donnerwort) – Das Dorf Unkenbrunn, die Unkenkrone und das Donnerwort
 - [20261126-1336](#20261126-1336--mondinsel-mit-lagune-spielzeugheld-und-goldblöcke-im-turm-der-winde) – Mondinsel mit Lagune, Spielzeugheld und Goldblöcke im Turm der Winde
@@ -96,6 +97,23 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261126-1610 – Neue Häuser für Unkenbrunn
+
+**Neu – Die Häuser der Dorfstraße sind neu gebaut**
+- Alle Gebäude sind jetzt in einer leichten Schrägansicht zu sehen. Man erkennt Seitenwand und Dachfläche, die Häuser wirken plastisch statt flach.
+- Echtes Fachwerk mit Streben, Gefache in leicht wechselnden Farben, ein vorkragendes Obergeschoss und Giebel mit runden Fenstern.
+- Ziegeldächer aus einzelnen Reihen mit First und Schornstein. Aus den Schornsteinen steigt Rauch.
+- Die Fenster haben Sprossen, Gardinen, Fensterläden und Blumenkästen. Dazu kommen Rundbogentüren mit Brettern, Klinke, Stufe und Türlampe, ein Bruchsteinsockel und Efeu an den Ecken.
+- Die Häuser stehen im Mondlicht, und aus den Fenstern fällt warmes Licht.
+- **Neue Bäckerei** am Dorfeingang: Ocker-Fachwerk, blaue Läden, rot-weiße Markise und eine goldene Brezel am Ausleger.
+- Das **Gasthaus „Zur Fetten Unke“** hat jetzt Salbei-Gefache, ein moosgrünes Dach, eine Bank und Fässer vor der Tür.
+- Das **blaue Haus** hat ein Schieferdach und einen Erker mit drei Fenstern.
+- **Eulalias Wetterturm** besteht aus schiefen Steinringen mit vorstehenden Steinen. Dazu gehören ein Holzbalkon, ein Schindeldach, ein Blitzableiter mit Windmesser und Efeu.
+
+**Beim Testen ansehen**
+- Gefällt dir die Schrägansicht der Häuser?
+- Ist eines der Häuser zu hell oder zu dunkel?
 
 ## 20261126-1515 – Unkenbrunn wird hübscher, und im Dorf gibt es ein Abenteuer
 
