@@ -91,7 +91,7 @@ const Sarg = (() => {
     return out;
   }
   function place(w) {
-    const R = w.room; if (!THEMES.has(R.theme) || R.arena || R.mini || R.hall || R.wrap || R.side === 'kantine') return; // in der Kantine wird gegessen, nicht gehüpft
+    const R = w.room; if (!THEMES.has(R.theme) || R.arena || R.safe || R.mini || R.hall || R.wrap || R.side === 'kantine') return; // in der Kantine wird gegessen, nicht gehüpft
     const rand = rng(hash('sarg:' + (R.side || '') + ':' + w.stage + ':' + w.roomIdx));
     const L = spots(w); if (!L.length) return;
     const n = R.w >= 100 ? 2 : 1, got = [];

@@ -138,7 +138,7 @@ const Kunst = (() => {
   }
   function populate(w) { // in manchen Räumen ist genau eine Kerze eine Mimik
     if (typeof Castle === 'undefined' || !Castle.on) return; const R = w.room;
-    if (R.arena || R.mini || R.hall || (Levels.STAGES[w.stage] || {}).id === 'arrival' || Math.random() >= 0.24) return;
+    if (R.arena || R.safe || R.mini || R.hall || (Levels.STAGES[w.stage] || {}).id === 'arrival' || Math.random() >= 0.24) return;
     const list = w.ents.filter(e => e instanceof Candle && !e.torch && !e.blood && Math.abs(e.cx - w.player.cx) > 90);
     if (list.length >= 3) list[Math.floor(Math.random() * list.length)].mimic = true;
   }

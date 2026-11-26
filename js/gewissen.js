@@ -88,7 +88,7 @@ const Gewissen = (() => {
     return true;
   }
   function hunter(w) { // nur in gewöhnlichen Räumen, nie im Prolog
-    const R = w.room; if (tier() !== 'bad' || R.arena || R.mini || R.hall || R.wrap || R.grav || R.side === 'kolosseum' || (Levels.STAGES[w.stage] || {}).id === 'arrival' || Math.random() >= 0.16) return;
+    const R = w.room; if (tier() !== 'bad' || R.arena || R.safe || R.mini || R.hall || R.wrap || R.grav || R.side === 'kolosseum' || (Levels.STAGES[w.stage] || {}).id === 'arrival' || Math.random() >= 0.16) return;
     const c = clamp(Math.floor(w.player.cx / T) + 14, 2, R.w - 3), fy = floorY(c); if (fy <= T || Phys.solidTile(c, fy / T - 1)) return;
     const k = new Knight(c, fy / T - 1); Champ.make(k, 'eile'); w.spawn(k); Game.note('champHunt');
   }

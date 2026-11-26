@@ -6,7 +6,7 @@ const Champ = (() => {
   const CHANCE = 0.34, GOAL = 10;
   function populate(w) {
     if (typeof Castle === 'undefined' || !Castle.on) return;
-    const R = w.room; if (R.arena || R.mini || R.hall || (Levels.STAGES[w.stage] || {}).id === 'arrival' || Math.random() >= CHANCE) return;
+    const R = w.room; if (R.arena || R.safe || R.mini || R.hall || (Levels.STAGES[w.stage] || {}).id === 'arrival' || Math.random() >= CHANCE) return;
     const list = w.ents.filter(e => e.kind === 'enemy' && OK.has(e.constructor.name) && Math.abs(e.cx - w.player.cx) > 130);
     if (list.length) make(list[Math.floor(Math.random() * list.length)]);
   }

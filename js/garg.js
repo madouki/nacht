@@ -70,7 +70,7 @@ const Garg = (() => {
   function populate(w) { if (typeof Castle !== 'undefined' && Castle.on && THEMES.has(w.room.theme)) w.spawn(new Platz()); }
   function place(w) {
     const R = w.room;
-    if (!THEMES.has(R.theme) || R.arena || R.mini || R.hall || R.wrap) return;
+    if (!THEMES.has(R.theme) || R.arena || R.safe || R.mini || R.hall || R.wrap) return;
     const rand = rng(hash((R.side || '') + ':' + w.stage + ':' + w.roomIdx));
     if (rand() > 0.8) return;
     const L = spots(w); if (!L.length) return;

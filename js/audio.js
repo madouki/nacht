@@ -715,6 +715,20 @@ const Audio8 = (() => {
     'g5:4 e5:2 g5:2 b5:6 a5:2', 'g5:4 f#5:4 e5:8', 'e5:4 g5:2 c6:2 e6:6 d6:2', 'c6:4 b5:4 a5:4 g5:4', 'b5:4 d6:2 b5:2 g5:4 d5:4', 'g5:4 a5:4 b5:8', 'c6:4 a5:2 e5:2 a5:4 c6:4', 'd6:6 c6:2 a5:4 f#5:4',
     'd5:2 g5:2 b5:4 a5:2 g5:2 d5:4', 'f#5:2 b5:2 d6:4 c#6:2 b5:2 f#5:4', 'e5:2 g5:2 c6:4 b5:2 a5:2 g5:4', 'a5:4 c6:4 e6:4 c6:4', 'd6:4 b5:2 g5:2 d6:4 g6:4', 'f#6:4 e6:2 d6:2 c6:4 a5:4', 'g6:8 d6:4 b5:4', 'g5:8 d5:4 g4:4'];
 
+  // Unkenwalzer des Dorfs Unkenbrunn (js/dorf.js): D-Dur im Dreivierteltakt – Bass auf eins, Begleitung auf zwei und drei;
+  // A-Teil in D, B-Teil über h-Moll und fis-Moll, Trio in G-Dur, dann zurück an den Anfang
+  const DF = { D: ['a3', 'd4', 'f#4'], G: ['b3', 'd4', 'g4'], A7: ['a3', 'c#4', 'g4'], A: ['a3', 'c#4', 'e4'], Bm: ['b3', 'd4', 'f#4'], Em: ['b3', 'e4', 'g4'], 'F#m': ['a3', 'c#4', 'f#4'], E7: ['g#3', 'b3', 'e4'], Am: ['a3', 'c4', 'e4'], C: ['c4', 'e4', 'g4'] };
+  const DF_B = { D: 'd2', G: 'g1', A7: 'a1', A: 'a1', Bm: 'b1', Em: 'e2', 'F#m': 'f#1', E7: 'e2', Am: 'a1', C: 'c2' };
+  const DF_C = ['D', 'D', 'A7', 'A7', 'A7', 'A7', 'D', 'D', 'D', 'D', 'G', 'G', 'D', 'A7', 'D', 'D',
+    'Bm', 'Bm', 'F#m', 'F#m', 'G', 'G', 'D', 'D', 'Em', 'Em', 'A', 'A', 'Bm', 'E7', 'A', 'A7',
+    'G', 'G', 'D', 'D', 'Em', 'Am', 'D', 'D', 'G', 'G', 'C', 'C', 'G', 'A7', 'D', 'A7'];
+  const DF_L = ['a4:4 d5:4 f#5:4', 'a5:8 f#5:4', 'e5:4 g5:4 a5:4', 'c#6:8 a5:4', 'g5:4 f#5:4 e5:4', 'a5:4 g5:4 e5:4', 'f#5:4 e5:4 d5:4', 'a4:8 -:4',
+    'a4:4 d5:4 f#5:4', 'a5:6 b5:2 a5:4', 'g5:4 b5:4 d6:4', 'd6:8 b5:4', 'a5:4 f#5:4 d5:4', 'e5:4 g5:4 c#6:4', 'd6:8 a5:4', 'd6:8 -:4',
+    'f#5:4 b5:4 d6:4', 'c#6:6 b5:2 a5:4', 'a5:4 c#6:4 f#6:4', 'e6:8 c#6:4', 'd6:4 b5:4 g5:4', 'b5:6 a5:2 g5:4', 'f#5:4 a5:4 d6:4', 'a5:8 -:4',
+    'g5:4 b5:4 e6:4', 'd6:6 c#6:2 b5:4', 'a5:4 c#6:4 e6:4', 'e6:8 c#6:4', 'd6:4 b5:4 f#5:4', 'g#5:4 b5:4 e6:4', 'c#6:8 e6:4', 'a5:4 g5:4 e5:4',
+    'd5:4 g5:4 b5:4', 'd6:8 b5:4', 'a5:4 f#5:4 a5:4', 'd6:8 a5:4', 'b5:4 g5:4 e5:4', 'c6:6 b5:2 a5:4', 'a5:4 f#5:4 d5:4', 'f#5:8 a5:4',
+    'b5:4 d6:4 g6:4', 'f#6:4 e6:4 d6:4', 'e6:4 c6:4 g5:4', 'c6:6 b5:2 a5:4', 'b5:4 d6:4 b5:4', 'a5:4 c#6:4 e6:4', 'd6:8 f#5:4', 'e5:4 a5:4 c#6:4'];
+
   // Palastmarsch des Moorpalasts (Pförtner Granitus, js/waechter.js): e-Moll, treibende Achtel wie eine Orgel, Blech im Bass
   const GR = { Em: ['e3', 'g3', 'b3'], C: ['e3', 'g3', 'c4'], D: ['f#3', 'a3', 'd4'], Am: ['e3', 'a3', 'c4'], B7: ['d#3', 'f#3', 'a3'], G: ['d3', 'g3', 'b3'] };
   const GR_B = { Em: 'e2', C: 'c2', D: 'd2', Am: 'a1', B7: 'b1', G: 'g1' };
@@ -1047,6 +1061,14 @@ const Audio8 = (() => {
       tri: IN_C.map(c => { const r = IN_B[c]; return `${r}:2 -:2 ${up8(r)}:2 -:2 ${r}:2 -:2 ${up8(r)}:2 -:2`; }).join(' '),
       pad: IN_C.map(c => IN[c].join('+') + ':16').join(' '),
       dr: IN_C.map((c, i) => i === 31 ? 'k:2 s:2 k:2 s:2 t:2 t:2 x:4' : i % 8 === 7 ? 'k:2 h:2 s:2 s:2 t:2 t:2 u:2 u:2' : 'k:2 h:2 s:2 h:2 k:2 h:2 s:2 h:2').join(' '),
+    },
+    dorf: { // Dorf Unkenbrunn: Unkenwalzer (js/dorf.js)
+      bpm: 150, loop: true, echo: { delay: 3, vol: 0.2 },
+      p1: DF_L.join(' '),
+      p2: DF_C.map(c => { const [a, b, d] = DF[c]; return `-:4 ${b}:2 ${d}:2 ${a}:2 ${d}:2`; }).join(' '),
+      tri: DF_C.map(c => { const r = DF_B[c]; return `${r}:4 -:4 ${up8(r)}:2 -:2`; }).join(' '),
+      pad: DF_C.map(c => DF[c].join('+') + ':12').join(' '),
+      dr: DF_C.map((c, i) => i === 47 ? 'k:4 s:2 s:2 t:2 x:2' : i % 8 === 7 ? 'k:4 s:4 s:2 s:2' : 'k:4 h:4 h:4').join(' '),
     },
     palast: { // Moorpalast: Pförtner Granitus (js/waechter.js)
       bpm: 136, loop: true, echo: { delay: 3, vol: 0.25 },

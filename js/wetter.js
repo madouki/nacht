@@ -104,7 +104,7 @@ const Wetter = (() => {
     return out;
   }
   function place(w) {
-    const R = w.room; if (!THEMES.has(R.theme) || R.arena || R.mini || R.hall || R.wrap) return;
+    const R = w.room; if (!THEMES.has(R.theme) || R.arena || R.mini || R.hall || R.wrap || R.safe) return; // safe: Dorf Unkenbrunn
     const rand = rng(hash('wetter:' + (R.side || '') + ':' + w.stage + ':' + w.roomIdx));
     const L = spots(w); if (!L.length) return;
     const n = R.w >= 100 ? 2 : 1, got = [];

@@ -69,7 +69,7 @@ const Frost = (() => {
     return out;
   }
   function place(w) {
-    const R = w.room; if (!THEMES.has(R.theme) || R.arena || R.mini || R.hall || R.wrap) return;
+    const R = w.room; if (!THEMES.has(R.theme) || R.arena || R.safe || R.mini || R.hall || R.wrap) return;
     const rand = rng(hash('frost:' + (R.side || '') + ':' + w.stage + ':' + w.roomIdx));
     const L = spots(w); if (!L.length) return;
     const n = R.w >= 90 ? 2 : 1, got = []; // jeder kalte Raum hat seinen Geist, lange Säle zwei

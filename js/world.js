@@ -109,6 +109,7 @@ const W = {
         case 'orakel': this.spawn(Orakel.make(d)); break;
         case 'zugtor': this.spawn(Umland.gate(d)); break; // Bahnhof: Zug ins Umland (js/umland.js)
         case 'feldrand': this.spawn(Umland.edge(d)); break;
+        case 'dorfbild': this.spawn(Dorf.ent(d)); break; // Dorf Unkenbrunn: Kulissen der Dorfstraße (js/dorf.js)
         case 'pfadtor': this.spawn(Pfad.ent('fahrt', d)); break; // Bahnhof Gleis 3: Zug zur Mondinsel (js/pfad.js)
         case 'pfadstart': case 'taler': case 'zwglocke': case 'ziel': case 'schluessel': case 'schloss': case 'riesenglocke': this.spawn(Pfad.ent(d.type, d)); break; // Mondinsel-Strecken
         case 'umriss': this.platforms.push(this.spawn(Pfad.ent('umriss', d))); break; // Umrissblöcke (fest nach dem Glockenhaus) // Kampfplatz im Umland: über den Rand zurück // Hotel-Lobby: Wahrsageautomat „Madame Mystika“ (js/orakel.js) // Lichterpassage: Wurfbude „Dosenwerfen“ (js/bude.js) // Sonnenkathedrale: klaut Gold (js/beutel.js)

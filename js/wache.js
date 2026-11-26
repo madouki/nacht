@@ -67,7 +67,7 @@ const Wache = (() => {
     return out;
   }
   function place(w) {
-    const R = w.room; if (!THEMES.has(R.theme) || R.arena || R.mini || R.hall || R.wrap) return;
+    const R = w.room; if (!THEMES.has(R.theme) || R.arena || R.safe || R.mini || R.hall || R.wrap) return;
     const rand = rng(hash('wache:' + (R.side || '') + ':' + w.stage + ':' + w.roomIdx)); if (rand() > 0.55) return;
     const L = spots(w); if (!L.length) return;
     const [c, r] = L[Math.floor(rand() * L.length)]; w.spawn(new Schildwache(c, r));

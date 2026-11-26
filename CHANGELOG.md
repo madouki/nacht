@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261126-1424](#20261126-1424--das-dorf-unkenbrunn-die-unkenkrone-und-das-donnerwort) – Das Dorf Unkenbrunn, die Unkenkrone und das Donnerwort
 - [20261126-1336](#20261126-1336--mondinsel-mit-lagune-spielzeugheld-und-goldblöcke-im-turm-der-winde) – Mondinsel mit Lagune, Spielzeugheld und Goldblöcke im Turm der Winde
 - [20261126-1303](#20261126-1303--die-mondinsel-und-die-oberwelt-im-spielzeug-look) – Die Mondinsel und die Oberwelt im Spielzeug-Look
 - [20261126-0852](#20261126-0852--neue-heldenfigur-auf-der-oberwelt) – Neue Heldenfigur auf der Oberwelt
@@ -94,6 +95,32 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261126-1424 – Das Dorf Unkenbrunn, die Unkenkrone und das Donnerwort
+
+**Neu – Dorf Unkenbrunn in der Grafschaft Krat**
+- Gleich nordwestlich vom Bahnhof liegt jetzt ein kleines Dorf an der Straße: Gasthaus, Rathaus mit Uhrtürmchen, ein schiefer Wetterturm und ein Brunnen mit einer Steinunke. Auf der Karte ist alles als Spielzeug-Diorama gebaut.
+- Auf dem Dorfplatz mit ↑ hinein. Drinnen geht es über eine nächtliche Dorfstraße mit Fachwerkhäusern, dem Gasthaus „Zur Fetten Unke“ und dem Unkenbrunnen, der wirklich plätschert.
+- Im Dorf bist du sicher: Schatten trauen sich nicht in die Nähe, und in der Dorfstraße gibt es keine Gegner.
+- Drei Bewohner als Blender-Figuren:
+  - **Wirtin Hulda** heilt dich bei jedem Besuch vollständig.
+  - **Bürgermeister Unkel** trägt eine Krone aus Zeitungspapier, denn die echte Unkenkrone hat sich der Pförtner im Moorpalast genommen.
+  - **Wetterhexe Eulalia** hat elektrisch abstehendes Haar und einen Stab, der knistert.
+- Eigenes Dorflied: der „Unkenwalzer“ im Dreivierteltakt, mit einem Trio-Teil in G-Dur.
+
+**Neu – Auftrag „Die Unkenkrone“**
+- Besiege Pförtner Granitus im Moorpalast, dann liegt neben seiner Hellebarde auch die Unkenkrone. Wer Granitus schon besiegt hat, findet die Krone beim nächsten Besuch im Palast.
+- Bring sie dem Bürgermeister, dann gibt es 5000 Gold aus der Gemeindekasse. Der Auftrag steht im Auftragsbuch.
+
+**Neu – Zauber „Donnerwort“**
+- Danach bringt dir Eulalia das Donnerwort bei: → ↓ ↑ + Angriff, kostet 16 MP.
+- Bis zu drei Gegner im Bild bekommen je einen Blitz von oben. Ist kein Gegner da, schlägt der Blitz vor dir in den Boden.
+- Auf der Zauberseite stehen jetzt fünf Zauber. Damit alles passt, zeigt sie nur noch Name und Befehl. Den Spruch zum Zauber liest du beim Buch.
+
+**Beim Testen ansehen**
+- Findest du das Dorf auf der Karte gleich, und ist der Eingang auf dem Dorfplatz klar?
+- Ist der Blitz gut zu sehen, und fühlt sich das Donnerwort stark genug an?
+- Passen die Texte der drei Bewohner in allen Sprachen in den Textkasten?
 
 ## 20261126-1336 – Mondinsel mit Lagune, Spielzeugheld und Goldblöcke im Turm der Winde
 

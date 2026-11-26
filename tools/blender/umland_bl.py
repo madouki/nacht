@@ -378,8 +378,51 @@ if PAL:
     for xx in (qx - 0.48, qx + 1.48):
         tbox('iron', xx - 0.04, qy + 1.0, xx + 0.04, qy + 1.08, 0.0, 0.36, '#24222c'); cone('iron', W(xx, qy + 1.04, 0.36), 0.03, 0.09, 0.07, '#24222c', 8)
         ball('fire', W(xx, qy + 1.04, 0.46), 0.07, '#ffa040', 1, 1.5); lamp(W(xx, qy + 1.3, 0.55), '#ff9040', 8, 0.1); glow_at(W(xx, qy + 1.04, 0.46), 'fire')
+# Dorf Unkenbrunn (Ort D): Dorfplatz mit Unkenbrunnen, Gasthaus „Zur Fetten Unke“ (moosgrünes Dach, Schild mit Unke), Rathaus
+# mit Uhrtürmchen, Eulalias schiefer Wetterturm mit Blitzableiter, ein Häuschen; Pflaster und Laternen
+def fach(x0, y0, x1, y1, wall, roof, h, rh, wins):   # Fachwerkhaus, Giebel in x-Richtung, Fenster vorn (Süden)
+    tbox('house', x0, y0, x1, y1, 0.0, h, wall)
+    for k in range(5):
+        xx = x0 + (x1 - x0) * k / 4; tbox('house', xx - 0.02, y1 - 0.01, xx + 0.02, y1 + 0.03, 0.0, h, '#3a2414')
+    tbox('house', x0, y1 - 0.01, x1, y1 + 0.03, h * 0.5 - 0.02, h * 0.5 + 0.02, '#3a2414')
+    prism('roof', x0, y0, x1, y1, h - 0.02, rh, roof, 0.1)
+    for k in range(wins):
+        wx = x0 + (x1 - x0) * (k + 1) / (wins + 1) + 0.06
+        tbox('glow', wx - 0.07, y1 + 0.02, wx + 0.07, y1 + 0.05, h * 0.14, h * 0.4, '#ffb450'); glow_at(W(wx, y1 + 0.05, h * 0.27), 'win')
+DV = spot('D')
+if DV:
+    vx, vy = DV
+    fach(vx - 0.92, vy - 0.88, vx + 0.92, vy - 0.12, '#d8c8a0', '#5c7c3c', 0.5, 0.98, 3)                    # Gasthaus
+    tbox('wood', vx - 0.1, vy - 0.12, vx + 0.1, vy - 0.09, 0.0, 0.3, '#3a2410')
+    tube('iron', W(vx + 0.88, vy - 0.08, 0.44), W(vx + 1.12, vy - 0.08, 0.44), 0.015, '#24222c', 5)
+    ball('leaf', W(vx + 1.08, vy - 0.06, 0.32), 0.1, '#5cac48', 2, 0.7); ball('glow', W(vx + 1.08, vy + 0.02, 0.36), 0.025, '#e8c84c', 1)   # Schild: die fette Unke
+    for k in (0, 1): ball('wood', W(vx - 0.74 + k * 0.2, vy + 0.0, 0.09), 0.085, '#8c5c2c', 2, 1.1)
+    lamp(W(vx, vy + 0.35, 0.45), '#ffa850', 7, 0.15)
+    ry0 = vy + 2
+    fach(vx - 0.92, ry0 + 0.1, vx + 0.92, ry0 + 0.86, '#e8dcc0', '#a83c2c', 0.48, 0.92, 2)                  # Rathaus
+    tbox('wood', vx - 0.1, ry0 + 0.86, vx + 0.1, ry0 + 0.89, 0.0, 0.28, '#3a2410')
+    tbox('house', vx - 0.14, ry0 + 0.36, vx + 0.14, ry0 + 0.6, 0.86, 1.18, '#e8dcc0'); cone('roof', W(vx, ry0 + 0.48, 1.18), 0.22, 0.0, 0.3, '#a83c2c', 8)
+    ball('glow', W(vx, ry0 + 0.61, 1.02), 0.07, '#fff0c0', 1); glow_at(W(vx, ry0 + 0.61, 1.02), 'win')
+    tx_, ty_ = vx + 2.5, vy - 1.5                                                                             # Wetterturm, schief
+    for k, (o, r) in enumerate(((0.0, 0.3), (0.05, 0.28), (0.12, 0.26), (0.09, 0.24))):
+        cone('stone', W(tx_ + o, ty_, k * 0.3), r, r - 0.02, 0.3, '#7c7490' if k % 2 == 0 else '#5c5470', 12)
+    cone('roof', W(tx_ + 0.07, ty_, 1.2), 0.36, 0.0, 0.42, '#3c3c8c', 12)
+    tube('iron', W(tx_ + 0.08, ty_, 1.58), W(tx_ + 0.15, ty_, 1.95), 0.015, '#d8803c', 5)
+    ball('glow', W(tx_ + 0.15, ty_, 1.97), 0.045, '#c8f0ff', 1); lamp(W(tx_ + 0.15, ty_ + 0.25, 2.0), '#a8d8ff', 6, 0.05)
+    for k in (1, 2):
+        ball('glow', W(tx_ + 0.05 * k, ty_ + 0.27, 0.15 + k * 0.3), 0.06, '#c890ff', 1); glow_at(W(tx_ + 0.05 * k, ty_ + 0.27, 0.15 + k * 0.3), 'win')
+    fach(vx + 2.1, vy + 2.15, vx + 2.9, vy + 2.85, '#e8d8b8', '#7a5a3a', 0.4, 0.78, 1)                      # Häuschen
+    cx_, cy_ = vx + 0.5, vy + 0.5                                                                             # Unkenbrunnen
+    cone('stone', W(cx_, cy_, 0.0), 0.3, 0.3, 0.14, '#8a8494', 14); cone('stone', W(cx_, cy_, 0.142), 0.25, 0.25, 0.006, '#3c78b8', 14)
+    tube('stone', W(cx_, cy_, 0.1), W(cx_, cy_, 0.32), 0.05, '#6c6474', 8)
+    ball('leaf', W(cx_, cy_, 0.42), 0.12, '#6c9c5c', 2, 0.8)
+    for s_ in (-1, 1): ball('leaf', W(cx_ + s_ * 0.06, cy_ + 0.06, 0.53), 0.045, '#6c9c5c', 1)
+    lamp(W(cx_, cy_ + 0.3, 0.4), '#80c8ff', 1.5, 0.05)
+    for (lx, ly) in ((vx - 0.85, vy + 0.2), (vx + 2.6, vy + 1.7)):                                           # Laternen am Platz
+        tbox('iron', lx - 0.025, ly - 0.025, lx + 0.025, ly + 0.025, 0.0, 0.56, '#24222c'); tbox('iron', lx - 0.05, ly - 0.05, lx + 0.05, ly + 0.05, 0.6, 0.63, '#24222c')
+        ball('glow', W(lx, ly, 0.56), 0.05, '#ffd070', 1); lamp(W(lx, ly + 0.25, 0.62), '#ffb860', 5, 0.08); glow_at(W(lx, ly, 0.56), 'lamp')
 # Laternen am Weg: warme Lichtinseln
-LOCS = [spot(c) for c in 'SHKG']
+LOCS = [spot(c) for c in 'SHKGD' if spot(c)]
 for y in range(MH):
     for x in range(MW):
         if MAP[y][x] != '=' or (x * 3 + y * 5) % 8 or any(abs(x - a) + abs(y - b) < 3 for a, b in LOCS): continue

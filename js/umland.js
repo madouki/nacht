@@ -9,14 +9,14 @@
 // Friedhof und Sumpf und ab und zu ein Fledermausschwarm.
 'use strict';
 const Umland = (() => {
-  const MW = 56, MH = 32, TS = 16, BLOCK = new Set(['M', '~']);
-  const LOC = { S: 'umlandBahnhof', H: 'umlandHuette', K: 'umlandHoehle', G: 'umlandGrab', P: 'umlandPalast' };
+  const MW = 56, MH = 32, TS = 16, BLOCK = new Set(['M', '~', 'u']);
+  const LOC = { S: 'umlandBahnhof', H: 'umlandHuette', K: 'umlandHoehle', G: 'umlandGrab', P: 'umlandPalast', D: 'umlandDorf' };
   let map = null, pre = null, G = null, pendingStation = false, extra = 0, pre3d = false, FX = null;
   const IMG = new Image();
   const HERO_MAP = {"henrik_0_0":[0,0,26,34],"henrik_0_1":[27,0,26,34],"henrik_0_2":[54,0,26,34],"henrik_1_0":[81,0,26,34],"henrik_1_1":[108,0,26,34],"henrik_1_2":[135,0,26,34],"henrik_2_0":[162,0,26,34],"henrik_2_1":[189,0,26,34],"henrik_2_2":[216,0,26,34],"henrik_3_0":[243,0,26,34],"henrik_3_1":[270,0,26,34],"henrik_3_2":[297,0,26,34],"ragnor_0_0":[0,35,26,34],"ragnor_0_1":[27,35,26,34],"ragnor_0_2":[54,35,26,34],"ragnor_1_0":[81,35,26,34],"ragnor_1_1":[108,35,26,34],"ragnor_1_2":[135,35,26,34],"ragnor_2_0":[162,35,26,34],"ragnor_2_1":[189,35,26,34],"ragnor_2_2":[216,35,26,34],"ragnor_3_0":[243,35,26,34],"ragnor_3_1":[270,35,26,34],"ragnor_3_2":[297,35,26,34]}; // Henrik und Ragnor in Schrägsicht (tools/blender/wanderer_bl.py → pack_wanderer.py): <held>_<richtung>_<bild>, 22×30
   const HIMG = new Image(); let HS = null;
   HIMG.onload = () => { HS = {}; for (const [n, r] of Object.entries(HERO_MAP)) { const c = Sprites.canvas(r[2], r[3]); c.getContext('2d').drawImage(HIMG, r[0], r[1], r[2], r[3], 0, 0, r[2], r[3]); HS[n] = c; } };
-  const LIGHTS = [[228,172,"win"],[236,172,"win"],[220,173,"brew"],[75,425,"lamp"],[122,425,"lamp"],[697,114,"fire"],[727,114,"fire"],[642,219,"lamp"],[728,365,"fire"],[760,365,"fire"],[719,195,"lamp"],[104,220,"lamp"],[232,220,"lamp"],[543,275,"lamp"],[552,284,"lamp"],[680,284,"lamp"],[111,355,"lamp"],[543,403,"lamp"],[168,412,"lamp"],[296,412,"lamp"],[424,412,"lamp"]]; // Lichtquellen im Diorama [x, y, Art] – von pack_umland.py aus umland_bl.py eingetragen
+  const LIGHTS = [[228,172,"win"],[236,172,"win"],[220,173,"brew"],[75,425,"lamp"],[122,425,"lamp"],[697,114,"fire"],[727,114,"fire"],[642,219,"lamp"],[728,365,"fire"],[760,365,"fire"],[42,334,"win"],[49,334,"win"],[56,334,"win"],[44,382,"win"],[54,382,"win"],[48,369,"win"],[89,312,"win"],[90,310,"win"],[89,382,"win"],[34,334,"lamp"],[90,358,"lamp"],[719,195,"lamp"],[104,220,"lamp"],[232,220,"lamp"],[543,275,"lamp"],[552,284,"lamp"],[680,284,"lamp"],[104,348,"lamp"],[543,403,"lamp"],[168,412,"lamp"],[296,412,"lamp"],[424,412,"lamp"]]; // Lichtquellen im Diorama [x, y, Art] – von pack_umland.py aus umland_bl.py eingetragen
   const img3d = () => IMG.complete && IMG.naturalWidth > 0;
   let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   function build() {
@@ -34,6 +34,8 @@ const Umland = (() => {
     road([[6, 26], [33, 26], [33, 16], [36, 13]]); road([[33, 18], [44, 18], [44, 9]]); road([[6, 26], [6, 14], [14, 14], [14, 11]]);
     for (let y = 8; y <= 12; y++) for (let x = 12; x <= 16; x++) if (m[y][x] === 'T' || m[y][x] === 'h') set(x, y, '.');
     for (let x = 42; x <= 46; x++) set(x, 7, 'M');
+    for (const [x, y] of [[2, 20], [3, 20], [2, 23], [3, 23], [5, 19], [5, 23]]) set(x, y, 'u'); // Dorf Unkenbrunn: Gasthaus, Rathaus, Wetterturm, Häuschen (nicht begehbar)
+    road([[6, 21], [4, 21]]); road([[2, 21], [2, 22], [5, 22]]); set(3, 21, 'D');                                                           // Dorfplatz mit dem Unkenbrunnen
     set(6, 26, 'S'); set(14, 10, 'H'); set(44, 8, 'K'); set(40, 13, 'G'); set(46, 22, 'P');
     return m;
   }
@@ -83,6 +85,8 @@ const Umland = (() => {
     loc('S', (X, Y) => { R('#2c1c18', X - 6, Y - 10, 28, 20); R('#8c3c2c', X - 5, Y - 9, 26, 7); R('#c85c3c', X - 5, Y - 9, 26, 1); R('#9c8468', X - 4, Y - 2, 24, 10); R('#f8d878', X + 1, Y + 1, 4, 4); R('#f8d878', X + 13, Y + 1, 4, 4); R('#3c2c1c', X + 7, Y + 2, 4, 6); for (let k = -1; k < 3; k++) { R('#5c5c64', X - 12 + k * 12, Y + 12, 10, 1); R('#3c2c1c', X - 9 + k * 12, Y + 11, 2, 3); } });
     loc('H', (X, Y) => { R('#2c1c10', X - 1, Y + 2, 18, 13); x.fillStyle = '#8c6c34'; x.beginPath(); x.moveTo(X - 4, Y + 5); x.lineTo(X + 8, Y - 6); x.lineTo(X + 20, Y + 5); x.fill(); x.fillStyle = '#b08c44'; x.beginPath(); x.moveTo(X - 2, Y + 4); x.lineTo(X + 8, Y - 4); x.lineTo(X + 10, Y - 2); x.lineTo(X + 2, Y + 4); x.fill(); R('#6c4c2c', X + 1, Y + 5, 14, 9); R('#f8c868', X + 3, Y + 7, 3, 3); R('#3c2410', X + 9, Y + 8, 4, 6); R('#5c5c64', X + 12, Y - 5, 3, 6); });
     loc('K', (X, Y) => { R('#3c3440', X - 4, Y - 2, 24, 18); x.fillStyle = '#08060c'; x.beginPath(); x.arc(X + 8, Y + 10, 7, Math.PI, 0); x.fill(); R('#08060c', X + 1, Y + 10, 14, 6); R('#6c6470', X - 2, Y + 2, 3, 2); R('#6c6470', X + 15, Y + 4, 3, 2); });
+    loc('D', (X, Y) => { R('#16101a', X + 2, Y + 4, 13, 11); R('#7c7c8c', X + 3, Y + 5, 11, 9); R('#3c78c8', X + 4, Y + 6, 9, 4); R('#5c9c4c', X + 6, Y + 1, 5, 5); R('#e8c84c', X + 6, Y + 1, 1, 1); R('#e8c84c', X + 10, Y + 1, 1, 1); });
+    loc('u', (X, Y) => { R('#2c1c10', X + 1, Y + 3, 15, 12); x.fillStyle = '#a83c2c'; x.beginPath(); x.moveTo(X - 1, Y + 6); x.lineTo(X + 8, Y - 3); x.lineTo(X + 17, Y + 6); x.fill(); R('#e0d0b0', X + 2, Y + 6, 13, 8); R('#f8c868', X + 4, Y + 8, 3, 3); R('#4c2c14', X + 9, Y + 9, 3, 5); });
     loc('G', (X, Y) => { R('#16101a', X + 3, Y - 2, 11, 16); x.fillStyle = '#7c7c8c'; x.beginPath(); x.moveTo(X + 4, Y + 13); x.lineTo(X + 4, Y + 2); x.arc(X + 8.5, Y + 2, 4.5, Math.PI, 0); x.lineTo(X + 13, Y + 13); x.fill(); R('#a8a8b8', X + 5, Y + 1, 1, 10); R('#3c3c48', X + 8, Y + 2, 1, 7); R('#3c3c48', X + 6, Y + 4, 5, 1); R('#5c3c24', X + 2, Y + 13, 13, 2); });
   }
   // ---------------- Spiel ----------------
@@ -105,6 +109,7 @@ const Umland = (() => {
     Audio8.sfx('door'); Audio8.play('umland', null, 0.6); Game.go('land');
     if (!Castle.flags.umland_seen) { Castle.setFlag('umland_seen'); G.msg = { k: 'umlandHilfe', t: 300 }; }
   }
+  let dorf = null; const nearDorf = (x, y, r) => { dorf = dorf || spot('D'); return Math.hypot(x - dorf.x, y - dorf.y) < r; };
   function spot(c) { for (let ty = 0; ty < MH; ty++) for (let tx = 0; tx < MW; tx++) if (map[ty][tx] === c) return { x: tx * TS + 8, y: ty * TS + 8 }; return { x: 100, y: 100 }; }
   function resume() { // vom Kampfplatz zurück an dieselbe Stelle
     if (!G) return start();
@@ -118,6 +123,7 @@ const Umland = (() => {
   }
   function enter(c) {
     if (c === 'S') { pendingStation = true; G.gate = false; const f = Castle.side.bahnhof; Game.castleGo({ s: f.s, r: f.r, place: 'start' }); return; }
+    if (c === 'D') { const f = Castle.side.umland_dorf; extra = 0; if (f) Game.castleGo({ s: f.s, r: f.r, place: 'start' }); return; }
     if (c === 'P') { const f = Castle.side.umland_palast; extra = 0; if (f) Game.castleGo({ s: f.s, r: f.r, place: 'start' }); return; }
     if (c === 'K') { const f = Castle.side.umland_hoehle; extra = 0; Castle.setFlag('umland_hoehle'); if (f) Game.castleGo({ s: f.s, r: f.r, place: 'start' }); return; }
     if (c === 'H') {
@@ -151,13 +157,13 @@ const Umland = (() => {
     // Schatten: tauchen auf, jagen, ziehen in den Kampf
     if (G.t % 150 === 0 && G.blobs.length < 3) {
       for (let n = 0; n < 30; n++) { const a = rnd() * Math.PI * 2, d = 150 + rnd() * 70, x = G.x + Math.cos(a) * d, y = G.y + Math.sin(a) * d;
-        if (x < 24 || y < 24 || x > MW * TS - 24 || y > MH * TS - 24 || !free(x, y) || LOC[at(x, y)]) continue;
+        if (x < 24 || y < 24 || x > MW * TS - 24 || y > MH * TS - 24 || !free(x, y) || LOC[at(x, y)] || nearDorf(x, y, 90)) continue;
         G.blobs.push({ x, y, big: rnd() < 0.3, t: 0, hit: false }); break; }
     }
     for (const b of G.blobs) {
-      b.t++; const dx = G.x - b.x, dy = G.y - b.y, d = Math.hypot(dx, dy) || 1, v = b.big ? 0.5 : 0.66;
+      b.t++; const dx = G.x - b.x, dy = G.y - b.y, d = Math.hypot(dx, dy) || 1, v = (b.big ? 0.5 : 0.66) * (nearDorf(G.x, G.y, 60) ? -1.4 : 1); // im Dorf bist du sicher
       b.x += dx / d * v + Math.sin(b.t * 0.13) * 0.3; b.y += dy / d * v + Math.cos(b.t * 0.11) * 0.3;
-      if (d < 9 && G.inv <= 0 && !LOC[here]) { encounter(b); return false; }
+      if (d < 9 && G.inv <= 0 && !LOC[here] && !nearDorf(G.x, G.y, 60)) { encounter(b); return false; }
     }
     G.blobs = G.blobs.filter(b => !b.hit && b.t < 1000);
     return false;
