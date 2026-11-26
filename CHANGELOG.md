@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261126-1858](#20261126-1858--endboss-der-mondinsel-lunatus-der-mondgaukler) – Endboss der Mondinsel: Lunatus, der Mondgaukler
 - [20261126-1822](#20261126-1822--kleine-korrektur-in-unkenbrunn) – Kleine Korrektur in Unkenbrunn
 - [20261126-1610](#20261126-1610--neue-häuser-für-unkenbrunn) – Neue Häuser für Unkenbrunn
 - [20261126-1515](#20261126-1515--unkenbrunn-wird-hübscher-und-im-dorf-gibt-es-ein-abenteuer) – Unkenbrunn wird hübscher, und im Dorf gibt es ein Abenteuer
@@ -98,6 +99,26 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261126-1858 – Endboss der Mondinsel: Lunatus, der Mondgaukler
+
+**Neu – Ein Bosskampf am Ende der Mondfeste**
+- Die Mondfeste auf der Mondinsel ist jetzt länger. Vor der Zielschranke wartet **Lunatus, der Mondgaukler**: ein Narr mit einem Gesicht wie eine Mondsichel, Schellenkappe und Rauten-Wams. Er balanciert auf einer Zirkuskugel voller Sterne. Die Figur ist in Blender gebaut.
+- So kämpft er:
+  - **Rollen:** Er rollt auf der Kugel quer durch die Arena. Spring darüber! Prallt er gegen die Wand, ist er benommen, und deine Treffer zählen anderthalbfach.
+  - **Jonglieren:** Er jongliert drei Sterne und wirft sie im Bogen. Sie springen zweimal auf.
+  - **Hopser:** Er springt samt Kugel zu dir. Beim Aufprall laufen Mondwellen über den Boden.
+  - **Von oben:** Ein Abwärtshieb auf die Kappe trifft fast doppelt so stark und federt dich wieder hoch. Er selbst findet das unfair.
+  - **Zweiter Akt:** Ab halber Energie rollen zwei Spiegelbilder mit, und er wirft fünf Sterne. Nur der echte Gaukler wirft einen Schatten.
+- Eigenes Kampflied: ein rasender Zirkusgalopp in a-Moll.
+- Beute: die **Schellenkappe** (Glück +4, MP +6). Neue Urkunde: „Zugabe!“.
+- Lunatus steht jetzt auch im Bestiarium und kommt im Bossrausch vor.
+- Alle Texte gibt es in 8 Sprachen.
+
+**Beim Testen ansehen**
+- Ist der Kampf zu leicht oder zu schwer?
+- Erkennst du die Spiegelbilder rechtzeitig?
+- Findest du heraus, dass ein Hieb von oben auf die Kappe besonders gut wirkt?
 
 ## 20261126-1822 – Kleine Korrektur in Unkenbrunn
 
