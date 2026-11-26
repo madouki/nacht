@@ -99,7 +99,10 @@ for (px_, py_, h_, s_) in peaks: Hp = np.maximum(Hp, h_ * np.clip(1 - np.hypot(U
 Hm = Hp * ss(0.0, 0.3, mt) + 0.55 * NR * mt * ss(0.3, 1.5, Hp)
 H = 0.06 * N1 + 0.03 * N2 + Hm
 wd = ss(0.28, 0.75, wB); H = H * (1 - wd) - 0.42 * wd
-pud = ss(0.45, 0.8, sB) * ss(0.0, 0.25, NP); H = H - 0.22 * pud
+PAL = next(((x, y) for y in range(MH) for x in range(MW) if MAP[y][x] == 'P'), None)
+pud = ss(0.45, 0.8, sB) * ss(0.0, 0.25, NP)
+if PAL: pud = pud * ss(1.3, 2.2, np.hypot(UU - PAL[0] - 0.5, VV - PAL[1] - 0.6))   # fester Grund um den Moorpalast
+H = H - 0.22 * pud
 rf = ss(0.5, 0.78, rB) * (1 - wd); H = H - 0.015 * rf
 FIELDS = [(8.25, 20.2, 12.75, 23.8, 'acker'), (13.3, 20.2, 17.7, 23.1, 'weizen')]
 FM = {}
@@ -350,6 +353,19 @@ lamp(W(gx + 0.2, gy + 0.95, 0.3), '#ffb050', 6, 0.1); glow_at(W(gx + 0.13, gy + 
 wx, wy = 33.75, 17.35
 tbox('wood', wx - 0.03, wy - 0.03, wx + 0.03, wy + 0.03, 0.0, 0.5, '#5c3a1c'); tbox('wood', wx - 0.25, wy - 0.02, wx + 0.12, wy + 0.02, 0.38, 0.46, '#8c6434'); tbox('wood', wx - 0.08, wy - 0.02, wx + 0.28, wy + 0.02, 0.27, 0.35, '#8c6434')
 
+# Moorpalast: Steinsockel im Sumpf, Säulenhalle mit Schieferdach, dunkles Tor, zwei Feuerschalen
+if PAL:
+    qx, qy = PAL
+    tbox('stone', qx - 0.6, qy - 0.3, qx + 1.6, qy + 1.1, 0.0, 0.12, '#5a5864', 0.04); tbox('stone', qx - 0.3, qy + 0.95, qx + 1.3, qy + 1.25, 0.0, 0.06, '#6a6874')
+    tbox('stone', qx - 0.35, qy - 0.15, qx + 1.35, qy + 0.6, 0.12, 0.66, '#45434f')
+    for k in range(5): tube('stone', W(qx - 0.28 + k * 0.39, qy + 0.74, 0.12), W(qx - 0.28 + k * 0.39, qy + 0.74, 0.7), 0.06, '#8c8a96', 8)
+    tbox('stone', qx - 0.42, qy + 0.6, qx + 1.42, qy + 0.86, 0.7, 0.8, '#7a7884')
+    prism('slate', qx - 0.42, qy - 0.15, qx + 1.42, qy + 0.86, 0.8, 1.18, '#34323f', 0.05)
+    tbox('hole', qx + 0.36, qy + 0.58, qx + 0.64, qy + 0.62, 0.12, 0.5, '#020104')
+    ball('glow', W(qx + 0.5, qy + 0.86, 0.98), 0.07, '#ffd070', 1)   # Mondsichel im Giebel
+    for xx in (qx - 0.48, qx + 1.48):
+        tbox('iron', xx - 0.04, qy + 1.0, xx + 0.04, qy + 1.08, 0.0, 0.36, '#24222c'); cone('iron', W(xx, qy + 1.04, 0.36), 0.03, 0.09, 0.07, '#24222c', 8)
+        ball('fire', W(xx, qy + 1.04, 0.46), 0.07, '#ffa040', 1, 1.5); lamp(W(xx, qy + 1.3, 0.55), '#ff9040', 8, 0.1); glow_at(W(xx, qy + 1.04, 0.46), 'fire')
 # Laternen am Weg: warme Lichtinseln
 LOCS = [spot(c) for c in 'SHKG']
 for y in range(MH):

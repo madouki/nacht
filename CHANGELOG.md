@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261126-0757](#20261126-0757--der-moorpalast-und-pförtner-granitus) – Der Moorpalast und Pförtner Granitus
 - [20261126-0116](#20261126-0116--die-grafschaft-krat-wird-lebendiger) – Die Grafschaft Krat wird lebendiger
 - [20261126-0039](#20261126-0039--die-grafschaft-krat-das-umland-in-draufsicht-dazu-sprachausgabe-auf-italienisch-und-rumänisch) – Die Grafschaft Krat: das Umland in Draufsicht, dazu Sprachausgabe auf Italienisch und Rumänisch
 - [20261125-2340](#20261125-2340--die-knochenkapelle-deutsche-sprachausgabe-raumakustik-und-ein-farbiger-finisher) – Die Knochenkapelle, deutsche Sprachausgabe, Raumakustik und ein farbiger Finisher
@@ -90,6 +91,27 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261126-0757 – Der Moorpalast und Pförtner Granitus
+
+**Neu – Der Moorpalast**
+- Mitten im Sumpf der Grafschaft Krat steht jetzt ein Palast auf einem Steinsockel, mit Säulenhalle, Schieferdach und zwei Feuerschalen. Hinein geht es mit ↑.
+- Drinnen wartet eine Halle mit Vorhängen, Fenstern und Rittern, Geistern und Skeletten. Hinten hält der Palastwächter Wache.
+- Über den linken Rand kommst du zurück ins Umland.
+
+**Neu – Pförtner Granitus**
+- Ein lebendig gewordener Steinritter aus moosigem Granit mit Hellebarde und Rundschild, seit 1723 im Dienst und noch nie im Urlaub. Er will deinen Ausweis sehen. Du hast keinen.
+- Sein Schild deckt die Höhe, auf der du stehst: aufrecht oben, geduckt unten. Er braucht aber einen Moment, bis er umschwenkt. Treffer auf den Schild prallen mit Funken ab.
+- Durch kommst du, wenn du schnell die Haltung wechselst, mit dem Abwärtshieb von oben zuschlägst oder ihn von hinten erwischst. Wenn er zu oft blockt, verplappert er sich.
+- Hält er den Schild oben, sticht er unten zu, dann springst du drüber. Hält er ihn unten, sticht er oben zu, dann duckst du dich.
+- Ab halber Energie wirft er seine Hellebarde wie einen Bumerang und springt dir entgegen. Beim Aufschlag laufen Steinwellen über den Boden. Danach steht er kurz ohne Deckung da.
+- Eigenes Palastlied: ein treibender Marsch in e-Moll.
+- Lohn: die Hellebarde des Pförtners (Angriff +6) und die Urkunde „Palastbesuch“.
+- Alle Texte gibt es in 8 Sprachen.
+
+**Beim Testen ansehen**
+- Findest du den Palast im Sumpf?
+- Ist Granitus fair? Merkst du, wie du an seinem Schild vorbeikommst?
 
 ## 20261126-0116 – Die Grafschaft Krat wird lebendiger
 

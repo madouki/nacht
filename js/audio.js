@@ -706,6 +706,19 @@ const Audio8 = (() => {
     'a5:6 g5:2 f5:4 e5:4', 'd5:4 f5:4 a5:8', 'e5:6 d5:2 c5:4 e5:4', 'a5:12 -:4', 'a#5:4 d6:4 f6:6 d6:2', 'c6:4 a#5:4 f5:8', 'a5:4 c6:4 f6:6 e6:2', 'g6:4 e6:4 c6:8',
     'd6:6 c6:2 a5:4 f5:4', 'a5:4 d6:4 f6:8', 'e6:6 d6:2 c6:4 a5:4', 'c6:4 e6:4 a6:8', 'f6:4 d6:4 a#5:4 d6:4', 'e6:4 c6:4 g5:4 a#5:4', 'a5:4 c6:4 f6:8', 'f6:8 c6:4 f5:4'];
 
+  // Palastmarsch des Moorpalasts (Pförtner Granitus, js/waechter.js): e-Moll, treibende Achtel wie eine Orgel, Blech im Bass
+  const GR = { Em: ['e3', 'g3', 'b3'], C: ['e3', 'g3', 'c4'], D: ['f#3', 'a3', 'd4'], Am: ['e3', 'a3', 'c4'], B7: ['d#3', 'f#3', 'a3'], G: ['d3', 'g3', 'b3'] };
+  const GR_B = { Em: 'e2', C: 'c2', D: 'd2', Am: 'a1', B7: 'b1', G: 'g1' };
+  const GR_C = ['Em', 'Em', 'C', 'D', 'Em', 'Em', 'Am', 'B7', 'Em', 'Em', 'C', 'D', 'G', 'D', 'B7', 'Em', 'Am', 'Am', 'Em', 'Em', 'C', 'C', 'B7', 'B7', 'Am', 'D', 'G', 'Em', 'C', 'Am', 'B7', 'Em'];
+  const GR_L = ['e5:4 b4:2 e5:2 g5:4 f#5:2 e5:2', 'd#5:4 e5:2 f#5:2 b4:8', 'c5:4 e5:2 g5:2 c6:4 b5:2 a5:2', 'a5:4 f#5:2 d5:2 a4:8',
+    'e5:2 f#5:2 g5:2 a5:2 b5:4 g5:4', 'e6:6 d6:2 b5:8', 'c6:4 b5:2 a5:2 e5:4 a5:4', 'f#5:4 d#5:4 b4:8',
+    'e5:4 b4:2 e5:2 g5:4 b5:4', 'a5:2 g5:2 f#5:2 e5:2 g5:8', 'g5:4 e5:2 c5:2 e5:4 g5:4', 'f#5:2 g5:2 a5:2 d6:2 c6:4 a5:4',
+    'b5:4 d6:2 b5:2 g5:8', 'a5:4 f#5:2 a5:2 d6:8', 'c6:4 b5:2 a5:2 f#5:4 d#5:4', 'e5:12 -:4',
+    'a4:4 c5:2 e5:2 a5:6 g5:2', 'f5:4 e5:4 c5:8', 'g5:4 b5:2 e6:2 d6:4 b5:4', 'g5:6 f#5:2 e5:8',
+    'e5:4 g5:2 c6:2 e6:6 d6:2', 'c6:4 b5:2 a5:2 g5:8', 'f#5:4 a5:2 b5:2 d#6:6 c6:2', 'b5:12 -:4',
+    'a5:4 c6:2 e6:2 a6:6 g6:2', 'f#6:4 d6:4 a5:8', 'g5:4 b5:2 d6:2 g6:6 f#6:2', 'e6:4 b5:4 g5:8',
+    'c6:4 e6:2 g6:2 e6:4 c6:4', 'a5:4 c6:2 e6:2 a6:8', 'f#6:4 d#6:2 b5:2 a5:4 f#5:4', 'e6:8 b5:4 e5:4'];
+
   const SONGS = {
     title: {
       bpm: 104, loop: true,
@@ -1018,6 +1031,14 @@ const Audio8 = (() => {
       pad: MR_C.map(c => MR[c].join('+') + ':12').join(' '),
       dr: MR_C.map((c, i) => i === 31 ? 'k:2 s:2 s:2 t:2 u:2 x:2' : i % 8 === 7 ? 'k:2 c:2 s:2 c:2 s:2 s:2' : i % 2 ? 'k:2 c:2 k:2 c:2 k:2 c:2' : 'k:2 c:2 c:2 k:2 c:2 c:2').join(' '),
     },
+    palast: { // Moorpalast: Pförtner Granitus (js/waechter.js)
+      bpm: 136, loop: true, echo: { delay: 3, vol: 0.25 },
+      p1: GR_L.join(' '),
+      p2: GR_C.map(c => { const [a, b, d] = GR[c]; return `${a}:2 ${b}:2 ${d}:2 ${b}:2 ${a}:2 ${b}:2 ${d}:2 ${b}:2`; }).join(' '),
+      tri: GR_C.map(c => { const r = GR_B[c]; return `${r}:2 ${r}:2 ${up8(r)}:2 ${r}:2 ${r}:2 ${r}:2 ${up8(r)}:2 ${r}:2`; }).join(' '),
+      pad: GR_C.map(c => GR[c].join('+') + ':16').join(' '),
+      dr: GR_C.map((c, i) => i === 31 ? 'k:2 s:2 s:2 s:2 t:2 t:2 x:4' : i % 8 === 7 ? 'k:2 s:2 k:2 s:2 t:2 t:2 u:2 u:2' : 'k:2 h:2 s:2 h:2 k:2 k:2 s:2 h:2').join(' '),
+    },
     polka: { // Totengräber Theobald (Zwischengegner im Gruftgang, js/totengraeber.js)
       bpm: 152, loop: true, echo: { delay: 3, vol: 0.22 },
       p1: TB_L.join(' '),
@@ -1138,7 +1159,7 @@ const Audio8 = (() => {
   //   C Brücke (Quarte höher: Blechthema aus den Akkorden, Streicher liegen darüber) · D Tutti (Melodie mit Streichern,
   //   Glockenspiel und Pauken) · E Mollterz höher (Streicher und Flöte) · F Zwischenspiel ohne Melodie · G Original mit Flöte
   // Länge: Lieder ab 40 s vier Durchgänge, ab 28 s fünf, kürzere acht.
-  const DRIVE = new Set(['boss', 'boss2', 'kraken', 'count', 'mondboss', 'reisswolf', 'sternbild', 'dienstweg', 'amtsmarsch', 'galopp', 'arie', 'tango', 'sturm', 'walross', 'polka']);
+  const DRIVE = new Set(['boss', 'boss2', 'kraken', 'count', 'mondboss', 'reisswolf', 'sternbild', 'dienstweg', 'amtsmarsch', 'galopp', 'arie', 'tango', 'sturm', 'walross', 'polka', 'palast']);
   const mOf = (n) => { const m = /^([a-g]#?)(-?\d)$/.exec(n); return m ? NN.indexOf(m[1]) + 12 * (+m[2] + 1) : null; };
   const nOf = (m) => NN[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
   function arrange(s, name) {

@@ -10,10 +10,10 @@
 'use strict';
 const Umland = (() => {
   const MW = 56, MH = 32, TS = 16, BLOCK = new Set(['M', '~']);
-  const LOC = { S: 'umlandBahnhof', H: 'umlandHuette', K: 'umlandHoehle', G: 'umlandGrab' };
+  const LOC = { S: 'umlandBahnhof', H: 'umlandHuette', K: 'umlandHoehle', G: 'umlandGrab', P: 'umlandPalast' };
   let map = null, pre = null, G = null, pendingStation = false, extra = 0, pre3d = false, FX = null;
   const IMG = new Image();
-  const LIGHTS = [[228,172,"win"],[236,172,"win"],[220,173,"brew"],[75,425,"lamp"],[122,425,"lamp"],[697,114,"fire"],[727,114,"fire"],[642,219,"lamp"],[719,195,"lamp"],[104,220,"lamp"],[232,220,"lamp"],[543,275,"lamp"],[552,284,"lamp"],[680,284,"lamp"],[111,355,"lamp"],[543,403,"lamp"],[168,412,"lamp"],[296,412,"lamp"],[424,412,"lamp"]]; // Lichtquellen im Diorama [x, y, Art] – von pack_umland.py aus umland_bl.py eingetragen
+  const LIGHTS = [[228,172,"win"],[236,172,"win"],[220,173,"brew"],[75,425,"lamp"],[122,425,"lamp"],[697,114,"fire"],[727,114,"fire"],[642,219,"lamp"],[728,365,"fire"],[760,365,"fire"],[719,195,"lamp"],[104,220,"lamp"],[232,220,"lamp"],[543,275,"lamp"],[552,284,"lamp"],[680,284,"lamp"],[111,355,"lamp"],[543,403,"lamp"],[168,412,"lamp"],[296,412,"lamp"],[424,412,"lamp"]]; // Lichtquellen im Diorama [x, y, Art] – von pack_umland.py aus umland_bl.py eingetragen
   const img3d = () => IMG.complete && IMG.naturalWidth > 0;
   let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   function build() {
@@ -31,7 +31,7 @@ const Umland = (() => {
     road([[6, 26], [33, 26], [33, 16], [36, 13]]); road([[33, 18], [44, 18], [44, 9]]); road([[6, 26], [6, 14], [14, 14], [14, 11]]);
     for (let y = 8; y <= 12; y++) for (let x = 12; x <= 16; x++) if (m[y][x] === 'T' || m[y][x] === 'h') set(x, y, '.');
     for (let x = 42; x <= 46; x++) set(x, 7, 'M');
-    set(6, 26, 'S'); set(14, 10, 'H'); set(44, 8, 'K'); set(40, 13, 'G');
+    set(6, 26, 'S'); set(14, 10, 'H'); set(44, 8, 'K'); set(40, 13, 'G'); set(46, 22, 'P');
     return m;
   }
   const at = (x, y) => (map[Math.floor(y / TS)] || [])[Math.floor(x / TS)] || 'M';
@@ -115,6 +115,7 @@ const Umland = (() => {
   }
   function enter(c) {
     if (c === 'S') { pendingStation = true; G.gate = false; const f = Castle.side.bahnhof; Game.castleGo({ s: f.s, r: f.r, place: 'start' }); return; }
+    if (c === 'P') { const f = Castle.side.umland_palast; extra = 0; if (f) Game.castleGo({ s: f.s, r: f.r, place: 'start' }); return; }
     if (c === 'K') { const f = Castle.side.umland_hoehle; extra = 0; Castle.setFlag('umland_hoehle'); if (f) Game.castleGo({ s: f.s, r: f.r, place: 'start' }); return; }
     if (c === 'H') {
       if (!Castle.flags.umland_hut) G.talk = { lines: trList('story_walburga'), i: 0, give: true };
@@ -255,14 +256,14 @@ const Umland = (() => {
     }
   }
   class Rand extends Ent { // unsichtbar: über den Rand des Kampfplatzes zurück ins Umland; große Schatten bringen Verstärkung
-    constructor() { super(0, 0, 1, 1); this.kind = 'prop'; }
+    constructor(d) { super(0, 0, 1, 1); this.kind = 'prop'; this.quiet = !!(d && d.quiet); }
     update() {
       this.t++; const p = W.player;
       if (this.t === 3 && extra) { const gy = 11 * T; for (let i = 0; i < extra; i++) { const x = (W.room.w - 8 - i * 6) * T; W.spawn(i % 2 ? new Panther(x / T, 10) : new Knight(x / T, 10)); } extra = 0; }
-      if (this.t === 3 && !Castle.flags.umland_kampf) { Castle.setFlag('umland_kampf'); Game.note('umlandKampf'); }
+      if (this.t === 3 && !this.quiet && !Castle.flags.umland_kampf) { Castle.setFlag('umland_kampf'); Game.note('umlandKampf'); }
       if (Game.state === 'play' && p.alive && this.t > 20 && (p.x < 3 || p.x + p.w > W.room.w * T - 3)) resume();
     }
     draw() {}
   }
-  return { start, resume, input, draw, gate: (d) => new Zug(d), edge: () => new Rand(), get game() { return G; }, get look() { return pre3d ? '3d' : 'pixel'; }, get canvas() { return pre; }, get map() { ensure(); return map; }, at: (x, y) => { ensure(); return at(x, y); }, spot: (c) => { ensure(); return spot(c); }, encounter, enter, TS };
+  return { start, resume, input, draw, gate: (d) => new Zug(d), edge: (d) => new Rand(d), get game() { return G; }, get look() { return pre3d ? '3d' : 'pixel'; }, get canvas() { return pre; }, get map() { ensure(); return map; }, at: (x, y) => { ensure(); return at(x, y); }, spot: (c) => { ensure(); return spot(c); }, encounter, enter, TS };
 })();
