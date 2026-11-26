@@ -37,7 +37,39 @@ const Pfad = (() => {
   const px = (t) => t * TS + 8;
   function ensure() {
     if (!IMG.src) IMG.src = 'img/pfad3d.png?v=' + (window.BUILD || '');
-    if (!pre && ready()) { pre = Sprites.canvas(MW * TS, MH * TS); pre.getContext('2d').drawImage(IMG, 0, 0, MW * TS, MH * TS); }
+    if (!pre && ready()) { pre = Sprites.canvas(MW * TS, MH * TS); pre.getContext('2d').drawImage(IMG, 0, 0, MW * TS, MH * TS); try { waterInit(); } catch (e) { FX.glint = []; } }
+  }
+  // Lichter aus dem Diorama (tools/blender/pfad_bl.py schreibt lights.json; Kartenpixel) und der Leuchtturm an der Ostspitze
+  const LIGHTS = [[44, 172, 'lamp'], [70, 172, 'lamp'], [87, 178, 'lamp'], [87, 156, 'lamp'], [106, 140, 'lamp'], [212, 103, 'brew'], [191, 114, 'brew'], [193, 91, 'brew'], [284, 128, 'fire'], [308, 128, 'fire'], [360, 188, 'win'], [415, 123, 'brew'], [433, 123, 'brew'], [312, 21, 'lamp'], [454, 132, 'fire']];
+  const BEACON = [454, 131], MOON = [50, 236];
+  function waterInit() { // Glanzpunkte nur aufs Wasser: aus dem Bild selbst ablesen (blau oder türkis, kein Sand, kein Gras)
+    const d = pre.getContext('2d').getImageData(0, 0, pre.width, pre.height).data, pts = []; let s = 29; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 6000 && pts.length < 340; i++) {
+      const x = (r() * pre.width) | 0, y = (r() * pre.height) | 0, k = (y * pre.width + x) * 4;
+      if (d[k + 2] > d[k] + 50 && d[k + 2] > 90) pts.push({ x, y, p: r() * 6.28, q: 0.5 + r() * 0.9, w: 1 + ((r() * 3) | 0), lag: d[k + 1] > 150 });
+    }
+    const glow = (rgb) => { const c = Sprites.canvas(32, 32), x = c.getContext('2d'), g = x.createRadialGradient(16, 16, 0, 16, 16, 16); g.addColorStop(0, 'rgba(' + rgb + ',0.9)'); g.addColorStop(0.35, 'rgba(' + rgb + ',0.32)'); g.addColorStop(1, 'rgba(' + rgb + ',0)'); x.fillStyle = g; x.fillRect(0, 0, 32, 32); return c; };
+    FX.glint = pts; FX.glow = { lamp: glow('255,214,140'), brew: glow('150,255,170'), fire: glow('255,170,90'), win: glow('255,220,150') };
+  }
+  function shine(ctx, t, cx, cy, vw, vh) { // Wasserglitzern, Mondbahn, flackernde Lichter, kreisender Leuchtturmkegel
+    if (!FX || !FX.glint) return;
+    ctx.globalCompositeOperation = 'lighter';
+    for (const g of FX.glint) {
+      if (g.x < cx - 4 || g.x > cx + vw + 4 || g.y < cy - 2 || g.y > cy + vh + 2) continue;
+      const a = Math.sin(t * 0.03 * g.q + g.p); if (a < 0.55) continue;
+      ctx.globalAlpha = (a - 0.55) / 0.45 * (g.lag ? 0.55 : 0.4); ctx.fillStyle = g.lag ? '#c8fff4' : '#8cc8ff';
+      ctx.fillRect(g.x - (g.w >> 1) + Math.round(Math.sin(t * 0.01 + g.p) * 1.5), g.y, g.w, 1);
+    }
+    for (let i = 0; i < 10; i++) { // Mondbahn auf dem offenen Meer neben dem Segelboot
+      const w = (13 - Math.abs(i - 3) * 1.1) * (0.7 + 0.3 * Math.sin(t * 0.05 + i * 1.7)); if (w <= 1) continue;
+      ctx.globalAlpha = 0.34 + 0.14 * Math.sin(t * 0.07 + i); ctx.fillStyle = '#fff4c8';
+      ctx.fillRect(Math.round(MOON[0] - w / 2 + Math.sin(t * 0.03 + i * 0.9) * 2), MOON[1] + i * 4, Math.round(w), 1);
+    }
+    if (FX.glow) for (const [lx, ly, k] of LIGHTS) { const f = 0.75 + 0.25 * Math.sin(t * 0.13 + lx) * Math.sin(t * 0.07 + ly), r = k === 'fire' ? 13 : 9; ctx.globalAlpha = 0.5 * f; ctx.drawImage(FX.glow[k] || FX.glow.lamp, lx - r, ly - r, r * 2, r * 2); }
+    ctx.save(); ctx.translate(BEACON[0], BEACON[1]); ctx.scale(1, 0.62); ctx.globalAlpha = 0.18;
+    const gb = ctx.createRadialGradient(0, 0, 0, 0, 0, 110); gb.addColorStop(0, 'rgba(255,240,180,0.9)'); gb.addColorStop(1, 'rgba(255,240,180,0)'); ctx.fillStyle = gb;
+    for (const o of [0, Math.PI]) { const a = t * 0.022 + o; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, 110, a - 0.14, a + 0.14); ctx.closePath(); ctx.fill(); }
+    ctx.restore(); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
   }
   const openSet = () => EDGES.filter(e => e[2]()).map(e => e[0] + '-' + e[1]);
   // ---------------- Wegkarte ----------------
@@ -123,6 +155,7 @@ const Pfad = (() => {
     if (pre) ctx.drawImage(pre, cx, cy, Math.min(vw, MW * TS), vh, 0, 0, Math.min(vw, MW * TS), vh);
     else { ctx.fillStyle = '#16305c'; ctx.fillRect(0, 0, vw, vh); }
     ctx.save(); ctx.translate(-cx, -cy);
+    if (pre) shine(ctx, t, cx, cy, vw, vh);
     for (const e of EDGES) { if (!e[2]()) continue; const r = G.reveal.find(r => r.k === e[0] + '-' + e[1]); path(ctx, e, r ? clamp(r.t / 70, 0, 1) : 1); if (r && r.t < 70 && r.t % 7 === 0) Audio8.sfx('tick'); }
     for (const n of Object.keys(NODES)) node(ctx, n, t);
     if (FX) for (const f of FX.flies) { const x = f.x + Math.sin(t * 0.02 * f.q + f.p) * 6, y = f.y + Math.cos(t * 0.017 * f.q + f.p * 2) * 4, a = Math.sin(t * 0.045 * f.q + f.p); if (a <= 0) continue; ctx.globalAlpha = a; ctx.fillStyle = '#e8ffb0'; ctx.fillRect(Math.round(x), Math.round(y), 1, 1); ctx.globalAlpha = a * 0.35; ctx.fillRect(Math.round(x) - 1, Math.round(y) - 1, 3, 3); }
@@ -276,16 +309,40 @@ const Pfad = (() => {
       if (this.open) { const r = this.open * 6; ctx.globalAlpha = clamp(1 - this.open / 70, 0, 1); ctx.fillStyle = '#fcf4c0'; ctx.beginPath(); ctx.arc(x + 8, y + 12, r, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; }
     }
   }
-  class Umriss extends Ent { // Umrissblöcke: gestrichelt, bis die Glocke im Glockenhaus geläutet hat – dann feste Steine
-    constructor(d) { super(d.x * T, d.y * T, (d.w || 2) * T, 8); this.kind = 'platform'; this.dx = 0; this.dy = 0; }
+  class Umriss extends Ent { // Umrissblöcke: durchscheinende Geisterblöcke, bis die Glocke im Glockenhaus geläutet hat – dann feste Goldquader (3D)
+    constructor(d) { super(d.x * T, d.y * T, (d.w || 2) * T, 8); this.kind = 'platform'; this.dx = 0; this.dy = 0; this.was = this.solid; this.pop = 0; }
     get solid() { return !!fl().pfad_glocke; }
-    update() { this.t++; }
+    update() { this.t++; if (this.solid && !this.was) { this.was = true; this.pop = 24; } if (this.pop > 0) this.pop--; }
+    static mesh(solid) { // ein Quader 16×16, vorn eine geprägte Mondsichel; Geisterfassung in kühlem Blau
+      const k = solid ? 'MS' : 'MG'; if (Umriss[k]) return Umriss[k];
+      const { mesh, box } = PS2, m = mesh();
+      if (solid) {
+        box(m, 8, -16, 11, 16, 16, 22, [196, 142, 34], { top: [252, 222, 112] });                    // Goldquader
+        box(m, 8, -1.6, 11, 16.2, 1.6, 22.2, [236, 190, 70], { top: [255, 240, 170] });             // heller Rand oben
+        box(m, 8, -14.4, -0.25, 12.4, 12.4, 0.5, [226, 176, 56]);                                     // Prägefeld vorn
+        for (let i = 0; i < 6; i++) { const a = 1.9 + i * 0.5; box(m, 8 + Math.cos(a) * 3.8, -8.2 + Math.sin(a) * 3.8 - 0.9, -0.55, 1.8, 1.8, 0.4, [124, 78, 12]); } // Mondsichel
+        box(m, 2.5, -13.5, -0.5, 1, 1, 0.3, [255, 248, 210]); box(m, 13.5, -3.5, -0.5, 1, 1, 0.3, [255, 248, 210]);   // Nieten
+      } else {
+        box(m, 8, -16, 11, 16, 16, 22, [96, 150, 220], { top: [180, 216, 255] });
+        box(m, 8, -14.4, -0.25, 12.4, 12.4, 0.5, [130, 180, 240]);
+      }
+      return (Umriss[k] = [m]);
+    }
     draw(ctx) {
-      const x = Math.round(this.x - W.cam.x), y = Math.round(this.y - W.cam.y), n = Math.round(this.w / T);
+      const x = Math.round(this.x - W.cam.x), y = Math.round(this.y - W.cam.y), n = Math.round(this.w / T), solid = this.solid;
+      if (x > View.w + 40 || x + this.w < -40) return;
+      const cache = solid ? (Umriss.gs || (Umriss.gs = {})) : (Umriss.gg || (Umriss.gg = {})), M = Umriss.mesh(solid);
+      if (solid) { ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(x + 2, y + 16, this.w, 3); } // Schattenkante darunter
+      ctx.save();
+      if (!solid) ctx.globalAlpha = 0.3 + 0.14 * Math.sin(this.t * 0.06);
       for (let k = 0; k < n; k++) {
-        const bx = x + k * T;
-        if (this.solid) { ctx.fillStyle = '#20141c'; ctx.fillRect(bx, y, 16, 16); ctx.fillStyle = '#f8c838'; ctx.fillRect(bx + 1, y + 1, 14, 14); ctx.fillStyle = '#fcf0a0'; ctx.fillRect(bx + 1, y + 1, 14, 2); ctx.fillStyle = '#c89020'; ctx.fillRect(bx + 1, y + 13, 14, 2); ctx.fillStyle = '#5c3c08'; ctx.fillRect(bx + 7, y + 5, 2, 6); }
-        else { ctx.fillStyle = (this.t >> 4) & 1 ? '#f8c838' : '#c89020'; for (let i = 0; i < 16; i += 4) { ctx.fillRect(bx + i, y, 2, 1); ctx.fillRect(bx + i, y + 15, 2, 1); ctx.fillRect(bx, y + i, 1, 2); ctx.fillRect(bx + 15, y + i, 1, 2); } }
+        const lift = this.pop ? Math.round(Math.sin((24 - this.pop + k * 2) * 0.35) * 2) : 0;
+        PS2.drawLocal(ctx, cache, M, x + k * T, y - lift, [-30, -32, 92, 70]);
+      }
+      ctx.restore();
+      if (!solid) { // schimmernde Kanten
+        ctx.fillStyle = (this.t >> 3) & 1 ? 'rgba(200,232,255,0.7)' : 'rgba(150,200,255,0.5)';
+        for (let k = 0; k < n; k++) { const bx = x + k * T; for (let i = (this.t >> 2) % 4; i < 16; i += 4) { ctx.fillRect(bx + i, y, 2, 1); ctx.fillRect(bx + i, y + 15, 2, 1); } }
       }
     }
   }

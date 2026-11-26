@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261126-1336](#20261126-1336--mondinsel-mit-lagune-spielzeugheld-und-goldblöcke-im-turm-der-winde) – Mondinsel mit Lagune, Spielzeugheld und Goldblöcke im Turm der Winde
 - [20261126-1303](#20261126-1303--die-mondinsel-und-die-oberwelt-im-spielzeug-look) – Die Mondinsel und die Oberwelt im Spielzeug-Look
 - [20261126-0852](#20261126-0852--neue-heldenfigur-auf-der-oberwelt) – Neue Heldenfigur auf der Oberwelt
 - [20261126-0757](#20261126-0757--der-moorpalast-und-pförtner-granitus) – Der Moorpalast und Pförtner Granitus
@@ -93,6 +94,26 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261126-1336 – Mondinsel mit Lagune, Spielzeugheld und Goldblöcke im Turm der Winde
+
+**Neu – Die Mondinsel sieht schöner aus**
+- Rund um die Insel liegt jetzt eine türkise Lagune mit heller Brandung und breiten Sandstränden.
+- An den Stränden wachsen Palmen. Vor der Westküste schaukelt ein Segelboot, im Meer liegen ein paar Felsen.
+- An der Ostspitze steht ein rot-weißer Leuchtturm. Sein Lichtkegel kreist über Insel und Wasser.
+- Auf dem Wasser glitzert es, neben dem Segelboot liegt eine flimmernde Mondbahn, und Laternen, Pilze und Fenster flackern warm.
+
+**Neu – Der Held auf den Karten als Spielzeugfigur**
+- Henrik und Ragnor sind auf der Oberwelt und der Mondinsel jetzt runde, glänzende Spielzeugfiguren mit großem Kopf und großen Augen, etwas größer als vorher und mit feiner dunkler Kontur.
+
+**Neu – Die Blockkette im Turm der Winde in 3D**
+- Die Umrissblöcke sind jetzt echte 3D-Blöcke. Solange die Glocke im Glockenhaus schweigt, sind sie durchsichtig blau und flimmern an den Kanten.
+- Nach dem Glockenschlag werden sie zu goldenen Blöcken mit Mondsichel und Nieten. Beim Festwerden hüpfen sie kurz hoch.
+
+**Beim Testen ansehen**
+- Gefällt dir die Lagune, und ist der Leuchtturmkegel nicht zu hell?
+- Erkennst du die blauen Geisterblöcke im Turm der Winde gut als „noch nicht fest“?
+- Passt die neue Heldenfigur auf beiden Karten?
 
 ## 20261126-1303 – Die Mondinsel und die Oberwelt im Spielzeug-Look
 

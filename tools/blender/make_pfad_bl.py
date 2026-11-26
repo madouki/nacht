@@ -17,6 +17,8 @@ head = rep(head, "f, rows = FM['weizen']; col =", "if 'weizen' in FM: f, rows = 
 head = rep(head, "wcol = mix(np.broadcast_to(C('#2c5c84'), (NY, NX, 3)), np.broadcast_to(C('#0c2244'), (NY, NX, 3)), deep)",
            "wcol = mix(np.broadcast_to(C('#3aa4c4' if TOY else '#2c5c84'), (NY, NX, 3)), np.broadcast_to(C('#123c78' if TOY else '#0c2244'), (NY, NX, 3)), deep)")
 head = rep(head, "wd = ss(0.28, 0.75, wB); H = H * (1 - wd) - 0.42 * wd", "wd = ss(0.28, 0.75, wB); H = H * (1 - wd) - 0.6 * wd")
+head = rep(head, "col = mix(col, np.broadcast_to(C('#c8b07a' if TOY else '#8a7650'), (NY, NX, 3)), ss(0.08, 0.3, wB) * (1 - mt))", "col = mix(col, np.broadcast_to(C('#e8d29a'), (NY, NX, 3)), ss(0.1, 0.42, blur(field('~B'), max(1, SUB // 2), 2)) * (1 - mt))   # breite Sandstrände")
+head = rep(head, "wcol = mix(wcol, np.broadcast_to(C('#1c3a3a'), (NY, NX, 3)), ss(0.4, 0.7, sB))", "wcol = mix(wcol, np.broadcast_to(C('#1c3a3a'), (NY, NX, 3)), ss(0.4, 0.7, sB))\nwcol = mix(wcol, np.broadcast_to(C('#5ad8e0'), (NY, NX, 3)), 0.8 * (1 - ss(0.4, 0.97, blur(field('~B'), SUB, 3))))   # türkises Flachwasser\nwcol = mix(wcol, np.broadcast_to(C('#8af0e8'), (NY, NX, 3)), 0.55 * (1 - ss(0.0, 0.12, WL - H)))\nwcol = mix(wcol, np.broadcast_to(C('#f4fcff'), (NY, NX, 3)), 0.92 * (1 - ss(0.0, 0.06, WL - H)))   # Brandungslinie")
 LAND = r'''
 # ---------------- Mondinsel: Wahrzeichen an den Levelpunkten ----------------
 NODE = CFG['nodes']
@@ -92,13 +94,41 @@ gx_, gy_ = nd('G'); gz = ground(gx_ + 0.5, gy_ + 0.5)
 for (cxo, cyo) in ((0.1, 0.1), (0.9, 0.1), (0.1, 0.9), (0.9, 0.9)): tbox('wood', gx_ + cxo - 0.04, gy_ + cyo - 0.04, gx_ + cxo + 0.04, gy_ + cyo + 0.04, gz, gz + 0.6, '#7a4c2c')
 prism('roof', gx_ + 0.05, gy_ + 0.05, gx_ + 0.95, gy_ + 0.95, 0.6 + gz, 0.95 + gz, '#3c7ab8', 0.08)
 cone('glow', W(gx_ + 0.5, gy_ + 0.5, gz + 0.22), 0.16, 0.08, 0.26, '#f8c838', 12); lamp(W(gx_ + 0.5, gy_ + 1.0, gz + 0.4), '#ffd070', 6, 0.1); glow_at(W(gx_ + 0.5, gy_ + 0.5, gz + 0.35), 'lamp')
-# Gischt an den Küsten
-for y in range(-PAD, MH + PAD):
-    for x in range(-PAD, MW + PAD):
-        if CELLS[y + PAD][x + PAD] != '~': continue
-        near = any(0 <= y + dy + PAD < GH and 0 <= x + dx + PAD < GW and CELLS[y + dy + PAD][x + dx + PAD] not in '~B' for dx in (-1, 0, 1) for dy in (-1, 0, 1))
-        if near and rng.random() < 0.6:
-            for k in range(3): cone('foam', W(x + rng.uniform(0.1, 0.9), y + rng.uniform(0.1, 0.9), WL + 0.005), rng.uniform(0.05, 0.1), rng.uniform(0.05, 0.1), 0.01, '#e8f4ff', 8)
+# Palmen an den Stränden
+def palme(px, py):
+    z = ground(px, py); lean = rng.uniform(-0.3, 0.3); h = rng.uniform(1.05, 1.35); top = W(px + lean, py, z + h)
+    for k in range(5):   # gebogener Stamm aus Ringen
+        t0, t1 = k / 5, (k + 1) / 5
+        tube('wood', W(px + lean * t0 * t0, py, z + h * t0), W(px + lean * t1 * t1, py, z + h * t1), 0.075 - k * 0.008, '#a8743e' if k % 2 else '#8c5c30', 8)
+    for k in range(7):   # Wedel: Mittelrippe und zwei flache Blattbüschel
+        a_ = k / 7 * math.tau + rng.random() * 0.3; c_, s_ = math.cos(a_), math.sin(a_); g_ = rng.choice(['#5cc04a', '#4cb040', '#3c9c38'])
+        tube('leaf', top, top + Vector((c_ * 0.62, s_ * 0.62 * K, -0.2)), 0.04, g_, 5)
+        for f_, r_ in ((0.38, 0.13), (0.72, 0.1)): ball('leaf', top + Vector((c_ * 0.62 * f_, s_ * 0.62 * f_ * K, -0.2 * f_)), r_, g_, 1, 0.45)
+    for k in range(3): ball('wood', top + Vector((rng.uniform(-0.07, 0.07), rng.uniform(-0.07, 0.07), -0.1)), 0.06, '#6a4424', 1)   # Kokosnüsse
+beach = [(x + 0.5, y + 0.5) for y in range(MH) for x in range(MW) if MAP[y][x] == '.' and any(0 <= y + dy < MH and 0 <= x + dx < MW and MAP[y + dy][x + dx] == '~' for dx in (-1, 0, 1) for dy in (-1, 0, 1))]
+rng.shuffle(beach); taken = []
+for (bx, by) in beach:
+    if len(taken) >= 16: break
+    if any(abs(bx - tx) + abs(by - ty) < 2.5 for tx, ty in taken) or any(abs(bx - nx - 0.5) + abs(by - ny - 0.5) < 1.6 for nx, ny in NODE.values()): continue
+    taken.append((bx, by)); palme(bx + rng.uniform(-0.2, 0.2), by + rng.uniform(-0.2, 0.2))
+# Leuchtturm auf der Ostspitze: weiß-rot geringelt, oben ein warmes Licht
+lx_, ly_ = CFG.get('lighthouse', (28.4, 9.4)); lz = ground(lx_, ly_)
+for k in range(6): tube('house' if k % 2 else 'red', W(lx_, ly_, lz + k * 0.34), W(lx_, ly_, lz + (k + 1) * 0.34), 0.32 - k * 0.02, '#f4f0e8' if k % 2 else '#d8302c', 16)
+cone('stone', W(lx_, ly_, lz - 0.05), 0.46, 0.38, 0.14, '#8a8494', 14)
+cone('stone', W(lx_, ly_, lz + 2.04), 0.3, 0.3, 0.04, '#3a3640', 14); tube('glow', W(lx_, ly_, lz + 2.08), W(lx_, ly_, lz + 2.36), 0.17, '#fff0a0', 12); cone('roof', W(lx_, ly_, lz + 2.36), 0.24, 0.0, 0.3, '#d8302c', 14)
+lamp(W(lx_, ly_ + 0.5, lz + 2.2), '#fff0a0', 22, 0.1); glow_at(W(lx_, ly_, lz + 2.2), 'fire')
+# Segelboot und Felsen im Meer
+bx_, by_ = CFG.get('boat', (6.2, 15.0))
+Z_ = 1.7; B_ = lambda dx, dy, dz: W(bx_ + dx * Z_, by_ + dy * Z_, WL + dz * Z_)
+bm, lay = bmget('wood'); hull = [B_(-0.45, -0.12, 0.01), B_(0.45, -0.12, 0.01), B_(0.3, 0.12, 0.01), B_(-0.35, 0.12, 0.01), B_(-0.5, -0.16, 0.14), B_(0.6, -0.16, 0.14), B_(0.38, 0.16, 0.14), B_(-0.42, 0.16, 0.14)]
+vs = [bm.verts.new(v) for v in hull]
+for f in ((0, 1, 2, 3), (4, 7, 6, 5), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)): bm.faces.new([vs[i] for i in f])
+paint('wood', vs, '#9a5c34')
+tube('wood', B_(0, 0, 0.12), B_(0, 0, 0.85), 0.03, '#6a4424', 6)
+bm, lay = bmget('house'); sail = [bm.verts.new(v) for v in (B_(0.03, 0, 0.82), B_(0.03, 0, 0.2), B_(0.46, 0, 0.24))]; bm.faces.new(sail); paint('house', sail, '#f8f0e0')
+bm, lay = bmget('red'); flag = [bm.verts.new(v) for v in (B_(0, 0, 0.85), B_(0, 0, 0.75), B_(-0.16, 0, 0.8))]; bm.faces.new(flag); paint('red', flag, '#d8302c')
+cone('foam', B_(0.62, 0, 0.0), 0.12 * Z_, 0.05, 0.01, '#f4fcff', 8)
+for (rx, ry, rr) in ((1.2, 3.5, 0.22), (27.2, 2.4, 0.26), (25.6, 15.2, 0.2), (8.5, 0.8, 0.18)): ball('stone', W(rx, ry, WL), rr, '#8a8494', 1, 0.7, 0.05, 0.1)
 
 '''
 open(os.path.join(here, 'pfad_bl.py'), 'w', encoding='utf-8').write(head + LAND + tail)
@@ -130,5 +160,5 @@ for (x, y) in NODES.values(): m[y][x] = '.' if m[y][x] != '~' else '.'
 stars = []
 for p in SECRET:
     for (x0, y0), (x1, y1) in zip(p, p[1:]): stars.append((x0, y0, x1, y1))
-json.dump({'map': [''.join(r) for r in m], 'nodes': NODES, 'stars': [s for s in stars if True]}, open(os.path.join(here, 'pfad_map.json'), 'w'))
+json.dump({'map': [''.join(r) for r in m], 'nodes': NODES, 'stars': [s for s in stars if True], 'lighthouse': (28.4, 9.4), 'boat': (6.2, 15.0)}, open(os.path.join(here, 'pfad_map.json'), 'w'))
 print('\n'.join(''.join(r) for r in m))
