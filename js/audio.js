@@ -706,6 +706,15 @@ const Audio8 = (() => {
     'a5:6 g5:2 f5:4 e5:4', 'd5:4 f5:4 a5:8', 'e5:6 d5:2 c5:4 e5:4', 'a5:12 -:4', 'a#5:4 d6:4 f6:6 d6:2', 'c6:4 a#5:4 f5:8', 'a5:4 c6:4 f6:6 e6:2', 'g6:4 e6:4 c6:8',
     'd6:6 c6:2 a5:4 f5:4', 'a5:4 d6:4 f6:8', 'e6:6 d6:2 c6:4 a5:4', 'c6:4 e6:4 a6:8', 'f6:4 d6:4 a#5:4 d6:4', 'e6:4 c6:4 g5:4 a#5:4', 'a5:4 c6:4 f6:8', 'f6:8 c6:4 f5:4'];
 
+  // Inselmelodie der Mondinsel (Wegkarte, js/pfad.js): G-Dur, hüpfender Bass, ein Lied zum Weiterlaufen
+  const IN = { G: ['b3', 'd4', 'g4'], C: ['c4', 'e4', 'g4'], D: ['a3', 'd4', 'f#4'], Em: ['b3', 'e4', 'g4'], Am: ['a3', 'c4', 'e4'], D7: ['a3', 'c4', 'f#4'], Bm: ['b3', 'd4', 'f#4'] };
+  const IN_B = { G: 'g1', C: 'c2', D: 'd2', Em: 'e2', Am: 'a1', D7: 'd2', Bm: 'b1' };
+  const IN_C = ['G', 'G', 'C', 'G', 'Em', 'Am', 'D7', 'G', 'G', 'G', 'C', 'C', 'Am', 'D', 'G', 'G', 'Em', 'Em', 'C', 'C', 'G', 'G', 'Am', 'D7', 'G', 'Bm', 'C', 'Am', 'G', 'D7', 'G', 'G'];
+  const IN_L = ['d5:2 g5:2 b5:4 a5:2 g5:2 d5:4', 'b4:2 d5:2 g5:6 -:2 g5:2 a5:2', 'c6:4 b5:2 a5:2 g5:4 e5:4', 'd5:6 b4:2 g4:8', 'e5:2 g5:2 b5:4 a5:2 g5:2 e5:4', 'c5:2 e5:2 a5:6 g5:2 a5:2 c6:2', 'd6:4 c6:2 a5:2 f#5:4 d5:4', 'g5:12 -:4',
+    'b5:2 a5:2 g5:2 d5:2 g5:4 b5:4', 'd6:6 b5:2 g5:8', 'e6:4 d6:2 c6:2 g5:4 e5:4', 'c6:6 e5:2 g5:8', 'a5:2 c6:2 e6:4 d6:2 c6:2 a5:4', 'f#5:4 a5:4 d6:8', 'b5:2 d6:2 g6:4 f#6:2 e6:2 d6:4', 'g6:12 -:4',
+    'g5:4 e5:2 g5:2 b5:6 a5:2', 'g5:4 f#5:4 e5:8', 'e5:4 g5:2 c6:2 e6:6 d6:2', 'c6:4 b5:4 a5:4 g5:4', 'b5:4 d6:2 b5:2 g5:4 d5:4', 'g5:4 a5:4 b5:8', 'c6:4 a5:2 e5:2 a5:4 c6:4', 'd6:6 c6:2 a5:4 f#5:4',
+    'd5:2 g5:2 b5:4 a5:2 g5:2 d5:4', 'f#5:2 b5:2 d6:4 c#6:2 b5:2 f#5:4', 'e5:2 g5:2 c6:4 b5:2 a5:2 g5:4', 'a5:4 c6:4 e6:4 c6:4', 'd6:4 b5:2 g5:2 d6:4 g6:4', 'f#6:4 e6:2 d6:2 c6:4 a5:4', 'g6:8 d6:4 b5:4', 'g5:8 d5:4 g4:4'];
+
   // Palastmarsch des Moorpalasts (Pförtner Granitus, js/waechter.js): e-Moll, treibende Achtel wie eine Orgel, Blech im Bass
   const GR = { Em: ['e3', 'g3', 'b3'], C: ['e3', 'g3', 'c4'], D: ['f#3', 'a3', 'd4'], Am: ['e3', 'a3', 'c4'], B7: ['d#3', 'f#3', 'a3'], G: ['d3', 'g3', 'b3'] };
   const GR_B = { Em: 'e2', C: 'c2', D: 'd2', Am: 'a1', B7: 'b1', G: 'g1' };
@@ -1030,6 +1039,14 @@ const Audio8 = (() => {
       tri: MR_C.map((c, i) => { const [r, f] = MR_B[c]; return i % 2 ? `${r}:4 ${f}:4 ${r}:4` : `${r}:6 ${f}:6`; }).join(' '),
       pad: MR_C.map(c => MR[c].join('+') + ':12').join(' '),
       dr: MR_C.map((c, i) => i === 31 ? 'k:2 s:2 s:2 t:2 u:2 x:2' : i % 8 === 7 ? 'k:2 c:2 s:2 c:2 s:2 s:2' : i % 2 ? 'k:2 c:2 k:2 c:2 k:2 c:2' : 'k:2 c:2 c:2 k:2 c:2 c:2').join(' '),
+    },
+    insel: { // Mondinsel: Wegkarte (js/pfad.js)
+      bpm: 132, loop: true, echo: { delay: 3, vol: 0.24 },
+      p1: IN_L.join(' '),
+      p2: IN_C.map(c => { const [a, b, d] = IN[c]; return `${a}:2 ${b}:2 ${d}:2 ${b}:2 ${a}:2 ${b}:2 ${d}:2 ${b}:2`; }).join(' '),
+      tri: IN_C.map(c => { const r = IN_B[c]; return `${r}:2 -:2 ${up8(r)}:2 -:2 ${r}:2 -:2 ${up8(r)}:2 -:2`; }).join(' '),
+      pad: IN_C.map(c => IN[c].join('+') + ':16').join(' '),
+      dr: IN_C.map((c, i) => i === 31 ? 'k:2 s:2 k:2 s:2 t:2 t:2 x:4' : i % 8 === 7 ? 'k:2 h:2 s:2 s:2 t:2 t:2 u:2 u:2' : 'k:2 h:2 s:2 h:2 k:2 h:2 s:2 h:2').join(' '),
     },
     palast: { // Moorpalast: Pförtner Granitus (js/waechter.js)
       bpm: 136, loop: true, echo: { delay: 3, vol: 0.25 },

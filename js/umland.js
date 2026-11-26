@@ -163,9 +163,10 @@ const Umland = (() => {
     return false;
   }
   // ---------------- Zeichnen ----------------
-  function hero(ctx, x, y, dir, step, t) { // Held in Schrägsicht: Blender-Figur mit Laterne, sonst kleine Pixelfigur (14×18)
+  function hero(ctx, x, y, dir, step, t, moving = !!(G && G.mv)) { // Held in Schrägsicht: Blender-Figur mit Laterne, sonst kleine Pixelfigur (14×18)
+    if (!HIMG.src) HIMG.src = 'img/wanderer3d.png?v=' + (window.BUILD || '');
     if (HS) {
-      const who = typeof Options !== 'undefined' && Options.character === 'ragnor' ? 'ragnor' : 'henrik', fr = G && G.mv ? [1, 0, 2, 0][Math.floor(step / 4) % 4] : 0, im = HS[who + '_' + dir + '_' + fr];
+      const who = typeof Options !== 'undefined' && Options.character === 'ragnor' ? 'ragnor' : 'henrik', fr = moving ? [1, 0, 2, 0][Math.floor(step / 4) % 4] : 0, im = HS[who + '_' + dir + '_' + fr];
       if (im) { ctx.fillStyle = 'rgba(0,0,0,0.38)'; ctx.beginPath(); ctx.ellipse(Math.round(x), Math.round(y + 7), 6, 2.5, 0, 0, Math.PI * 2); ctx.fill(); ctx.drawImage(im, Math.round(x - 11), Math.round(y - 20)); return; }
     }
     const f = Math.floor(step / 5) % 2, R = (c, X, Y, w, h) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x + X), Math.round(y + Y), w, h); };
@@ -223,8 +224,15 @@ const Umland = (() => {
       if (!vis(x, y, 160)) continue; ctx.globalAlpha = 0.5; ctx.drawImage(FX.cloud, Math.round(x - 130), Math.round(y - 70), 260, 140); }
     ctx.globalAlpha = 1;
     ctx.restore();
+    if (pre3d) { // Tilt-Shift wie bei einer Miniaturlandschaft: oben und unten verschwimmt das Bild, die Mitte bleibt scharf
+      const c = FX.tilt || (FX.tilt = Sprites.canvas(vw, vh)), x = c.getContext('2d');
+      if (c.width !== vw || c.height !== vh) { c.width = vw; c.height = vh; }
+      x.globalCompositeOperation = 'copy'; x.filter = 'blur(1.4px)'; x.drawImage(ctx.canvas, 0, 0, vw, vh, 0, 0, vw, vh); x.filter = 'none';
+      x.globalCompositeOperation = 'destination-in'; if (!FX.tiltG) { FX.tiltG = x.createLinearGradient(0, 0, 0, vh); FX.tiltG.addColorStop(0, 'rgba(0,0,0,1)'); FX.tiltG.addColorStop(0.3, 'rgba(0,0,0,0)'); FX.tiltG.addColorStop(0.7, 'rgba(0,0,0,0)'); FX.tiltG.addColorStop(1, 'rgba(0,0,0,1)'); }
+      x.fillStyle = FX.tiltG; x.fillRect(0, 0, vw, vh); x.globalCompositeOperation = 'source-over'; ctx.drawImage(c, 0, 0);
+    }
     // Nacht: blauer Schleier, Blutmond, Vignette
-    const hx = G.x - cx, hy = G.y - cy, dk = ctx.createRadialGradient(hx, hy, 18, hx, hy, 150); dk.addColorStop(0, 'rgba(255,200,120,0.10)'); dk.addColorStop(0.35, 'rgba(14,10,44,0.08)'); dk.addColorStop(1, pre3d ? 'rgba(10,8,36,0.34)' : 'rgba(10,8,36,0.42)'); // Laternenschein des Helden
+    const hx = G.x - cx, hy = G.y - cy, dk = ctx.createRadialGradient(hx, hy, 18, hx, hy, 150); dk.addColorStop(0, 'rgba(255,200,120,0.10)'); dk.addColorStop(0.35, 'rgba(14,10,44,0.08)'); dk.addColorStop(1, pre3d ? 'rgba(10,8,36,0.26)' : 'rgba(10,8,36,0.42)'); // Laternenschein des Helden
     ctx.fillStyle = dk; ctx.fillRect(0, 0, vw, vh);
     const mg = ctx.createRadialGradient(vw - 40, 30, 4, vw - 40, 30, 60); mg.addColorStop(0, 'rgba(255,110,90,0.35)'); mg.addColorStop(1, 'rgba(255,60,60,0)'); ctx.fillStyle = mg; ctx.fillRect(vw - 100, 0, 100, 90);
     ctx.fillStyle = '#c83c3c'; ctx.beginPath(); ctx.arc(vw - 40, 30, 10, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#e86c5c'; ctx.beginPath(); ctx.arc(vw - 43, 27, 4, 0, Math.PI * 2); ctx.fill();
@@ -272,5 +280,5 @@ const Umland = (() => {
     }
     draw() {}
   }
-  return { start, resume, input, draw, gate: (d) => new Zug(d), edge: (d) => new Rand(d), get game() { return G; }, get look() { return pre3d ? '3d' : 'pixel'; }, get canvas() { return pre; }, get map() { ensure(); return map; }, at: (x, y) => { ensure(); return at(x, y); }, spot: (c) => { ensure(); return spot(c); }, encounter, enter, TS };
+  return { start, resume, input, draw, gate: (d) => new Zug(d), edge: (d) => new Rand(d), get game() { return G; }, get look() { return pre3d ? '3d' : 'pixel'; }, heroAt: hero, get canvas() { return pre; }, get map() { ensure(); return map; }, at: (x, y) => { ensure(); return at(x, y); }, spot: (c) => { ensure(); return spot(c); }, encounter, enter, TS };
 })();

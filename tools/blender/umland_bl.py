@@ -11,6 +11,7 @@ from mathutils import Vector, Matrix, noise
 MAP = CFG['map']; MW, MH = len(MAP[0]), len(MAP); SS = CFG.get('ss', 2); PAD = 4; SUB = CFG.get('sub', 8)
 TILT = math.radians(CFG.get('tilt', 32)); K = 1 / math.cos(TILT)
 rng = random.Random(7)
+TOY = CFG.get('toy', True)   # Spielzeug-Diorama: glänzender Kunststoff, kräftige Farben, runde Bäume auf Stämmen
 
 # ---------------- Szene leeren ----------------
 for o in list(bpy.data.objects): bpy.data.objects.remove(o, do_unlink=True)
@@ -21,7 +22,7 @@ sc = bpy.context.scene
 def lin(h):
     h = h.lstrip('#'); c = [int(h[i:i + 2], 16) / 255 for i in (0, 2, 4)]
     return [x / 12.92 if x <= 0.04045 else ((x + 0.055) / 1.055) ** 2.4 for x in c]
-def mat(name, col=None, rough=0.8, metal=0.0, emit=0.0, attr=False, bump=0.0, bscale=40.0):
+def mat(name, col=None, rough=0.8, metal=0.0, emit=0.0, attr=False, bump=0.0, bscale=40.0, coat=0.0):
     m = bpy.data.materials.new(name); m.use_nodes = True; nt = m.node_tree
     b = next(n for n in nt.nodes if n.type == 'BSDF_PRINCIPLED')
     b.inputs['Roughness'].default_value = rough; b.inputs['Metallic'].default_value = metal
@@ -37,8 +38,12 @@ def mat(name, col=None, rough=0.8, metal=0.0, emit=0.0, attr=False, bump=0.0, bs
         tx = nt.nodes.new('ShaderNodeTexNoise'); tx.inputs['Scale'].default_value = bscale; tx.inputs['Detail'].default_value = 6
         bp = nt.nodes.new('ShaderNodeBump'); bp.inputs['Strength'].default_value = bump
         nt.links.new(tx.outputs['Fac'], bp.inputs['Height']); nt.links.new(bp.outputs['Normal'], b.inputs['Normal'])
-    try: b.inputs['Specular IOR Level'].default_value = 0.25
+    try: b.inputs['Specular IOR Level'].default_value = 0.25 if not coat else 0.5
     except KeyError: pass
+    if coat:   # Klarlack wie bei Spielzeugfiguren
+        for k, v in (('Coat Weight', coat), ('Coat Roughness', 0.12)):
+            try: b.inputs[k].default_value = v
+            except KeyError: pass
     return m
 def link(o): sc.collection.objects.link(o); return o
 
@@ -115,17 +120,18 @@ gy, gx = np.gradient(H, 1 / SUB); slope = np.sqrt(gx ** 2 + (gy / K) ** 2)
 # Farben (linear)
 def C(h): return np.array(lin(h))
 def mix(a, b, t): return a * (1 - t[..., None]) + b * t[..., None]
-col = mix(np.broadcast_to(C('#2a4e26'), (NY, NX, 3)), np.broadcast_to(C('#4e8240'), (NY, NX, 3)), ss(-0.45, 0.5, N1))
-col = mix(col, np.broadcast_to(C('#6a8c44'), (NY, NX, 3)), 0.45 * ss(0.15, 0.6, N2))                     # helle Wiesenflecken
-col = mix(col, np.broadcast_to(C('#24402a'), (NY, NX, 3)), 0.4 * ss(0.2, 0.6, -N2))                      # dunkle Senken
-col = mix(col, np.broadcast_to(C('#1e3a1c'), (NY, NX, 3)), 0.75 * ss(0.3, 0.8, tB))                     # Waldboden
+G1, G2, G3, G4, G5 = ('#2f6a2c', '#5aa444', '#86bc52', '#285a2c', '#245024') if TOY else ('#2a4e26', '#4e8240', '#6a8c44', '#24402a', '#1e3a1c')
+col = mix(np.broadcast_to(C(G1), (NY, NX, 3)), np.broadcast_to(C(G2), (NY, NX, 3)), ss(-0.45, 0.5, N1))
+col = mix(col, np.broadcast_to(C(G3), (NY, NX, 3)), 0.45 * ss(0.15, 0.6, N2))                     # helle Wiesenflecken
+col = mix(col, np.broadcast_to(C(G4), (NY, NX, 3)), 0.4 * ss(0.2, 0.6, -N2))                      # dunkle Senken
+col = mix(col, np.broadcast_to(C(G5), (NY, NX, 3)), 0.75 * ss(0.3, 0.8, tB))                     # Waldboden
 col = mix(col, np.broadcast_to(C('#3a3c24'), (NY, NX, 3)), ss(0.35, 0.7, sB))                            # Sumpf
 col = mix(col, np.broadcast_to(C('#2a3422'), (NY, NX, 3)), 0.6 * ss(0.3, 0.7, sB) * ss(-0.2, 0.3, N2))
 col = mix(col, np.broadcast_to(C('#3c4836'), (NY, NX, 3)), 0.8 * ss(0.3, 0.7, yB))                       # Friedhofsrasen
-col = mix(col, np.broadcast_to(C('#8a7650'), (NY, NX, 3)), ss(0.08, 0.3, wB) * (1 - mt))                 # Ufer
-col = mix(col, np.broadcast_to(C('#86704a'), (NY, NX, 3)), rf)                                          # Weg
+col = mix(col, np.broadcast_to(C('#c8b07a' if TOY else '#8a7650'), (NY, NX, 3)), ss(0.08, 0.3, wB) * (1 - mt))                 # Ufer
+col = mix(col, np.broadcast_to(C('#b8905c' if TOY else '#86704a'), (NY, NX, 3)), rf)                                          # Weg
 col = mix(col, np.broadcast_to(C('#6a5638'), (NY, NX, 3)), rf * 0.5 * ss(0.1, 0.5, N2))
-rock = mix(np.broadcast_to(C('#66605c'), (NY, NX, 3)), np.broadcast_to(C('#3a3634'), (NY, NX, 3)), ss(0.8, 2.2, slope))
+rock = mix(np.broadcast_to(C('#8a8290' if TOY else '#66605c'), (NY, NX, 3)), np.broadcast_to(C('#4e4856' if TOY else '#3a3634'), (NY, NX, 3)), ss(0.8, 2.2, slope))
 rock = mix(rock, np.broadcast_to(C('#4e4a3c'), (NY, NX, 3)), 0.4 * ss(0.2, 0.6, N2))
 rock = mix(rock, np.broadcast_to(C('#2e4a2c'), (NY, NX, 3)), 0.6 * (1 - ss(0.15, 0.7, H)))                # grüner Bergfuß
 col = mix(col, rock, ss(0.02, 0.18, mt))
@@ -157,12 +163,12 @@ def grid_mesh(name, Z, colors, mask=None, flat=None):
         for p, f in zip(me.polygons, fl):
             if f: p.use_smooth = False
     return link(bpy.data.objects.new(name, me))
-land = grid_mesh('land', H, col); land.data.materials.append(mat('land', attr=True, rough=0.88, bump=0.35, bscale=55))
+land = grid_mesh('land', H, col); land.data.materials.append(mat('land', attr=True, rough=0.62 if TOY else 0.88, bump=0.2 if TOY else 0.35, bscale=55, coat=0.18 if TOY else 0))
 deep = ss(0.0, 0.3, WL - H)
 wcol = mix(np.broadcast_to(C('#2c5c84'), (NY, NX, 3)), np.broadcast_to(C('#0c2244'), (NY, NX, 3)), deep)
 wcol = mix(wcol, np.broadcast_to(C('#1c3a3a'), (NY, NX, 3)), ss(0.4, 0.7, sB))
 water = grid_mesh('water', np.full((NY, NX), WL), wcol, mask=(H < WL + 0.01))
-wm = mat('water', attr=True, rough=0.18, bump=0.15, bscale=18); water.data.materials.append(wm)
+wm = mat('water', attr=True, rough=0.06 if TOY else 0.18, bump=0.12, bscale=18, coat=1.0 if TOY else 0); water.data.materials.append(wm)
 
 # ---------------- Bausteine (alles in einem Netz je Material, Farbe je Ecke) ----------------
 BM = {}
@@ -220,12 +226,18 @@ for y in range(-PAD, MH + PAD):
             for k in range(3):
                 px, py = x + rng.uniform(0.1, 0.9), y + rng.uniform(0.1, 0.95); z = ground(px, py)
                 if DECID(x, y):
-                    r = rng.uniform(0.36, 0.5); tone = rng.choice(['#2c5a2c', '#33652e', '#284e2a', '#3a6a30', '#4a6c2a']) if rng.random() > 0.18 else rng.choice(['#8a5a1c', '#9a4420', '#7a6a20', '#a07428'])
-                    ball('leaf', W(px, py, z + r * 0.95 + 0.12), r, tone, 2, 0.85, 0.09, 0.08)
+                    r = rng.uniform(0.36, 0.5)
+                    if TOY:
+                        tone = rng.choice(['#3c8a3a', '#4a9a40', '#2f7a34', '#5aa848']) if rng.random() > 0.18 else rng.choice(['#e0802c', '#d04a2c', '#e8a83a'])
+                        cone('wood', W(px, py, z), 0.08, 0.06, r * 0.9 + 0.2, '#7a4c2c', 10)
+                        ball('leaf', W(px, py, z + r * 0.95 + 0.3), r * 1.02, tone, 3, 0.92, 0.02, 0.05)
+                    else:
+                        tone = rng.choice(['#2c5a2c', '#33652e', '#284e2a', '#3a6a30', '#4a6c2a']) if rng.random() > 0.18 else rng.choice(['#8a5a1c', '#9a4420', '#7a6a20', '#a07428'])
+                        ball('leaf', W(px, py, z + r * 0.95 + 0.12), r, tone, 2, 0.85, 0.09, 0.08)
                 else:
-                    h = rng.uniform(0.95, 1.3); r = rng.uniform(0.3, 0.4); tone = rng.choice(['#1e4430', '#22503a', '#1a3c2c', '#28563a'])
-                    cone('leaf', W(px, py, z + 0.12), r, 0.0, h * 0.62, tone, 7, 0.08, rng.random())
-                    cone('leaf', W(px, py, z + 0.12 + h * 0.38), r * 0.72, 0.0, h * 0.62, tone, 7, 0.08, rng.random())
+                    h = rng.uniform(0.95, 1.3); r = rng.uniform(0.3, 0.4); tone = rng.choice(['#2a6a44', '#327a4c', '#245e3c', '#3a8450'] if TOY else ['#1e4430', '#22503a', '#1a3c2c', '#28563a']); sg = 14 if TOY else 7
+                    cone('leaf', W(px, py, z + 0.12), r, 0.0, h * 0.62, tone, sg, 0.08, rng.random())
+                    cone('leaf', W(px, py, z + 0.12 + h * 0.38), r * 0.72, 0.0, h * 0.62, tone, sg, 0.08, rng.random())
                     cone('wood', W(px, py, z), 0.06, 0.05, 0.2, '#4a3020')
         elif c == 'h':
             for k in range(2):
@@ -415,11 +427,13 @@ MATS = {'leaf': ('leaf', 0.75, 0, 0, True), 'wood': ('wood', 0.8, 0, 0, True), '
         'house': ('house', 0.8, 0, 0, True), 'roof': ('roof', 0.9, 0, 0, True), 'glow': ('#ffc060', 0.5, 0, 6.0, False), 'iron': ('iron', 0.45, 0.6, 0, True),
         'brew': ('#60ff70', 0.3, 0, 5.0, False), 'brick': ('brick', 0.85, 0, 0, True), 'slate': ('slate', 0.6, 0, 0, True), 'red': ('red', 0.5, 0.2, 0, True),
         'car': ('car', 0.6, 0, 0, True), 'hole': ('#020104', 1.0, 0, 0, False), 'fire': ('#ffa040', 0.5, 0, 8.0, False), 'dirt': ('dirt', 0.95, 0, 0, True), 'foam': ('foam', 0.4, 0, 0.35, True)}
+TOYM = {'leaf': (0.3, 0.55), 'wood': (0.45, 0.35), 'stone': (0.45, 0.35), 'house': (0.4, 0.4), 'roof': (0.35, 0.5), 'brick': (0.45, 0.35), 'slate': (0.3, 0.5), 'red': (0.3, 0.6), 'car': (0.3, 0.6), 'dirt': (0.6, 0.15), 'flower': (0.3, 0.5)}
 for key, (bm, lay) in BM.items():
     me = bpy.data.meshes.new(key); bm.to_mesh(me); bm.free()
     nm, rough, metal, emit, attr = MATS.get(key, (key, 0.8, 0, 0, True))
-    me.materials.append(mat('m_' + key, None if attr else nm, rough, metal, emit, attr))
-    if key in ('leaf', 'stone', 'dirt'):
+    cr = TOYM.get(key) if TOY else None
+    me.materials.append(mat('m_' + key, None if attr else nm, cr[0] if cr else rough, metal, emit, attr, coat=cr[1] if cr else 0))
+    if key in ('leaf', 'stone', 'dirt') or (TOY and key in ('wood', 'flower')):
         for p in me.polygons: p.use_smooth = True
     link(bpy.data.objects.new(key, me))
 
@@ -428,10 +442,10 @@ def sun(az, el, hexc, power, ang=3.0):
     l = bpy.data.lights.new('sun', 'SUN'); l.energy = power; l.color = lin(hexc); l.angle = math.radians(ang)
     o = bpy.data.objects.new('sun', l); d = Vector((math.cos(el) * math.cos(az), math.cos(el) * math.sin(az), -math.sin(el)))
     o.rotation_euler = d.to_track_quat('-Z', 'Y').to_euler(); link(o)
-sun(math.radians(CFG.get('az', 18)), math.radians(CFG.get('el', 46)), '#c4cdf5', CFG.get('moon', 2.8))
+sun(math.radians(CFG.get('az', 18)), math.radians(CFG.get('el', 46)), '#d0d8ff' if TOY else '#c4cdf5', CFG.get('moon', 3.6 if TOY else 2.8), 6.0 if TOY else 3.0)
 sun(math.radians(225), math.radians(22), '#ff6a5a', CFG.get('red', 0.2), 6)
 wd_ = bpy.data.worlds.get('World') or bpy.data.worlds.new('World'); sc.world = wd_; wd_.use_nodes = True
-bg = next(n for n in wd_.node_tree.nodes if n.type == 'BACKGROUND'); bg.inputs['Color'].default_value = lin('#1c2848') + [1]; bg.inputs['Strength'].default_value = CFG.get('amb', 1.15)
+bg = next(n for n in wd_.node_tree.nodes if n.type == 'BACKGROUND'); bg.inputs['Color'].default_value = lin('#34407a' if TOY else '#1c2848') + [1]; bg.inputs['Strength'].default_value = CFG.get('amb', 1.45 if TOY else 1.15)
 cam = bpy.data.cameras.new('ucam'); cam.type = 'ORTHO'; cam.ortho_scale = MW; cam.clip_end = 300
 co = bpy.data.objects.new('ucam', cam); co.rotation_euler = (TILT, 0, 0)
 co.location = Vector((MW / 2, -(MH / 2) * K, 0)) + 80 * Vector((0, -math.sin(TILT), math.cos(TILT))); link(co); sc.camera = co

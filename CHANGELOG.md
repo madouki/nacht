@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261126-1303](#20261126-1303--die-mondinsel-und-die-oberwelt-im-spielzeug-look) – Die Mondinsel und die Oberwelt im Spielzeug-Look
 - [20261126-0852](#20261126-0852--neue-heldenfigur-auf-der-oberwelt) – Neue Heldenfigur auf der Oberwelt
 - [20261126-0757](#20261126-0757--der-moorpalast-und-pförtner-granitus) – Der Moorpalast und Pförtner Granitus
 - [20261126-0116](#20261126-0116--die-grafschaft-krat-wird-lebendiger) – Die Grafschaft Krat wird lebendiger
@@ -92,6 +93,30 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261126-1303 – Die Mondinsel und die Oberwelt im Spielzeug-Look
+
+**Neu – Die Mondinsel (Gleis 3)**
+- Am Bahnhof Krat fährt jetzt auch ein Zug von Gleis 3, über einen Bahndamm hinaus auf die Mondinsel.
+- Dort gibt es eine Wegkarte mit Levelpunkten. Du läufst auf festen Wegen von Punkt zu Punkt, mit Sprung geht es in die Strecke. Ist eine Strecke geschafft, legt sich der nächste Weg Punkt für Punkt frei.
+- Sechs Strecken in Seitenansicht: Laternensteg, Glühwurmwald, Kraterhöhle, Turm der Winde, Sternenbrücke und zum Schluss die Mondfeste.
+- In jeder Strecke liegen fünf große **Mondtaler**. Die **Zwischenglocke** heilt dich und merkt sich die Stelle. Am Ende wartet die **Zielschranke** mit einem wandernden Balken: Je höher du ihn triffst, desto größer der Bonus.
+- **Rote Punkte** haben ein Geheimnis. Im Glühwurmwald liegt ganz oben ein Schlüssel. Trag ihn zum Schlüsselloch, dann öffnet sich ein verborgener Weg über leuchtende Sterne im Wasser.
+- Im **Glockenhaus** steht eine große Glocke. Ein Hieb, und auf der ganzen Insel werden die gestrichelten Umrissblöcke zu festen Steinen. Das macht den Turm der Winde und die Mondfeste leichter.
+- Die Inselkarte ist ein Spielzeug-Diorama aus Blender mit Bahnhof, Laternen, Glühpilzen, Krater, Windmühlenturm, Mondfeste, Sternwarte und Glockenhaus.
+- Eigene Inselmelodie in G-Dur.
+- Neue Urkunden: „Inselkönig“ für die Mondfeste und „Mondtalerjäger“ für alle 30 Mondtaler.
+- Alle Texte gibt es in 8 Sprachen.
+
+**Neu – Die Grafschaft Krat als Spielzeuglandschaft**
+- Die Karte der Oberwelt sieht jetzt aus wie eine liebevoll gebaute Miniaturlandschaft. Die Bäume sind runde, glänzende Kronen auf kleinen Stämmen, die Wiesen leuchten kräftig grün, die Berge wirken wie aus Knete, und das Wasser glänzt wie Lack.
+- Oben und unten verschwimmt das Bild leicht, wie bei einem Foto einer Modelllandschaft. Die Mitte um den Helden bleibt scharf.
+- Der Nachtschleier ist etwas leichter, damit die Farben besser wirken.
+
+**Beim Testen ansehen**
+- Gefällt dir der Spielzeug-Look, und stört die Unschärfe oben und unten nicht beim Spielen?
+- Fühlen sich Wegkarte und Strecken flüssig an?
+- Findest du den geheimen Ausgang im Glühwurmwald?
 
 ## 20261126-0852 – Neue Heldenfigur auf der Oberwelt
 

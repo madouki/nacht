@@ -154,7 +154,7 @@ const Game = {
 
   // Schloss: Fortsetzungspunkt schreiben, solange man in einem Raum ist (Pause, Menüs, Spiel – nicht auf Titel oder im Übergang)
   saveResume() {
-    if (Castle.on && W.player && ['play', 'pause', 'pausesec', 'map', 'warp', 'status', 'talk', 'gewissen', 'arena', 'huhn', 'bude', 'orakel', 'land', 'rausch', 'shop', 'equip', 'tools'].includes(this.state)) Castle.writeResume();
+    if (Castle.on && W.player && ['play', 'pause', 'pausesec', 'map', 'warp', 'status', 'talk', 'gewissen', 'arena', 'huhn', 'bude', 'orakel', 'land', 'pfad', 'rausch', 'shop', 'equip', 'tools'].includes(this.state)) Castle.writeResume();
   },
   startCastleEnding() { // Schloss: Graf besiegt – Epilog über der Morgendämmerung, dann Ergebnis
     this.saveHi(); Castle.dropResume(); this.rubble = [];
@@ -466,7 +466,7 @@ const Game = {
     if (this.revealed && this.revealT !== undefined) this.revealT++;
     if (this.state === 'title' && this.revealed && this.t % 520 === 0) Audio8.sfx('bell');
     const titleish = ['title', 'options', 'sections', 'secload', 'charsel', 'intro', 'scores', 'entry'].includes(this.state);
-    Audio8.ambience(titleish ? 'courtyard' : (this.state === 'play' || this.state === 'pause' || this.state === 'pausesec' || this.state === 'map' || this.state === 'warp' || this.state === 'status' || this.state === 'talk' || this.state === 'gewissen' || this.state === 'arena' || this.state === 'huhn' || this.state === 'bude' || this.state === 'orakel' || this.state === 'land' || this.state === 'rausch' || this.state === 'shop' || this.state === 'equip' || this.state === 'tools' || this.state === 'demo') && W.room ? W.room.theme : null);
+    Audio8.ambience(titleish ? 'courtyard' : (this.state === 'play' || this.state === 'pause' || this.state === 'pausesec' || this.state === 'map' || this.state === 'warp' || this.state === 'status' || this.state === 'talk' || this.state === 'gewissen' || this.state === 'arena' || this.state === 'huhn' || this.state === 'bude' || this.state === 'orakel' || this.state === 'land' || this.state === 'pfad' || this.state === 'rausch' || this.state === 'shop' || this.state === 'equip' || this.state === 'tools' || this.state === 'demo') && W.room ? W.room.theme : null);
     if (titleish && this.bootBg) this.bootBg.tick(); // Kulisse des Ladebildschirms unter den Menüs
     if (titleish) {
       FX.updateStorm(this.tStorm, View.w, () => { if (Audio8.ready()) setTimeout(() => Audio8.sfx('thunder'), 250 + Math.random() * 600); });
@@ -572,6 +572,7 @@ const Game = {
       case 'huhn': if (Huhn.input(P)) this.go('play'); break; // Hühnerwart: Rätsel und Finderlohn (js/huhn.js)
       case 'bude': if (Bude.input(P, Input.held)) this.go('play'); break;
       case 'orakel': if (Orakel.input(P)) this.go('play'); break;
+      case 'pfad': if (Pfad.input(P, Input.held)) this.go('play'); break; // Mondinsel: Wegkarte (js/pfad.js)
       case 'land': if (Umland.input(P, Input.held)) this.go('play'); break; // Umland in Draufsicht (js/umland.js) // Wahrsageautomat in der Hotel-Lobby (js/orakel.js) // Wurfbude „Dosenwerfen“ in der Lichterpassage (js/bude.js)
       case 'rausch': { const r = Rausch.input(P); if (r === true) this.go('play'); break; } // Gong im Kolosseum (js/rausch.js); beim Start blendet castleGo selbst über
       case 'talk': { // Gespräch mit einer Figur (nur Schloss): die Welt steht still, Sprung/Angriff/↑ blättert, Start überspringt
@@ -789,6 +790,7 @@ const Game = {
         if (this.state === 'bude') Bude.draw(ctx, this.t);
         if (this.state === 'orakel') Orakel.draw(ctx, this.t);
         if (this.state === 'land') Umland.draw(ctx, this.t);
+        if (this.state === 'pfad') Pfad.draw(ctx, this.t);
         if (this.state === 'rausch') Rausch.draw(ctx, this.t);
         if (this.state === 'play') { Arena.drawHud(ctx); Rausch.drawHud(ctx); this.drawRegionTitle(ctx); }
         if (this.state === 'shop') Castle.drawShop(ctx, this.t);
