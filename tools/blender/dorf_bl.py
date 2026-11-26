@@ -174,7 +174,96 @@ def turm():  # 72×160 Eulalias schiefer Wetterturm
     S(48, 16, -4, 2.0, M('#d8d8e8', 0.4, 0.6)); tube((40, 10), (48, 16), 0.25, 0.25, COPPER, 0, -4)                         # Windmesser-Schale
     shot('turm')
 
-SS = CFG.get('ss', 8); WHAT = CFG.get('what') or ['wirtin', 'buerger', 'eulalia', 'haus', 'wirtshaus', 'brunnen', 'turm']
+def haus2():  # 96×144 schmales, hohes Haus mit Schieferdach, Erker, Laterne an der Tür
+    mats(); PL, BEAM, SLATE, SLATED, STONE, WIN, DOOR, BRICK = M('#d8d0e8', 0.85), M('#3c2a3c', 0.6), M('#3c4c7c', 0.5), M('#2c3858', 0.55), M('#7c7480', 0.8), M('#ffc860', 0.4, 0, 3.2), M('#3c2c4c', 0.55), M('#7c4c3c', 0.75)
+    box(48, 140, 0, 82, 8, 30, STONE, 1.0)
+    box(48, 104, 0, 74, 64, 26, PL, 0.6); box(48, 58, 0, 80, 30, 28, PL, 0.6)
+    for py in (72, 44, 136): box(48, py, -14.6, 82, 2.6, 2.2, BEAM, 0.3)
+    prism(48, 22, 0, [(-46, 22), (0, -24), (46, 22)], 34, SLATE, 0.8)
+    for k in range(6): box(48, 38 - k * 7, -17.6, 88 - k * 15, 1.0, 0.8, SLATED, 0.2)
+    box(26, 6, 4, 8, 20, 8, BRICK, 0.6)
+    box(48, 58, -16.0, 40, 26, 8, PL, 0.6); prism(48, 42, -16.0, [(-23, 4), (0, -9), (23, 4)], 10, SLATE, 0.5)   # Erker
+    for px in (36, 48, 60): box(px, 58, -20.2, 9, 14, 1.0, WIN, 0.2); box(px, 58, -20.8, 10, 1.2, 1.0, BEAM, 0.1)
+    for (px, py) in ((30, 98), (66, 98)): box(px, py, -13.6, 14, 18, 1.0, WIN, 0.2); box(px, py, -14.4, 1.4, 19, 1.0, BEAM, 0.1); box(px, py, -14.4, 15, 1.4, 1.0, BEAM, 0.1)
+    box(48, 121, -13.4, 16, 28, 2.0, DOOR, 0.4); prism(48, 106, -13.8, [(-10, 2), (0, -6), (10, 2)], 2.0, BEAM, 0.3); S(53, 122, -14.8, 0.9, GOLD)
+    tube((60, 104), (64, 104), 0.5, 0.5, IRON, -14, -16); box(64, 108, -16, 4, 6, 4, M('#ffd070', 0.3, 0, 4.0), 0.4)
+    for px in (24, 72): lathe(px, [(128, 3.6), (136, 3.0)], M('#a8583c', 0.6), -16, 20); S(px, 126, -16, 3.6, M('#4c9c44', 0.6), 3.6, 2.6)
+    shot('haus2')
+
+def brett():  # 40×56 Gemeindebrett: kleines Dach, angeheftete Zettel, einer mit Büroklammer
+    mats(); WOOD, ROOF, PAPER, PAPERY, INKP, CLIP = M('#6c4424', 0.6), M('#a83c2c', 0.55), M('#ece4cc', 0.85), M('#f0e0a0', 0.85), M('#4c4840', 0.8), M('#d8dce8', 0.2, 0.95)
+    for px in (8, 32): box(px, 40, 0, 3, 32, 3, WOOD, 0.4)
+    box(20, 26, 0, 32, 24, 2, WOOD, 0.5); prism(20, 12, 0, [(-19, 4), (0, -6), (19, 4)], 8, ROOF, 0.4)
+    for (px, py, w, h, m) in ((12, 24, 9, 12, PAPER), (22, 22, 8, 10, PAPERY), (29, 27, 7, 9, PAPER), (16, 32, 10, 6, PAPERY)):
+        box(px, py, -1.6, w, h, 0.3, m, 0.1)
+        for k in range(3): box(px, py - h / 2 + 3 + k * 2.4, -1.9, w - 3, 0.5, 0.2, INKP, 0)
+    curve([(20.2, 15.6), (20.2, 19.4), (21.6, 19.4), (21.6, 16.4), (20.9, 16.4), (20.9, 18.6)], 0.32, 0.32, CLIP, -2.4)   # Büroklammer
+    shot('brett')
+
+def laterne():  # 16×64 Straßenlaterne
+    mats(); GLASS = M('#ffd070', 0.3, 0, 5.0)
+    box(8, 62, 0, 7, 3, 7, IRON, 0.5); tube((8, 61), (8, 16), 0.9, 0.7, IRON, 0, 0)
+    box(8, 12, 0, 6, 8, 6, GLASS, 0.3)
+    for sx in (-3, 3): box(8 + sx, 12, 0, 0.7, 8.4, 6.4, IRON, 0.1)
+    prism(8, 6, 0, [(-5, 2), (0, -3), (5, 2)], 7, IRON, 0.3); S(8, 2.4, 0, 0.9, IRON)
+    shot('laterne')
+
+def katze(f):  # 40×40: schwarze Katze auf dem Fass (0 schläft, 1 blinzelt) – 2: Fass leer, die Katze sitzt im Stiefel daneben
+    mats(); BAR, FUR, FURL, EYE, BOOT = M('#8c5c2c', 0.6), M('#1c1a22', 0.6), M('#3c3848', 0.6), M('#e8d84c', 0.2, 0, 2.0), M('#5c3c24', 0.7)
+    lathe(16, [(22, 9.0), (26, 10.2), (36, 10.2), (40, 9.0)], BAR, 0, 32)
+    for k in (25, 37): ringh(16, k, 0, 10.2, 0.6, IRON)
+    if f < 2:
+        S(16, 18.6, -1, 7.6, FUR, 6.4, 3.8); S(10.4, 15.6, -3.0, 3.6, FUR)                                                 # zusammengerollt, Kopf
+        for ex in (-1.6, 1.6): prism(10.4 + ex, 12.6, -3.0, [(-1.2, 1.4), (0, -1.6), (1.2, 1.4)], 1.0, FUR, 0.1)            # Ohren
+        curve([(22.6, 19.6), (25.0, 17.0 - f * 3), (23.4, 13.4 - f * 3)], 1.0, 0.7, FUR, -2.0)                              # Schwanz
+        if f: S(9.2, 15.6, -6.4, 0.75, EYE)
+        else: box(9.2, 16.0, -6.4, 1.6, 0.4, 0.2, FURL, 0)
+    else:
+        lathe(31, [(30, 4.6), (40, 5.2)], BOOT, 0, 20); box(35, 37.6, -1, 8, 4.8, 9, BOOT, 0.8)                             # alter Stiefel
+        S(31, 26.6, -1.2, 4.6, FUR, 4.2, 4.4); S(31.6, 21.0, -2.2, 3.4, FUR)
+        for ex in (-1.5, 1.5): prism(31.6 + ex, 18.0, -2.2, [(-1.1, 1.3), (0, -1.6), (1.1, 1.3)], 1.0, FUR, 0.1)
+        for ex in (30.4, 33.0): S(ex, 21.0, -5.2, 0.7, EYE)
+        curve([(27, 28), (24.4, 24.6), (25.4, 21.0)], 0.9, 0.6, FUR, -1.0)
+    shot('katze%d' % f)
+
+def angel():  # 20×48 Angelrute an die Wand gelehnt, Rolle, Schnur ohne Haken
+    mats(); ROD, CORK, LINE = M('#a87444', 0.45), M('#c8a070', 0.8), M('#e8e8f0', 0.4)
+    tube((4, 47), (17, 2), 0.7, 0.3, ROD, -1, -1); tube((4.6, 45), (6.0, 40), 0.95, 0.95, CORK, -1.2, -1.2)
+    disc(7.2, 37.6, -2.4, 2.0, 1.2, IRON, 24); S(7.2, 37.6, -3.2, 0.5, IRONL)
+    curve([(17, 2.4), (18.2, 12), (18.4, 24), (18.0, 30)], 0.22, 0.22, LINE, -1)
+    shot('angel')
+
+def unke_wach():  # 40×36: die Brunnenunke ist kurz lebendig – große Augen, Maul auf, winzige Krone
+    mats(); FROG, FROGD, BELLY, CROWN = M('#5cb048', 0.4), M('#3c8434', 0.45), M('#c8e070', 0.5), M('#f0c040', 0.25, 0.9)
+    S(19, 24, 0, 10, FROG, 8.6, 7.6); S(21.6, 14.4, -2.6, 7.4, FROG, 6.6, 5.6); S(22.6, 20.6, -6.6, 4.4, BELLY, 2.0, 3.4)
+    for s in (-1, 1): S(19 + s * 8.6, 29.0, -3.4, 3.4, FROGD, 3.6, 2.2)
+    for ex in (17.4, 26.6): S(ex, 8.6, -5.6, 3.2, FROG); S(ex + 0.4, 8.2, -8.4, 1.8, M('#fcfcf0', 0.3)); S(ex + 0.8, 8.0, -9.8, 0.9, M('#1c1c24', 0.2))
+    S(22.6, 17.8, -8.0, 3.0, M('#a8343c', 0.5), 1.2, 1.6)                                                                    # Maul auf
+    prism(22.0, 3.6, -2.6, [(-3.6, 1.6), (-3.6, -1.4), (-1.8, 0.2), (0, -2.2), (1.8, 0.2), (3.6, -1.4), (3.6, 1.6)], 4.4, CROWN, 0.1)
+    shot('unke_wach')
+
+def skyline():  # 768×112 ferne Dächer von Unkenbrunn: Silhouetten, Kirchturm, Hügel, kleine Lichter
+    mats(); SIL, SILD, HILL, LIT = M('#2c2c4c', 0.8), M('#22223c', 0.85), M('#1c2a34', 0.9), M('#ffc860', 0.4, 0, 3.0)
+    import random; rnd = random.Random(7)
+    prism(384, 100, 30, [(-400, 14), (-300, -16), (-160, -6), (-40, -22), (120, -8), (260, -20), (400, -4), (400, 14)], 20, HILL, 0.5)
+    x = 8
+    while x < 760:
+        w = rnd.randint(26, 46); h = rnd.randint(22, 40); top = 112 - h; m = SIL if rnd.random() < 0.6 else SILD
+        box(x + w / 2, 112 - h / 2 + 6, 0, w, h + 12, 10, m, 0.4); prism(x + w / 2, top - 4, 0, [(-w / 2 - 2, 4), (0, -rnd.randint(10, 18)), (w / 2 + 2, 4)], 12, m, 0.4)
+        for k in range(rnd.randint(0, 3)):
+            if rnd.random() < 0.7: box(x + 5 + rnd.random() * (w - 10), top + 8 + rnd.random() * (h - 14), -5.4, 3, 4, 0.6, LIT, 0)
+        if rnd.random() < 0.3: box(x + w * 0.7, top - 8, 2, 4, 10, 4, m, 0.2)
+        x += w + rnd.randint(-4, 10)
+    box(420, 50, 4, 16, 84, 12, SIL, 0.5); lathe(420, [(-12, 0.4), (8, 8.6), (10, 9)], SILD, 4, 16); box(420, 26, -2.4, 6, 8, 0.6, LIT, 0)   # Kirchturm
+    shot('skyline')
+
+def zaun():  # 64×24 Lattenzaun
+    mats(); WD = M('#d8c8a8', 0.75)
+    for k in range(8): prism(4 + k * 8, 14, 0, [(-2.4, 10), (-2.4, -7), (0, -10), (2.4, -7), (2.4, 10)], 1.6, WD, 0.2)
+    for py in (10, 19): box(32, py, 1.4, 64, 2.2, 1.2, M('#a89878', 0.8), 0.2)
+    shot('zaun')
+
+SS = CFG.get('ss', 8); WHAT = CFG.get('what') or ['wirtin', 'buerger', 'eulalia', 'haus', 'wirtshaus', 'brunnen', 'turm', 'haus2', 'brett', 'laterne', 'katze', 'angel', 'unke_wach', 'skyline', 'zaun']
 os.makedirs(CFG['out'], exist_ok=True)
 for f in (0, 1):
     if 'wirtin' in WHAT: stage(40, 48, SS); wirtin(f)
@@ -184,4 +273,13 @@ if 'haus' in WHAT: stage(112, 128, max(3, SS // 2)); haus()
 if 'wirtshaus' in WHAT: stage(160, 136, max(3, SS // 2)); wirtshaus()
 if 'brunnen' in WHAT: stage(72, 80, max(4, SS // 2)); brunnen()
 if 'turm' in WHAT: stage(72, 160, max(3, SS // 2)); turm()
+if 'haus2' in WHAT: stage(96, 144, max(3, SS // 2)); haus2()
+if 'brett' in WHAT: stage(40, 56, SS); brett()
+if 'laterne' in WHAT: stage(16, 64, SS); laterne()
+if 'katze' in WHAT:
+    for f in (0, 1, 2): stage(40, 40, SS); katze(f)
+if 'angel' in WHAT: stage(20, 48, SS); angel()
+if 'unke_wach' in WHAT: stage(40, 36, SS); unke_wach()
+if 'skyline' in WHAT: stage(768, 112, 2); skyline()
+if 'zaun' in WHAT: stage(64, 24, SS); zaun()
 print('ok')

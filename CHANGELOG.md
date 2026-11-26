@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261126-1515](#20261126-1515--unkenbrunn-wird-hübscher-und-im-dorf-gibt-es-ein-abenteuer) – Unkenbrunn wird hübscher, und im Dorf gibt es ein Abenteuer
 - [20261126-1424](#20261126-1424--das-dorf-unkenbrunn-die-unkenkrone-und-das-donnerwort) – Das Dorf Unkenbrunn, die Unkenkrone und das Donnerwort
 - [20261126-1336](#20261126-1336--mondinsel-mit-lagune-spielzeugheld-und-goldblöcke-im-turm-der-winde) – Mondinsel mit Lagune, Spielzeugheld und Goldblöcke im Turm der Winde
 - [20261126-1303](#20261126-1303--die-mondinsel-und-die-oberwelt-im-spielzeug-look) – Die Mondinsel und die Oberwelt im Spielzeug-Look
@@ -95,6 +96,29 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261126-1515 – Unkenbrunn wird hübscher, und im Dorf gibt es ein Abenteuer
+
+**Neu – Die Dorfstraße sieht schöner aus**
+- Kopfsteinpflaster, Straßenlaternen und bunte Lichterketten über der Straße.
+- Hinter den Häusern liegen jetzt die fernen Dächer des Dorfes mit kleinen erleuchteten Fenstern und einem Kirchturm. Sie ziehen beim Laufen langsamer vorbei.
+- Aus den Schornsteinen steigt Rauch, und im Brunnen plätschert es.
+- Neu stehen dort ein schmales Haus mit blauem Schieferdach und Erker, ein Gemeindebrett, Lattenzäune und eine schwarze Katze auf einem Fass.
+- Die schwebenden Kerzen sind aus dem Dorf verschwunden.
+- Auf der Karte der Grafschaft hat das Dorf jetzt Schornsteine mit Rauch, Blumen vor den Häusern, einen Marktstand und Bäume rundherum.
+
+**Neu – Ein Abenteuer wie in alten Zeigen-und-Klicken-Spielen**
+- Manche Dinge im Dorf funkeln leise. Stell dich davor und drück ↑, dann öffnet sich eine Verbleiste: ANSEHEN, NEHMEN, BENUTZEN, REDEN.
+- Oben steht der Satz wie früher, etwa „BENUTZE ANGELRUTE MIT UNKENBRUNNEN“. Der Held kommentiert alles in eigenen Sprechtexten, gern etwas frech.
+- Unten ist deine Tasche mit dem gesammelten Kram. Kram lässt sich mit Dingen benutzen und auch mit anderem Kram kombinieren.
+- Die Unke im Brunnen spricht. Im Gespräch wählst du deine Antwort aus mehreren Sätzen.
+- Eine kleine Märchen-Rätselkette führt zu einem Siegelring (+3 Glück, +6 MP) und der neuen Urkunde „Froschkönig“. Unterwegs gibt es auch einen Geldbeutel.
+- Alle Texte gibt es in 8 Sprachen.
+
+**Beim Testen ansehen**
+- Schaffst du die Rätselkette ohne Hilfe? Tipp, wenn du feststeckst: Rede mit der Unke.
+- Sind die Sprechtexte über den Figuren gut lesbar?
+- Gefallen dir Lichterketten, Pflaster und die fernen Dächer?
 
 ## 20261126-1424 – Das Dorf Unkenbrunn, die Unkenkrone und das Donnerwort
 

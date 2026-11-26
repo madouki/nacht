@@ -386,6 +386,10 @@ def fach(x0, y0, x1, y1, wall, roof, h, rh, wins):   # Fachwerkhaus, Giebel in x
         xx = x0 + (x1 - x0) * k / 4; tbox('house', xx - 0.02, y1 - 0.01, xx + 0.02, y1 + 0.03, 0.0, h, '#3a2414')
     tbox('house', x0, y1 - 0.01, x1, y1 + 0.03, h * 0.5 - 0.02, h * 0.5 + 0.02, '#3a2414')
     prism('roof', x0, y0, x1, y1, h - 0.02, rh, roof, 0.1)
+    chx = x1 - (x1 - x0) * 0.22; chy = y0 + (y1 - y0) * 0.3
+    tbox('brick', chx - 0.06, chy - 0.06, chx + 0.06, chy + 0.06, h, rh + 0.12, '#8c4c3c'); glow_at(W(chx, chy, rh + 0.14), 'smoke')
+    for k in range(int((x1 - x0) / 0.12)):
+        ball('leaf', W(x0 + 0.06 + k * 0.12, y1 + 0.1, 0.03), 0.045, ['#e84848', '#f8d048', '#e880e8', '#f8f0f8'][k % 4] if k % 2 else '#4c9c44', 1)
     for k in range(wins):
         wx = x0 + (x1 - x0) * (k + 1) / (wins + 1) + 0.06
         tbox('glow', wx - 0.07, y1 + 0.02, wx + 0.07, y1 + 0.05, h * 0.14, h * 0.4, '#ffb450'); glow_at(W(wx, y1 + 0.05, h * 0.27), 'win')
@@ -412,6 +416,15 @@ if DV:
     for k in (1, 2):
         ball('glow', W(tx_ + 0.05 * k, ty_ + 0.27, 0.15 + k * 0.3), 0.06, '#c890ff', 1); glow_at(W(tx_ + 0.05 * k, ty_ + 0.27, 0.15 + k * 0.3), 'win')
     fach(vx + 2.1, vy + 2.15, vx + 2.9, vy + 2.85, '#e8d8b8', '#7a5a3a', 0.4, 0.78, 1)                      # Häuschen
+    # Marktstand am Platz: gestreiftes Dach, Kisten mit Obst
+    mx_, my_ = vx - 1.5, vy + 2.5
+    for k in range(4): tbox('wood', mx_ - 0.28 + (k % 2) * 0.54, my_ - 0.16 + (k // 2) * 0.3, mx_ - 0.24 + (k % 2) * 0.54, my_ - 0.12 + (k // 2) * 0.3, 0.0, 0.34, '#6c4424')
+    for k in range(4): prism('roof' if k % 2 else 'red', mx_ - 0.32 + k * 0.16, my_ - 0.2, mx_ - 0.16 + k * 0.16, my_ + 0.2, 0.34, 0.42, '#f4f0e8' if k % 2 else '#d8302c', 0.02)
+    tbox('wood', mx_ - 0.26, my_ - 0.1, mx_ + 0.26, my_ + 0.12, 0.1, 0.16, '#8c5c2c')
+    for k in range(6): ball('leaf', W(mx_ - 0.2 + (k % 3) * 0.2, my_ - 0.04 + (k // 3) * 0.1, 0.2), 0.045, ['#e84040', '#f8a030', '#90d048'][k % 3], 1)
+    # Bäume und Beete rund ums Dorf
+    for (tx, ty, r) in ((vx - 1.55, vy - 1.6, 0.32), (vx + 1.5, vy - 1.55, 0.28), (vx - 1.6, vy + 3.4, 0.3), (vx + 1.5, vy + 3.45, 0.27), (vx + 2.6, vy + 3.4, 0.25)):
+        tube('wood', W(tx, ty, 0.0), W(tx, ty, 0.28), 0.05, '#5c3c22', 6); ball('leaf', W(tx, ty, 0.28 + r * 0.9), r, ['#3c9a4c', '#4aaa54', '#2f8a44'][int(tx * 7) % 3], 2, 0.9, 0.05, 0.08)
     cx_, cy_ = vx + 0.5, vy + 0.5                                                                             # Unkenbrunnen
     cone('stone', W(cx_, cy_, 0.0), 0.3, 0.3, 0.14, '#8a8494', 14); cone('stone', W(cx_, cy_, 0.142), 0.25, 0.25, 0.006, '#3c78b8', 14)
     tube('stone', W(cx_, cy_, 0.1), W(cx_, cy_, 0.32), 0.05, '#6c6474', 8)

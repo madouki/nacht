@@ -154,7 +154,7 @@ const Game = {
 
   // Schloss: Fortsetzungspunkt schreiben, solange man in einem Raum ist (Pause, Menüs, Spiel – nicht auf Titel oder im Übergang)
   saveResume() {
-    if (Castle.on && W.player && ['play', 'pause', 'pausesec', 'map', 'warp', 'status', 'talk', 'gewissen', 'arena', 'huhn', 'bude', 'orakel', 'land', 'pfad', 'rausch', 'shop', 'equip', 'tools'].includes(this.state)) Castle.writeResume();
+    if (Castle.on && W.player && ['play', 'pause', 'pausesec', 'map', 'warp', 'status', 'talk', 'gewissen', 'arena', 'huhn', 'abenteuer', 'bude', 'orakel', 'land', 'pfad', 'rausch', 'shop', 'equip', 'tools'].includes(this.state)) Castle.writeResume();
   },
   startCastleEnding() { // Schloss: Graf besiegt – Epilog über der Morgendämmerung, dann Ergebnis
     this.saveHi(); Castle.dropResume(); this.rubble = [];
@@ -466,7 +466,7 @@ const Game = {
     if (this.revealed && this.revealT !== undefined) this.revealT++;
     if (this.state === 'title' && this.revealed && this.t % 520 === 0) Audio8.sfx('bell');
     const titleish = ['title', 'options', 'sections', 'secload', 'charsel', 'intro', 'scores', 'entry'].includes(this.state);
-    Audio8.ambience(titleish ? 'courtyard' : (this.state === 'play' || this.state === 'pause' || this.state === 'pausesec' || this.state === 'map' || this.state === 'warp' || this.state === 'status' || this.state === 'talk' || this.state === 'gewissen' || this.state === 'arena' || this.state === 'huhn' || this.state === 'bude' || this.state === 'orakel' || this.state === 'land' || this.state === 'pfad' || this.state === 'rausch' || this.state === 'shop' || this.state === 'equip' || this.state === 'tools' || this.state === 'demo') && W.room ? W.room.theme : null);
+    Audio8.ambience(titleish ? 'courtyard' : (this.state === 'play' || this.state === 'pause' || this.state === 'pausesec' || this.state === 'map' || this.state === 'warp' || this.state === 'status' || this.state === 'talk' || this.state === 'gewissen' || this.state === 'arena' || this.state === 'huhn' || this.state === 'abenteuer' || this.state === 'bude' || this.state === 'orakel' || this.state === 'land' || this.state === 'pfad' || this.state === 'rausch' || this.state === 'shop' || this.state === 'equip' || this.state === 'tools' || this.state === 'demo') && W.room ? W.room.theme : null);
     if (titleish && this.bootBg) this.bootBg.tick(); // Kulisse des Ladebildschirms unter den Menüs
     if (titleish) {
       FX.updateStorm(this.tStorm, View.w, () => { if (Audio8.ready()) setTimeout(() => Audio8.sfx('thunder'), 250 + Math.random() * 600); });
@@ -570,6 +570,7 @@ const Game = {
       case 'gewissen': if (Gewissen.input(P)) this.go('play'); break; // Gewissensfrage oder Opferschrein (js/gewissen.js)
       case 'arena': if (Arena.input(P)) this.go('play'); break; // Gladiatorenprüfung: Stufe wählen (js/arena.js)
       case 'huhn': if (Huhn.input(P)) this.go('play'); break; // Hühnerwart: Rätsel und Finderlohn (js/huhn.js)
+      case 'abenteuer': if (Dorf.input(P)) this.go('play'); break; // Dorf Unkenbrunn: Verben, Kram, Gespräch mit Antwortwahl (js/dorf.js)
       case 'bude': if (Bude.input(P, Input.held)) this.go('play'); break;
       case 'orakel': if (Orakel.input(P)) this.go('play'); break;
       case 'pfad': if (Pfad.input(P, Input.held)) this.go('play'); break; // Mondinsel: Wegkarte (js/pfad.js)
@@ -787,6 +788,7 @@ const Game = {
         if (this.state === 'gewissen') Gewissen.draw(ctx, this.t);
         if (this.state === 'arena') Arena.draw(ctx, this.t);
         if (this.state === 'huhn') Huhn.draw(ctx, this.t);
+        if (this.state === 'abenteuer') Dorf.drawUI(ctx, this.t);
         if (this.state === 'bude') Bude.draw(ctx, this.t);
         if (this.state === 'orakel') Orakel.draw(ctx, this.t);
         if (this.state === 'land') Umland.draw(ctx, this.t);
