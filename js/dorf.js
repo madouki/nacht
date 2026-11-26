@@ -193,7 +193,7 @@ const Dorf = (() => {
   const QUESTIONS = [['dQ1', [['U', 'dA1']]], ['dQ2', [['U', 'dA2'], ['H', 'dA2b']]], ['dQ3', [['U', 'dA3'], ['U', 'dA3b']]], ['dQ4', [['U', 'dA4']]]];
   function input(P) { // true = zu
     if (!ui) return true;
-    ui.t++; if (wakeT > 0) wakeT--;
+    ui.t++; if (wakeT > 0) wakeT--; if (W.flash > 0) W.flash--; // die Welt steht still: den Blitz der Erlösung hier abklingen lassen
     if (ui.t < 6) return false;
     const st = ui.stage, close = () => { ui = null; return true; };
     if (st === 'say') {

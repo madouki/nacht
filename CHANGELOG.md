@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261126-1822](#20261126-1822--kleine-korrektur-in-unkenbrunn) – Kleine Korrektur in Unkenbrunn
 - [20261126-1610](#20261126-1610--neue-häuser-für-unkenbrunn) – Neue Häuser für Unkenbrunn
 - [20261126-1515](#20261126-1515--unkenbrunn-wird-hübscher-und-im-dorf-gibt-es-ein-abenteuer) – Unkenbrunn wird hübscher, und im Dorf gibt es ein Abenteuer
 - [20261126-1424](#20261126-1424--das-dorf-unkenbrunn-die-unkenkrone-und-das-donnerwort) – Das Dorf Unkenbrunn, die Unkenkrone und das Donnerwort
@@ -97,6 +98,14 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261126-1822 – Kleine Korrektur in Unkenbrunn
+
+**Behoben**
+- Nach der Erlösung der Brunnenunke blieb der helle Lichtblitz über dem ganzen Bild stehen, solange die Verbleiste offen war. Jetzt klingt er wie gewohnt in einem Augenblick ab.
+
+**Beim Testen ansehen**
+- Bring der Unke die goldene Kugel: Ist das Bild danach gleich wieder klar?
 
 ## 20261126-1610 – Neue Häuser für Unkenbrunn
 
