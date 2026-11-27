@@ -458,10 +458,12 @@ const Burg = (() => {
       ctx.beginPath(); ctx.ellipse(ox + b.x, oy + b.y + 2, r, r * 0.42, 0, 0, Math.PI * 2); ctx.stroke();
       ctx.globalAlpha = 0.15 + 0.2 * k; ctx.lineWidth = 5; ctx.stroke(); ctx.restore();
     }
-    if (b.done && t > 96) { const a = Math.max(0, 1 - (t - 96) / 60); obj(ctx, 'fmx', px, py, a); if (a <= 0) G.o.boss = null; b.t++; return; }
+    const west = b.x > IW / 2; // umgefallen liegt er zur Raummitte hin (nicht aus dem Bild)
+    const fallen = (a) => { if (west) { ctx.save(); ctx.translate((px + 16) * 2, 0); ctx.scale(-1, 1); obj(ctx, 'fmx', px, py, a); ctx.restore(); } else obj(ctx, 'fmx', px, py, a); };
+    if (b.done && t > 96) { const a = Math.max(0, 1 - (t - 96) / 60); fallen(a); if (a <= 0) G.o.boss = null; b.t++; return; }
     ctx.fillStyle = 'rgba(0,0,0,0.32)'; ctx.beginPath(); ctx.ellipse(ox + b.x, oy + b.y + 3, 17, 6, 0, 0, Math.PI * 2); ctx.fill();
     const fr = Math.floor(b.f / 6) % 2, nm = b.st === 'die' ? (t > 60 ? 'fmx' : 'fmz') : b.st === 'dizzy' ? 'fmz' : b.st === 'aim' ? 'fma' : b.dir === 0 ? 'fmu' + fr : b.dir === 2 ? 'fmd' + fr : 'fms' + fr;
-    const flip = (nm.startsWith('fms') && b.dir === 3);
+    const flip = (nm.startsWith('fms') && b.dir === 3) || (nm === 'fmx' && west);
     const paint = () => { if (flip) { ctx.save(); ctx.translate((px + 16) * 2, 0); ctx.scale(-1, 1); obj(ctx, nm, px + sk, py); ctx.restore(); } else obj(ctx, nm, px + sk, py + (b.st === 'die' ? rnd(-1, 1) : 0)); };
     paint();
     if (b.flash > 0 && (b.flash & 2)) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.7; paint(); ctx.restore(); }

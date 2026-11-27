@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261127-0949](#20261127-0949--kleine-korrektur-in-der-klötzchenburg) – Kleine Korrektur in der Klötzchenburg
 - [20261127-0440](#20261127-0440--endboss-der-klötzchenburg-feldmarschall-federkern) – Endboss der Klötzchenburg: Feldmarschall Federkern
 - [20261127-0404](#20261127-0404--die-klötzchenburg-ein-verlies-aus-riesenspielzeug) – Die Klötzchenburg: ein Verlies aus Riesenspielzeug
 - [20261127-0228](#20261127-0228--schönerer-seelenfang-und-ein-neuer-warnring-bei-bossen) – Schönerer Seelenfang und ein neuer Warnring bei Bossen
@@ -102,6 +103,14 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261127-0949 – Kleine Korrektur in der Klötzchenburg
+
+**Neu**
+- Feldmarschall Federkern kippt am Ende jetzt immer zur Raummitte hin um. Fällt er nah an der rechten Wand, liegt er nicht mehr halb außerhalb des Bildes.
+
+**Beim Testen ansehen**
+- Besiege den Feldmarschall nah an der rechten Wand. Liegt er ganz im Bild?
 
 ## 20261127-0440 – Endboss der Klötzchenburg: Feldmarschall Federkern
 
