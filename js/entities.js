@@ -75,6 +75,7 @@ const WHIP_DIRS = {
   downd: { hx: 18, hy: 15, a: Math.PI / 4 }, down: { hx: 13, hy: 17, a: Math.PI / 2 },
 };
 const JUMP_BUFFER = 8; // knapp vor dem Aufsetzen oder am Ende eines Hiebs gedrückt
+const ATTACK_BUFFER = 6; // letzte Erholungstakte: genau einen neuen Tastendruck samt Richtung merken
 const FLIP_LEN = 26; // Salto-Dauer in Frames
 const ROPE_MAX = 120; // längstes Seil am Ring (↓ lässt nach)
 const RING_REACH = 96; // Ankerringe: so weit (vom Oberkörper) hakt ein Schlag in der Luft noch ein – großzügig, kein Pixel-Zielen
@@ -95,7 +96,7 @@ class Player {
     this.limo = false;
     this.h = 28; this.x = fx - this.w / 2; this.y = fy - this.h;
     this.vx = 0; this.vy = 0; this.face = 1; this.onGround = true;
-    this.state = 'normal'; this.atkT = 0; this.atkSub = false; this.crouch = false; this.crouchAtk = false;
+    this.state = 'normal'; this.atkT = 0; this.atkSub = false; this.followUp = null; this.crouch = false; this.crouchAtk = false;
     this.inv = 0; this.walkT = 0; this.jumping = false; this.stair = null; this.stairPos = 0;
     this.stairUpPose = true; this.deadT = 0; this.plat = null; this.powerT = 0;
     this.canDouble = true; this.flipT = 0; this.scarf = null; this.hidden = false; this.coyote = 0; this.jumpBuf = 0; this.rageT = 0; this.sunk = false;
@@ -119,12 +120,20 @@ class Player {
     this.crouch = on;
   }
 
-  tryAttack(wantSub, strict) {
-    if (this.atkT > 0) { // Schlag läuft noch: in der Luft nahe einem Ring neu ausholen (sonst ginge der Tipp verloren), sonst kurz merken
-      if (wantSub || this.atkSub || this.onGround || this.state !== 'normal') return;
-      if (!this.nearRing()) { this.ringBuf = 14; return; }
-      this.atkT = 0;
+  tryAttack(wantSub, strict, aim = Input.held) {
+    if (this.atkT > 0) {
+      const reachRing = !wantSub && !this.atkSub && !this.onGround && this.state === 'normal';
+      if (!reachRing || !this.nearRing()) {
+        if (reachRing) this.ringBuf = 14;
+        if (this.atkT > ATK_LEN - ATTACK_BUFFER && (this.state === 'normal' || this.state === 'stairs')) {
+          const { left, right, up, down } = aim;
+          this.followUp = { wantSub, strict, aim: { left, right, up, down }, state: this.state, ready: false };
+        }
+        return;
+      }
+      this.atkT = 0; // Einhaken hat Vorrang, auch während eines Hiebs
     }
+    this.followUp = null;
     if (wantSub && this.sub === 'watch') { // Stoppuhr: hält Gegner und Geschosse 3 Sekunden an (5 Herzen)
       if (this.hearts >= 5 && !(W.stopT > 0)) { if (!Options.infHearts) this.hearts -= 5; W.stopT = 180; Audio8.sfx('watch'); W.flash = 4; }
       return;
@@ -138,7 +147,8 @@ class Player {
     else { this.atkSub = false; Audio8.sfx('whip'); }
     this.atkT = 1; this.atkId = ++W.atkId;
     this.crouchAtk = this.crouch && this.state === 'normal';
-    const I = Input.held, horiz = I.left || I.right;
+    const I = aim, horiz = I.left || I.right;
+    if (I.left !== I.right && horiz && this.state === 'normal' && !this.dashT) this.face = I.left ? -1 : 1;
     this.atkDir = 'fwd';
     if (!this.atkSub && this.state === 'normal' && !this.crouchAtk) {
       if (!this.onGround) this.ringBuf = 14; // Ring noch knapp außer Reichweite: hakt ein, sobald er in Reichweite kommt (ringBuffer)
@@ -186,7 +196,13 @@ class Player {
     if (this.ringAssist() && this.tryLatch()) this.ringBuf = 0;
   }
   tickAttack() {
-    if (this.atkT === 0) return;
+    if (this.atkT === 0) {
+      const next = this.followUp;
+      this.followUp = null;
+      if (!next || !next.ready || this.state !== next.state) return;
+      this.tryAttack(next.wantSub, next.strict, next.aim);
+      if (this.atkT === 0) return; // z. B. Stoppuhr oder inzwischen verbrauchte Herzen
+    }
     this.atkT++;
     if (this.atkSub && this.atkT === 9) this.throwSub();
     if (!this.atkSub && this.atkT >= 1 && this.atkT <= 16 && this.tryLatch()) return; // Einhak-Fenster ab dem ersten Bild: kein Ausholen, das Seil schießt gerade zum Ring
@@ -194,7 +210,8 @@ class Player {
     if (!this.atkSub && this.atkT >= 12 && this.atkT <= 17) this.whipHits();
     if (this.atkT > ATK_LEN) {
       this.atkT = 0;
-      if (!this.atkSub && Input.held.attack && this.state === 'normal') this.startDangle(); // Taste gehalten → Peitsche drehen
+      if (this.followUp) this.followUp.ready = true; // erst im nächsten Takt neu ausholen; ein frischer Druck hat Vorrang
+      else if (!this.atkSub && Input.held.attack && this.state === 'normal') this.startDangle(); // durchgehend gehalten → Peitsche drehen
     }
   }
   get atkPose() { return this.atkT < 7 ? 0 : this.atkT < 12 ? 1 : 2; }
@@ -360,6 +377,7 @@ class Player {
 
   update() {
     const I = Input.held, P = Input.pressed;
+    if (this.followUp && (this.followUp.state !== this.state || this.stoneT > 0 || this.slideT > 0)) this.followUp = null;
     if (this.powerT > 0) this.powerT--;
     if (this.flipT > 0) this.flipT--;
     if (this.landT > 0) this.landT--;
@@ -504,6 +522,7 @@ class Player {
   // ---------- Dash und Luft-Dash ----------
   startDash(dir) {
     if (dir) this.face = dir;
+    this.followUp = null;
     this.jumpBuf = 0;
     this.airDash = !this.onGround; if (this.airDash) { this.canAirDash = false; this.vy = 0; }
     this.dashT = this.airDash ? AIRDASH_LEN : DASH_LEN;
@@ -660,6 +679,7 @@ class Player {
 
   fallPenalty(dmg) {
     if (!this.alive || W.cleared) return;
+    this.followUp = null;
     if (Options.god) dmg = 0; // Testhilfe: zurücksetzen ja, Schaden nein
     this.jumpBuf = 0;
     this.fellAt = W.frame; // Brücke: Einsturz zurücksetzen
@@ -771,7 +791,8 @@ class Player {
     if (P.jump) this.jumpBuf = JUMP_BUFFER;
     if (P.sub) this.tryAttack(true, true);
     else if (P.attack) this.tryAttack(false, false);
-    if (this.atkT > 0) { this.tickAttack(); if (this.atkT > 0 && !W.room.iceRamps) return; } // Eisturm: beim Peitschen rutscht man weiter
+    this.tickAttack();
+    if (this.atkT > 0 && !W.room.iceRamps) return; // Eisturm: beim Peitschen rutscht man weiter
     if (W.room.iceRamps) return this.updateIceRamp(I, s);
     if (this.jumpBuf > 0) { // mitten von der Treppe abspringen – in die gedrückte Richtung oder senkrecht
       this.jumpBuf = 0;
@@ -942,6 +963,7 @@ class Player {
   // ---------- Rutschen (Unten + Sprung) ----------
   startSlide(keep) {
     const sp = Math.abs(this.vx);
+    this.followUp = null;
     if (keep && this.vx) this.face = Math.sign(this.vx);
     this.jumpBuf = 0; this.slideT = 26; this.dangle = false; this.setCrouch(true);
     this.y += this.h - SLIDE_H; this.h = SLIDE_H; // ganz flach

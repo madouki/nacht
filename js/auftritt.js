@@ -24,9 +24,15 @@ const Auftritt = (() => {
     if (t < HIT - 1) return;
     if (t < HIT + 5) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 1 - (t - HIT + 1) / 6; ctx.fillStyle = '#fff0c8'; ctx.fillRect(0, MID - h, View.w, h * 2); ctx.restore(); } // weißer Schlag über das Band
     for (let i = 0; i < 16; i++) { const v = 2 + (i * 7) % 5, px = ((i * 61 + (t - HIT) * v * (i % 2 ? 1 : -1)) % View.w + View.w) % View.w, py = MID - h + 3 + (i * 13) % (Math.max(1, h * 2 - 6)); ctx.fillStyle = i % 3 ? '#e8a030' : '#fff0c0'; ctx.fillRect(px, py, 2 + i % 3, 1); } // Funkenflug im Band
-    const fit = (s) => Font.width(name) * s <= View.w - 16, big = t < HIT + 6 && fit(3) ? 3 : fit(2) ? 2 : 1;
-    Game.big(ctx, name, cx, big === 3 ? MID - 19 : big === 2 ? MID - 16 : MID - 11, big, ['#fff4d0', '#fce0a8', '#f8c040', '#f8b000', '#d08818', '#9c6400', '#6c4000'], null, '#000');
-    if (t > HIT + 8 && epi !== 'epi_' + id) { const a = clamp((t - HIT - 8) / 14, 0, 1); ctx.globalAlpha = a; Font.draw(ctx, epi, cx, MID + 5, '#f0dcb0', { align: 'center', shadow: '#000' }); ctx.globalAlpha = 1; }
+    const bandW = id === 'bossTentacle' ? Math.min(390, View.w) : View.w;
+    ctx.save();
+    if (id === 'bossTentacle') { ctx.beginPath(); ctx.rect(0, MID - h + 2, View.w, h * 2 - 4); ctx.clip(); }
+    const seal = id === 'bossTentacle' && Tiefenauge.draw(ctx, cx - bandW / 2 + 23, MID, 38, true);
+    const titleX = seal ? cx + 19 : cx, textW = bandW - (seal ? 54 : 16);
+    const fit = (s) => Font.width(name) * s <= textW, big = t < HIT + 6 && fit(3) ? 3 : fit(2) ? 2 : 1;
+    Game.big(ctx, name, titleX, big === 3 ? MID - 19 : big === 2 ? MID - 16 : MID - 11, big, ['#fff4d0', '#fce0a8', '#f8c040', '#f8b000', '#d08818', '#9c6400', '#6c4000'], null, '#000');
+    if (t > HIT + 8 && epi !== 'epi_' + id) { const a = clamp((t - HIT - 8) / 14, 0, 1); ctx.globalAlpha = a; Font.draw(ctx, epi, titleX, MID + 5, '#f0dcb0', { align: 'center', shadow: '#000', fit: seal ? textW : undefined }); }
+    ctx.restore();
   }
   return { draw, hit, HIT, nameId };
 })();

@@ -8,7 +8,7 @@ const Audio8 = (() => {
   // gemessen 2026-11-06 in drei Echtzeit-Läufen (RMS, Ziel: Median aller Lieder). Die Messung schwankt je nach Rechnerlast um
   // ±2 dB – korrigiert ist nur, was in allen Läufen übereinstimmte (Amtsstuben-Walzer rund 5 dB zu leise, Dienstweg, Graf, stage2 zu laut)
   const SONG_GAIN = { amt: 1.6, sun: 1.2, amtsmarsch: 1.1, posthorn: 1.1, fahrstuhl: 1.15, mondmeer: 1.1, library: 0.92, chapel: 0.88, dienstweg: 0.8, galopp: 0.9, count: 0.82, stage2: 0.8, kuckuck: 1.1 };
-  let ac = null, master, comp, musicBus, melBus, sfxBus, duckBus, voiceBus, muffleF, noiseBuf, pulseWaves = {};
+  let ac = null, master, comp, output, musicBus, melBus, sfxBus, duckBus, voiceBus, muffleF, noiseBuf, pulseWaves = {};
   let roomRev = null, roomWet = null, echoD = null, echoFb = null, echoLp = null, echoWet = null, acoustic = null; const irCache = {};
   // Raumakustik je Gebiet: [Halllänge s, Helligkeit 0–1, Hallanteil, Echoanteil, Echozeit s]
   const ACOUS = { cathedral: [3.6, 0.35, 0.34, 0, 0], spire: [3.2, 0.4, 0.3, 0, 0], crypt: [2.8, 0.25, 0.3, 0.06, 0.24], cave: [2.2, 0.3, 0.22, 0.2, 0.32], ice: [2.4, 0.65, 0.26, 0.16, 0.28],
@@ -49,8 +49,9 @@ const Audio8 = (() => {
     ac = new AC();
     comp = ac.createDynamicsCompressor();
     comp.threshold.value = -16; comp.ratio.value = 4; comp.attack.value = 0.003; comp.release.value = 0.15;
-    comp.connect(ac.destination);
-    master = ac.createGain(); master.gain.value = muted ? 0 : 0.7; master.connect(comp);
+    output = ac.createGain(); output.gain.value = muted ? 0 : 1;
+    comp.connect(output); output.connect(ac.destination);
+    master = ac.createGain(); master.gain.value = 0.7; master.connect(comp);
     // SNES-artiger Hall: erzeugte Impulsantwort (dunkel, ~2 s), leise beigemischt
     const rev = ac.createConvolver(), len = Math.floor(ac.sampleRate * 2.1), ir = ac.createBuffer(2, len, ac.sampleRate);
     const ENV = new Float32Array(1026); for (let k = 0; k <= 1025; k++) ENV[k] = Math.pow(Math.max(0, 1 - k / 1024), 2.6); // Abklingkurve als Tabelle
@@ -155,10 +156,29 @@ const Audio8 = (() => {
     hit: () => tone('pulse', 600, 120, 0.09, 0.22, 0.5),
     kill: () => { noise(0.28, 0.4, 'lowpass', 3000, 200); tone('pulse', 300, 60, 0.2, 0.15, 0.25); },
     candle: () => { noise(0.12, 0.3, 'highpass', 2000, 6000); tone('pulse', 900, 1800, 0.06, 0.1, 0.25); },
-    heart: () => arp(['a5', 'e6'], 0.04, 'pulse', 0.15, 0.25),
-    item: () => arp(['c5', 'e5', 'g5', 'c6'], 0.045, 'pulse', 0.15, 0.25),
-    bigItem: () => arp(['d5', 'f#5', 'a5', 'd6', 'f#6', 'a6'], 0.05, 'pulse', 0.16, 0.5),
-    money: () => arp(['b5', 'e6', 'b6'], 0.035, 'pulse', 0.13, 0.125),
+    heart: () => {
+      const t = ac.currentTime;
+      tone('triangle', 392, 494, 0.095, 0.21, null, t);
+      tone('sine', 587, 659, 0.21, 0.19, null, t + 0.075);
+    },
+    item: () => {
+      const t = ac.currentTime;
+      tone('triangle', 587, 587, 0.15, 0.18, null, t);
+      tone('triangle', 880, 880, 0.17, 0.15, null, t + 0.07);
+      tone('sine', 1175, 1175, 0.28, 0.13, null, t + 0.16);
+    },
+    bigItem: () => {
+      const t = ac.currentTime;
+      SFX.item();
+      tone('triangle', 440, 440, 0.35, 0.12, null, t + 0.16);
+      tone('sine', 1760, 1760, 0.42, 0.12, null, t + 0.30);
+    },
+    money: () => {
+      const t = ac.currentTime;
+      noise(0.022, 0.10, 'bandpass', 2900, 1900, t);
+      tone('sine', 1490, 1480, 0.12, 0.16, null, t);
+      tone('sine', 2350, 2320, 0.085, 0.10, null, t + 0.032);
+    },
     throw: () => { tone('pulse', 300, 900, 0.08, 0.12, 0.25); noise(0.06, 0.15, 'highpass', 3000); },
     axe: () => tone('triangle', 200, 600, 0.15, 0.3),
     hurt: () => { tone('pulse', 500, 80, 0.3, 0.25, 0.5); noise(0.15, 0.2, 'lowpass', 1500, 300); },
@@ -242,7 +262,15 @@ const Audio8 = (() => {
     ready: () => arp(['e6', 'a6', 'e7'], 0.04, 'pulse', 0.12, 0.125),
     tell: () => { tone('triangle', 1320, 1760, 0.1, 0.07); tone('sine', 660, 880, 0.14, 0.05); }, // Boss holt aus: heller, kurzer Warnton
     crash: () => { arp(['a4', 'e5', 'a5', 'c#6', 'e6', 'a6', 'c#7'], 0.035, 'pulse', 0.16, 0.5); noise(0.9, 0.4, 'highpass', 5000, 800); tone('triangle', 220, 55, 0.7, 0.4); },
-    checkpoint: () => arp(['g5', 'c6', 'e6', 'g6', 'c7'], 0.07, 'pulse', 0.14, 0.25),
+    checkpoint: () => {
+      const t = ac.currentTime;
+      // Zwei Glockenschläge; die längere Antwort schließt auf der offenen Quinte.
+      tone('sine', 440, 440, 0.42, 0.22, null, t);
+      tone('sine', 1178, 1167, 0.16, 0.075, null, t);
+      tone('sine', 294, 294, 0.75, 0.23, null, t + 0.26);
+      tone('triangle', 440, 440, 0.52, 0.12, null, t + 0.26);
+      tone('sine', 792, 785, 0.22, 0.065, null, t + 0.26);
+    },
     chest: () => { tone('triangle', 140, 90, 0.2, 0.3); arp(['c6', 'e6', 'g6', 'c7'], 0.05, 'pulse', 0.13, 0.25); },
     crumble: () => noise(0.25, 0.25, 'lowpass', 1200, 200),
     raven: () => { tone('pulse', 900, 500, 0.12, 0.08, 0.125); noise(0.1, 0.1, 'bandpass', 2000, 900); },
@@ -335,14 +363,20 @@ const Audio8 = (() => {
   const FOURX = 'x:1 -:1 h:1 -:1 s:1 -:1 h:1 k:1 k:1 -:1 h:1 -:1 s:1 -:1 h:1 -:1';
   const FILLS = 'k:1 -:1 h:1 -:1 s:1 -:1 h:1 k:1 k:1 -:1 h:1 -:1 s:1 -:1 t:1 u:1';
   const FILLB = 'k:1 -:1 h:1 -:1 s:1 -:1 h:1 k:1 k:1 -:1 t:1 u:1 s:1 -:1 s:1 -:1';
-  // Aufbau der Stage-Songs: 32 Takte ohne Pause – die Melodie läuft durch, die zweite Hälfte legt
-  // mit 32tel-Arpeggien und galoppierender Kick zu, ein Riser führt zurück an den Anfang.
+  // Im zweiten Durchgang tritt eine Terzstimme zur Melodie, die Kick geht in den Galopp über.
   let lastBars = null; // Takte der zuletzt gebauten Melodie (für die zweite Stimme in harmonyP2)
   const contrastLead = (chords, m, bars) => { lastBars = bars; return bars.join(' ') + ' ' + bars.join(' '); };
-  // Begleitstimme der Hauptthemen (statt der 16tel-/32tel-Arpeggien, die nach Techno klangen): im ersten Durchgang gebrochene
-  // Akkorde in ruhigen Achteln, in der Wiederholung singt sie die Melodie eine Terz tiefer mit (Tonleiter = natürliches Moll;
-  // leiterfremde Töne wie der Leitton bekommen die große Terz darunter)
-  const alberti = (a, b, c) => `${a}:2 ${c}:2 ${b}:2 ${c}:2 ${a}:2 ${c}:2 ${b}:2 ${c}:2`;
+  // Alle Antworten füllen genau einen 4/4-Takt. Der Burgruf ist punktiert, die Krypta antwortet
+  // nach einer Pause und im Bergfried steigt die Stimme in drei Stufen gegen die Hauptmelodie.
+  const castleReply = (root, third, fifth, i) => i % 2
+    ? `-:2 ${fifth}:3 ${third}:1 ${root}:4 -:2 ${third}:4`
+    : `${root}:3 ${third}:1 ${fifth}:4 -:4 ${third}:3 ${root}:1`;
+  const cryptReply = (root, third, fifth, i) => i % 2
+    ? `-:4 ${fifth}:4 ${third}:6 ${root}:2`
+    : `${root}:6 -:2 ${third}:3 -:1 ${fifth}:4`;
+  const spireReply = (root, third, fifth, i) => i % 2
+    ? `${fifth}:4 -:2 ${third}:2 ${root}:6 -:2`
+    : `-:2 ${root}:2 ${third}:3 ${fifth}:1 ${third}:2 ${fifth}:6`;
   const thirdBelow = (tok, scale) => {
     const [n, len] = tok.split(':'), m = /^([a-g]#?)(\d)$/.exec(n);
     if (!m) return tok;
@@ -350,7 +384,7 @@ const Audio8 = (() => {
     const d = inS(v) ? (inS(v - 3) ? 3 : 4) : (inS(v - 4) ? 4 : 3), h = v - d;
     return pc(h) + Math.floor(h / 12) + ':' + len;
   };
-  const harmonyP2 = (list, m, scale) => list.map(c => alberti(...m[c])).join(' ') + ' ' + lastBars.map(bar => bar.split(' ').map(t => thirdBelow(t, scale)).join(' ')).join(' ');
+  const harmonyP2 = (list, m, scale, reply) => list.map((c, i) => reply(...m[c], i)).join(' ') + ' ' + lastBars.map(bar => bar.split(' ').map(t => thirdBelow(t, scale)).join(' ')).join(' ');
   const section = () => rep([FOURX, FOUR, FOUR, FILLS, FOUR, FOUR, FOUR, FILLB].join(' '), 2);
   // B-Teil: galoppierende Kick (kein Dauerfeuer), Tom-Fill und Riser vor dem Loop
   const DK = 'k:1 -:1 h:1 k:1 s:1 -:1 h:1 -:1 k:1 k:1 h:1 -:1 s:1 -:1 h:1 -:1';
@@ -804,7 +838,7 @@ const Audio8 = (() => {
         'f5:2 a#5:2 d6:2 f6:4 d6:2 a#5:2 f5:2', 'e5:2 g5:2 c6:2 e6:4 d6:2 c6:2 a#5:2',
         'a5:2 c#6:2 e6:2 a6:4 g6:2 f6:2 e6:2', 'c#6:2 a5:2 e5:2 c#5:2 a4:4 -:4',
       ]),
-      p2: harmonyP2(S1C, S1, ['d', 'e', 'f', 'g', 'a', 'a#', 'c']), tri: chordBass(S1C, S1B, drive), pad: chordPad(S1C, S1), dr: section() + ' ' + sectionB(),
+      p2: harmonyP2(S1C, S1, ['d', 'e', 'f', 'g', 'a', 'a#', 'c'], castleReply), tri: chordBass(S1C, S1B, drive), pad: chordPad(S1C, S1), dr: section() + ' ' + sectionB(),
       bridge: ['d4:8 f4:4 a4:4', 'a4:6 g4:2 f4:8', 'a#4:8 d5:4 a#4:4', 'c5:6 a#4:2 g4:4 e4:4', 'f4:8 a4:4 d5:4', 'd5:6 c5:2 a4:8', 'a#4:4 a4:4 g4:4 f4:4', 'e4:12 -:4',
         'g4:8 a#4:4 d5:4', 'd5:6 c5:2 a#4:8', 'a4:8 f4:4 d4:4', 'f4:6 e4:2 d4:8', 'a#4:4 d5:4 f5:8', 'e5:6 d5:2 c5:4 g4:4', 'a4:8 c#5:4 e5:4', 'e5:4 c#5:4 a4:4 -:4'],
     },
@@ -820,7 +854,7 @@ const Audio8 = (() => {
         'c6:3 b5:1 a5:2 f5:2 a5:2 c6:2 f6:4', 'd6:3 c6:1 b5:2 g5:2 b5:2 d6:2 g6:4',
         'e6:2 d6:2 b5:2 g#5:2 b5:2 g#5:2 e5:2 d5:2', 'b4:2 e5:2 g#5:2 b5:2 e6:8',
       ]),
-      p2: harmonyP2(S2C, S2, ['a', 'b', 'c', 'd', 'e', 'f', 'g']), tri: chordBass(S2C, S2B, drive), pad: chordPad(S2C, S2), dr: section() + ' ' + sectionB(),
+      p2: harmonyP2(S2C, S2, ['a', 'b', 'c', 'd', 'e', 'f', 'g'], cryptReply), tri: chordBass(S2C, S2B, drive), pad: chordPad(S2C, S2), dr: section() + ' ' + sectionB(),
       bridge: ['e4:8 a4:4 c5:4', 'b4:6 a4:2 e4:8', 'f4:8 a4:4 c5:4', 'd5:6 c5:2 b4:4 g4:4', 'a4:8 c5:4 e5:4', 'e5:6 d5:2 c5:8', 'b4:4 g#4:4 e4:4 g#4:4', 'b4:12 -:4',
         'd5:8 f5:4 d5:4', 'a4:6 g4:2 f4:8', 'e4:8 a4:4 c5:4', 'c5:6 b4:2 a4:8', 'a4:4 c5:4 f5:8', 'g5:6 f5:2 d5:4 b4:4', 'e5:8 d5:4 b4:4', 'g#4:4 b4:4 e5:4 -:4'],
     },
@@ -836,7 +870,7 @@ const Audio8 = (() => {
         'e6:2 c6:2 g5:2 c6:2 e6:2 g6:2 e6:2 c6:2', 'f#6:2 d6:2 a5:2 d6:2 f#6:2 a6:2 f#6:2 d6:2',
         'd#6:2 f#6:2 b6:4 a6:2 f#6:2 d#6:2 b5:2', 'b5:4 a5:2 g5:2 f#5:4 d#5:4',
       ]),
-      p2: harmonyP2(S3C, S3, ['e', 'f#', 'g', 'a', 'b', 'c', 'd']), tri: chordBass(S3C, S3B, drive), pad: chordPad(S3C, S3), dr: section() + ' ' + sectionB(),
+      p2: harmonyP2(S3C, S3, ['e', 'f#', 'g', 'a', 'b', 'c', 'd'], spireReply), tri: chordBass(S3C, S3B, drive), pad: chordPad(S3C, S3), dr: section() + ' ' + sectionB(),
       bridge: ['b4:8 g4:4 e4:4', 'g4:6 a4:2 b4:8', 'c5:8 e5:4 c5:4', 'd5:6 c5:2 a4:4 f#4:4', 'e4:8 g4:4 b4:4', 'e5:6 d5:2 b4:8', 'd#5:4 b4:4 f#4:4 b4:4', 'f#4:12 -:4',
         'a4:8 c5:4 e5:4', 'e5:6 d5:2 c5:8', 'b4:8 g4:4 e4:4', 'g4:6 f#4:2 e4:8', 'g4:4 c5:4 e5:8', 'f#5:6 e5:2 d5:4 a4:4', 'b4:8 d#5:4 f#5:4', 'f#5:4 d#5:4 b4:4 -:4'],
     },
@@ -854,8 +888,8 @@ const Audio8 = (() => {
       dr: [FOURX, DK, FOUR, FILLS, DK, DK, DK, FILLR].join(' '),
       bridge: ['d4:6 d4:2 f4:4 a4:4', 'a4:12 f4:4', 'd#4:6 d#4:2 g4:4 a#4:4', 'a#4:12 g4:4', 'd5:4 a4:4 f4:4 a4:4', 'd5:8 c5:4 a4:4', 'c#5:6 c#5:2 e5:4 g#4:4', 'g#4:8 e4:4 c#4:4'],
     },
-    // Schiff – Seemannslied im 6/8-Takt (d-Moll, 176 BPM): A-Teil = das Shanty-Thema über 16tel-Akkordeon und galoppierendem
-    // Bass, B-Teil = eine Oktave höher mit Läufen, 32tel-Arpeggien, pumpendem Bass und Doppel-Kick; Tom-Fill und Riser zum Loop
+    // Shanty im 6/8-Takt: Das Akkordeon antwortet auf den zweiten Pulsschlag; wenn die Singstimme
+    // eine Oktave höher ausschmückt, trägt es die langen Töne und lässt den Läufen Platz.
     sea: {
       bpm: 176, loop: true, echo: { delay: 3, vol: 0.3 },
       p1: ['a4:3 d5:3 d5:2 e5:1 f5:3', 'e5:3 d5:3 a4:6', 'g4:3 c5:3 c5:2 d5:1 e5:3', 'd5:3 c5:3 g4:6',
@@ -866,8 +900,8 @@ const Audio8 = (() => {
         'f6:2 e6:1 d6:1 a5:2 d6:2 f5:2 a5:2', 'd6:3 e6:1 f6:2 a6:4 g6:2', 'e6:2 c#6:1 a5:1 e5:2 a5:2 c#6:2 e6:2', 'g6:3 f6:1 e6:2 c#6:4 a5:2',
         'a5:2 c6:2 f6:2 a6:3 g6:1 f6:2', 'g6:2 e6:2 c6:2 g5:2 c6:2 e6:2', 'f6:2 d6:1 a5:1 f5:2 a5:2 d6:2 f6:2', 'f6:3 d6:1 a#5:2 f5:2 a#5:2 d6:2',
         'c#6:2 e6:2 a6:2 g6:2 f6:2 e6:2', 'f6:2 e6:2 d6:2 a5:4 f5:2', 'e5:1 f5:1 g5:1 a5:1 c#6:2 e6:2 g6:2 e6:2', 'd6:6 a5:2 f5:2 e5:2'].join(' '),
-      p2: SEA_C.map(c => { const [a, b, d] = SEA[c]; return rep(`${a}:1 ${b}:1 ${d}:1`, 4); }).join(' ') + ' ' + // Akkordeon in 16teln
-        SEA_C.map(c => { const [a, b, d] = SEA[c]; return Array.from({ length: 24 }, (_, i) => [a, b, d][i % 3] + ':0.5').join(' '); }).join(' '), // 32tel im B-Teil
+      p2: SEA_C.map((c, i) => { const [r, m, f] = SEA[c]; return i % 2 ? `-:3 ${m}:3 ${f}:4 ${m}:2` : `${r}:3 -:3 ${f}:3 ${m}:3`; }).join(' ') + ' ' +
+        SEA_C.map((c, i) => { const [r, m, f] = SEA[c]; return i % 2 ? `${m}:4 ${r}:2 ${f}:6` : `${r}:6 ${m}:3 ${f}:3`; }).join(' '),
       tri: SEA_C.map(c => { const [lo, hi] = SEA_B[c]; return `${lo}:2 ${lo}:1 ${hi}:2 ${lo}:1 ${lo}:2 ${lo}:1 ${hi}:2 ${lo}:1`; }).join(' ') + ' ' + // Galopp
         SEA_C.map(c => { const [lo, hi] = SEA_B[c]; return rep(`${lo}:1 ${lo}:1 ${hi}:1`, 4); }).join(' '), // pumpend
       pad: rep(SEA_C.map(c => SEA[c].join('+') + ':12').join(' '), 2),
@@ -2006,7 +2040,7 @@ const Audio8 = (() => {
 
   function toggleMute() {
     muted = !muted;
-    if (master) master.gain.setTargetAtTime(muted ? 0 : 0.7, ac.currentTime, 0.02);
+    if (output) output.gain.setTargetAtTime(muted ? 0 : 1, output.context.currentTime, 0.02);
     syncWet(wetLvl);
     return muted;
   }
@@ -2030,6 +2064,6 @@ const Audio8 = (() => {
     context: () => ac, voiceOut: () => voiceBus,
     beat: () => (ac && song ? Math.max(0, ac.currentTime - songT0) * song.bpm * tempoMul / 60 : null), // Schlag im laufenden Stück
     cues: () => { if (!ac) return 0; const now = ac.currentTime; let n = 0; while (cueQ.length && cueQ[0] <= now) { cueQ.shift(); n++; } return n; }, // fällige Stakkato-Schläge
-    stream: () => { if (!ac) return null; if (!tapDest) { tapDest = ac.createMediaStreamDestination(); comp.connect(tapDest); } return tapDest.stream; }, // Mitschnitt (Trailer-Aufnahme)
+    stream: () => { if (!ac) return null; if (!tapDest) { tapDest = ac.createMediaStreamDestination(); output.connect(tapDest); } return tapDest.stream; }, // Mitschnitt (Trailer-Aufnahme)
     get muted() { return muted; }, get current() { return songName; }, get filterHz() { return muffleF ? Math.round(muffleF.frequency.value) : 0; }, get songLevel() { return songGain ? songGain.gain.value : 0; }, _songs: plain, _arr: parsed };
 })();

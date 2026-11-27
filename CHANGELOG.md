@@ -9,6 +9,8 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261127-1535](#20261127-1535--drei-schatztruhen-und-neue-stimmen-im-schloss) – Drei Schatztruhen und neue Stimmen im Schloss
+- [20261127-1320](#20261127-1320--das-tiefenauge-und-der-lila-tentakel) – Das Tiefenauge und der lila Tentakel
 - [20261127-1246](#20261127-1246--das-sternbild-als-leuchtende-himmelsfigur) – Das Sternbild als leuchtende Himmelsfigur
 - [20261127-1207](#20261127-1207--der-mann-im-mond-in-neuem-glanz) – Der Mann im Mond in neuem Glanz
 - [20261127-1154](#20261127-1154--ein-neuer-direktor-fürs-kolosseum) – Ein neuer Direktor fürs Kolosseum
@@ -106,6 +108,34 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261127-1535 – Drei Schatztruhen und neue Stimmen im Schloss
+
+**Beim Spielen**
+
+- Im Wald steht eine eisenbeschlagene Reisetruhe. Große Schätze erkennt man am goldenen Domschrein, ein Extraleben am geflügelten Herzschrein. Ihre Deckel schwingen beim Treffer auf und federn zurück.
+- Wer gegen Ende eines Angriffs schon den nächsten Schlag oder Wurf antippt, kann direkt anschließen. Der Schlag merkt sich die gewählte Richtung.
+- Auf dem Schiff, im Burghof, in den Katakomben und im Bergfried antworten neue Instrumentalphrasen auf die Melodie. Münzen, Herzen, Gegenstände, große Funde und Speicherpunkte haben eigene kurze Klangfolgen. Stummschalten blendet auch Hall und Echos aus.
+
+**Beim Testen ansehen**
+
+- In der Galerie (Abschnitt 2, Raum 5) steht ein Domschrein. Ein Treffer öffnet ihn. Beim zweiten Treffer bleibt die Truhe leer.
+
+## 20261127-1320 – Das Tiefenauge und der lila Tentakel
+
+**Auf dem Vorschiff**
+- An der Rah über der Arena hängt das Tiefenauge, ein Bronzewappen mit acht Fangarmen. Beim Auftritt des Tentakels öffnet sich sein Bernsteinauge. Nach dem Kampf schließt es sich wieder.
+
+**Im Kampf**
+- Beim Ausholen sieht man, wann das Schlagziel feststeht. Zeichen auf den Planken weisen in Fegrichtung und kündigen den Rückschwung an. Vor jedem der beiden Tintenschüsse sammelt sich ein Tropfen.
+- Nach einem Deckschlag zeigen sechs goldene Facetten über seinem Auge, wie lange sein Arm noch auf den Planken ruht.
+
+**Kontrollpunkte**
+- Zwei Irrlichter machen nahe Statuen sichtbar. Ein Stern markiert den gebundenen Rückkehrpunkt. Beim Zurückkehren erkennt das Spiel auch in Türmen mit übereinanderliegenden Statuen den richtigen Engel.
+- Wer vor dem Schiffskampf an mehreren Statuen vorbeiläuft, bindet beim Betreten der Arena die nächstgelegene davor.
+
+**Beim Testen ansehen**
+- Auf dem zweiten Schiff den Engel auf dem Hauptdeck berühren und bis zum Vorschiff gehen. Beim Deckschlag warten, bis das Ziel feststeht, ausweichen und das freiliegende Auge treffen.
 
 ## 20261127-1246 – Das Sternbild als leuchtende Himmelsfigur
 
