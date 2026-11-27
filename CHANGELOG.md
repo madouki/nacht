@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261127-1154](#20261127-1154--ein-neuer-direktor-fürs-kolosseum) – Ein neuer Direktor fürs Kolosseum
 - [20261127-0949](#20261127-0949--kleine-korrektur-in-der-klötzchenburg) – Kleine Korrektur in der Klötzchenburg
 - [20261127-0440](#20261127-0440--endboss-der-klötzchenburg-feldmarschall-federkern) – Endboss der Klötzchenburg: Feldmarschall Federkern
 - [20261127-0404](#20261127-0404--die-klötzchenburg-ein-verlies-aus-riesenspielzeug) – Die Klötzchenburg: ein Verlies aus Riesenspielzeug
@@ -103,6 +104,19 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261127-1154 – Ein neuer Direktor fürs Kolosseum
+
+**Neu**
+- Der Direktor der Gladiatorenprüfung im Kolosseum ist jetzt eine Figur aus Blender: ein Zirkusdirektor mit rotem Frack, goldenen Schnüren und Schulterstücken, weißer Reithose, Schaftstiefeln, Zylinder, gezwirbeltem Schnauzbart und Fliege. In der einen Hand hält er ein goldenes Sprachrohr, in der anderen einen Spazierstock.
+- Er bewegt sich jetzt:
+  - Im Stand atmet er ruhig und dreht sich zum Helden.
+  - Vor jeder neuen Welle hebt er das Sprachrohr an den Mund und sagt sie an.
+  - Nach einem Sieg reißt er die Arme hoch und hüpft vor Freude.
+
+**Beim Testen ansehen**
+- Gefällt dir der neue Direktor?
+- Siehst du, wie er vor jeder Welle ins Sprachrohr ruft und nach dem Sieg jubelt?
 
 ## 20261127-0949 – Kleine Korrektur in der Klötzchenburg
 

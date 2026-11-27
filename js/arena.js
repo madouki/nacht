@@ -10,6 +10,10 @@ const Arena = (() => {
     { lv: 15, gold: 15000, item: 'elixir', mul: 2.4, col: '#f8d048', waves: ['*sk kn kn', 'pa pa pa pa ba ba', '*pa bk bk gh gh gh', 'kn kn kn sk sk ho', '*kn *kn *pa sk sk'] },
   ];
   const F = () => (typeof Castle !== 'undefined' && Castle.flags) || {};
+  // Der Direktor in Blender (tools/blender/direktor_bl.py → pack_direktor.py): idle0/idle1, ruf (Ansage), jubel (nach dem Sieg), 44×56, Füße 22/56
+  const DIR_MAP = {"idle0":[0,0,44,56],"idle1":[45,0,44,56],"ruf":[90,0,44,56],"jubel":[135,0,44,56]};
+  const DIR = (() => { let C = null; const img = new Image(); img.onload = () => { C = {}; for (const [n, r] of Object.entries(DIR_MAP)) { const c = Sprites.canvas(r[2], r[3]); c.getContext('2d').drawImage(img, r[0], r[1], r[2], r[3], 0, 0, r[2], r[3]); C[n] = c; } }; img.src = 'img/direktor3d.png?v=' + (window.BUILD || ''); return { get: (n) => C && C[n] }; })();
+  let cheer = 0;   // Jubel nach einem Sieg (Bilder)
   const won = (i) => !!F()['arena_t' + (i + 1)], best = (i) => F()['arena_b' + (i + 1)] || 0;
   const open = (i) => i === 3 ? won(0) && Castle.rpg.lv >= 5 : (i === 0 || won(i - 1)) && Castle.rpg.lv >= TIERS[i].lv;
   const MODS = ['champs', 'bats', 'gold', 'grav', 'eile', 'glas'];
@@ -56,14 +60,14 @@ const Arena = (() => {
     if (first) { Castle.giveItem(D.item, true); if (i === 2) f.gw_atk = (f.gw_atk || 0) + 1; }
     cleanup();
     Castle.setFlag('arena_seen'); Audio8.play(W.songName()); Audio8.sfx('cert'); Audio8.sfx('money'); Input.rumble(0.6, 0.6, 300);
-    W.spawn(new Shock(p.cx, p.cy, 90, '#f8d048', 5)); W.flash = Math.max(W.flash, 6);
+    W.spawn(new Shock(p.cx, p.cy, 90, '#f8d048', 5)); W.flash = Math.max(W.flash, 6); cheer = 240;
     W.arenaOn = false; W.camLock = false; W.arenaW = 0; W.camEase = 1; run = null;
   }
   class Ansager extends Ent {
     constructor(fy) { super(NPC * T, fy - 30, 16, 30); this.kind = 'prop'; this.fy = fy; }
     near() { const p = W.player; return p.alive && p.onGround && Math.abs(p.cx - this.cx) < 22 && Math.abs(p.feet - this.fy) < 20; }
     update() {
-      this.t++; if (run) { this.tick(); return; }
+      this.t++; if (cheer > 0) cheer--; if (run) { this.tick(); return; }
       if (this.near() && Input.pressed.up && Game.state === 'play') { ui = { sel: 0, t: 0, msg: null }; Game.go('arena'); Audio8.sfx('select'); }
     }
     tick() { // eine Prüfung läuft
@@ -80,8 +84,20 @@ const Arena = (() => {
       if (!run.q.length && !run.live.length) { if (run.wave >= TIERS[run.tier].waves.length - 1) finish(); else { run.phase = 'pause'; run.t = 0; } }
     }
     lightUp(L, cx, cy) { L.push({ x: this.cx - cx, y: this.y + 8 - cy, r: 32, c: [252, 200, 130], a: 0.3 }); }
+    pose() { // Ansage bei jeder neuen Welle, Jubel nach dem Sieg, sonst ruhiges Atmen
+      if (cheer > 0) return 'jubel';
+      if (run && (run.phase === 'pause' ? run.t > 60 : run.t < 46)) return 'ruf';
+      return (this.t >> 5) & 1 ? 'idle1' : 'idle0';
+    }
     draw(ctx) {
       const x = Math.round(this.cx - W.cam.x), b = Math.round(this.fy - W.cam.y), w = Math.round(Math.sin(this.t * 0.08)), f = W.player.cx < this.cx ? -1 : 1, R = (a, y, n, h, c) => { ctx.fillStyle = c; ctx.fillRect(f > 0 ? x + a : x - a - n, b + y, n, h); };
+      const im = DIR.get(this.pose());
+      if (im) { // Blender-Figur; beim Jubel hüpft er ein wenig
+        const hop = cheer > 0 ? -Math.abs(Math.sin(cheer * 0.18)) * 3 : 0;
+        ctx.save(); ctx.translate(x, Math.round(b + hop)); if (f < 0) ctx.scale(-1, 1); ctx.drawImage(im, -22, -56); ctx.restore();
+        if (!run && this.near()) { const y = b - 70 + Math.round(Math.sin(this.t * 0.14) * 2); ctx.fillStyle = '#100808'; ctx.fillRect(x - 5, y - 1, 11, 11); ctx.fillStyle = '#f8c838'; ctx.fillRect(x, y + 1, 1, 7); ctx.fillRect(x - 1, y + 2, 3, 1); ctx.fillRect(x - 2, y + 3, 5, 1); }
+        return;
+      }
       R(-4, -11, 3, 11, '#1c1c28'); R(1, -11, 3, 11, '#1c1c28'); R(-5, -24, 10, 14, '#a81c28'); R(-1, -24, 2, 12, '#f8d048'); R(-5, -24, 10, 1, '#d83040'); R(-7, -23, 2, 9, '#a81c28'); R(5, -23 + w, 3, 3, '#a81c28');
       R(-3, -31, 7, 7, '#e8b890'); R(1, -29, 1, 1, '#100808'); R(-1, -27, 6, 1, '#2c1c14'); R(-5, -33, 11, 2, '#141018'); R(-3, -41, 7, 8, '#141018'); R(-3, -35, 7, 1, '#c82030');
       R(8, -25 + w, 2, 5, '#f8d048'); R(10, -27 + w, 2, 9, '#f8d048'); R(12, -29 + w, 2, 13, '#c89020');
