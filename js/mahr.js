@@ -125,46 +125,132 @@ const Mahr = (() => {
     }
   }
 
-  // ---------------- Fang: der Mahr steigt auf, fliegt zum Helden, verfängt sich im Traumfänger ----------------
-  class Wisp extends Ent {
-    constructor(x, y, def, rank, first, gold) { super(x - 5, y - 5, 10, 10); this.kind = 'fx'; this.def = def; this.rank = rank; this.first = first; this.gold = gold; Audio8.sfx('mahrRise', x); }
+  // ---------------- Fang: der Mahr steigt auf, der Traumfänger schwebt über dem Helden ein, das Netz fängt ihn ----------------
+  // Traumfänger aus Blender (tools/blender/traumfaenger_bl.py → pack_traumfaenger.py): zwölf Drehstellungen 44×64 (Reifmitte 22/17)
+  // und eine Leuchtmaske für Netz und Kristall, die in der Farbe des Mahrs aufleuchtet.
+  const TF_MAP = {"tf_00":[0,0,44,64],"tf_01":[45,0,44,64],"tf_02":[90,0,44,64],"tf_03":[135,0,44,64],"tf_04":[180,0,44,64],"tf_05":[225,0,44,64],"tf_06":[270,0,44,64],"tf_07":[315,0,44,64],"tf_08":[360,0,44,64],"tf_09":[405,0,44,64],"tf_10":[450,0,44,64],"tf_11":[495,0,44,64],"tf_glow":[540,0,44,64]};
+  const TF = (() => {
+    const img = new Image(); let A = null; const tint = {};
+    img.onload = () => {
+      const cut = (n) => { const r = TF_MAP[n], c = document.createElement('canvas'); c.width = r[2]; c.height = r[3]; c.getContext('2d').drawImage(img, r[0], r[1], r[2], r[3], 0, 0, r[2], r[3]); return c; };
+      A = { f: [], glow: cut('tf_glow') }; for (let k = 0; k < 12; k++) A.f.push(cut('tf_' + String(k).padStart(2, '0')));
+    };
+    img.src = 'img/traumfaenger.png?v=' + (window.BUILD || '');
+    function glowOf(col) { // Netzmaske in der Mahrfarbe mit weißem Kern (je Farbe einmal)
+      if (!A) return null; let c = tint[col]; if (c) return c;
+      c = tint[col] = document.createElement('canvas'); c.width = A.glow.width; c.height = A.glow.height; const g = c.getContext('2d');
+      g.drawImage(A.glow, 0, 0); g.globalCompositeOperation = 'source-in'; g.fillStyle = col; g.fillRect(0, 0, c.width, c.height);
+      g.globalCompositeOperation = 'lighter'; g.globalAlpha = 0.3; g.drawImage(A.glow, 0, 0); return c;
+    }
+    return { get: () => A, glowOf };
+  })();
+  const rgbOf = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+  const HY = -13;                                                    // Reifmitte relativ zum Scheitel des Helden
+  const backOut = (k) => { const c = 1.9; return 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2); };
+
+  class Wisp extends Ent { // der Mahr: eine dunkle Seelenflamme mit leuchtendem Rand, Schweif und zwei Augen
+    constructor(x, y, def, rank, first, gold) { super(x - 5, y - 5, 10, 10); this.kind = 'fx'; this.def = def; this.rank = rank; this.first = first; this.gold = gold; this.trail = []; this.ph = rnd(0, 6.28); this.c = null; Audio8.sfx('mahrRise', x); }
     update() {
       this.t++; const p = W.player;
-      if (this.t < 40) { this.y -= 0.7; this.x += Math.sin(this.t * 0.25) * 1.3; }
-      else { const dx = p.cx - this.cx, dy = p.cy - this.cy, d = Math.hypot(dx, dy) || 1, v = Math.min(7, 1.5 + (this.t - 40) * 0.25); this.x += dx / d * v; this.y += dy / d * v; if (d < 9 || this.t > 220) return this.caught(p); }
-      if (this.t % 2 === 0) W.spawn(new Particle(this.cx + rnd(-3, 3), this.cy + rnd(-2, 4), rnd(-0.3, 0.3), rnd(0.2, 0.8), this.t % 4 ? this.def.col : '#3c2460', 22, 1, 0));
+      this.trail.unshift([this.cx, this.cy]); if (this.trail.length > 10) this.trail.pop();
+      if (this.t < 40) { const k = this.t / 40; this.y -= 0.85 - 0.45 * k; this.x += Math.sin(this.t * 0.22 + this.ph) * 1.5 * (1 - 0.5 * k); }
+      else {
+        if (!this.c) this.c = W.spawn(new Catcher(this.def));                                   // der Traumfänger erscheint über dem Helden
+        const c = this.c, tx = c.dead ? p.cx : c.hx, ty = c.dead ? p.cy : c.hy;
+        const dx = tx - this.cx, dy = ty - this.cy, d = Math.hypot(dx, dy) || 1, v = Math.min(6.5, 1.2 + (this.t - 40) * 0.22), sw = Math.min(1, d / 60) * 1.6;
+        this.x += dx / d * v - dy / d * sw; this.y += dy / d * v + dx / d * sw;                // mit leichtem Bogen ins Netz
+        if (d < 7 || this.t > 220) return this.caught(p);
+      }
+      if (this.t % 3 === 0) W.spawn(new Particle(this.cx + rnd(-3, 3), this.cy + rnd(-2, 3), rnd(-0.3, 0.3), rnd(0.1, 0.6), this.t % 6 ? this.def.col : '#fcfcfc', 18, 1, 0));
     }
     caught(p) {
       const d = this.def; this.dead = true;
+      const c = this.c && !this.c.dead ? this.c : W.spawn(new Catcher(d)); c.grab();
       W.hitstop = Math.max(W.hitstop, 7); W.flash = Math.max(W.flash, 3); Input.rumble(0.5, 0.6, 220);
-      W.spawn(new Shock(p.cx, p.cy, 40, d.col, 3)); W.spawn(new Catcher(d));
-      for (let i = 0; i < 16; i++) W.spawn(new Particle(p.cx + rnd(-8, 8), p.cy + rnd(-12, 12), rnd(-1.4, 1.4), rnd(-1.8, 0.2), i % 2 ? d.col : '#fcfcfc', 34, 1, 0));
+      W.spawn(new Shock(c.hx, c.hy, 30, d.col, 3));
+      for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2, v = rnd(0.8, 1.8); W.spawn(new Particle(c.hx, c.hy, Math.cos(a) * v, Math.sin(a) * v - 0.4, i % 2 ? d.col : '#fcfcfc', 30, 1, 0.02)); }
       if (this.gold) { W.popup(p.cx, p.y - 16, '+' + this.gold + ' G', '#f8b800'); Audio8.sfx('money'); return; }
       W.popup(p.cx, p.y - 26, tr('mahrGot'), '#c8a0fc'); W.popup(p.cx, p.y - 15, tr('mahr_' + d.id) + (this.rank > 1 ? ' ' + ROMAN[this.rank] : ''), d.col);
       Audio8.sfx('mahrCatch');
       if (this.first) Game.note('mahrFirst');
     }
-    lightUp(L, cx, cy) { L.push({ x: this.cx - cx, y: this.cy - cy, r: 26, c: [180, 140, 252], a: 0.55 }); }
+    lightUp(L, cx, cy) { L.push({ x: this.cx - cx, y: this.cy - cy, r: 26, c: rgbOf(this.def.col), a: 0.55 }); }
     draw(ctx) {
-      const x = Math.round(this.cx - W.cam.x), y = Math.round(this.cy - W.cam.y), b = Math.round(Math.sin(this.t * 0.4));
-      glow(ctx, x, y, 13, 0.75, this.def.col);
-      ctx.fillStyle = '#1c1030'; ctx.fillRect(x - 4, y - 4 + b, 8, 7); ctx.fillRect(x - 3, y - 5 + b, 6, 9); ctx.fillRect(x - 1, y + 4 + b, 2, 3); // Leib mit Zipfel
-      ctx.fillStyle = this.def.col; ctx.fillRect(x - 3, y - 2 + b, 2, 2); ctx.fillRect(x + 1, y - 2 + b, 2, 2);                                // Augen
-      ctx.fillStyle = '#ffffff'; ctx.fillRect(x - 3, y - 2 + b, 1, 1); ctx.fillRect(x + 1, y - 2 + b, 1, 1);
+      const col = this.def.col, cx = this.cx - W.cam.x, cy = this.cy - W.cam.y, n = this.trail.length, TAU = Math.PI * 2;
+      const [r0, g0, b0] = rgbOf(col), soft = 1 - 0.5 * (0.3 * r0 + 0.59 * g0 + 0.11 * b0) / 255;   // helle Mahre: gedämpfter Schein
+      for (let i = n - 1; i >= 2; i -= 2) { const [tx, ty] = this.trail[i], k = 1 - i / n; glow(ctx, tx - W.cam.x, ty - W.cam.y, 3 + 7 * k, 0.3 * k * soft, col); } // Schweif
+      glow(ctx, cx, cy, 14, 0.6 * soft, col);
+      const x = Math.round(cx), y = Math.round(cy + Math.sin(this.t * 0.35) * 0.8);
+      const [px, py] = this.trail[3] || [this.cx, this.cy + 6]; let ux = px - this.cx, uy = py - this.cy; const ul = Math.hypot(ux, uy); if (ul < 0.5) { ux = 0; uy = 1; } else { ux /= ul; uy /= ul; }
+      const lobes = (grow) => { // Leib und Flammenzipfel gegen die Flugrichtung
+        ctx.beginPath(); ctx.arc(x, y, 5.2 + grow, 0, TAU); ctx.fill();
+        for (let i = 1; i <= 3; i++) { const w = Math.sin(this.t * 0.45 + i * 1.3) * 0.9; ctx.beginPath(); ctx.arc(x + ux * i * 2.7 - uy * w, y + uy * i * 2.7 + ux * w, Math.max(0.6, 4.6 - i * 1.2) + grow, 0, TAU); ctx.fill(); }
+      };
+      ctx.fillStyle = col; lobes(1); ctx.fillStyle = '#1c1030'; lobes(0);
+      const ex = Math.round(-ux * 0.8), ey = Math.round(-uy * 0.8), blink = (this.t + 17) % 64 < 4;  // Augen schauen in Flugrichtung, blinzeln ab und zu
+      ctx.fillStyle = col;
+      if (blink) { ctx.fillRect(x - 3 + ex, y - 1 + ey, 2, 1); ctx.fillRect(x + 1 + ex, y - 1 + ey, 2, 1); }
+      else { ctx.fillRect(x - 3 + ex, y - 2 + ey, 2, 3); ctx.fillRect(x + 1 + ex, y - 2 + ey, 2, 3); ctx.fillStyle = '#ffffff'; ctx.fillRect(x - 3 + ex, y - 2 + ey, 1, 1); ctx.fillRect(x + 1 + ex, y - 2 + ey, 1, 1); }
     }
   }
-  class Catcher extends Ent { // Traumfänger: Reif mit Netz und drei Federn, legt sich kurz um den Helden
-    constructor(def) { super(0, 0, 1, 1); this.kind = 'fx'; this.def = def; }
-    update() { if (++this.t > 60) this.dead = true; }
+  class Catcher extends Ent { // Traumfänger: schwebt drehend über dem Helden ein, fängt den Mahr im Netz, leuchtet auf und zieht in den Helden
+    constructor(def) { // Ebene der Requisiten: hängt wie ein Heiligenschein hinter dem Helden; Licht und Funken liegen davor
+      super(0, 0, 1, 1); this.kind = 'prop'; this.def = def; this.st = 'in'; this.u = 0; this.ang = 720; this.sc = 0; this.g = 0; this.got = false; const p = W.player; this.hx = p.cx; this.hy = p.y + HY;
+      const [r, g, b] = rgbOf(def.col); this.lum = (0.3 * r + 0.59 * g + 0.11 * b) / 255;
+    }
+    go(st) { this.st = st; this.u = 0; }
+    grab() { this.got = true; this.go('glow'); this.ang -= 360 * Math.round(this.ang / 360); }
+    update() {
+      this.t++; this.u++; const p = W.player;
+      if (this.st !== 'out') { this.hx += (p.cx - this.hx) * 0.3; this.hy += (p.y + HY - this.hy) * 0.3; this.sc = backOut(Math.min(1, this.t / 18)); }
+      if (this.st === 'in') { const k = Math.min(1, this.t / 18); this.ang = 720 * (1 - k) * (1 - k); if (k >= 1) this.go('wait'); }
+      else if (this.st === 'wait') { this.ang = 26 * Math.sin(this.u * 0.08); if (this.u > 200) this.go('out'); }
+      else if (this.st === 'glow') {
+        this.ang += (0 - this.ang) * 0.25; this.g = this.u < 5 ? this.u / 5 : Math.max(0, 1 - (this.u - 5) / 42);
+        if (this.u < 26 && this.u % 2 === 0) { const a = rnd(0, Math.PI * 2), r = 15; W.spawn(new Particle(this.hx + Math.cos(a) * r, this.hy + Math.sin(a) * r, -Math.cos(a) * 1.2, -Math.sin(a) * 1.2, this.u % 4 ? this.def.col : '#fffbe8', 11, 1, 0)); } // Lichtfunken laufen ins Netz
+        if (this.u > 46) this.go('out');
+      } else { // out: dreht sich schneller, wird kleiner und sinkt in den Helden
+        const k = Math.min(1, this.u / 20); this.ang += 10 + 36 * k; this.sc = 1 - k * k; this.g = Math.max(0, this.g - 0.05);
+        this.hx += (p.cx - this.hx) * 0.3; this.hy += (p.cy - this.hy) * 0.3;
+        if (this.u % 2 === 0) W.spawn(new Particle(this.hx + rnd(-6, 6), this.hy + rnd(-6, 6), rnd(-0.4, 0.4), rnd(-0.8, -0.1), this.u % 4 ? this.def.col : '#fffbe8', 16, 1, 0));
+        if (k >= 1) {
+          this.dead = true; if (!this.got) return;
+          W.spawn(new Shock(p.cx, p.cy, 20, this.def.col, 2));
+          for (let i = 0; i < 8; i++) W.spawn(new Particle(p.cx + rnd(-4, 4), p.cy + rnd(-10, 6), rnd(-0.9, 0.9), rnd(-1.6, -0.4), i % 2 ? this.def.col : '#fcfcfc', 24, 1, 0.03));
+        }
+      }
+    }
+    lightUp(L, cx, cy) { if (this.g > 0.05) L.push({ x: this.hx - cx, y: this.hy - cy, r: 24 + 22 * this.g, c: rgbOf(this.def.col), a: 0.55 * this.g }); }
     draw(ctx) {
-      const p = W.player, x = p.cx - W.cam.x, y = p.cy - W.cam.y - 2, k = this.t / 60, r = 30 - 12 * Math.min(1, k * 3), a = k < 0.7 ? 1 : (1 - k) / 0.3, rot = this.t * 0.05;
-      ctx.save(); ctx.globalAlpha = a; ctx.translate(x, y);
-      ctx.strokeStyle = '#c89020'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
+      if (W.shC && ctx.canvas === W.shC) return;                                                            // kein Gewitterschatten
+      const A = TF.get(); if (!A) return this.ring(ctx);
+      const s = this.sc; if (s < 0.04) return;
+      const soft = 1 - 0.45 * this.lum;                                                                       // helle Mahre (Knochen, Brief) leuchten gedämpfter
+      const hx = this.hx - W.cam.x, hy = this.hy - W.cam.y, a = ((this.ang % 360) + 360) % 360, fr = Math.round(a / 30) % 12, img = A.f[fr];
+      if (this.g > 0.02) glow(ctx, hx, hy, 10 + 14 * this.g, 0.5 * this.g * soft, this.def.col);              // Schein hinter dem Reif
+      ctx.save();
+      if (Math.abs(s - 1) < 0.01) ctx.drawImage(img, Math.round(hx - 22), Math.round(hy - 17)); else ctx.drawImage(img, hx - 22 * s, hy - 17 * s, 44 * s, 64 * s);
+      const cw = Math.abs(Math.cos(a * Math.PI / 180)), G = this.g > 0.02 && TF.glowOf(this.def.col);
+      if (G && cw > 0.15) { // das Netz leuchtet in der Farbe des Mahrs (bei schräger Lage schmaler)
+        const w = 44 * s * cw, x = hx - w / 2, y = hy - 17 * s, h = 64 * s, pul = 0.8 + 0.2 * Math.sin(this.t * 0.7);
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = Math.min(1, this.g * pul * soft); ctx.drawImage(G, x, y, w, h);
+        if (!View.lite) { ctx.globalAlpha = 0.16 * this.g * soft; for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ctx.drawImage(G, x + ox, y + oy, w, h); }
+      }
+      if (this.g > 0.12 && !View.lite) { // Lichtstrahlen aus dem Kristall
+        ctx.globalCompositeOperation = 'lighter'; ctx.translate(hx, hy); ctx.rotate(this.t * 0.03); ctx.fillStyle = this.def.col;
+        for (let i = 0; i < 8; i++) { const L = (14 + 16 * this.g) * (i % 2 ? 0.7 : 1); ctx.globalAlpha = 0.22 * this.g * soft; ctx.beginPath(); ctx.moveTo(0, -1.4); ctx.lineTo(L, 0); ctx.lineTo(0, 1.4); ctx.fill(); ctx.rotate(Math.PI / 4); }
+      }
+      ctx.restore();
+    }
+    ring(ctx) { // Ersatz, solange das Bild lädt: Reif mit Netz und drei Federn
+      const x = this.hx - W.cam.x, y = this.hy - W.cam.y, r = 13 * Math.max(0.05, this.sc), rot = this.t * 0.05;
+      ctx.save(); ctx.translate(x, y);
+      ctx.strokeStyle = '#8c5c2c'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
       ctx.strokeStyle = 'rgba(252,224,168,0.8)'; ctx.lineWidth = 1; ctx.beginPath();
-      for (let i = 0; i < 8; i++) { const a0 = rot + i * Math.PI / 4, a1 = rot + (i + 3) * Math.PI / 4; ctx.moveTo(Math.cos(a0) * r, Math.sin(a0) * r); ctx.lineTo(Math.cos(a1) * r, Math.sin(a1) * r); }
+      for (let i = 0; i < 7; i++) { const a0 = rot + i * Math.PI * 2 / 7, a1 = rot + (i + 3) * Math.PI * 2 / 7; ctx.moveTo(Math.cos(a0) * r, Math.sin(a0) * r); ctx.lineTo(Math.cos(a1) * r, Math.sin(a1) * r); }
       ctx.stroke();
-      ctx.fillStyle = this.def.col; for (let i = 0; i < 8; i++) { const a0 = rot + i * Math.PI / 4; ctx.fillRect(Math.round(Math.cos(a0) * r) - 1, Math.round(Math.sin(a0) * r) - 1, 3, 3); }
-      for (const dx of [-8, 0, 8]) { const sw = Math.sin(this.t * 0.2 + dx) * 2; ctx.fillStyle = '#c89020'; ctx.fillRect(dx, r, 1, 5); ctx.fillStyle = '#f0ead8'; ctx.fillRect(dx - 1 + Math.round(sw), r + 5, 3, 6); ctx.fillStyle = this.def.col; ctx.fillRect(dx + Math.round(sw), r + 10, 1, 2); }
+      for (const dx of [-7, 0, 7]) { ctx.fillStyle = '#f0ead8'; ctx.fillRect(dx - 1, r + 3, 3, 8); ctx.fillStyle = '#4c3424'; ctx.fillRect(dx - 1, r + 9, 3, 2); }
       ctx.restore();
     }
   }

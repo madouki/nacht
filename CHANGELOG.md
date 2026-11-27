@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261127-0228](#20261127-0228--schönerer-seelenfang-und-ein-neuer-warnring-bei-bossen) – Schönerer Seelenfang und ein neuer Warnring bei Bossen
 - [20261126-1858](#20261126-1858--endboss-der-mondinsel-lunatus-der-mondgaukler) – Endboss der Mondinsel: Lunatus, der Mondgaukler
 - [20261126-1822](#20261126-1822--kleine-korrektur-in-unkenbrunn) – Kleine Korrektur in Unkenbrunn
 - [20261126-1610](#20261126-1610--neue-häuser-für-unkenbrunn) – Neue Häuser für Unkenbrunn
@@ -99,6 +100,31 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261127-0228 – Schönerer Seelenfang und ein neuer Warnring bei Bossen
+
+**Neu – Der Traumfänger fängt die Mahre jetzt richtig ein**
+- Fängst du einen Mahr, erscheint jetzt ein **echter Traumfänger aus Blender**. Er hat einen Reif mit Lederwicklung und einem Goldknoten, ein gewebtes Netz mit bunten Glasperlen, einen Kristall in der Mitte und drei Eulenfedern.
+- So läuft der Fang ab:
+  - Der Traumfänger schwebt drehend hinter dem Helden ein, wie ein Heiligenschein.
+  - Der Mahr fliegt im Bogen in das Netz.
+  - Das Netz leuchtet in der Farbe des Mahrs auf, Lichtstrahlen brechen aus dem Kristall, Funken laufen in die Mitte.
+  - Dann dreht sich der Traumfänger schneller, schrumpft und sinkt in den Helden.
+- Der Mahr selbst ist jetzt eine dunkle Seelenflamme mit leuchtendem Rand und Schweif. Seine Augen schauen in die Flugrichtung, und manchmal blinzelt er.
+
+**Neu – Der Warnring vor Boss-Angriffen**
+- Der rot-gelbe Kreis, der einen Boss-Angriff ankündigt, ist jetzt ein **leuchtender Siegelring**:
+  - Seine Farbe geht fließend von Glut über Orange zu Gold.
+  - Seine Segmente drehen sich, und die Lücken schließen sich, je näher der Angriff kommt.
+  - Runenstriche drehen sich gegenläufig, und vier Pfeilspitzen rücken von außen heran.
+  - Kurz vor dem Schlag glüht der Ring weiß auf.
+- Bei einem Sturzflug zeigt jetzt ein drehendes Fadenkreuz, wo der Boss landen wird.
+- Im Spar-Modus (Xbox, Handy) entfällt der weiche Schein.
+
+**Beim Testen ansehen**
+- Gefällt dir der Fang? Ist er zu lang oder zu hell?
+- Erkennst du am Warnring rechtzeitig, wann der Angriff kommt?
+- Läuft das Spiel auf der Xbox weiterhin flüssig, wenn mehrere Warnringe zu sehen sind?
 
 ## 20261126-1858 – Endboss der Mondinsel: Lunatus, der Mondgaukler
 

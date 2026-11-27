@@ -258,23 +258,49 @@ const Duell = (() => {
     while (n++ < 160) { vy = Math.min(vy + 0.21, 4.2); Phys.moveX(e, vx); const hit = Phys.moveY(e, vy); if (hit) vy = 0; e.x = clamp(e.x, b.ax + 4, b.ax + b.aw - 4 - e.w); if (hit === 1) break; }
     return { x: e.x + e.w / 2, y: e.y + e.h, n };
   }
+  const TELL_A = [236, 52, 28], TELL_B = [252, 226, 112]; // Glut → Gold
   function drawTell(ctx) {
     const b = W.boss, d = b && b.du; if (!d || b.dying || b.holdIntro || d.stun > 0) return;
     const L = landing(b);
     if (L) floorMark(ctx, L.x, L.y, clamp(b.w + 14, 30, 96), clamp(1 - L.n / 50, 0, 1));
     const A = d.tell; if (!A) return;
     const k = clamp(A.t / A.show, 0, 1), h = head(b), hx = Math.round(h.x - W.cam.x), hy = Math.round(h.y + 14 - W.cam.y), sx = Math.round(clamp(b.cx, W.cam.x + 24, W.cam.x + View.w - 24) - W.cam.x), sy = Math.round(clamp(b.cy, W.cam.y + 30, W.cam.y + 180) - W.cam.y), r0 = clamp(Math.max(b.w, b.h) * 0.62, 16, 92), r = r0 + 46 * (1 - k) * (1 - k); // der Ring umschließt den ganzen Boss, auch die riesigen
+    // Siegelring: Glut → Gold im weichen Verlauf, ein Schein darunter, gegenläufige Segmente, deren Lücken sich schließen,
+    // Runenstriche zwischen den Ringen und vier Pfeilspitzen, die mit dem Ring hereinrücken; kurz vor dem Schlag glüht er weiß auf
+    const TAU = Math.PI * 2, e = k * k * (3 - 2 * k), C = TELL_A.map((v, i) => Math.round(v + (TELL_B[i] - v) * e)), col = `rgb(${C[0]},${C[1]},${C[2]})`;
+    const hot = k > 0.8 ? (k - 0.8) / 0.2 * (0.65 + 0.35 * Math.sin(W.frame * 0.9)) : 0, lite = View.lite, f = W.frame, R2 = r + 6;
+    const arc = (rr) => { ctx.beginPath(); ctx.arc(sx, sy, rr, 0, TAU); ctx.stroke(); };
     ctx.save();
-    ctx.globalAlpha = 0.45 + 0.5 * k; ctx.lineWidth = 5; ctx.strokeStyle = '#140408'; ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI * 2); ctx.stroke(); // dunkler Grund: der Ring bleibt auch vor hellen Sälen sichtbar
-    ctx.globalAlpha = 0.65 + 0.35 * k; ctx.lineWidth = 3; ctx.strokeStyle = k > 0.65 ? '#fce070' : '#fc4830';
-    ctx.setLineDash([10, 6]); ctx.lineDashOffset = -W.frame * 1.5; ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
-    if (A.mark === 'line' && Number.isFinite(b.tx) && Number.isFinite(b.ty)) { // Sturzflug: die Bahn bis zum Ziel
-      const tx = Math.round(b.tx - W.cam.x), ty = Math.round(b.ty - W.cam.y);
-      ctx.globalAlpha = 0.3 + 0.45 * k; ctx.strokeStyle = '#fc4830'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]); ctx.lineDashOffset = -W.frame; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(tx, ty); ctx.stroke(); ctx.setLineDash([]);
-      ctx.fillStyle = '#fce070'; for (const [ax, ay] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ctx.fillRect(tx + ax * 7 - (ax ? 2 : 0), ty + ay * 7 - (ay ? 2 : 0), ax ? 5 : 1, ay ? 5 : 1);
+    ctx.globalAlpha = 0.3 + 0.35 * k; ctx.lineWidth = 7; ctx.strokeStyle = '#140408'; arc(r); ctx.lineWidth = 3; arc(R2); // dunkler Grund: bleibt auch vor hellen Sälen sichtbar
+    ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = col;
+    if (!lite) for (const [lw, al] of [[11, 0.06], [7, 0.1], [4, 0.16]]) { ctx.globalAlpha = al * (0.7 + 0.6 * k); ctx.lineWidth = lw; arc(r); } // Schein
+    ctx.globalAlpha = 0.5 + 0.4 * k; ctx.lineWidth = 1; arc(R2);                                                   // Außenring
+    const segs = 6, gap = (0.5 * (1 - e) + 0.08) * TAU / segs, rot = f * 0.04;
+    ctx.globalAlpha = 0.8 + 0.2 * k; ctx.lineWidth = 3;
+    for (let i = 0; i < segs; i++) { const a0 = rot + i * TAU / segs + gap / 2; ctx.beginPath(); ctx.arc(sx, sy, r, a0, a0 + TAU / segs - gap); ctx.stroke(); }
+    ctx.globalAlpha = 0.35 + 0.45 * k + 0.2 * hot; ctx.lineWidth = 1; ctx.strokeStyle = '#fff4dc';                  // heller Kern der Segmente
+    for (let i = 0; i < segs; i++) { const a0 = rot + i * TAU / segs + gap / 2 + 0.06; ctx.beginPath(); ctx.arc(sx, sy, r, a0, a0 + TAU / segs - gap - 0.12); ctx.stroke(); }
+    ctx.globalAlpha = 0.55 + 0.35 * k; ctx.fillStyle = col; const rot2 = -f * 0.025;                                 // Runenstriche, gegenläufig
+    for (let i = 0; i < 24; i++) { const an = rot2 + i * TAU / 24, c = Math.cos(an), sn = Math.sin(an), l = i % 3 ? 1 : 2; for (let j = 0; j < l; j++) ctx.fillRect(Math.round(sx + c * (r + 3 + j)), Math.round(sy + sn * (r + 3 + j)), 1, 1); }
+    ctx.globalCompositeOperation = 'source-over';
+    for (let i = 0; i < 4; i++) { // Pfeilspitzen: zeigen nach innen, rücken mit dem Ring heran
+      const an = i * TAU / 4 + Math.PI / 4 + rot * 0.5, d = R2 + 3 + 5 * (1 - e), c = Math.cos(an), sn = Math.sin(an), tx = sx + c * d, ty = sy + sn * d;
+      const bx = sx + c * (d + 8), by = sy + sn * (d + 8), nx = sx + c * (d + 5.5), ny = sy + sn * (d + 5.5), px = -sn * 2.8, py = c * 2.8; // schlank, Rücken eingekerbt
+      const head = (g) => { ctx.beginPath(); ctx.moveTo(tx - c * g, ty - sn * g); ctx.lineTo(bx + px * (1 + g / 3) + c * g, by + py * (1 + g / 3) + sn * g); ctx.lineTo(nx + c * g, ny + sn * g); ctx.lineTo(bx - px * (1 + g / 3) + c * g, by - py * (1 + g / 3) + sn * g); ctx.fill(); };
+      ctx.globalAlpha = 0.85; ctx.fillStyle = '#140408'; head(1);
+      ctx.globalAlpha = 0.75 + 0.25 * k; ctx.fillStyle = col; head(0);
     }
-    const s = Math.round(3 + 6 * Math.sin(k * Math.PI)); // Glanzstern am Kopf: das Zeichen „jetzt kommt was“
-    ctx.globalAlpha = 1; ctx.fillStyle = '#fff4d0'; ctx.fillRect(hx - s, hy - 15, s * 2 + 1, 1); ctx.fillRect(hx, hy - 15 - s, 1, s * 2 + 1); ctx.fillStyle = '#fc6840'; ctx.fillRect(hx - 1, hy - 16, 3, 3);
+    if (hot > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.55 * hot; ctx.strokeStyle = '#fff4d8'; ctx.lineWidth = 2; arc(r); if (!lite) { ctx.globalAlpha = 0.18 * hot; ctx.lineWidth = 6; arc(r); } ctx.globalCompositeOperation = 'source-over'; }
+    if (A.mark === 'line' && Number.isFinite(b.tx) && Number.isFinite(b.ty)) { // Sturzflug: die Bahn bis zum Ziel, dort ein Fadenkreuz
+      const tx = Math.round(b.tx - W.cam.x), ty = Math.round(b.ty - W.cam.y);
+      ctx.globalAlpha = 0.3 + 0.45 * k; ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.setLineDash([4, 4]); ctx.lineDashOffset = -f; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(tx, ty); ctx.stroke(); ctx.setLineDash([]);
+      ctx.globalAlpha = 0.8; ctx.save(); ctx.translate(tx + 0.5, ty + 0.5); ctx.rotate(f * 0.05); ctx.strokeStyle = col; ctx.strokeRect(-5, -5, 10, 10); ctx.restore();
+      ctx.fillStyle = '#fce070'; for (const [ax, ay] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ctx.fillRect(tx + ax * 9 - (ax ? 2 : 0), ty + ay * 9 - (ay ? 2 : 0), ax ? 5 : 1, ay ? 5 : 1);
+    }
+    const sg = 3 + 6 * Math.sin(k * Math.PI); // Glanzstern am Kopf: das Zeichen „jetzt kommt was“
+    ctx.globalCompositeOperation = 'lighter'; ctx.save(); ctx.translate(hx + 0.5, hy - 14.5); ctx.rotate(f * 0.03);
+    for (let i = 0; i < 2; i++) { if (i) ctx.rotate(Math.PI / 2); ctx.globalAlpha = 0.9; ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(-sg - 2, 0); ctx.lineTo(0, -1.6); ctx.lineTo(sg + 2, 0); ctx.lineTo(0, 1.6); ctx.fill(); ctx.fillStyle = '#fffbe8'; ctx.beginPath(); ctx.moveTo(-sg, 0); ctx.lineTo(0, -0.7); ctx.lineTo(sg, 0); ctx.lineTo(0, 0.7); ctx.fill(); }
+    ctx.restore(); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = '#fffbe8'; ctx.fillRect(hx - 1, hy - 16, 3, 3);
     ctx.restore();
   }
   function drawWorld(ctx) {
