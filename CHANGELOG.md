@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261127-1246](#20261127-1246--das-sternbild-als-leuchtende-himmelsfigur) – Das Sternbild als leuchtende Himmelsfigur
 - [20261127-1207](#20261127-1207--der-mann-im-mond-in-neuem-glanz) – Der Mann im Mond in neuem Glanz
 - [20261127-1154](#20261127-1154--ein-neuer-direktor-fürs-kolosseum) – Ein neuer Direktor fürs Kolosseum
 - [20261127-0949](#20261127-0949--kleine-korrektur-in-der-klötzchenburg) – Kleine Korrektur in der Klötzchenburg
@@ -105,6 +106,25 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261127-1246 – Das Sternbild als leuchtende Himmelsfigur
+
+**Neu**
+- Das Sternbild in der Sternkuppel ist jetzt mehr als Punkte und Linien:
+  - Hinter den zehn Sternen leuchtet die Figur wie aus einem alten Himmelsatlas: ein gewölbter, durchscheinend blauer Kupferstich mit Sternstaub und Gravur.
+  - Als Großer Bär hat es Kopf, Ohren, Pranken und einen langen Schwanz.
+  - Als Skorpion hat es Scheren, einen gepanzerten Leib, einen Perlenschwanz und den Giftstachel.
+  - Als Großer Stempel hat es Knauf, Griff und eine Gummiplatte mit der Aufschrift „GENEHMIGT“.
+- Beim Auftritt erscheint die Figur, sobald die Sterne an ihrem Platz sind.
+- Beim Verwandeln löst sich die alte Figur auf und die neue wächst heraus.
+- Bei einem Treffer schimmert die ganze Figur kurz auf. Beim Tod verglüht sie.
+- Die Sterne haben jetzt einen Strahlenkranz. Vor einem Angriff glühen sie rot.
+- Über die Verbindungslinien wandern kleine Funken.
+- Am Kampf ändert sich nichts. Treffbar sind weiter nur die Sterne.
+
+**Beim Testen ansehen**
+- Gefallen dir die drei Himmelsfiguren?
+- Siehst du die Sterne als Trefferpunkte weiterhin gut vor der Figur?
 
 ## 20261127-1207 – Der Mann im Mond in neuem Glanz
 

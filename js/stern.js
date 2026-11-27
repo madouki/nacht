@@ -197,6 +197,21 @@ const STERN_FORMS = [
     n: [[0, -62], [-9, -42], [9, -42], [-7, -18], [7, -18], [-42, -2], [42, -2], [-42, 24], [42, 24], [0, 24]],
     e: [[0, 1], [0, 2], [1, 3], [2, 4], [3, 4], [3, 5], [4, 6], [5, 6], [5, 7], [6, 8], [7, 9], [9, 8]] },
 ];
+// Atlasfiguren, vorgerendert (tools/blender/stern_np.py → pack_stern.py → img/stern3d.png): je Form ein leuchtender Kupferstich hinter
+// den Sternen (Bär, Skorpion, Stempel; durchscheinend, gewölbt, goldene Gravur) und Sterne mit Strahlenkranz (blauweiß, rot vor dem
+// Angriff). Karte: [x, y, w, h, ox, oy], (ox, oy) = Mittelpunkt des Sternbilds im Bild. Ohne Bild malt das Spiel wie früher.
+const STERN3D = (() => {
+  const STERN_MAP = {"fig_bear":[0,0,292,196,150.4,86.6],"fig_scorp":[293,0,292,196,144.6,95.3],"fig_stamp":[0,197,188,190,94.3,117.3],"star_w":[189,197,32,32,16,16],"star_r":[222,197,32,32,16,16]};
+  let ok = false; const img = new Image(); img.onload = () => { ok = true; };
+  img.src = 'img/stern3d.png?v=' + (window.BUILD || '');
+  const part = (n) => ok && STERN_MAP[n] ? STERN_MAP[n] : null;
+  function draw(ctx, n, x, y, rot, sc, a) { // Teil n mit Mittelpunkt (ox, oy) bei (x, y), gedreht und skaliert
+    const r = part(n); if (!r || a <= 0.01) return;
+    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.globalAlpha = Math.min(1, a); ctx.translate(x, y); if (rot) ctx.rotate(rot); if (sc !== 1) ctx.scale(sc, sc);
+    ctx.drawImage(img, r[0], r[1], r[2], r[3], -r[4], -r[5], r[2], r[3]); ctx.restore();
+  }
+  return { ok: () => ok, part, draw, FIG: ['fig_bear', 'fig_scorp', 'fig_stamp'] };
+})();
 class Sternbild extends Boss {
   constructor(ax, aw) {
     const gy = (W.room.h - 2) * T;
@@ -219,7 +234,7 @@ class Sternbild extends Boss {
   }
   go(s) { this.state = s; this.timer = 0; }
   say(k, col) { W.popup(clamp(this.cx0, W.cam.x + 90, W.cam.x + View.w - 90), this.gy - 170, tr(k), col); }
-  morph(to) { this.from = this.pts.map(p => ({ x: p.x, y: p.y })); this.form = to; this.go('morph'); this.rot = 0; this.sting = null; this.say(STERN_FORMS[to].key, '#c8dcff'); Audio8.sfx('holy', this.cx0); W.flash = 6; }
+  morph(to) { this.from = this.pts.map(p => ({ x: p.x, y: p.y })); this.fromForm = this.form; this.fromRot = this.rot; this.form = to; this.go('morph'); this.rot = 0; this.sting = null; this.say(STERN_FORMS[to].key, '#c8dcff'); Audio8.sfx('holy', this.cx0); W.flash = 6; }
   touchHurt() { // Berührung: Sterne immer, Linien nur in Angriffen (Prankenwirbel, Ansturm, Stachel)
     const p = W.player; if (!p.alive) return;
     const N = this.nodes(), hitR = (x, y, r) => Math.abs(x - p.cx) < p.w / 2 + r && Math.abs(y - p.cy) < p.h / 2 + r;
@@ -316,24 +331,47 @@ class Sternbild extends Boss {
     const fy = Math.round(this.gy - cam.y);
     for (const m of this.marks) { const a = Math.min(1, m.t / 60) * 0.6, x = Math.round(m.x - cam.x); ctx.fillStyle = `rgba(200,24,40,${a.toFixed(2)})`; ctx.fillRect(x - 30, fy - 2, 60, 2); }
     if (this.state === 'stingWind') { const x = Math.round(this.tx - cam.x), k = this.timer / 44; ctx.strokeStyle = `rgba(255,90,70,${(0.4 + k * 0.5).toFixed(2)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(x, fy - 1, 10 + k * 8, 3, 0, 0, Math.PI * 2); ctx.stroke(); }
+    const HD = STERN3D.ok(), fl = this.pts.reduce((m, q) => Math.max(m, q.fl), 0) / 12;
+    if (HD) this.drawFigure(ctx, fl);
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
-    if (!this.dying) { // Bildumriss wie in einem alten Sternatlas: zarte Fläche zwischen den Sternen
-      ctx.fillStyle = `rgba(90,120,220,${(0.06 + 0.03 * Math.sin(this.t * 0.05)).toFixed(3)})`; ctx.beginPath();
-      const cx = N.reduce((a, n) => a + n[0], 0) / N.length, cy = N.reduce((a, n) => a + n[1], 0) / N.length;
-      [...N].sort((a, b) => Math.atan2(a[1] - cy, a[0] - cx) - Math.atan2(b[1] - cy, b[0] - cx)).forEach(([x, y], i) => (i ? ctx.lineTo(x - cam.x, y - cam.y) : ctx.moveTo(x - cam.x, y - cam.y))); ctx.closePath(); ctx.fill();
-      for (const [a, b] of F.e) { // Verbindungslinien: breiter Schein, heller Kern (rot vor einem Angriff)
-        const [xa, ya] = N[a], [xb, yb] = N[b];
-        ctx.strokeStyle = warn ? `rgba(255,${Math.round(120 - this.red * 60)},90,0.35)` : 'rgba(110,150,255,0.3)'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(xa - cam.x, ya - cam.y); ctx.lineTo(xb - cam.x, yb - cam.y); ctx.stroke();
-        ctx.strokeStyle = warn ? 'rgba(255,200,170,0.85)' : 'rgba(210,228,255,0.85)'; ctx.lineWidth = 1; ctx.stroke();
+    if (!this.dying) {
+      if (!HD) { // ohne Bild: zarte Fläche zwischen den Sternen
+        ctx.fillStyle = `rgba(90,120,220,${(0.06 + 0.03 * Math.sin(this.t * 0.05)).toFixed(3)})`; ctx.beginPath();
+        const cx = N.reduce((a, n) => a + n[0], 0) / N.length, cy = N.reduce((a, n) => a + n[1], 0) / N.length;
+        [...N].sort((a, b) => Math.atan2(a[1] - cy, a[0] - cx) - Math.atan2(b[1] - cy, b[0] - cx)).forEach(([x, y], i) => (i ? ctx.lineTo(x - cam.x, y - cam.y) : ctx.moveTo(x - cam.x, y - cam.y))); ctx.closePath(); ctx.fill();
       }
+      F.e.forEach(([a, b], j) => { // Verbindungslinien: breiter Schein, heller Kern (rot vor einem Angriff), dazu ein wandernder Funke
+        const [xa, ya] = N[a], [xb, yb] = N[b];
+        ctx.strokeStyle = warn ? `rgba(255,${Math.round(120 - this.red * 60)},90,0.35)` : HD ? 'rgba(150,170,255,0.22)' : 'rgba(110,150,255,0.3)'; ctx.lineWidth = HD ? 3 : 4; ctx.beginPath(); ctx.moveTo(xa - cam.x, ya - cam.y); ctx.lineTo(xb - cam.x, yb - cam.y); ctx.stroke();
+        ctx.strokeStyle = warn ? 'rgba(255,200,170,0.85)' : HD ? 'rgba(255,240,200,0.7)' : 'rgba(210,228,255,0.85)'; ctx.lineWidth = 1; ctx.stroke();
+        if (HD && this.state !== 'morph' && this.state !== 'intro') { const k = (this.t * 0.012 + j * 0.37) % 1, s = Math.sin(k * Math.PI); Stern.glow(ctx, xa + (xb - xa) * k - cam.x, ya + (yb - ya) * k - cam.y, 0.35 + 0.15 * s, 0.7 * s); }
+      });
     }
     N.forEach(([x, y], i) => { // Sterne
       const q = this.pts[i], tw = 0.85 + 0.15 * Math.sin(this.t * 0.2 + i * 1.3), big = i === 9 && this.form === 1 ? 1.3 : 1, dim = this.state === 'rest' ? 0.7 : 1;
-      Stern.glow(ctx, x - cam.x, y - cam.y, (1.1 + (q.fl ? 0.5 : 0)) * big * tw, (q.fl ? 1 : 0.85) * dim);
+      if (HD) { // Strahlenkranz: Kopfstern (Bär 7, Skorpion 9, Stempel 0) etwas größer
+        const head = (this.form === 0 && i === 7) || (this.form === 2 && i === 0), s = (0.95 + (q.fl ? 0.45 : 0) + (head ? 0.15 : 0)) * big * (0.9 + 0.1 * Math.sin(this.t * 0.2 + i * 1.3));
+        Stern.glow(ctx, x - cam.x, y - cam.y, 0.8 * big, 0.45 * dim);
+        STERN3D.draw(ctx, warn ? 'star_r' : 'star_w', x - cam.x, y - cam.y, 0, s, (q.fl ? 1 : 0.95) * dim);
+      } else Stern.glow(ctx, x - cam.x, y - cam.y, (1.1 + (q.fl ? 0.5 : 0)) * big * tw, (q.fl ? 1 : 0.85) * dim);
     });
     ctx.restore();
-    N.forEach(([x, y], i) => { const q = this.pts[i], sx = Math.round(x - cam.x), sy = Math.round(y - cam.y); ctx.fillStyle = q.fl ? '#ffffff' : this.state === 'rest' ? '#c8d0e8' : '#fffcf0'; ctx.fillRect(sx - 1, sy - 3, 3, 7); ctx.fillRect(sx - 3, sy - 1, 7, 3); });
+    N.forEach(([x, y], i) => { const q = this.pts[i], sx = Math.round(x - cam.x), sy = Math.round(y - cam.y); ctx.fillStyle = q.fl ? '#ffffff' : this.state === 'rest' ? '#c8d0e8' : '#fffcf0'; if (HD) ctx.fillRect(sx - 1, sy - 1, 2, 2); else { ctx.fillRect(sx - 1, sy - 3, 3, 7); ctx.fillRect(sx - 3, sy - 1, 7, 3); } });
     this.lastDraw = null;
+  }
+  drawFigure(ctx, fl) { // Atlasfigur hinter den Sternen: blendet beim Auftritt ein, beim Verwandeln über, beim Tod aus
+    const cam = W.cam, x = this.cx0 - cam.x, y = this.cy0 - cam.y, pulse = 0.92 + 0.08 * Math.sin(this.t * 0.05), dim = this.state === 'rest' ? 0.78 : 1;
+    let a = pulse * dim, sc = 1;
+    if (this.state === 'intro') a *= clamp((this.timer - 45) / 50, 0, 1);
+    if (this.dying) { const k = this.dying / 40; a *= Math.max(0, 1 - k); sc = 1 + k * 0.25; }
+    if (this.state === 'morph') { // alte Figur löst sich auf (wächst, verblasst), neue wächst hinein
+      const k = Math.min(1, this.timer / 70);
+      STERN3D.draw(ctx, STERN3D.FIG[this.fromForm], x, y, this.fromRot || 0, 1 + k * 0.3, pulse * Math.max(0, 1 - k * 2.2));
+      a *= clamp((k - 0.45) * 2.2, 0, 1); sc = 0.85 + 0.15 * Math.min(1, k * 1.2);
+    }
+    if (this.state === 'sting' || this.state === 'stingWind') a *= 0.85;
+    STERN3D.draw(ctx, STERN3D.FIG[this.form], x, y, this.rot, sc, a);
+    if (fl > 0 && a > 0.1) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; STERN3D.draw(ctx, STERN3D.FIG[this.form], x, y, this.rot, sc, fl * 0.35 * a); ctx.restore(); } // Trefferschimmer
   }
   lightUp(L, cx, cy) { if (this.dying > 100) return; this.nodes().forEach(([x, y], i) => { if (i % 2 === 0) L.push({ x: x - cx, y: y - cy, r: 44, c: this.red > 0 ? [255, 140, 110] : [150, 180, 255], a: 0.35 }); }); }
 }
