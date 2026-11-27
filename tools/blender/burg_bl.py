@@ -124,7 +124,7 @@ def shot(name):
 TOYS = ['#e8453c', '#f6c33b', '#3d7fe0', '#4cb35a', '#f08a2c', '#9b5bd6', '#e85c9c', '#3cc0c8']
 STYLE = {   # Boden, Wandfarben (Reihenfolge), Stapel
     'r0': ('parkett', [0, 1, 2, 3], 'turm'), 'r1': ('feld', [2, 7, 1, 0], 'zaun'), 'r2': ('parkett', [0, 2, 1, 4], 'trommel'),
-    'r3': ('karo', [5, 1, 7, 2], 'mauer'), 'r4': ('dunkel', [3, 6, 1, 2], 'turm'), 'r5': ('gold', [5, 1, 6, 0], 'ringe')}
+    'r3': ('karo', [5, 1, 7, 2], 'mauer'), 'r4': ('dunkel', [3, 6, 1, 2], 'turm'), 'r5': ('gold', [5, 1, 6, 0], 'ringe'), 'r6': ('brett', [0, 2, 1, 3], 'turm')}
 LET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 def room(key):
     rows = DATA[key]['rows']; doors = DATA[key]['doors']; fl, order, stack = STYLE[key]; rng = random.Random(hash(key) % 1000)
@@ -155,6 +155,12 @@ def room(key):
                 rbox(x + 0.04, y + 0.04, x + 1.96, min(H, y + 2) - 0.04, 0.0, 0.07, mat[(x // 2 + (y // 2) * 2) % len(mat)], 0.04, rough=0.55, coat=0.15)
                 for k in range(2):   # Puzzlenasen an den Kanten
                     cyl(x + 1.0, y + 0.04 + k * 1.92, 0.16, 0.0, 0.071, mat[(x // 2 + (y // 2) * 2 + 1) % len(mat)], 16, rough=0.55, coat=0.15)
+    elif fl == 'brett':   # Paradeplatz: großes Spielbrett, Läufer von Tür zu Tür
+        for y in range(H):
+            for x in range(Wd):
+                rbox(x + 0.01, y + 0.01, x + 0.99, y + 0.99, 0.0, 0.04, '#a83c4c' if ((x // 2) + (y // 2)) % 2 else '#f0e2c4', 0.02, rough=0.3, coat=0.7)
+        rbox(12.05, 0.6, 13.95, 12.4, 0.04, 0.075, '#2c4cb8', 0.02, rough=0.8, coat=0); rbox(12.2, 0.6, 13.8, 12.4, 0.075, 0.08, '#3c64d8', 0.01, rough=0.8, coat=0)
+        for y in range(1, 12, 2): star(13, y + 0.5, 0.085, 0.22, '#f8d048', face='top', d=0.01)
     else:
         for y in range(H):
             for x in range(Wd):
@@ -242,6 +248,51 @@ def room(key):
     shot('room_' + key)
 
 # ---------------- Dinge ----------------
+def ell(cx, cy, z, rx, ry, rz, col, **kw):   # Ellipsoid mit drei Halbachsen
+    bm = bmesh.new(); bmesh.ops.create_uvsphere(bm, u_segments=24, v_segments=14, radius=1.0, matrix=Matrix.Translation(W(cx, cy, z)) @ Matrix.Diagonal((rx, ry, rz, 1)))
+    return mk(bm, M(col, **kw), True)
+def marshal(view, fr, pose=''):   # Feldmarschall Federkern: riesiger Zinngeneral auf grünem Sockel, Zweispitz, Monokel, Schnauzbart, Korkenflinte, Aufziehschlüssel
+    n0 = len(sc.collection.objects); cx, cy = 1.0, 1.2; bob = 0.04 if fr else 0.0; st = 0.09 if fr else -0.09
+    BLUE, GOLD, RED, SKIN, BLK = '#2c4cb8', '#f2c040', '#d8342c', '#f2c8a0', '#1c1c24'
+    cyl(cx, cy, 0.62, 0.0, 0.1, '#3c8c48', 36)
+    for sd in (-1, 1):
+        ly = cy + st * sd
+        cyl(cx + sd * 0.16, ly, 0.13, 0.1, 0.86 + bob, '#24306c', 16); cyl(cx + sd * 0.16, ly, 0.135, 0.4, 0.46, RED, 16); cyl(cx + sd * 0.16, ly, 0.155, 0.1, 0.32, BLK, 16)
+    rbox(cx - 0.37, cy - 0.27, cx + 0.37, cy + 0.27, 0.82 + bob, 1.66 + bob, BLUE, 0.1, True)
+    rbox(cx - 0.38, cy - 0.28, cx + 0.38, cy + 0.28, 0.9 + bob, 0.99 + bob, BLK, 0.03); rbox(cx - 0.07, cy + 0.27, cx + 0.07, cy + 0.3, 0.9 + bob, 1.0 + bob, GOLD, 0.01, metal=0.6)
+    for k in range(3):
+        for sd in (-1, 1): ball(cx + sd * 0.13, cy + 0.28, 1.12 + k * 0.16 + bob, 0.035, GOLD, metal=0.6)
+    tube(W(cx - 0.3, cy + 0.28, 1.6 + bob), W(cx + 0.3, cy + 0.28, 1.02 + bob), 0.045, RED)
+    for sd in (-1, 1):
+        ell(cx + sd * 0.4, cy, 1.64 + bob, 0.17, 0.15, 0.06, GOLD, metal=0.6)
+        for k in range(4): cyl(cx + sd * (0.3 + k * 0.06), cy + 0.12, 0.015, 1.5 + bob, 1.6 + bob, GOLD, 6, metal=0.6)
+    if pose == 'aim':   # Korkenflinte nach vorn
+        cyl(cx + 0.44, cy + 0.05, 0.09, 1.2 + bob, 1.6 + bob, BLUE, 12); cyl(cx - 0.44, cy + 0.05, 0.09, 1.1 + bob, 1.6 + bob, BLUE, 12)
+        tube(W(cx + 0.3, cy - 0.05, 1.22), W(cx + 0.3, cy + 0.95, 1.2), 0.06, '#c8a040', metal=0.7); cyl(cx + 0.3, cy + 0.98, 0.11, 1.12, 1.28, '#c8a040', 16, r2=0.06, metal=0.7)
+        rbox(cx + 0.22, cy - 0.3, cx + 0.38, cy + 0.05, 1.1, 1.26, '#8c5c2c', 0.03); ball(cx + 0.3, cy + 1.04, 1.2, 0.07, '#a8743c')
+    else:
+        for sd in (-1, 1): cyl(cx + sd * 0.45, cy + 0.02, 0.09, 1.0 + bob, 1.6 + bob, BLUE, 12); ball(cx + sd * 0.45, cy + 0.02, 0.98 + bob, 0.09, '#f4f0e6')
+        tube(W(cx + 0.55, cy - 0.02, 0.9 + bob), W(cx + 0.55, cy - 0.02, 2.05 + bob), 0.05, '#c8a040', metal=0.7); cyl(cx + 0.55, cy - 0.02, 0.08, 2.0 + bob, 2.12 + bob, '#c8a040', 12, r2=0.05, metal=0.7)
+    ball(cx, cy, 1.94 + bob, 0.28, SKIN)
+    for sd in (-1, 1):
+        ball(cx + sd * 0.1, cy + 0.24, 1.99 + bob, 0.035, BLK); ball(cx + sd * 0.15, cy + 0.2, 1.88 + bob, 0.05, '#f08080')
+        curve_pts = [(cx + sd * 0.02, cy + 0.27, 1.84), (cx + sd * 0.16, cy + 0.28, 1.83), (cx + sd * 0.27, cy + 0.24, 1.9), (cx + sd * 0.3, cy + 0.2, 1.97)]
+        for (ax, ay, az), (bx2, by2, bz) in zip(curve_pts, curve_pts[1:]): tube(W(ax, ay, az + bob), W(bx2, by2, bz + bob), 0.04, BLK)
+    ball(cx, cy + 0.28, 1.9 + bob, 0.055, '#e8a088')
+    cyl(cx + 0.1, cy + 0.27, 0.07, 1.98 + bob, 1.981 + bob, '#d8f0ff', 20, rough=0.05, coat=1.0); tube(W(cx + 0.17, cy + 0.28, 1.98 + bob), W(cx + 0.24, cy + 0.26, 1.7 + bob), 0.008, GOLD, metal=0.7)
+    hat0 = len(sc.collection.objects)
+    rbox(cx - 0.44, cy - 0.13, cx + 0.44, cy + 0.13, 2.12 + bob, 2.36 + bob, BLK, 0.1, True); rbox(cx - 0.45, cy + 0.11, cx + 0.45, cy + 0.14, 2.14 + bob, 2.2 + bob, GOLD, 0.01, metal=0.6)
+    for k, c in enumerate(('#3d7fe0', '#fcfcfc', RED)): cyl(cx, cy + 0.14 + k * 0.004, 0.09 - k * 0.025, 2.24 + bob, 2.245 + bob, c, 20)
+    ell(cx - 0.2, cy, 2.48 + bob, 0.09, 0.08, 0.16, RED)
+    if pose == 'dizzy': group_rot(since(hat0), 0.35, cx, cy, 'Y', 2.1)
+    tube(W(cx, cy - 0.26, 1.35 + bob), W(cx, cy - 0.6, 1.35 + bob), 0.06, GOLD, metal=0.7)   # Aufziehschlüssel im Rücken (Schwachpunkt)
+    for sd in (-1, 1): ell(cx + sd * 0.26, cy - 0.64, 1.38 + bob, 0.25, 0.06, 0.2, GOLD, metal=0.7)
+    objs = since(n0)
+    group_scale(objs, 1.45, cx, cy)
+    if view == 'u': group_rot(objs, math.pi, cx, cy)
+    elif view == 's': group_rot(objs, math.pi / 2, cx, cy)
+    if pose == 'dizzy': group_rot(objs, 0.16, cx, cy, 'Y', 0.0)
+    if pose == 'fall': group_rot(objs, math.pi / 2, cx + 0.35, cy, 'Y', 0.0)   # zur Seite umgekippt
 def keyshape(cx, cy, z, s, col, metal):   # Aufziehschlüssel: Schmetterlingsgriff, Schaft, Bart
     for sx in (-1, 1): ball(cx + sx * 0.17 * s, cy, z + 0.03 * s, 0.15 * s, col, 1.0, rough=0.2, coat=0.5, metal=metal)
     tube(W(cx, cy, z), W(cx, cy, z - 0.38 * s), 0.045 * s, col, rough=0.2, metal=metal)
@@ -359,6 +410,11 @@ def thing(name):
         else: soldier(name[3], int(name[4]))
     elif name.startswith('top'): kreisel(int(name[3]))
     elif name.startswith('npc'): npc(int(name[3]))
+    elif name.startswith('fm'):
+        if name == 'fma': marshal('d', 0, 'aim')
+        elif name == 'fmz': marshal('d', 0, 'dizzy')
+        elif name == 'fmx': marshal('d', 0, 'fall')
+        else: marshal(name[2], int(name[3]))
     elif name.startswith('pad'):
         on = name == 'pad1'
         cyl(0.5, 0.5, 0.72, 0.0, 0.1, '#8c5c34', 40); cyl(0.5, 0.5, 0.74, 0.08, 0.12, '#f2c040', 40, metal=0.7, emit=0.8 if on else 0)
@@ -380,6 +436,8 @@ for n in ('sold0', 'sold1', 'solu0', 'solu1', 'sols0', 'sols1', 'solx'): WIN[n] 
 for n in ('top0', 'top1', 'top2', 'top3'): WIN[n] = (-2, -6, 20, 20)
 for n in ('npc0', 'npc1'): WIN[n] = (-8, -30, 32, 46)
 for n in ('pad0', 'pad1'): WIN[n] = (-8, -6, 32, 26)
+for n in ('fmd0', 'fmd1', 'fmu0', 'fmu1', 'fms0', 'fms1', 'fma', 'fmz'): WIN[n] = (-24, -40, 80, 86)
+WIN['fmx'] = (-20, -26, 112, 72)
 
 done = []
 for key in DATA:

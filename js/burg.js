@@ -9,8 +9,8 @@
 'use strict';
 const Burg = (() => {
   const TS = 16, RW = 26, RH = 13, TOP = 32, CROWN = 20, IW = RW * TS, FH = RH * TS;   // Boden beginnt 32 px unter dem Bildrand
-  const ROOM_MAP = {"r0":[0,0,416,228],"r1":[417,0,416,228],"r2":[0,229,416,228],"r3":[417,229,416,228],"r4":[0,458,416,228],"r5":[417,458,416,228]};   // pack_burg.py: [x, y, w, h] der Raumbilder in img/burg3d.png (416×228, oben 20 px Wandkrone)
-  const OBJ_MAP = {"block0":[34,65,20,28,-2,-10],"block1":[55,65,20,28,-2,-10],"block2":[76,65,20,28,-2,-10],"btn0":[273,65,16,20,0,-4],"btn1":[290,65,16,20,0,-4],"pr0":[139,65,16,26,0,-10],"pr1":[156,65,16,26,0,-10],"pb0":[173,65,16,26,0,-10],"pb1":[190,65,16,26,0,-10],"sw0":[0,65,16,30,0,-14],"sw1":[17,65,16,30,0,-14],"ch0":[97,65,20,28,-2,-12],"ch1":[118,65,20,28,-2,-12],"bc0":[332,0,28,34,-6,-16],"bc1":[361,0,28,34,-6,-16],"it_key":[391,65,16,16,0,-4],"it_bigkey":[408,65,16,16,0,-4],"it_kreisel":[425,65,16,16,0,-4],"lockN":[390,0,36,34,-2,-16],"bigN":[427,0,36,34,-2,-16],"shutN":[464,0,36,34,-2,-16],"lockW":[0,0,20,64,-2,-14],"bigW":[21,0,20,64,-2,-14],"shutW":[42,0,20,64,-2,-14],"sold0":[129,0,28,36,-6,-22],"sold1":[158,0,28,36,-6,-22],"solu0":[187,0,28,36,-6,-22],"solu1":[216,0,28,36,-6,-22],"sols0":[245,0,28,36,-6,-22],"sols1":[274,0,28,36,-6,-22],"solx":[303,0,28,36,-6,-22],"top0":[307,65,20,20,-2,-6],"top1":[328,65,20,20,-2,-6],"top2":[349,65,20,20,-2,-6],"top3":[370,65,20,20,-2,-6],"npc0":[63,0,32,46,-8,-30],"npc1":[96,0,32,46,-8,-30],"pad0":[207,65,32,26,-8,-6],"pad1":[240,65,32,26,-8,-6]};    // pack_burg.py: [x, y, w, h, ox, oy] in img/burgobj.png (ox/oy: Versatz zur linken oberen Ecke der Kachel)
+  const ROOM_MAP = {"r0":[0,0,416,228],"r1":[417,0,416,228],"r2":[0,229,416,228],"r3":[417,229,416,228],"r4":[0,458,416,228],"r5":[417,458,416,228],"r6":[0,687,416,228]};   // pack_burg.py: [x, y, w, h] der Raumbilder in img/burg3d.png (416×228, oben 20 px Wandkrone)
+  const OBJ_MAP = {"block0":[319,174,20,28,-2,-10],"block1":[340,174,20,28,-2,-10],"block2":[361,174,20,28,-2,-10],"btn0":[66,211,16,20,0,-4],"btn1":[83,211,16,20,0,-4],"pr0":[424,174,16,26,0,-10],"pr1":[441,174,16,26,0,-10],"pb0":[458,174,16,26,0,-10],"pb1":[475,174,16,26,0,-10],"sw0":[285,174,16,30,0,-14],"sw1":[302,174,16,30,0,-14],"ch0":[382,174,20,28,-2,-12],"ch1":[403,174,20,28,-2,-12],"bc0":[116,174,28,34,-6,-16],"bc1":[145,174,28,34,-6,-16],"it_key":[184,211,16,16,0,-4],"it_bigkey":[201,211,16,16,0,-4],"it_kreisel":[218,211,16,16,0,-4],"lockN":[174,174,36,34,-2,-16],"bigN":[211,174,36,34,-2,-16],"shutN":[248,174,36,34,-2,-16],"lockW":[275,87,20,64,-2,-14],"bigW":[296,87,20,64,-2,-14],"shutW":[317,87,20,64,-2,-14],"sold0":[404,87,28,36,-6,-22],"sold1":[433,87,28,36,-6,-22],"solu0":[462,87,28,36,-6,-22],"solu1":[0,174,28,36,-6,-22],"sols0":[29,174,28,36,-6,-22],"sols1":[58,174,28,36,-6,-22],"solx":[87,174,28,36,-6,-22],"top0":[100,211,20,20,-2,-6],"top1":[121,211,20,20,-2,-6],"top2":[142,211,20,20,-2,-6],"top3":[163,211,20,20,-2,-6],"npc0":[338,87,32,46,-8,-30],"npc1":[371,87,32,46,-8,-30],"pad0":[0,211,32,26,-8,-6],"pad1":[33,211,32,26,-8,-6],"fmd0":[0,0,80,86,-24,-40],"fmd1":[81,0,80,86,-24,-40],"fmu0":[162,0,80,86,-24,-40],"fmu1":[243,0,80,86,-24,-40],"fms0":[324,0,80,86,-24,-40],"fms1":[405,0,80,86,-24,-40],"fma":[0,87,80,86,-24,-40],"fmz":[81,87,80,86,-24,-40],"fmx":[162,87,112,72,-20,-26]};    // pack_burg.py: [x, y, w, h, ox, oy] in img/burgobj.png (ox/oy: Versatz zur linken oberen Ecke der Kachel)
   // # Wand · o Spielzeugstapel · D Tür · . Boden · , Boden nur für den Helden (Klötze rutschen dort nicht) · ~ Bällebad
   // B Bauklotz · _ Knopf · r/b Pflock rot/blau · S Klopfbank-Schalter · c/C Truhe/große Truhe · N Knacks · T Zinnsoldat · K Kreisel · X Spieluhr
   const ROOMS = {
@@ -84,7 +84,7 @@ const Burg = (() => {
       '#...........K............#',
       '#........................#',
       '############DD############'] },
-    r5: { gx: 1, gy: 0, doors: { s: 'b' }, chests: { C: { id: 'kr', item: 'kreisel' } }, rows: [
+    r5: { gx: 1, gy: -1, doors: { s: 'd' }, chests: { C: { id: 'kr', item: 'kreisel' } }, rows: [
       '##########################',
       '#........................#',
       '#...o................o...#',
@@ -98,11 +98,27 @@ const Burg = (() => {
       '#............X...........#',
       '#........................#',
       '############DD############'] },
+    r6: { gx: 1, gy: 0, doors: { s: 'b', n: 'd' }, rows: [   // Paradeplatz: Feldmarschall Federkern (F)
+      '############DD############',
+      '#........................#',
+      '#........................#',
+      '#....o..............o....#',
+      '#........................#',
+      '#........................#',
+      '#...........F............#',
+      '#........................#',
+      '#........................#',
+      '#....o..............o....#',
+      '#........................#',
+      '#........................#',
+      '############DD############'] },
   };
-  const DOORS = { a: 'lock', b: 'big', c: 'shut' };   // a: Schlüsselklotz Eingang ↔ Kreiselkammer, b: goldenes Schloss zur Schatzkammer, c: Gitter bis die Soldaten fallen
+  const DOORS = { a: 'lock', b: 'big', c: 'shut', d: 'shut' }, SHUT = { c: 'burg_r2', d: 'burg_boss' }; // d: Gitter zur Schatzkammer, bis der Feldmarschall abgelaufen ist
+  const _DOORS_OLD = { a: 'lock', b: 'big', c: 'shut' };   // a: Schlüsselklotz Eingang ↔ Kreiselkammer, b: goldenes Schloss zur Schatzkammer, c: Gitter bis die Soldaten fallen
   const DIRS = [[0, -1], [1, 0], [0, 1], [-1, 0]], SIDE = { n: [0, -1], s: [0, 1], w: [-1, 0], e: [1, 0] };
   const flag = (k) => !!Castle.flags[k], setF = (k) => Castle.setFlag(k);
-  const doorOpen = (id) => id === 'o' || id === 'x' || (DOORS[id] === 'shut' ? flag('burg_r2') : flag('burg_door_' + id));
+  const doorOpen = (id) => id === 'o' || id === 'x' || (DOORS[id] === 'shut' ? flag(SHUT[id]) : flag('burg_door_' + id));
+  const lockedIn = () => !!(G && G.room === 'r6' && G.o.boss && G.fight && !G.o.boss.done); // im Bosskampf sind alle Türen zu
   const byGrid = (gx, gy) => Object.keys(ROOMS).find(k => ROOMS[k].gx === gx && ROOMS[k].gy === gy);
   const trList = (k) => { const v = I18N.t(k); return Array.isArray(v) ? v : [v]; };
   let RIMG = null, OIMG = null;
@@ -133,7 +149,7 @@ const Burg = (() => {
   function load(id) {
     const R = ROOMS[id]; G.room = id; G.fx = []; setF('burg_v_' + id);
     G.grid = R.rows.map(r => r.split(''));
-    const o = G.o = { blocks: [], buttons: [], pegs: [], sw: [], chests: [], npc: null, sol: [], tops: [], pad: null };
+    const o = G.o = { blocks: [], buttons: [], pegs: [], sw: [], chests: [], npc: null, sol: [], tops: [], pad: null, boss: null, corks: [] }; G.fight = false;
     let ti = 0, ki = 0;
     R.rows.forEach((row, y) => [...row].forEach((c, x) => {
       const put = (ch) => { G.grid[y][x] = ch; };
@@ -146,6 +162,7 @@ const Burg = (() => {
       else if (c === 'T') { if (!flag('burg_r2')) o.sol.push({ x: x * TS + 8, y: y * TS + 10, ax: (R.axes || [])[ti] || 'h', d: ti % 2 ? -1 : 1, hp: 2, hitT: 0, kx: 0, ky: 0, fall: 0, f: 0 }); ti++; put('.'); }
       else if (c === 'K') { const a = [0.7, 2.4, 4.0, 5.6][ki % 4]; o.tops.push({ x: x * TS + 8, y: y * TS + 8, vx: Math.cos(a) * 1.05, vy: Math.sin(a) * 1.05, ph: ki * 1.7 }); ki++; put('.'); }
       else if (c === 'X') { o.pad = { x, y }; put('.'); }
+      else if (c === 'F') { if (!flag('burg_boss')) o.boss = { x: x * TS + 8, y: y * TS + 10, hp: 8, max: 8, st: 'march', t: 0, dir: 2, vx: 0, vy: 0, hitCd: 0, flash: 0, ph2: false, f: 0, n: 0, done: false }; put('.'); }
     }));
   }
   const tileAt = (tx, ty) => (G.grid[ty] || [])[tx];
@@ -160,7 +177,7 @@ const Burg = (() => {
   function wallish(tx, ty) { // Wand, Stapel oder geschlossene Tür
     const c = tileAt(tx, ty); if (c === undefined) return true;
     if (c === '#' || c === 'o') return true;
-    if (c === 'D') return !doorOpen(ROOMS[G.room].doors[doorSide(tx, ty)]);
+    if (c === 'D') return lockedIn() || !doorOpen(ROOMS[G.room].doors[doorSide(tx, ty)]);
     return false;
   }
   function heroBlocked(tx, ty, ign) {
@@ -185,7 +202,7 @@ const Burg = (() => {
   function faint() { // umgekippt: Kommandant Knacks trägt den Helden zurück in die Eingangshalle
     const p = W.player; p.hp = Math.max(1, Math.ceil(p.maxHp / 2));
     load('r0'); G.x = 13 * TS; G.y = FH - 12; G.dir = 0; G.entry = { x: G.x, y: G.y, dir: 0 }; G.kb = null; G.sink = 0; G.whip = null; G.inv = 120;
-    G.msg = { k: 'burgOhnmacht', t: 320 };
+    G.msg = { k: 'burgOhnmacht', t: 320 }; Audio8.play('burg', null, 0.6);
   }
   function exit() { G = null; Umland.resume(); }
   function leave(side) {
@@ -208,6 +225,7 @@ const Burg = (() => {
   }
   function tryDoor(tx, ty) { // gegen eine verschlossene Tür laufen: mit Schlüssel aufschließen, sonst Hinweis
     const id = ROOMS[G.room].doors[doorSide(tx, ty)], kind = DOORS[id];
+    if (lockedIn()) return;
     if (!kind || doorOpen(id) || G.lockT > 0) return;
     G.lockT = 50;
     if (kind === 'lock' && (Castle.flags.burg_keys || 0) > 0) { Castle.flags.burg_keys--; setF('burg_door_' + id); Audio8.sfx('unlock'); popup(G.x, G.y - 30, tr('burgUnlock'), '#fce070'); burst(tx * TS + 8, ty * TS + 8, 10, ['#c89040', '#fce070']); return; }
@@ -232,11 +250,13 @@ const Burg = (() => {
     G.t++; if (G.msg && --G.msg.t <= 0) G.msg = null;
     tickFx();
     if (G.trans) { if (++G.trans.t >= 26) G.trans = null; return false; }
+    if (G.shake > 0) G.shake *= 0.86;
+    if (G.o.boss && !G.fight && !G.o.boss.done && !G.talk && !G.reveal) { G.talk = { lines: trList(flag('burg_bossseen') ? 'burgBossWieder' : 'burgBossHallo'), i: 0, fight: true }; setF('burg_bossseen'); Audio8.sfx('stinger'); return false; }
     if (G.reveal) { G.reveal.t++; if (G.reveal.t > 40 && (P.jump || P.attack || P.up || P.start)) { Audio8.sfx('select'); G.reveal = null; } return false; }
     if (G.talk) {
       if (P.jump || P.attack || P.up || P.start) {
         Audio8.sfx('select');
-        if (++G.talk.i >= G.talk.lines.length) { if (G.talk.give) { W.player.sub = 'kreisel'; Audio8.sfx('item'); popup(G.x, G.y - 34, tr('burgNeu'), '#fce070'); } G.talk = null; } // Kreisel verloren? Knacks hat immer noch einen
+        if (++G.talk.i >= G.talk.lines.length) { if (G.talk.fight) { G.fight = true; Audio8.play('burgboss', null, 0.7); Audio8.sfx('trompete'); } if (G.talk.give) { W.player.sub = 'kreisel'; Audio8.sfx('item'); popup(G.x, G.y - 34, tr('burgNeu'), '#fce070'); } G.talk = null; } // Kreisel verloren? Knacks hat immer noch einen
       }
       return false;
     }
@@ -251,12 +271,12 @@ const Burg = (() => {
     }
     // Figuren und Dinge
     for (const b of o.blocks) if (b.mt > 0) b.mt--;
-    updSoldiers(); updTops();
+    updSoldiers(); updTops(); updBoss(); updCorks();
     if (G.room === 'r1' && !flag('burg_r1') && o.buttons.length && o.buttons.every(u => o.blocks.some(b => b.x === u.x && b.y === u.y && b.mt === 0))) {
       setF('burg_r1'); Audio8.sfx('chime'); G.msg = { k: 'burgSolved', t: 200 };
       for (const c of o.chests) if (c.cond === 'burg_r1') burst(c.x * TS + 8, c.y * TS + 6, 16, ['#fcfcfc', '#d8d0e8', '#fce070']);
     }
-    if (G.room === 'r2' && !flag('burg_r2') && o.sol.length === 0) { setF('burg_r2'); Audio8.sfx('chime'); Audio8.sfx('creak'); G.msg = { k: 'burgShutOpen', t: 200 }; }
+    if (G.room === 'r2' && !flag('burg_r2') && o.sol.length === 0 && !o.boss) { setF('burg_r2'); Audio8.sfx('chime'); Audio8.sfx('creak'); G.msg = { k: 'burgShutOpen', t: 200 }; }
     // Rückstoß nach einem Treffer
     if (G.kb) { const ign = underHero(); if (boxFree(G.x + G.kb.x, G.y, ign)) G.x += G.kb.x; if (boxFree(G.x, G.y + G.kb.y, ign)) G.y += G.kb.y; G.kb.x *= 0.82; G.kb.y *= 0.82; if (--G.kb.t <= 0) G.kb = null; }
     // ↑ / Angriff vor Truhe oder Knacks
@@ -322,7 +342,15 @@ const Burg = (() => {
   }
   const inBox = (b, x, y, r) => x + r > b.x && x - r < b.x + b.w && y + r > b.y && y - r < b.y + b.h;
   function whipHit(w) {
-    const bx = whipBox(w), [dx, dy] = DIRS[w.d];
+    const bx = whipBox(w), [dx, dy] = DIRS[w.d], b = G.o.boss;
+    if (b && G.fight && !b.done && b.st !== 'die' && !w.hit.has(b) && inBox(bx, b.x, b.y - 14, 15)) {
+      w.hit.add(b);
+      if (b.st === 'dizzy' && b.hitCd === 0) { // nur benommen: der Hieb trifft den Aufziehschlüssel
+        b.hp--; b.hitCd = 12; b.flash = 12; Audio8.sfx('bossHit'); burst(b.x, b.y - 22, 12, ['#f8d048', '#fffbe8', '#e8453c'], 1.8); G.shake = 4;
+        if (b.hp <= 0) { b.st = 'die'; b.t = 0; G.o.corks = []; G.o.sol.forEach(q => { if (!q.fall) q.fall = 1; }); Audio8.sfx('explode'); G.shake = 10; }
+      } else { Audio8.sfx('tink'); burst(b.x - dx * 10, b.y - 14, 5, ['#fce070', '#fcfcfc']); }
+    }
+    for (const k of G.o.corks) if (!k.dead && inBox(bx, k.x, k.y, 5)) { k.dead = true; Audio8.sfx('tink'); burst(k.x, k.y, 4, ['#c8945c', '#fce070']); }
     for (const s of G.o.sol) {
       if (s.fall || w.hit.has(s) || !inBox(bx, s.x, s.y - 7, 7)) continue;
       w.hit.add(s); s.hp--; s.hitT = 18; s.kx = dx * 2.6; s.ky = dy * 2.6; Audio8.sfx('hit'); burst(s.x, s.y - 10, 6, ['#fcfcfc', '#f8d048']);
@@ -360,6 +388,96 @@ const Burg = (() => {
       if (blockedFor(k.x, k.y + k.vy + Math.sign(k.vy) * 4)) k.vy = -k.vy; else k.y += k.vy;
       if (G.inv <= 0 && Math.hypot(k.x - G.x, k.y - G.y) < 10) hurt(2, k.x, k.y);
     }
+  }
+
+  // ---------------- Feldmarschall Federkern ----------------
+  // marschiert auf den Helden zu, stampft (Warnring) und stürmt los; prallt er gegen Wand oder Klotzturm, ist er benommen – nur dann
+  // trifft die Peitsche den Aufziehschlüssel. Dazwischen Korkensalven. Ab halber Energie: zwei Zinnsoldaten, schneller, mehr Korken.
+  function bossBlocked(x, y) {
+    for (const [px, py] of [[x - 13, y - 8], [x + 13, y - 8], [x - 13, y + 4], [x + 13, y + 4], [x, y - 8], [x, y + 4]]) {
+      const tx = Math.floor(px / TS), ty = Math.floor(py / TS);
+      if (wallish(tx, ty) || tileAt(tx, ty) === 'D' || solidObj(tx, ty)) return true;
+    }
+    return false;
+  }
+  function updBoss() {
+    const b = G.o.boss; if (!b || !G.fight || b.done) return;
+    b.t++; if (b.hitCd > 0) b.hitCd--; if (b.flash > 0) b.flash--;
+    const dx = G.x - b.x, dy = G.y - b.y, d = Math.hypot(dx, dy) || 1;
+    const face = () => { b.dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 1 : 3) : (dy > 0 ? 2 : 0); };
+    const go = (st) => { b.st = st; b.t = 0; };
+    if (b.st === 'die') {
+      if (b.t % 7 === 0 && b.t < 96) { burst(b.x + rnd(-14, 14), b.y - rnd(4, 30), 8, ['#c8ccd8', '#f8d048', '#e8453c', '#3d7fe0', '#4cb35a'], 2.2); Audio8.sfx(b.t % 21 === 0 ? 'cog' : 'klack'); G.shake = 5; }
+      if (b.t === 96) { b.done = true; setF('burg_boss'); W.player.hp = W.player.maxHp; Audio8.sfx('fanfare'); Audio8.play('burg', null, 0.6); G.msg = { k: 'burgBossSieg', t: 320 }; G.fight = false; }
+      return;
+    }
+    if (!b.ph2 && b.hp <= b.max / 2) { // zweiter Akt: das zweite Regiment
+      b.ph2 = true; Audio8.sfx('trompete'); popup(b.x, b.y - 46, tr('burgBossRuf'), '#f8d048');
+      for (const [tx, ax] of [[3, 'v'], [22, 'v']]) G.o.sol.push({ x: tx * TS + 8, y: 6 * TS + 10, ax, d: tx < 10 ? 1 : -1, hp: 1, hitT: 0, kx: 0, ky: 0, fall: 0, f: 0 });
+    }
+    if (b.st === 'march') {
+      face(); const v = b.ph2 ? 0.62 : 0.48, mx = dx / d * v, my = dy / d * v;
+      if (!bossBlocked(b.x + mx, b.y)) b.x += mx; if (!bossBlocked(b.x, b.y + my)) b.y += my; b.f += 0.5;
+      if (b.t > (b.ph2 ? 100 : 140)) { b.n++; go(b.n % 3 === 0 ? 'aim' : 'tell'); }
+    } else if (b.st === 'tell') { // stampft auf der Stelle, der Ring am Boden zieht sich zusammen
+      face(); b.f += 1.2; if (b.t % 10 === 0) { Audio8.sfx('stamp'); G.shake = 2; burst(b.x, b.y + 2, 4, ['#d8d0e8', '#fcfcfc'], 0.9); }
+      if (b.t >= 42) { b.vx = dx / d; b.vy = dy / d; Audio8.sfx('whoosh'); go('charge'); }
+    } else if (b.st === 'charge') {
+      const v = b.ph2 ? 3.7 : 3.1; b.f += 1.5;
+      if (Math.abs(b.vx) > Math.abs(b.vy)) b.dir = b.vx > 0 ? 1 : 3; else b.dir = b.vy > 0 ? 2 : 0;
+      const nx = b.x + b.vx * v, ny = b.y + b.vy * v;
+      if (bossBlocked(nx, ny)) { // gegen die Wand: benommen, der Schlüssel liegt frei
+        go('dizzy'); Audio8.sfx('wall'); Audio8.sfx('clank'); G.shake = 9; burst(b.x + b.vx * 16, b.y - 10, 14, ['#f6c33b', '#e8453c', '#3d7fe0', '#fcfcfc'], 2);
+        if (!flag('burg_bosstip')) { setF('burg_bosstip'); G.msg = { k: 'burgBossTipp', t: 200 }; }
+      } else { b.x = nx; b.y = ny; if (b.t % 3 === 0) G.fx.push({ x: b.x - b.vx * 14 + rnd(-6, 6), y: b.y - rnd(0, 20), vx: -b.vx * 0.6, vy: -b.vy * 0.6, c: '#e8e4f4', t: 0, life: 14 }); }
+      if (b.t > 160) go('march');
+    } else if (b.st === 'dizzy') {
+      if (b.t % 30 === 0) Audio8.sfx('tick');
+      if (b.t > (b.ph2 ? 90 : 115)) go('march');
+    } else if (b.st === 'aim') { // Korkenflinte: Salve im Fächer
+      face();
+      if (b.t === 30) { const n = b.ph2 ? 5 : 3, a0 = Math.atan2(dy, dx); for (let i = 0; i < n; i++) { const a = a0 + (i - (n - 1) / 2) * 0.32; G.o.corks.push({ x: b.x + Math.cos(a) * 16, y: b.y - 12 + Math.sin(a) * 10, vx: Math.cos(a) * 1.9, vy: Math.sin(a) * 1.9, t: 0, dead: false }); } Audio8.sfx('klack2'); Audio8.sfx('whoosh'); burst(b.x + Math.cos(a0) * 18, b.y - 14, 6, ['#fcfcfc', '#d8d0c0']); }
+      if (b.t > 56) go('march');
+    }
+    if (b.st !== 'dizzy' && G.inv <= 0 && Math.hypot(dx, dy + 3) < 17) hurt(3, b.x, b.y);
+  }
+  function updCorks() {
+    for (const k of G.o.corks) {
+      if (k.dead) continue; k.t++; k.x += k.vx; k.y += k.vy;
+      if (blockedFor(k.x, k.y) || k.t > 300) { k.dead = true; burst(k.x, k.y, 3, ['#c8945c']); continue; }
+      if (G.inv <= 0 && Math.hypot(k.x - G.x, k.y - (G.y - 8)) < 8) { k.dead = true; hurt(2, k.x, k.y); }
+    }
+    G.o.corks = G.o.corks.filter(k => !k.dead);
+  }
+  function drawBoss(ctx, ox, oy) {
+    const b = G.o.boss; if (!b) return;
+    const px = ox + b.x - 16, py = oy + b.y - 19, t = b.t, sk = b.st === 'tell' ? ((t >> 1) & 1 ? 1 : -1) : 0;
+    if (b.st === 'tell') { // Warnring am Boden: Glut → Gold, zieht sich zusammen
+      const k = Math.min(1, t / 42), r = 30 - 12 * k, c = k > 0.6 ? '#fce070' : '#f86c40';
+      ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.35 + 0.5 * k; ctx.strokeStyle = c; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.ellipse(ox + b.x, oy + b.y + 2, r, r * 0.42, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = 0.15 + 0.2 * k; ctx.lineWidth = 5; ctx.stroke(); ctx.restore();
+    }
+    if (b.done && t > 96) { const a = Math.max(0, 1 - (t - 96) / 60); obj(ctx, 'fmx', px, py, a); if (a <= 0) G.o.boss = null; b.t++; return; }
+    ctx.fillStyle = 'rgba(0,0,0,0.32)'; ctx.beginPath(); ctx.ellipse(ox + b.x, oy + b.y + 3, 17, 6, 0, 0, Math.PI * 2); ctx.fill();
+    const fr = Math.floor(b.f / 6) % 2, nm = b.st === 'die' ? (t > 60 ? 'fmx' : 'fmz') : b.st === 'dizzy' ? 'fmz' : b.st === 'aim' ? 'fma' : b.dir === 0 ? 'fmu' + fr : b.dir === 2 ? 'fmd' + fr : 'fms' + fr;
+    const flip = (nm.startsWith('fms') && b.dir === 3);
+    const paint = () => { if (flip) { ctx.save(); ctx.translate((px + 16) * 2, 0); ctx.scale(-1, 1); obj(ctx, nm, px + sk, py); ctx.restore(); } else obj(ctx, nm, px + sk, py + (b.st === 'die' ? rnd(-1, 1) : 0)); };
+    paint();
+    if (b.flash > 0 && (b.flash & 2)) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.7; paint(); ctx.restore(); }
+    if (b.st === 'dizzy') { // Sterne über dem Zweispitz, der Schlüssel im Rücken glüht
+      for (let i = 0; i < 4; i++) { const a = t * 0.13 + i * Math.PI / 2, sx = ox + b.x + Math.cos(a) * 15, sy = oy + b.y - 40 + Math.sin(a) * 4; ctx.fillStyle = Math.sin(a) > 0 ? '#fce070' : '#a87810'; ctx.fillRect(Math.round(sx) - 2, Math.round(sy), 5, 1); ctx.fillRect(Math.round(sx), Math.round(sy) - 2, 1, 5); }
+      const pu = 0.5 + 0.5 * Math.sin(t * 0.3); ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.35 + 0.35 * pu; ctx.strokeStyle = '#fce070'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(ox + b.x, oy + b.y - 22, 9 + 2 * pu, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+    }
+    for (const k of G.o.corks) { const x = ox + k.x, y = oy + k.y; ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(Math.round(x) - 2, Math.round(y) + 7, 5, 2); ctx.fillStyle = '#5c3418'; ctx.beginPath(); ctx.ellipse(x, y, 3.6, 3, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#d8a060'; ctx.beginPath(); ctx.ellipse(x, y, 2.6, 2.1, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#f0c890'; ctx.fillRect(Math.round(x) - 1, Math.round(y) - 1, 1, 1); }
+  }
+  function bossBar(ctx, vw) {
+    const b = G.o.boss; if (!b || !G.fight || b.done) return;
+    const w = Math.min(200, vw - 60), x = Math.round(vw / 2 - w / 2), y = 226;
+    ctx.fillStyle = 'rgba(8,4,14,0.85)'; ctx.fillRect(x - 4, y - 11, w + 8, 20);
+    Font.draw(ctx, tr('bossBurg'), vw / 2, y - 9, '#f8d048', { align: 'center', shadow: '#000' });
+    ctx.fillStyle = '#2c0c14'; ctx.fillRect(x, y + 2, w, 5); ctx.fillStyle = b.ph2 ? '#f86c40' : '#e8b030'; ctx.fillRect(x, y + 2, Math.round(w * Math.max(0, b.hp) / b.max), 5); ctx.fillStyle = '#fffbe8'; ctx.fillRect(x, y + 2, w, 1);
   }
   function tickFx() { for (const f of G.fx) { f.t++; f.x += f.vx; f.y += f.vy; if (!f.s) { f.vy += 0.06; f.vx *= 0.97; } } G.fx = G.fx.filter(f => f.t < f.life); }
 
@@ -406,10 +524,11 @@ const Burg = (() => {
       if (s.ax !== 'v' && s.d < 0) { ctx.save(); ctx.translate(px * 2 + 16, 0); ctx.scale(-1, 1); obj(ctx, nm + fr, px, py); ctx.restore(); } else obj(ctx, nm + fr, px, py);
     } });
     for (const k of o.tops) L.push({ y: k.y, d: () => { const px = ox + k.x - 8, py = oy + k.y - 8; ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(px + 8, py + 9, 6, 2.4, 0, 0, Math.PI * 2); ctx.fill(); obj(ctx, 'top' + (Math.floor(k.ph) % 4), px, py - Math.abs(Math.sin(k.ph * 0.5)) * 0.8); } });
+    if (o.boss) L.push({ y: o.boss.y, d: () => drawBoss(ctx, ox, oy) });
     L.push({ y: G.y, d: () => heroDraw(ctx, ox + G.x, oy + G.y) });
     for (const side of ['n', 's', 'w', 'e']) { // Türen: Schlüsselklotz, goldenes Schloss oder Gitter, solange sie zu sind
-      const id = R.doors[side]; if (!id || doorOpen(id)) continue;
-      const kind = DOORS[id], nm = (kind === 'lock' ? 'lock' : kind === 'big' ? 'big' : 'shut') + (side === 'n' || side === 's' ? 'N' : 'W');
+      const id = R.doors[side], shutIn = !!id && lockedIn(); if (!id || (doorOpen(id) && !shutIn)) continue;
+      const kind = shutIn ? 'shut' : DOORS[id], nm = (kind === 'lock' ? 'lock' : kind === 'big' ? 'big' : 'shut') + (side === 'n' || side === 's' ? 'N' : 'W');
       const [tx, ty] = side === 'n' ? [12, 0] : side === 's' ? [12, RH - 1] : side === 'w' ? [0, 5] : [RW - 1, 5];
       L.push({ y: (ty + (side === 's' ? 1 : side === 'n' ? 1 : 3)) * TS - 1, d: () => { const [px, py] = tp(tx, ty); if (!obj(ctx, nm, px, py)) { ctx.fillStyle = kind === 'big' ? '#e8b030' : '#8c5c2c'; ctx.fillRect(px, py, side === 'n' || side === 's' ? 32 : 16, side === 'n' || side === 's' ? 16 : 48); } } });
     }
@@ -428,8 +547,8 @@ const Burg = (() => {
     const mx = vw - 36;
     for (const [k, R] of Object.entries(ROOMS)) {
       if (!flag('burg_v_' + k)) continue;
-      const x = mx + R.gx * 10, y = 1 + R.gy * 4 - 0;
-      ctx.fillStyle = k === G.room ? ((G.t >> 4) & 1 ? '#fce070' : '#f89838') : k === 'r5' ? '#c878f8' : '#6c5ca8'; ctx.fillRect(x, y, 9, 3);
+      const x = mx + R.gx * 10, y = (R.gy + 1) * 3;
+      ctx.fillStyle = k === G.room ? ((G.t >> 4) & 1 ? '#fce070' : '#f89838') : k === 'r5' ? '#c878f8' : '#6c5ca8'; ctx.fillRect(x, y, 9, 2);
     }
   }
   function box(ctx, vw, lines, title, tcol) {
@@ -443,6 +562,7 @@ const Burg = (() => {
     const vw = View.w, vh = 240, cx = vw >= IW ? -Math.round((vw - IW) / 2) : Math.round(clamp(G.x - vw / 2, 0, IW - vw));
     ctx.fillStyle = '#0c0814'; ctx.fillRect(0, 0, vw, vh);
     ctx.save(); ctx.beginPath(); ctx.rect(0, 13, vw, vh - 13); ctx.clip();
+    if (G.shake > 0.5) ctx.translate(Math.round(rnd(-G.shake, G.shake)), Math.round(rnd(-G.shake, G.shake) * 0.6));
     if (G.trans) { // Bildwechsel wie beim Blättern: der alte Raum gleitet hinaus, der neue herein
       const k = G.trans.t / 26, e = k * k * (3 - 2 * k), { dx, dy } = G.trans, sx = dx * IW, sy = dy * (FH + 4);
       drawRoom(ctx, G.trans.from, -cx - sx * e, TOP - sy * e);
@@ -462,12 +582,12 @@ const Burg = (() => {
       x.fillStyle = G.tiltG; x.fillRect(0, 13, vw, vh - 13); x.globalCompositeOperation = 'source-over'; ctx.drawImage(c, 0, 0);
     }
     const vg = ctx.createRadialGradient(vw / 2, vh / 2 + 10, vh * 0.42, vw / 2, vh / 2 + 10, vw * 0.72); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(10,4,20,0.42)'); ctx.fillStyle = vg; ctx.fillRect(0, 13, vw, vh - 13);
-    hud(ctx, vw);
+    hud(ctx, vw); bossBar(ctx, vw);
     if (G.msg && !G.talk && !G.reveal) { const ls = Duell.wrap(tr(G.msg.k), vw - 44); box(ctx, vw, ls); }
     if (G.reveal) box(ctx, vw, Duell.wrap(tr({ key: 'burgKey', bigkey: 'burgBigKey', kreisel: 'burgKreisel' }[G.reveal.item]), vw - 44), tr('burgFund'), '#fce070');
     if (G.talk) {
       const raw = G.talk.lines[G.talk.i] || '', who = raw[1] === ':' ? raw[0] : 'K', txt = raw[1] === ':' ? raw.slice(2) : raw;
-      box(ctx, vw, Duell.wrap(txt, vw - 44), who === 'H' ? tr('umlandDu') : tr('npcKnacks'), who === 'H' ? '#a4e4fc' : '#f8a868');
+      box(ctx, vw, Duell.wrap(txt, vw - 44), who === 'H' ? tr('umlandDu') : who === 'F' ? tr('bossBurg') : tr('npcKnacks'), who === 'H' ? '#a4e4fc' : who === 'F' ? '#f8d048' : '#f8a868');
     }
   }
   // Testhilfe: in einen Raum springen

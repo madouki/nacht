@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261127-0440](#20261127-0440--endboss-der-klötzchenburg-feldmarschall-federkern) – Endboss der Klötzchenburg: Feldmarschall Federkern
 - [20261127-0404](#20261127-0404--die-klötzchenburg-ein-verlies-aus-riesenspielzeug) – Die Klötzchenburg: ein Verlies aus Riesenspielzeug
 - [20261127-0228](#20261127-0228--schönerer-seelenfang-und-ein-neuer-warnring-bei-bossen) – Schönerer Seelenfang und ein neuer Warnring bei Bossen
 - [20261126-1858](#20261126-1858--endboss-der-mondinsel-lunatus-der-mondgaukler) – Endboss der Mondinsel: Lunatus, der Mondgaukler
@@ -101,6 +102,27 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261127-0440 – Endboss der Klötzchenburg: Feldmarschall Federkern
+
+**Neu – Ein Bosskampf vor der Schatzkammer**
+- Hinter dem goldenen Schloss liegt jetzt der **Paradeplatz**, ein Raum wie ein riesiges Spielbrett. Dort wartet **Feldmarschall Federkern**. Er ist ein Zinngeneral, anderthalbmal so groß wie der Held, mit Zweispitz, Monokel, Schnauzbart und Korkenflinte. Die Figur ist in Blender gebaut.
+- Die Schatzkammer liegt jetzt einen Raum weiter nördlich. Bis der Feldmarschall fällt, bleibt ihr Gitter zu, und während des Kampfs sind alle Türen verschlossen.
+- So kämpft er:
+  - **Marsch:** Er marschiert auf dich zu.
+  - **Ansturm:** Er stampft auf der Stelle, ein goldener Ring zieht sich unter ihm zusammen. Dann stürmt er geradeaus los.
+  - **Benommen:** Rennt er gegen eine Wand oder einen Klotzturm, ist er kurz benommen. Nur dann trifft deine Peitsche seinen Aufziehschlüssel im Rücken. Sonst klingt sie am Blech ab.
+  - **Korkensalve:** Zwischendurch feuert er Korken im Fächer. Du kannst sie mit der Peitsche abwehren.
+  - **Zweiter Akt:** Ab halber Energie ruft er zwei Zinnsoldaten, stürmt schneller und feuert fünf Korken.
+- Gewinnst du, wirst du voll geheilt, und das Gitter zur Schatzkammer geht auf. Fällst du um, beginnt der Kampf beim nächsten Mal von vorn. Dann begrüßt er dich etwas gereizter.
+- Kommandant Knacks verrät jetzt, wie man den Feldmarschall packt.
+- Eigenes Kampflied: ein Paradeplatzmarsch in d-Moll mit Trommelwirbeln. Neue Urkunde: „Abgelaufen“.
+- Alle Texte gibt es in 8 Sprachen.
+
+**Beim Testen ansehen**
+- Ist der Kampf zu leicht oder zu schwer?
+- Erkennst du am goldenen Ring rechtzeitig, wann er losstürmt?
+- Merkst du ohne Tipp, dass nur Treffer im benommenen Zustand zählen?
 
 ## 20261127-0404 – Die Klötzchenburg: ein Verlies aus Riesenspielzeug
 

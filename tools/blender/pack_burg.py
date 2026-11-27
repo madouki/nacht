@@ -1,4 +1,4 @@
-# Klötzchenburg aus burg_bl.py packen: sechs Räume (Render 832×456 → 416×228) nach img/burg3d.png, alle Dinge (Render vierfach →
+# Klötzchenburg aus burg_bl.py packen: sieben Räume (Render 832×456 → 416×228) nach img/burg3d.png, alle Dinge (Render vierfach →
 # Fenstergröße, weicher Rand, vormultipliziert verkleinert) nach img/burgobj.png; ROOM_MAP und OBJ_MAP in js/burg.js eintragen.
 # python pack_burg.py <render-dir> <burg.js> <burg3d.png> <burgobj.png>
 import sys, os, re, json
@@ -27,8 +27,8 @@ def soft(path, w, h):
             o[x, y] = (c[0], c[1], c[2], min(255, round(Al * 1.25)))
     return out
 
-keys = ['r0', 'r1', 'r2', 'r3', 'r4', 'r5']
-RA = Image.new('RGB', (2 * 417, 3 * 229)); RM = {}
+keys = ['r0', 'r1', 'r2', 'r3', 'r4', 'r5', 'r6']
+RA = Image.new('RGB', (2 * 417, ((len(keys) + 1) // 2) * 229)); RM = {}
 for i, k in enumerate(keys):
     x, y = (i % 2) * 417, (i // 2) * 229
     RA.paste(room(os.path.join(src, 'room_' + k + '.png')), (x, y)); RM[k] = [x, y, 416, 228]
