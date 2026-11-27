@@ -374,6 +374,10 @@ const Sprites = (() => {
     '....yy....', '...yYYy...', '....yy....', '....gg....', '.WWWggWWW.', '.WCCggCCW.',
     '.WCcguCcW.', '.WCuuuucW.', '.WYYYYYYW.', '.WyYYYYyW.', '.WyyyyyyW.', '..WWWWWW..',
   ]);
+  S.kreisel = make([ // Kreisel (Klötzchenburg): roter Deckel mit weißem Punkt, gelbes Band, blauer Kegel, Holzstift
+    '.....bb.....', '.....bb.....', '...rrrrrr...', '.rrrwrrrrrr.', 'rrrrrrrrrrwr', 'yyyyyyyyyyyy',
+    '.uuuuuuuuuu.', '..uucuuuuu..', '...uuuuuu...', '....uuuu....', '.....uu.....', '.....gg.....',
+  ]);
   S.rosary = make([
     '..W.W.W.W.....', '.W.......W....', 'W.........W...', '.W.......W....',
     '..W.....W.....', '...W...W......', '....W.W.......', '.....y........',

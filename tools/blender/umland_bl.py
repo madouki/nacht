@@ -2,7 +2,7 @@
 # oben gesehen (Kippwinkel TILT). Der Boden ist in Nord-Süd-Richtung um 1/cos(TILT) gestreckt, damit jede Kachel im Bild genau
 # 16 px (× ss) groß ist und die Kollision der Kachelkarte zum Bild passt. Was hoch ist (Berge, Bäume, Häuser), ragt nach oben ins
 # Bild. Berge mit Schnee, Fluss mit flachem Ufer, Sumpf mit Tümpeln und Schilf, Wälder aus Tannen und Laubbäumen, Friedhof mit
-# Gittern und offenem Grab, Kräuterhütte mit Kessel, Bahnhof mit Zug, Höhleneingang mit Fackeln, Holzbrücke.
+# Gittern und offenem Grab, Kräuterhütte mit Kessel, Bahnhof mit Zug, Höhleneingang mit Fackeln, Holzbrücke, Klötzchenburg.
 # Aufruf: python bl.py umland_bl.py '{"map": [...Zeilen...], "out": ".../umland.png", "ss": 2}'
 import bpy, bmesh, math, random
 import numpy as np
@@ -477,6 +477,34 @@ for y in range(-PAD, MH + PAD):
         if rng.random() < 0.14: ball('stone', W(x + rng.uniform(0.2, 0.8), y + rng.uniform(0.2, 0.8), WL - 0.03), rng.uniform(0.07, 0.12), '#5a5a66', 1, 0.6, 0.03, 0.1)
         if y <= 1:
             for k in range(6): cone('foam', W(x + rng.uniform(0.05, 0.95), y + rng.uniform(0.0, 1.0), WL + 0.005), rng.uniform(0.05, 0.12), rng.uniform(0.05, 0.12), 0.01, '#d0e0f4', 8)
+
+# Klötzchenburg (Ort Z, js/burg.js): eine Burg aus riesigen Bauklötzen in einer Nische des Krähenkamms – Bergfried mit Zinnen,
+# zwei Rundtürme mit Kegeldach und Wimpel, Vorderwand mit Tor und Laternen, verstreute Riesenklötze (die Nische ist in der Karte
+# für das Bild flach, im Spiel bleibt sie Berg)
+ZO = next(((x, y) for y in range(MH) for x in range(MW) if MAP[y][x] == 'Z'), None)
+if ZO:
+    zx, zy = ZO; z0 = max(0.0, ground(zx + 0.5, zy - 0.6)) - 0.02
+    TC = ['#e8453c', '#f6c33b', '#3d7fe0', '#4cb35a']
+    tbox('stone', zx - 1.35, zy - 2.3, zx + 2.35, zy + 0.02, z0 - 0.5, z0 + 0.1, '#9a92a4')
+    tbox('red', zx - 0.5, zy - 1.9, zx + 1.5, zy - 0.5, z0 + 0.1, z0 + 0.8, TC[0])                       # Bergfried
+    tbox('car', zx - 0.35, zy - 1.78, zx + 1.35, zy - 0.62, z0 + 0.8, z0 + 1.35, TC[2])
+    for i in range(4): tbox('red', zx - 0.35 + i * 0.47, zy - 0.84, zx - 0.12 + i * 0.47, zy - 0.62, z0 + 1.35, z0 + 1.52, TC[(i + 1) % 4])
+    ball('red', W(zx + 0.5, zy - 1.2, z0 + 1.58), 0.22, TC[1], 2)
+    for i in range(7):                                                                                   # Vorderwand aus Klötzen
+        tbox('red', zx - 1.0 + i * 0.43, zy - 0.45, zx - 0.62 + i * 0.43, zy - 0.05, z0 + 0.1, z0 + 0.48, TC[i % 4])
+        if i % 2 == 0: tbox('car', zx - 1.0 + i * 0.43, zy - 0.42, zx - 0.66 + i * 0.43, zy - 0.08, z0 + 0.48, z0 + 0.64, TC[(i + 2) % 4])
+    tbox('hole', zx + 0.3, zy - 0.06, zx + 0.7, zy - 0.03, z0 + 0.1, z0 + 0.4, '#06040a')                 # Tor
+    prism('red', zx + 0.22, zy - 0.2, zx + 0.78, zy - 0.04, z0 + 0.48, z0 + 0.74, TC[1], 0.02)
+    for k, tx in enumerate((zx - 1.05, zx + 2.05)):                                                      # Rundtürme
+        cone('car', W(tx, zy - 0.55, z0 + 0.1), 0.32, 0.32, 1.3, TC[1 if k == 0 else 3], 16)
+        cone('red', W(tx, zy - 0.55, z0 + 1.4), 0.4, 0.0, 0.55, TC[0 if k == 0 else 2], 16)
+        tube('wood', W(tx, zy - 0.55, z0 + 1.9), W(tx, zy - 0.55, z0 + 2.25), 0.02, '#e8e0d0', 4)
+        tbox('red', tx, zy - 0.57, tx + 0.28, zy - 0.53, z0 + 2.08, z0 + 2.24, TC[(k + 2) % 4])
+    for xx in (zx + 0.08, zx + 0.92):                                                                    # Laternen am Tor
+        tbox('iron', xx - 0.03, zy + 0.02, xx + 0.03, zy + 0.08, z0 + 0.1, z0 + 0.5, '#24222c'); ball('glow', W(xx, zy + 0.05, z0 + 0.56), 0.06, '#ffd070', 1)
+        lamp(W(xx, zy + 0.3, z0 + 0.7), '#ffb060', 6, 0.08); glow_at(W(xx, zy + 0.05, z0 + 0.56), 'lamp')
+    for (bx, by, c, h) in ((zx - 1.75, zy + 0.25, 0, 0.42), (zx - 1.2, zy + 0.4, 3, 0.3), (zx - 0.62, zy + 0.3, 1, 0.36), (zx + 2.2, zy + 0.25, 2, 0.42), (zx + 2.62, zy + 0.5, 1, 0.3)):
+        g = ground(bx, by); tbox('red', bx, by, bx + 0.42, by + 0.42, g, g + h, TC[c]); tbox('car', bx + 0.1, by + 0.1, bx + 0.32, by + 0.32, g + h, g + h + 0.02, '#fffaf0')
 
 # Netze bauen, Materialien
 MATS = {'leaf': ('leaf', 0.75, 0, 0, True), 'wood': ('wood', 0.8, 0, 0, True), 'flower': ('flower', 0.5, 0, 0.25, True), 'stone': ('stone', 0.85, 0, 0, True),

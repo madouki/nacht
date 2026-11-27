@@ -154,7 +154,7 @@ const Game = {
 
   // Schloss: Fortsetzungspunkt schreiben, solange man in einem Raum ist (Pause, Menüs, Spiel – nicht auf Titel oder im Übergang)
   saveResume() {
-    if (Castle.on && W.player && ['play', 'pause', 'pausesec', 'map', 'warp', 'status', 'talk', 'gewissen', 'arena', 'huhn', 'abenteuer', 'bude', 'orakel', 'land', 'pfad', 'rausch', 'shop', 'equip', 'tools'].includes(this.state)) Castle.writeResume();
+    if (Castle.on && W.player && ['play', 'pause', 'pausesec', 'map', 'warp', 'status', 'talk', 'gewissen', 'arena', 'huhn', 'abenteuer', 'bude', 'orakel', 'land', 'burg', 'pfad', 'rausch', 'shop', 'equip', 'tools'].includes(this.state)) Castle.writeResume();
   },
   startCastleEnding() { // Schloss: Graf besiegt – Epilog über der Morgendämmerung, dann Ergebnis
     this.saveHi(); Castle.dropResume(); this.rubble = [];
@@ -574,6 +574,7 @@ const Game = {
       case 'bude': if (Bude.input(P, Input.held)) this.go('play'); break;
       case 'orakel': if (Orakel.input(P)) this.go('play'); break;
       case 'pfad': if (Pfad.input(P, Input.held)) this.go('play'); break; // Mondinsel: Wegkarte (js/pfad.js)
+      case 'burg': if (Burg.input(P, Input.held)) this.go('play'); break; // Klötzchenburg: Verlies in Draufsicht (js/burg.js)
       case 'land': if (Umland.input(P, Input.held)) this.go('play'); break; // Umland in Draufsicht (js/umland.js) // Wahrsageautomat in der Hotel-Lobby (js/orakel.js) // Wurfbude „Dosenwerfen“ in der Lichterpassage (js/bude.js)
       case 'rausch': { const r = Rausch.input(P); if (r === true) this.go('play'); break; } // Gong im Kolosseum (js/rausch.js); beim Start blendet castleGo selbst über
       case 'talk': { // Gespräch mit einer Figur (nur Schloss): die Welt steht still, Sprung/Angriff/↑ blättert, Start überspringt
@@ -792,6 +793,7 @@ const Game = {
         if (this.state === 'bude') Bude.draw(ctx, this.t);
         if (this.state === 'orakel') Orakel.draw(ctx, this.t);
         if (this.state === 'land') Umland.draw(ctx, this.t);
+        if (this.state === 'burg') Burg.draw(ctx, this.t);
         if (this.state === 'pfad') Pfad.draw(ctx, this.t);
         if (this.state === 'rausch') Rausch.draw(ctx, this.t);
         if (this.state === 'play') { Arena.drawHud(ctx); Rausch.drawHud(ctx); this.drawRegionTitle(ctx); }

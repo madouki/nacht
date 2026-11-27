@@ -729,6 +729,19 @@ const Audio8 = (() => {
     'd5:4 g5:4 b5:4', 'd6:8 b5:4', 'a5:4 f#5:4 a5:4', 'd6:8 a5:4', 'b5:4 g5:4 e5:4', 'c6:6 b5:2 a5:4', 'a5:4 f#5:4 d5:4', 'f#5:8 a5:4',
     'b5:4 d6:4 g6:4', 'f#6:4 e6:4 d6:4', 'e6:4 c6:4 g5:4', 'c6:6 b5:2 a5:4', 'b5:4 d6:4 b5:4', 'a5:4 c#6:4 e6:4', 'd6:8 f#5:4', 'e5:4 a5:4 c#6:4'];
 
+  // Spieluhrmarsch der Klötzchenburg (js/burg.js): C-Dur, Zinnsoldaten-Nachschläge, Mittelteil in F, 32 Takte
+  const BG = { C: ['g3', 'c4', 'e4'], G7: ['g3', 'b3', 'f4'], F: ['a3', 'c4', 'f4'], Am: ['a3', 'c4', 'e4'], Dm: ['a3', 'd4', 'f4'] };
+  const BG_B = { C: 'c2', G7: 'g1', F: 'f1', Am: 'a1', Dm: 'd2' };
+  const BG_C = ['C', 'C', 'G7', 'C', 'F', 'C', 'G7', 'C', 'C', 'C', 'G7', 'C', 'Am', 'Dm', 'G7', 'C', 'F', 'F', 'C', 'C', 'Dm', 'G7', 'C', 'G7', 'C', 'C', 'G7', 'C', 'F', 'C', 'G7', 'C'];
+  const BG_A = ['e5:2 g5:2 c6:4 g5:2 e5:2 g5:4', 'c6:2 b5:2 a5:2 g5:2 e5:4 c5:4', 'd5:2 f5:2 b5:4 a5:2 g5:2 f5:4', 'e5:4 g5:4 c5:8',
+    'f5:2 a5:2 c6:4 a5:2 f5:2 a5:4', 'g5:2 e5:2 c6:2 e5:2 g5:4 e5:4', 'f5:2 e5:2 d5:2 b4:2 d5:2 f5:2 b5:4'];
+  const BG_L = [...BG_A, 'c6:4 g5:4 c5:4 -:4',
+    'e5:2 g5:2 c6:4 g5:2 e5:2 g5:4', 'c6:2 d6:2 e6:2 d6:2 c6:4 g5:4', 'd5:2 f5:2 b5:4 d6:2 b5:2 g5:4', 'c6:4 e6:4 c6:8',
+    'a5:2 c6:2 e6:4 c6:2 a5:2 e5:4', 'f5:2 a5:2 d6:4 a5:2 f5:2 d5:4', 'g5:2 a5:2 b5:2 c6:2 d6:2 b5:2 g5:4', 'c6:8 c5:4 -:4',
+    'c6:4 a5:2 c6:2 f6:4 c6:4', 'a5:2 a#5:2 c6:2 a5:2 f5:8', 'g5:4 e5:2 g5:2 c6:4 g5:4', 'e5:2 f5:2 g5:2 e5:2 c5:8',
+    'd5:2 f5:2 a5:2 d6:2 c6:2 a5:2 f5:4', 'g5:2 b5:2 d6:2 f6:2 e6:2 d6:2 b5:4', 'c6:2 e6:2 g6:4 e6:2 c6:2 g5:4', 'f5:2 g5:2 a5:2 b5:2 d6:4 -:4',
+    ...BG_A, 'c6:2 g5:2 e5:2 g5:2 c6:8'];
+
   // Zirkusgalopp des Mondgauklers (Lunatus, js/gaukler.js): a-Moll, rasende Sechzehntel-Läufe, Oom-pah im Bass, Mittelteil in F und C
   const GK = { Am: ['a3', 'c4', 'e4'], E7: ['g#3', 'b3', 'e4'], Dm: ['a3', 'd4', 'f4'], F: ['a3', 'c4', 'f4'], C: ['g3', 'c4', 'e4'], G7: ['g3', 'b3', 'f4'], E: ['g#3', 'b3', 'e4'], A7: ['g3', 'c#4', 'e4'] };
   const GK_B = { Am: 'a1', E7: 'e2', Dm: 'd2', F: 'f1', C: 'c2', G7: 'g1', E: 'e2', A7: 'a1' };
@@ -1082,6 +1095,14 @@ const Audio8 = (() => {
       tri: DF_C.map(c => { const r = DF_B[c]; return `${r}:4 -:4 ${up8(r)}:2 -:2`; }).join(' '),
       pad: DF_C.map(c => DF[c].join('+') + ':12').join(' '),
       dr: DF_C.map((c, i) => i === 47 ? 'k:4 s:2 s:2 t:2 x:2' : i % 8 === 7 ? 'k:4 s:4 s:2 s:2' : 'k:4 h:4 h:4').join(' '),
+    },
+    burg: { // Klötzchenburg: Spieluhrmarsch (js/burg.js)
+      bpm: 132, loop: true, echo: { delay: 3, vol: 0.2 },
+      p1: BG_L.join(' '),
+      p2: BG_C.map(c => { const [a, b, d] = BG[c]; return `-:2 ${b}+${d}:2 -:2 ${b}+${d}:2 -:2 ${a}+${d}:2 -:2 ${b}+${d}:2`; }).join(' '),
+      tri: BG_C.map(c => { const r = BG_B[c]; return `${r}:4 -:4 ${up8(r)}:4 -:4`; }).join(' '),
+      pad: BG_C.map(c => BG[c].join('+') + ':16').join(' '),
+      dr: BG_C.map((c, i) => i === 31 ? 'k:4 s:2 s:2 s:2 s:2 x:4' : i % 8 === 7 ? 'k:4 s:4 s:2 s:2 s:4' : 'k:4 s:4 k:4 s:4').join(' '),
     },
     gaukler: { // Mondfeste: Lunatus, der Mondgaukler (js/gaukler.js)
       bpm: 168, loop: true, echo: { delay: 3, vol: 0.22 },

@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261127-0404](#20261127-0404--die-klötzchenburg-ein-verlies-aus-riesenspielzeug) – Die Klötzchenburg: ein Verlies aus Riesenspielzeug
 - [20261127-0228](#20261127-0228--schönerer-seelenfang-und-ein-neuer-warnring-bei-bossen) – Schönerer Seelenfang und ein neuer Warnring bei Bossen
 - [20261126-1858](#20261126-1858--endboss-der-mondinsel-lunatus-der-mondgaukler) – Endboss der Mondinsel: Lunatus, der Mondgaukler
 - [20261126-1822](#20261126-1822--kleine-korrektur-in-unkenbrunn) – Kleine Korrektur in Unkenbrunn
@@ -100,6 +101,34 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261127-0404 – Die Klötzchenburg: ein Verlies aus Riesenspielzeug
+
+**Neu – Ein Verlies in Draufsicht am Krähenkamm**
+- Im Bergmassiv im Nordosten der Grafschaft Krat steht jetzt die **Klötzchenburg**: eine Burg aus riesigen Bauklötzen. Ein neuer Weg zweigt beim Höhlenpfad nach Westen ab.
+- Drinnen spielst du in **Draufsicht** wie auf der Oberwelt, im Spielzeug-Look. Alle sechs Räume, die Figuren und die Dinge sind in Blender gebaut.
+- Die Räume:
+  - **Eingangshalle:** Hier steht **Kommandant Knacks**, ein Nussknacker. Er knackt Nüsse und Rätsel und gibt Tipps.
+  - **Klötzchensaal:** Schieb die Bauklötze auf die beiden Knöpfe. Dann erscheint eine Truhe mit einem **Aufziehschlüssel**.
+  - **Zinnsoldatenflur:** Drei aufgezogene Zinnsoldaten marschieren. Zwei Peitschenhiebe werfen jeden um. Liegen alle, geht das Gitter auf.
+  - **Klopfbankhalle:** Ein Hieb auf den Schalter tauscht die roten und blauen Pflöcke. Dahinter liegt der **große Aufziehschlüssel**.
+  - **Kreiselkammer:** Kreisel tanzen durch den Raum, in der Mitte liegt ein Bällebad. Wer hineinfällt, taucht an der Tür wieder auf.
+  - **Schatzkammer:** Hinter dem goldenen Schloss liegt der Schatz.
+- So spielst du drinnen:
+  - Angriff schwingt die Peitsche.
+  - Läufst du gegen einen Bauklotz, schiebst du ihn.
+  - Mit ↑ öffnest du Truhen und sprichst mit Figuren.
+  - Oben siehst du Lebensbalken, Schlüssel und einen kleinen Lageplan.
+- Fällst du um, trägt dich Knacks zurück in die Eingangshalle. Er berechnet nichts dafür. Diesmal.
+- Neue Nebenwaffe **Kreisel**: Du wirfst ihn im flachen Bogen. Er tanzt über den Boden, prallt von Wänden ab und trifft immer wieder. Hast du ihn verloren, gibt dir Knacks einen neuen.
+- Neues Lied: ein Spieluhrmarsch. Neue Urkunde: „Klötzchenkönig“.
+- Alle Texte gibt es in 8 Sprachen.
+
+**Beim Testen ansehen**
+- Ist das Schieberätsel im Klötzchensaal zu leicht oder zu schwer?
+- Findest du den Weg durch die Klopfbankhalle?
+- Macht der Kreisel im Schloss genug Schaden, und hält er lange genug?
+- Wie fühlt sich die Peitsche in der Draufsicht an?
 
 ## 20261127-0228 – Schönerer Seelenfang und ein neuer Warnring bei Bossen
 

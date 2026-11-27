@@ -79,6 +79,7 @@ const ITEM_SPR = {
   cross: () => Sprites.S.cross, rosary: () => Sprites.S.rosary, roast: () => Sprites.S.roast, oneUp: () => Sprites.S.oneUp,
   orb: () => Sprites.S.orb[Math.floor(W.frame / 8) % 2], watch: () => Sprites.S.watch,
   quietsch: () => Sprites.S.quietsch, flasche: () => Sprites.S.flasche, // neue Nebenwaffen: Gummihuhn, Leidener Flasche
+  kreisel: () => Sprites.S.kreisel, // Kreisel aus der Klötzchenburg (js/burg.js)
 };
 
 const MAGNET = new Set(['heartS', 'heartB', 'bag', 'bagBig']);
@@ -131,7 +132,7 @@ class Item extends Ent {
       case 'rosary': W.rosary(); Audio8.sfx('rosary'); break;
       case 'orb': p.hp = p.maxHp; Audio8.sfx('orb'); W.stageClear(); break;
       default: p.sub = this.type; Audio8.sfx('item');
-        if ((this.type === 'quietsch' || this.type === 'flasche') && typeof Castle !== 'undefined' && Castle.flags && !Castle.flags['sub_' + this.type]) { Castle.setFlag('sub_' + this.type); Game.note('sub_' + this.type); } // neue Waffe: einmal erklären
+        if ((this.type === 'quietsch' || this.type === 'flasche' || this.type === 'kreisel') && typeof Castle !== 'undefined' && Castle.flags && !Castle.flags['sub_' + this.type]) { Castle.setFlag('sub_' + this.type); Game.note('sub_' + this.type); } // neue Waffe: einmal erklären
         break;
     }
   }
@@ -213,7 +214,7 @@ const CROSS_SPIN = (() => {
 })();
 class SubWeapon extends Ent {
   constructor(type, x, y, face) {
-    const dims = { dagger: [14, 5], axe: [12, 12], holy: [8, 10], cross: [13, 13], quietsch: [11, 11], flasche: [10, 12] }[type];
+    const dims = { dagger: [14, 5], axe: [12, 12], holy: [8, 10], cross: [13, 13], quietsch: [11, 11], flasche: [10, 12], kreisel: [10, 10] }[type];
     super(x - dims[0] / 2, y - dims[1] / 2, dims[0], dims[1]);
     this.type = type; this.face = face; this.kind = 'sub'; this.hits = new Map();
     if (type === 'dagger') { this.vx = face * 4.2; this.dmg = 2; this.cd = 999; }
@@ -222,6 +223,7 @@ class SubWeapon extends Ent {
     if (type === 'cross') { this.vx = face * 3.4; this.dmg = 2; this.cd = 20; this.back = false; this.trail = []; }
     if (type === 'quietsch') { this.vx = face * 2.3; this.vy = -3.2; this.dmg = 2; this.cd = 14; this.bounces = 0; this.spin = 0; } // Gummihuhn: hüpft quietschend
     if (type === 'flasche') { this.vx = face * 3.2; this.vy = -0.6; this.dmg = 2; this.cd = 999; this.zap = null; }        // Leidener Flasche: Kettenblitz
+    if (type === 'kreisel') { this.vx = face * 2.5; this.vy = -2.2; this.dmg = 2; this.cd = 10; this.spin = 0; this.ground = false; } // Kreisel: tanzt über den Boden
   }
   update() {
     this.t++;
@@ -261,6 +263,17 @@ class SubWeapon extends Ent {
       if (this.bounces > 4 || this.t > 200 || this.y > W.room.h * T) { this.dead = true; W.puff && W.puff(this.cx, this.cy); return; }
       const n = this.hits.size; W.subHit(this); if (this.hits.size > n) { Audio8.sfx('squeak', this.cx); if (typeof Castle !== 'undefined' && Castle.flags) Castle.flags.quietsch_hits = (Castle.flags.quietsch_hits || 0) + this.hits.size - n; } // Urkunde Quietschvergnügt
       return;
+    } else if (tp === 'kreisel') { // im flachen Bogen geworfen; am Boden tanzt er weiter, prallt von Wänden ab und hüpft ab und zu
+      this.vy = Math.min(this.vy + 0.24, 5); this.spin += this.ground ? 0.7 : 0.4;
+      if (Phys.moveX(this, this.vx)) { this.vx = -this.vx; this.face = -this.face; Audio8.sfx('tink', this.cx); }
+      const m = Phys.moveY(this, this.vy);
+      if (m === 1) {
+        if (!this.ground) { this.ground = true; Audio8.sfx('klack', this.cx); if (W.dust) W.dust(this.cx, this.y + this.h, 3); }
+        this.vy = this.t % 26 === 0 ? -1.3 : 0; this.vx = Math.sign(this.vx) * Math.max(1.7, Math.abs(this.vx) * 0.996);
+      } else if (m === -1) this.vy = 0.5;
+      if (this.ground && this.t % 12 === 0) Audio8.sfx('spin', this.cx);
+      if (this.t > 220 || this.y > W.room.h * T) { this.dead = true; if (W.puff) W.puff(this.cx, this.cy); return; }
+      W.subHit(this); return;
     } else if (tp === 'flasche') { // fliegt fast gerade; am ersten Gegner (oder an der Wand) zerplatzt sie, der Blitz springt weiter
       if (this.zap) { if (--this.zap.t <= 0) this.dead = true; return; }
       if (this.storm) { this.burst(SubWeapon.near(this, 9, View.w)); return; }
@@ -297,6 +310,17 @@ class SubWeapon extends Ent {
     const S = Sprites.S, x = Math.round(this.x - W.cam.x), y = Math.round(this.y - W.cam.y);
     if (this.type === 'dagger') Sprites.draw(ctx, S.dagger, x, y, this.face < 0);
     else if (this.type === 'quietsch') { const s = S.quietsch; ctx.save(); ctx.translate(Math.round(this.cx - W.cam.x), Math.round(this.cy - W.cam.y)); ctx.rotate(Math.sin(this.spin) * 0.5); Sprites.draw(ctx, s, -Math.floor(s.w / 2), -Math.floor(s.h / 2), this.face < 0); ctx.restore(); }
+    else if (this.type === 'kreisel') { // gemalt: blauer Kegel, gelbes Band, roter Deckel, umlaufende weiße Punkte, Holzstift; wackelt beim Tanzen
+      const bx = Math.round(this.cx - W.cam.x), by = Math.round(this.y + this.h - W.cam.y);
+      ctx.save(); ctx.translate(bx, by); ctx.rotate(Math.sin(this.spin * 0.35) * (this.ground ? 0.12 : 0.45));
+      ctx.fillStyle = '#100c18'; ctx.beginPath(); ctx.moveTo(0, 1); ctx.lineTo(-7, -6); ctx.lineTo(7, -6); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#3c78e8'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-6, -6); ctx.lineTo(6, -6); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#f8c838'; ctx.fillRect(-6, -8, 12, 2);
+      ctx.fillStyle = '#e8403c'; ctx.beginPath(); ctx.ellipse(0, -8, 6, 3, 0, Math.PI, 0); ctx.fill();
+      for (let i = 0; i < 4; i++) { const a = this.spin + i * Math.PI / 2; if (Math.cos(a) > 0) { ctx.fillStyle = '#fcfcfc'; ctx.fillRect(Math.round(Math.sin(a) * 5) - 1, -8, 2, 2); } }
+      ctx.fillStyle = '#b0602c'; ctx.fillRect(-1, -13, 2, 4); ctx.fillStyle = '#e8b878'; ctx.fillRect(-1, -13, 1, 3);
+      ctx.restore();
+    }
     else if (this.type === 'flasche') {
       if (!this.zap) { Sprites.draw(ctx, S.flasche, x, y, this.face < 0); return; }
       const cx = W.cam.x, cy = W.cam.y, a = Math.min(1, this.zap.t / 8); ctx.save(); ctx.globalAlpha = a; ctx.lineCap = 'round';
