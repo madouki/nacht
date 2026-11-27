@@ -9,6 +9,7 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- INHALT -->
 **Direkt zu einer Version:**
 
+- [20261127-1207](#20261127-1207--der-mann-im-mond-in-neuem-glanz) – Der Mann im Mond in neuem Glanz
 - [20261127-1154](#20261127-1154--ein-neuer-direktor-fürs-kolosseum) – Ein neuer Direktor fürs Kolosseum
 - [20261127-0949](#20261127-0949--kleine-korrektur-in-der-klötzchenburg) – Kleine Korrektur in der Klötzchenburg
 - [20261127-0440](#20261127-0440--endboss-der-klötzchenburg-feldmarschall-federkern) – Endboss der Klötzchenburg: Feldmarschall Federkern
@@ -104,6 +105,20 @@ Schnell an eine Stelle kommen: Adresse mit `?test` öffnen → Titel → Testmod
 <!-- /INHALT -->
 
 ---
+
+## 20261127-1207 – Der Mann im Mond in neuem Glanz
+
+**Neu**
+- Der Mann im Mond im Krater sieht jetzt viel plastischer aus:
+  - Er ist eine echte Mondkugel mit Kratern samt aufgeworfenem Rand, dunklen Mondmeeren und feiner Gesteinskörnung, beleuchtet von links oben.
+  - Sein Gesicht hat Relief: Brauenwülste, Augenhöhlen, eine Nase, Wangen und ein Kinn.
+  - Die Augen haben jetzt Lider und eine blaue Iris. Sie folgen dem Helden, werden müde schwer und glühen bei Neumond rot.
+  - Brauen und Mund wechseln mit seiner Laune: Er lächelt, pustet, reißt zum Käsespucken den Mund auf oder beißt wütend die Zähne zusammen.
+- Am Kampf ändert sich nichts. Halbmond und Neumond legen ihren Schatten wie bisher über das Gesicht.
+
+**Beim Testen ansehen**
+- Gefällt dir das neue Mondgesicht?
+- Erkennst du weiter gut, wann seine Augen offen und damit verwundbar sind?
 
 ## 20261127-1154 – Ein neuer Direktor fürs Kolosseum
 

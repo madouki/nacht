@@ -191,6 +191,16 @@ const Mond = (() => {
 // ---------------- DER MANN IM MOND (Zwischengegner 'mond', Krater) ----------------
 // Eine große Mondscheibe mit Gesicht schwebt über dem Kraterboden (hinter den Kacheln: beim Auftritt geht sie hinter dem
 // Kraterrand auf). Treffbar sind nur die offenen Augen; nach jedem Angriff ist er müde (Schaden ×1,5).
+// Der Mann im Mond, vorgerendert als Höhenfeld (tools/blender/mond_np.py → pack_mond.py → img/mond3d.png): Mondkugel mit Gesichtsrelief, Augen (offen,
+// müde, zu, Neumond-rot), Brauen (normal, wütend), Münder. Fehlt ein Teil, malt drawBack ihn selbst.
+const MOON3D = (() => {
+  const MOON_MAP = {"mond_base":[0,0,132,132],"mund_smile":[133,0,44,28],"mund_open":[178,0,44,28],"mund_blow":[0,133,44,28],"mund_grim":[45,133,44,28],"eye_open":[90,133,22,18],"eye_tired":[113,133,22,18],"eye_shut":[136,133,22,18],"eye_red":[159,133,22,18],"brow":[182,133,24,12],"browa":[207,133,24,12]};
+  let C = null; const img = new Image();
+  img.onload = () => { C = {}; for (const [n, r] of Object.entries(MOON_MAP)) { const c = document.createElement('canvas'); c.width = r[2]; c.height = r[3]; c.getContext('2d').drawImage(img, r[0], r[1], r[2], r[3], 0, 0, r[2], r[3]); C[n] = c; } };
+  img.src = 'img/mond3d.png?v=' + (window.BUILD || '');
+  return { get: () => C };
+})();
+
 class MannImMond extends Boss {
   constructor(ax, aw) {
     const gy = (W.room.h - 2) * T;
@@ -282,10 +292,42 @@ class MannImMond extends Boss {
     if (this.dying > 140) return;
     const cx = Math.round(this.mx - W.cam.x), cy = Math.round(this.my - W.cam.y), R = this.R, p = W.player, fl = this.flashT > 0;
     ctx.save(); ctx.globalCompositeOperation = 'lighter'; const h = ctx.createRadialGradient(cx, cy, R * 0.9, cx, cy, R * 1.7); h.addColorStop(0, `rgba(255,250,220,${(0.12 * this.lit + 0.03).toFixed(2)})`); h.addColorStop(1, 'rgba(255,240,200,0)'); ctx.fillStyle = h; ctx.fillRect(cx - R * 2, cy - R * 2, R * 4, R * 4); ctx.restore();
+    const ang = this.angry > 0.3 || this.state === 'blowWind' || this.state === 'quake', A = MOON3D.get();
+    if (A && A.mond_base) this.drawFace(ctx, A, cx, cy, ang, fl); else this.drawOld(ctx, cx, cy, ang, fl);
+    // Mondphase: Schatten über dem Gesicht (Halbmond: linke Hälfte, Neumond: fast alles, nur ein heller Rand)
+    if (this.lit < 0.98) {
+      ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, R + 1, 0, Math.PI * 2); ctx.clip();
+      const off = R * 2 * this.lit; ctx.fillStyle = 'rgba(6,6,18,0.86)'; ctx.beginPath(); ctx.arc(cx - off + R * 0.0, cy, R * 1.02, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+      if (this.phase === 2) { this.eyes().forEach(([ex, ey]) => { const x = ex - W.cam.x, y = ey - W.cam.y; ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = 'rgba(255,60,60,0.5)'; ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI * 2); ctx.fill(); ctx.restore(); if (this.lid < 0.5) { ctx.fillStyle = '#ff5c4c'; ctx.fillRect(Math.round(x) - 3, Math.round(y) - 2, 6, 4); } }); }
+    }
+    this.lastDraw = null;
+  }
+  drawFace(ctx, A, cx, cy, ang, fl) { // Ebenen aus mond3d.png: Kugel, Brauen, Augen (Pupillen gemalt, folgen dem Helden), Mund
+    const p = W.player, R = this.R;
+    ctx.drawImage(A.mond_base, cx - 66, cy - 66);
+    if (fl) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.5; ctx.drawImage(A.mond_base, cx - 66, cy - 66); ctx.restore(); }
+    for (const s of [-1, 1]) if (this.puff > 0.05) { ctx.fillStyle = `rgba(240,196,186,${(0.55 * this.puff).toFixed(2)})`; ctx.beginPath(); ctx.arc(cx + s * 30, cy + 12, 8 + this.puff * 9, 0, Math.PI * 2); ctx.fill(); } // Pustebacken
+    const bw = ang ? A.browa : A.brow;
+    if (bw) for (const s of [-1, 1]) { ctx.save(); ctx.translate(cx + s * 21.5, cy - 27 + (ang ? 1 : 0)); if (s > 0) ctx.scale(-1, 1); ctx.drawImage(bw, -12, -6); ctx.restore(); }
+    this.eyes().forEach(([ex, ey], i) => {
+      const x = Math.round(ex - W.cam.x), y = Math.round(ey - W.cam.y), shut = this.lid > 0.5 || (this.phase === 1 && i === 0), tired = !shut && this.state === 'tired';
+      const im = shut ? A.eye_shut : this.phase === 2 ? A.eye_red : tired ? A.eye_tired : A.eye_open;
+      if (im) ctx.drawImage(im, x - 11, y - 9);
+      if (shut) return;
+      const dx = clamp((p.cx - ex) * 0.03, -3, 3), dy = clamp((p.cy - ey) * 0.03, -2, 3) + (tired ? 2.5 : 0), px = x + dx, py = y + dy;
+      ctx.save(); ctx.beginPath(); ctx.ellipse(x, y + (tired ? 3 : 0), 8.6, tired ? 3.6 : 6.6, 0, 0, Math.PI * 2); ctx.clip();
+      ctx.fillStyle = this.phase === 2 ? '#fc3c3c' : '#2c5c9c'; ctx.beginPath(); ctx.arc(px, py, 3.4, 0, Math.PI * 2); ctx.fill(); // Iris
+      ctx.fillStyle = this.phase === 2 ? '#3c0408' : '#0c1424'; ctx.beginPath(); ctx.arc(px, py, 1.8, 0, Math.PI * 2); ctx.fill(); // Pupille
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(Math.round(px) - 2, Math.round(py) - 2, 1, 1); ctx.restore();
+    });
+    const m = this.state === 'blow' ? 'mund_blow' : this.mouth > 0.4 ? 'mund_open' : ang ? 'mund_grim' : 'mund_smile', mi = A[m];
+    if (mi) { const oy = m === 'mund_smile' ? 5 : 11, ox = m === 'mund_blow' ? this.dir * 4 - 3 : 0; ctx.drawImage(mi, cx - 22 + ox, cy + oy); }
+  }
+  drawOld(ctx, cx, cy, ang, fl) { // bis das Bild geladen ist: gemalte Scheibe mit Strichgesicht
+    const p = W.player, R = this.R;
     ctx.drawImage(Mond.moon(), cx - R - 2, cy - R - 2);
     if (fl) { ctx.fillStyle = 'rgba(255,255,255,0.45)'; ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fill(); }
-    // Gesicht
-    const ang = this.angry > 0.3 || this.state === 'blowWind' || this.state === 'quake';
     for (const s of [-1, 1]) { // Wangen (beim Pusten aufgebläht)
       if (this.puff > 0.05) { ctx.fillStyle = `rgba(240,200,190,${(0.6 * this.puff).toFixed(2)})`; ctx.beginPath(); ctx.arc(cx + s * 30, cy + 12, 8 + this.puff * 9, 0, Math.PI * 2); ctx.fill(); }
       ctx.strokeStyle = '#6c6860'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(cx + s * 12, cy - 26 + (ang ? 4 : 0)); ctx.lineTo(cx + s * 31, cy - 28 - (ang ? 3 : 0)); ctx.stroke(); // Brauen
@@ -303,14 +345,6 @@ class MannImMond extends Boss {
     if (this.state === 'blow') { ctx.fillStyle = '#3c2020'; ctx.beginPath(); ctx.arc(cx + this.dir * 4, cy + 24, 6, 0, Math.PI * 2); ctx.fill(); }
     else if (this.mouth > 0.4) { ctx.fillStyle = '#3c2020'; ctx.beginPath(); ctx.ellipse(cx, cy + 24, 14, 4 + this.mouth * 8, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#c84c5c'; ctx.fillRect(cx - 6, cy + 26 + this.mouth * 3, 12, 3); }
     else { ctx.beginPath(); ctx.arc(cx, cy + 10, 18, 0.25 * Math.PI + (ang ? 0.2 : 0), 0.75 * Math.PI - (ang ? 0.2 : 0)); ctx.stroke(); }
-    // Mondphase: Schatten über dem Gesicht (Halbmond: linke Hälfte, Neumond: fast alles, nur ein heller Rand)
-    if (this.lit < 0.98) {
-      ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, R + 1, 0, Math.PI * 2); ctx.clip();
-      const off = R * 2 * this.lit; ctx.fillStyle = 'rgba(6,6,18,0.86)'; ctx.beginPath(); ctx.arc(cx - off + R * 0.0, cy, R * 1.02, 0, Math.PI * 2); ctx.fill();
-      ctx.restore();
-      if (this.phase === 2) { this.eyes().forEach(([ex, ey]) => { const x = ex - W.cam.x, y = ey - W.cam.y; ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = 'rgba(255,60,60,0.5)'; ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI * 2); ctx.fill(); ctx.restore(); if (this.lid < 0.5) { ctx.fillStyle = '#ff5c4c'; ctx.fillRect(Math.round(x) - 3, Math.round(y) - 2, 6, 4); } }); }
-    }
-    this.lastDraw = null;
   }
   lightUp(L, cx, cy) { if (this.dying > 120) return; L.push({ x: this.mx - cx, y: this.my - cy, r: 110, c: this.phase === 2 ? [255, 90, 80] : [255, 248, 220], a: this.phase === 2 ? 0.25 : 0.25 * this.lit + 0.08 }); }
 }
