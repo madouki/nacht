@@ -1005,6 +1005,17 @@ const Tiles = (() => {
       const ly = m.yards[0] * T - oy + 6, lx = X + yardW(0) / 2 - 8; // Laterne an der obersten Rah
       ctx.fillStyle = '#1c1008'; ctx.fillRect(lx, ly, 5, 8);
       ctx.fillStyle = (frame >> 3) % 5 ? '#f8b800' : '#fce0a8'; ctx.fillRect(lx + 1, ly + 2, 3, 4);
+      const arena = room.mini;
+      if (arena && arena.boss === 'tentacle' && m.x >= arena.x0 && m.x <= arena.x1) {
+        const hookY = m.yards[m.yards.length - 2] * T - oy + 3;
+        if (hookY < 208 && hookY > -52) {
+          const swing = Math.round(Math.sin(frame * .024) * (1 + gust * 2));
+          const awake = W.boss && W.boss.nameKey === 'bossTentacle' && !W.boss.dying;
+          if (Tiefenauge.draw(ctx, X + swing, hookY + 29, 40, awake)) {
+            ropeLine(ctx, X, hookY, X + swing, hookY + 12, '#a78855');
+          }
+        }
+      }
     });
     if (room.wheel) { // Steuerrad auf dem Achterdeck
       const X = Math.round(room.wheel.x * T + 8) - ox, Y = room.wheel.y * T - 14 - oy, a = Math.sin(frame * 0.013) * 0.6;

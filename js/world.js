@@ -307,7 +307,7 @@ const W = {
     const c = this.checkpoint;
     if (!c || c.stage !== this.stage || c.room !== this.roomIdx) return;
     this.player.reset(c.cx, c.feet);
-    for (const e of this.ents) if (e instanceof Statue && Math.abs(e.cx - c.cx) < 4) e.active = true;
+    for (const e of this.ents) if (e instanceof Statue && e.isCurrent()) e.active = true;
     this.snapCam();
   },
 
@@ -574,7 +574,9 @@ const W = {
       this.arenaX = M.x0 * T; this.arenaW = (M.x1 - M.x0) * T;
       this.camTarget = clamp(Math.round(this.arenaX + this.arenaW / 2 - vw / 2), 0, r.w * T - vw);
       this.ents.forEach(e => { if (e.kind === 'enemy') e.dead = true; });
-      for (const e of this.ents) if (e instanceof Statue && !e.active && e.cx < this.arenaX) e.activate(true);
+      let shrine = null;
+      for (const e of this.ents) if (e instanceof Statue && e.cx < this.arenaX && (!shrine || e.cx > shrine.cx)) shrine = e;
+      if (shrine) shrine.activate();
       Audio8.stop();
     }
     if (r.arena && !this.arenaOn && p.alive && p.cx > r.w * T - vw + 40) {
@@ -949,7 +951,7 @@ const W = {
       else if (e instanceof Tome && e.open) L.push({ x, y, r: 34, c: [232, 40, 80], a: 0.5 });
       else if (e instanceof Panther) L.push({ x: x + e.face * 11, y: y - 5, r: 22, c: [210, 230, 60], a: 0.5 }); // glühende Raubtieraugen
       else if (e instanceof Chandelier) L.push({ x, y: e.y - cy - 6, r: 42 + flick(e.px), c: [248, 160, 60], a: 0.55 });
-      else if (e instanceof Statue && e.active) L.push({ x, y: y - 8, r: 30, c: [60, 188, 252], a: 0.45 });
+      else if (e instanceof Statue && e.isCurrent()) L.push({ x, y: y - 8, r: 30, c: [60, 188, 252], a: 0.45 });
       else if (e instanceof Chest && e.opened) L.push({ x, y, r: 20, c: [248, 184, 0], a: 0.4 });
       else if (e.kind === 'eproj' && e.type === 'fire') L.push({ x, y, r: 20, c: [248, 120, 0], a: 0.65 });
       else if (e.kind === 'sub' && e.type === 'holy' && e.burnT >= 0) L.push({ x, y, r: 30 + flick(1), c: [60, 188, 252], a: 0.55 });

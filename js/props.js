@@ -150,16 +150,32 @@ class Crumble extends Ent {
 
 // ---------------- Checkpoint-Statue ----------------
 class Statue extends Ent {
-  constructor(d) { super(d.x * T, (d.y + 1) * T - 30, 16, 30); this.kind = 'prop'; this.active = false; }
+  constructor(d) {
+    super(d.x * T, (d.y + 1) * T - 30, 16, 30);
+    this.kind = 'prop'; this.homeX = this.cx; this.active = this.isCurrent();
+    this.litAt = -100; this.touching = false;
+  }
+  isCurrent() {
+    const c = W.checkpoint;
+    return !!c && c.stage === W.stage && c.room === W.roomIdx &&
+      c.feet === this.y + this.h && wrapDx(c.cx - this.homeX) === 0;
+  }
   update() {
     this.t++;
     const p = W.player;
-    if (!this.active && p.alive && Phys.overlap(this, p)) this.activate(true);
+    const touching = p.alive && Phys.overlap(this, p);
+    if (touching && !this.touching) this.activate();
+    this.touching = touching;
   }
-  activate(fresh) {
-    this.active = true;
-    W.checkpoint = { stage: W.stage, room: W.roomIdx, cx: this.cx, feet: this.y + this.h };
-    if (!fresh) return;
+  activate() {
+    if (this.isCurrent()) { this.active = true; return; }
+    const fresh = !this.active;
+    this.active = true; this.litAt = this.t;
+    W.checkpoint = { stage: W.stage, room: W.roomIdx, cx: this.homeX, feet: this.y + this.h };
+    if (fresh) this.awaken();
+    else { Audio8.sfx('select', this.cx); W.popup(this.cx, this.y - 8, tr('checkpoint'), '#a4e4fc'); }
+  }
+  awaken() {
     const p = W.player;
     p.hp = Math.min(p.maxHp, p.hp + Math.round(p.maxHp * 0.375));
     Audio8.sfx('checkpoint', this.cx); Input.rumble(0.3, 0.2, 150);
@@ -168,20 +184,33 @@ class Statue extends Ent {
   }
   draw(ctx) {
     const x = Math.round(this.x - W.cam.x), y = Math.round(this.y - W.cam.y), s3 = Sprites.S.statue3d;
-    if (s3) { // 3D-Engel: unten bündig mit dem Boden, erwacht pulsieren Heiligenschein, Augen und Runen; blauer Schein dahinter
-      if (this.active) {
-        const a = 0.22 + 0.08 * Math.sin(this.t * 0.08), g = ctx.createRadialGradient(x + 8, y + 2, 0, x + 8, y + 2, 26);
-        g.addColorStop(0, `rgba(120,210,255,${a.toFixed(3)})`); g.addColorStop(1, 'rgba(120,210,255,0)');
-        ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = g; ctx.fillRect(x - 18, y - 24, 52, 52); ctx.restore();
+    const current = this.isCurrent(), mid = x + 8, floor = y + this.h;
+    if (s3) Sprites.draw(ctx, current ? s3.on[(this.t >> 4) & 1] : s3.off, x - 5, floor - 39);
+    else Sprites.draw(ctx, Sprites.S.statue[current ? 1 : 0], x, y);
+    const p = W.player, near = Math.abs(wrapDx(this.cx - p.cx)) <= 80 && Math.abs(this.y + this.h - p.feet) <= 40;
+    if (!current && !near) return;
+    const crown = y - 11, age = this.t - this.litAt;
+    ctx.save();
+    // Zwei Irrlichter steigen zum Engel auf. Der gebundene Rückkehrpunkt trägt einen geschlossenen Stern.
+    if (!current) {
+      for (let i = 0; i < 2; i++) {
+        const phase = ((this.t + i * 27) % 54) / 54, side = i ? 1 : -1;
+        ctx.globalAlpha = Math.sin(phase * Math.PI) * 0.88;
+        ctx.fillStyle = '#a4e4fc';
+        ctx.fillRect(mid + side * Math.round((1 - phase) * 13), Math.round(floor - 4 - phase * (floor - crown - 4)), 2, 2);
       }
-      Sprites.draw(ctx, this.active ? s3.on[(this.t >> 4) & 1] : s3.off, x - 5, y + this.h - 39);
-      return;
+    } else {
+      const pulse = 0.78 + 0.2 * Math.sin(this.t * 0.09);
+      ctx.globalAlpha = pulse; ctx.fillStyle = '#31546c'; ctx.fillRect(mid - 4, crown - 1, 9, 3); ctx.fillRect(mid - 1, crown - 4, 3, 9);
+      ctx.fillStyle = '#93dfef'; ctx.fillRect(mid - 3, crown, 7, 1); ctx.fillRect(mid, crown - 3, 1, 7);
+      ctx.fillStyle = '#fff5d6'; ctx.fillRect(mid - 1, crown - 1, 3, 3);
+      if (age < 36) {
+        const k = age / 36, r = 3 + 21 * k;
+        ctx.globalAlpha = (1 - k) * 0.85; ctx.strokeStyle = '#a4e4fc'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.ellipse(mid, floor - 1, r, 1.5 + 3 * k, 0, 0, Math.PI * 2); ctx.stroke();
+      }
     }
-    Sprites.draw(ctx, Sprites.S.statue[this.active ? 1 : 0], x, y);
-    if (this.active) {
-      ctx.fillStyle = (this.t >> 3) % 2 ? '#f8b800' : '#fce0a8';
-      ctx.fillRect(x + 5, y - 4, 6, 1); ctx.fillRect(x + 4, y - 3, 1, 1); ctx.fillRect(x + 11, y - 3, 1, 1); ctx.fillRect(x + 5, y - 2, 6, 1);
-    }
+    ctx.restore();
   }
 }
 
@@ -190,10 +219,7 @@ class Statue extends Ent {
 // kurz inne (Schriftzug in der Mitte).
 class Campfire extends Statue {
   constructor(d) { super(d); this.x = d.x * T - 4; this.w = 24; this.y = (d.y + 1) * T - 16; this.h = 16; }
-  activate(fresh) {
-    this.active = true;
-    W.checkpoint = { stage: W.stage, room: W.roomIdx, cx: this.cx, feet: this.y + this.h };
-    if (!fresh) return;
+  awaken() {
     const p = W.player; p.hp = p.maxHp;
     Audio8.sfx('checkpoint', this.cx); Audio8.sfx('whoosh', this.cx); Input.rumble(0.4, 0.3, 300);
     Game.rest();
