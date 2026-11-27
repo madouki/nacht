@@ -56,3 +56,9 @@ Die [Unreal-Lichtstudie](../unreal/HarbourPreview/HarbourPreview.uproject) öffn
 ## Tiefenauge des Schiffskraken
 
 `blender -b --factory-startup -P tools/blender/tiefenauge_bl.py` erzeugt das offene Bronzewappen als `tiefenauge.glb` und rendert die geschlossene und die offene Pose für das Spiel. Im Unreal-Projekt liegt die zweite Lichtstudie unter `Content/Nachtmahr/TiefenaugeStudy.umap`. Die Karte öffnen und **Play** drücken, um das Relief durch die eingerichtete Kamera zu sehen.
+
+## Schatztruhen
+
+Aus dem Projektstamm rendert `blender -b --factory-startup -P tools/blender/schatztruhen_bl.py` die fünf Deckelposen von Reisetruhe, Domschrein und Herzschrein nach `img/schatztruhen.png`. Jede Zeile gehört zu einer Truhe. Der gleiche Lauf exportiert die drei geschlossenen Modelle in `tools/blender/schatztruhen.glb`.
+
+Im [Unreal-Projekt](../unreal/HarbourPreview/HarbourPreview.uproject) zeigt die Karte `Content/Nachtmahr/SchatzkammerStudy.umap` die drei Modelle nebeneinander. **Play** wechselt auf die eingerichtete orthografische Kamera.

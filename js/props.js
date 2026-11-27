@@ -334,8 +334,32 @@ class Ambush extends Ent {
 }
 // ---------------- Schatztruhe (mit Peitsche öffnen) ----------------
 class Chest extends Ent {
-  // Trefferfläche 20 hoch (die Truhe selbst 11): auch ein Schlag im Stehen trifft, nicht nur der Duckhieb
-  constructor(d) { super(d.x * T, (d.y + 1) * T - 20, 16, 20); this.kind = 'candle'; this.loot = d.loot; this.opened = false; }
+  // Die stehende und die geduckte Waffe erreichen dasselbe Schloss.
+  constructor(d) {
+    super(d.x * T, (d.y + 1) * T - 20, 16, 20);
+    this.kind = 'candle'; this.loot = d.loot; this.opened = false;
+    this.artRow = d.loot === 'life' ? 2 : d.loot === 'big' ? 1 : 0;
+    this.openAge = 0;
+    Chest.loadArt();
+  }
+  static loadArt() {
+    if (Chest.image) return;
+    const image = Chest.image = new Image();
+    image.onload = () => {
+      if (image.naturalWidth !== 480 || image.naturalHeight !== 288) return;
+      const atlas = Sprites.canvas(160, 96);
+      const g = atlas.getContext('2d');
+      g.imageSmoothingEnabled = true;
+      g.imageSmoothingQuality = 'high';
+      g.drawImage(image, 0, 0, atlas.width, atlas.height);
+      Chest.atlas = atlas;
+    };
+    image.src = 'img/schatztruhen.png?v=' + window.BUILD;
+  }
+  update() {
+    super.update();
+    if (this.opened && this.openAge < 14) this.openAge++;
+  }
   hit() {
     if (this.opened) return;
     this.opened = true;
@@ -371,9 +395,29 @@ class Chest extends Ent {
     return (Chest.MS = [build(false), build(true)]);
   }
   draw(ctx) {
-    const sx = this.x - W.cam.x, sy = this.y + 9 - W.cam.y; // gezeichnet ab Truhenoberkante
+    if (Chest.atlas) {
+      const x = Math.round(this.cx - W.cam.x), floor = Math.round(this.y + this.h - W.cam.y);
+      let pose = 0;
+      if (this.opened) {
+        if (this.openAge < 3) pose = 1;
+        else if (this.openAge < 7) pose = 2;
+        else if (this.openAge < 14) pose = 3;
+        else pose = 4;
+      }
+      ctx.drawImage(Chest.atlas, pose * 32, this.artRow * 32, 32, 32, x - 16, floor - 29, 32, 32);
+      // Kurzes Streiflicht am Beschlag. Nach dem Öffnen bleibt die Samtmulde leer.
+      const gleam = (W.frame + Math.floor(this.x)) % 188;
+      if (!this.opened && gleam < 8) {
+        ctx.fillStyle = '#fff2c6'; ctx.fillRect(x - 2, floor - 8, 1, 1);
+        if (gleam >= 2 && gleam <= 5) {
+          ctx.fillStyle = '#ebc087'; ctx.fillRect(x - 3, floor - 8, 3, 1); ctx.fillRect(x - 2, floor - 9, 1, 3);
+        }
+      }
+      return;
+    }
+    const sx = this.x - W.cam.x, sy = this.y + 9 - W.cam.y;
     PS2.drawLocal(ctx, this.g || (this.g = {}), Chest.meshes()[this.opened ? 1 : 0], sx, sy, [-28, -34, 72, 72], this.opened ? 'o' : 'c');
-    if (this.opened && (this.t = (this.t || 0) + 1) && this.t % 9 < 4) { const [gx, gy] = PS2.projLocal(sx, sy, 8 + Math.sin(this.t * 0.37) * 5, -3, 8); ctx.fillStyle = '#fce0a8'; ctx.fillRect(Math.round(gx), Math.round(gy) - 2, 1, 1); } // Funkeln
+    if (this.opened && W.frame % 9 < 4) { const [gx, gy] = PS2.projLocal(sx, sy, 8 + Math.sin(W.frame * 0.37) * 5, -3, 8); ctx.fillStyle = '#fce0a8'; ctx.fillRect(Math.round(gx), Math.round(gy) - 2, 1, 1); }
   }
 }
 
